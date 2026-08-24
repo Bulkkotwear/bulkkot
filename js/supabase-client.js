@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://pgubjluqqqvrybvehzeh.supabase.co";
+const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NTgwMjYsImV4cCI6MjEwMzEzNDAyNn0.W0en34qVo24Rsqi2S0P-JQ_6WF41WjIU8HKmGBzX1lA";
 
 // Initialize Supabase Client
