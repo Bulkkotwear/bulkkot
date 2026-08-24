@@ -1,12 +1,17 @@
 const SUPABASE_URL = "https://pgubjluqqqvrybvehzeh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NTgwMjYsImV4cCI6MjEwMzEzNDAyNn0.W0en34qVo24Rsqi2S0P-JQ_6WF41WjIU8HKmGBzX1lA";
 
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+// Initialize Supabase Client
+const supabaseInstance = (typeof window !== 'undefined' && window.supabase) 
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
+  : null;
+
+window.supabaseClient = supabaseInstance;
 
 async function joinWaitlist(email) {
-  if (!supabase) return { success: false, error: 'Database not initialized' };
+  if (!window.supabaseClient) return { success: false, error: 'Database not initialized' };
   
-  const { data, error } = await supabase
+  const { data, error } = await window.supabaseClient
     .from('newsletter')
     .insert([{ email, source: 'homepage_waitlist' }]);
     
@@ -15,9 +20,9 @@ async function joinWaitlist(email) {
 }
 
 async function getActiveProducts(category = null) {
-  if (!supabase) return [];
+  if (!window.supabaseClient) return [];
   
-  let query = supabase
+  let query = window.supabaseClient
     .from('products')
     .select('*')
     .eq('visibility', true)
