@@ -49,7 +49,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 44px;
+      height: 46px;
       flex-shrink: 0;
     }
     .brand-logo-img { height: 100%; width: auto; object-fit: contain; }
@@ -64,17 +64,19 @@
     .action-icon:hover { opacity: 0.7; }
     .icon-sep { color: var(--border-dark); font-size: 12px; }
 
-    /* Hero Section */
-    .hero-slider-container { position: relative; min-height: 580px; overflow: hidden; background: #000; border-bottom: 1px solid var(--border-dark); }
+    /* Hero Section with Bottom Part of Sheet */
+    .hero-slider-container { position: relative; min-height: 560px; overflow: hidden; background: #000; border-bottom: 1px solid var(--border-dark); }
     .hero-slide {
-      position: absolute; inset: 0; opacity: 1; visibility: visible;
+      position: absolute; inset: 0;
       display: flex; flex-direction: column; justify-content: flex-end; padding: 32px 20px 48px;
-      background-size: cover; background-position: center top;
-      background-image: url('hero-model.png');
+      background-image: url('models-sheet.png');
+      background-size: 190%;
+      background-position: 50% 98%;
+      background-repeat: no-repeat;
     }
     .hero-slide::before {
       content: ''; position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.1) 100%);
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.15) 100%);
     }
 
     .hero-content { max-width: 100%; z-index: 2; }
@@ -102,25 +104,28 @@
     .slider-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; }
     .slider-dot.active { background: #FFFFFF; width: 16px; border-radius: 3px; }
 
-    /* Category Filter Circles (Single Sharp Border) */
+    /* Category Sprite Circles */
     .category-section { padding: 36px 16px 16px; max-width: 1000px; margin: 0 auto; }
     .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; }
     .category-card { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
     
-    .category-img-wrap {
-      width: 104px;
-      height: 104px;
+    .category-sprite-wrap {
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
-      overflow: hidden;
-      border: 1.5px solid rgba(255, 255, 255, 0.85);
-      background: #0D0D0D;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      background-image: url('models-sheet.png');
+      background-repeat: no-repeat;
+      background-size: 335% auto;
       transition: transform 0.2s, border-color 0.2s;
     }
-    .category-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .category-card:active .category-img-wrap { transform: scale(0.95); border-color: var(--accent-red); }
+    
+    /* Exact sprite coordinates for Top 3 images */
+    .sprite-tees { background-position: 97% 6%; }
+    .sprite-hoods { background-position: 50% 6%; }
+    .sprite-sweats { background-position: 3% 6%; }
+
+    .category-card:active .category-sprite-wrap { transform: scale(0.95); border-color: var(--accent-red); }
     .category-title { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; margin-top: 10px; }
 
     /* Promo Dropping Soon */
@@ -164,7 +169,7 @@
     .feature-item h4 { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px; }
     .feature-item p { color: var(--text-muted); font-size: 11px; }
 
-    /* Mobile Luxury Footer */
+    /* Footer */
     .main-footer { background: #000000; padding: 48px 16px 28px; font-size: 12px; }
     .footer-container { display: flex; flex-direction: column; gap: 32px; max-width: 1100px; margin: 0 auto; }
     .brand-desc { color: var(--text-muted); font-size: 12px; margin: 12px 0 16px; line-height: 1.5; }
@@ -204,10 +209,10 @@
       .nav-links { gap: 36px; }
       .nav-item { font-size: 12px; }
       .hero-slider-container { min-height: 620px; }
-      .hero-slide { padding: 0 48px; justify-content: center; }
+      .hero-slide { padding: 0 48px; justify-content: center; background-size: 115%; background-position: 65% 95%; }
       .hero-brand-title { font-size: 68px; }
       .category-grid { gap: 40px; }
-      .category-img-wrap { width: 170px; height: 170px; }
+      .category-sprite-wrap { width: 170px; height: 170px; }
       .promo-card { flex-direction: row; justify-content: space-between; padding: 36px 44px; }
       .waitlist-form { flex-direction: row; }
       .features-grid { grid-template-columns: repeat(4, 1fr); }
@@ -217,7 +222,7 @@
 </head>
 <body>
 
-  <!-- Announcement Bar -->
+  <!-- Top Announcement -->
   <div class="announcement-bar">
     <span>DROP 001 – DROPPING SOON</span>
     <span class="bar-sep">|</span>
@@ -281,25 +286,19 @@
     <div class="category-grid">
       <!-- TEES -->
       <div class="category-card" onclick="filterCatalog('TEES')">
-        <div class="category-img-wrap">
-          <img src="cat-tees.png" alt="TEES">
-        </div>
+        <div class="category-sprite-wrap sprite-tees"></div>
         <span class="category-title">TEES</span>
       </div>
 
       <!-- HOODS -->
       <div class="category-card" onclick="filterCatalog('HOODS')">
-        <div class="category-img-wrap">
-          <img src="cat-hoods.png" alt="HOODS">
-        </div>
+        <div class="category-sprite-wrap sprite-hoods"></div>
         <span class="category-title">HOODS</span>
       </div>
 
       <!-- SWEATS -->
       <div class="category-card" onclick="filterCatalog('SWEATS')">
-        <div class="category-img-wrap">
-          <img src="cat-sweats.png" alt="SWEATS">
-        </div>
+        <div class="category-sprite-wrap sprite-sweats"></div>
         <span class="category-title">SWEATS</span>
       </div>
     </div>
