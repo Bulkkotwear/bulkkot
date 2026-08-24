@@ -33,52 +33,54 @@
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.1em;
-      padding: 8px 12px;
+      padding: 9px 16px;
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
     .bar-sep { opacity: 0.6; }
 
     /* Header */
     .main-header { background: #000000; border-bottom: 1px solid var(--border-dark); position: sticky; top: 0; z-index: 100; width: 100%; }
-    .header-container { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .header-container { padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
     
     .brand-logo-wrap {
-      border: 1.5px solid #FFFFFF;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #000;
+      height: 48px;
       flex-shrink: 0;
     }
-    .badge-fallback { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-    .badge-kr { font-family: var(--font-kr); font-size: 9px; font-weight: 700; line-height: 1; }
-    .badge-en { font-family: var(--font-heading); font-size: 5.5px; font-weight: 900; letter-spacing: 0.04em; }
+    .brand-logo-img { height: 100%; width: auto; object-fit: contain; }
 
-    .nav-links { display: flex; gap: 16px; }
-    .nav-item { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: #FFFFFF; position: relative; padding-bottom: 2px; }
+    .nav-links { display: flex; gap: 18px; }
+    .nav-item { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); position: relative; padding-bottom: 2px; transition: color 0.2s; cursor: pointer; }
+    .nav-item.active, .nav-item:hover { color: #FFF; }
     .nav-item.active::after { content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 2px; background-color: var(--accent-red); }
 
-    .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    .action-icon { color: #FFFFFF; display: flex; align-items: center; }
+    .header-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .action-icon { color: #FFFFFF; display: flex; align-items: center; transition: opacity 0.2s; }
+    .action-icon:hover { opacity: 0.7; }
     .icon-sep { color: var(--border-dark); font-size: 12px; }
 
-    /* Mobile Hero Section */
-    .hero-section {
-      position: relative;
-      min-height: 520px;
-      background: linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%),
-                  url('https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=1200&q=85') center top / cover no-repeat;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 32px 20px 48px;
+    /* Hero Carousel */
+    .hero-slider-container { position: relative; min-height: 560px; overflow: hidden; background: #000; border-bottom: 1px solid var(--border-dark); }
+    .hero-slide {
+      position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity 0.6s ease, visibility 0.6s;
+      display: flex; flex-direction: column; justify-content: flex-end; padding: 32px 20px 48px;
+      background-size: cover; background-position: center right;
     }
+    .hero-slide.active { opacity: 1; visibility: visible; }
+    .hero-slide::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.15) 100%);
+    }
+
+    .slide-1 { background-image: url('https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=1200&q=85'); }
+    .slide-2 { background-image: url('https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=1200&q=85'); }
+    .slide-3 { background-image: url('https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85'); }
+
     .hero-content { max-width: 100%; z-index: 2; }
     .hero-kr-accent { color: var(--accent-red); font-family: var(--font-kr); font-size: 26px; font-weight: 900; display: block; margin-bottom: 2px; }
     .hero-brand-title { font-family: var(--font-heading); font-size: 52px; font-weight: 900; letter-spacing: -0.02em; line-height: 0.95; }
@@ -100,14 +102,14 @@
       border-radius: 2px;
     }
 
-    .hero-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
-    .dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.3); }
-    .dot.active { background: #FFFFFF; width: 14px; border-radius: 3px; }
+    .hero-slider-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 5; }
+    .slider-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; border: none; }
+    .slider-dot.active { background: #FFFFFF; width: 16px; border-radius: 3px; }
 
-    /* Category Section - 3 in 1 Row Mobile */
+    /* Category Filter Circles (Mobile 3-in-Row) */
     .category-section { padding: 36px 16px 16px; max-width: 1000px; margin: 0 auto; }
     .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; }
-    .category-card { display: flex; flex-direction: column; align-items: center; }
+    .category-card { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
     .category-img-wrap {
       width: 96px;
       height: 96px;
@@ -115,8 +117,10 @@
       overflow: hidden;
       border: 1.5px solid rgba(255, 255, 255, 0.85);
       background: #111;
+      transition: transform 0.2s, border-color 0.2s;
     }
     .category-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .category-card:active .category-img-wrap { transform: scale(0.95); border-color: var(--accent-red); }
     .category-title { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; margin-top: 10px; }
 
     /* Promo Dropping Soon */
@@ -127,11 +131,11 @@
     .promo-left p { color: var(--text-muted); font-size: 12px; }
     .promo-link { color: var(--accent-red); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; display: inline-flex; align-items: center; gap: 6px; }
 
-    /* Recent Products Container */
+    /* Dynamic Recent Products */
     .recent-products-section { padding: 24px 16px; max-width: 1100px; margin: 0 auto; }
     .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .section-head h2 { font-family: var(--font-heading); font-size: 14px; font-weight: 800; letter-spacing: 0.06em; }
-    .view-all { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 4px; }
+    .view-all { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
     
     .coming-soon-box { background: #EDEDED; color: #000000; border-radius: 8px; padding: 40px 16px; text-align: center; }
     .box-icon { color: #111; margin-bottom: 8px; }
@@ -153,14 +157,14 @@
     .btn-waitlist { background: #FFF; color: #000; border: none; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; padding: 14px; cursor: pointer; border-radius: 3px; }
     .waitlist-status { font-size: 11px; margin-top: 10px; min-height: 16px; }
 
-    /* Features 2x2 on Mobile */
+    /* Features Strip */
     .features-section { border-top: 1px solid var(--border-dark); border-bottom: 1px solid var(--border-dark); padding: 36px 16px; margin-top: 40px; }
     .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 16px; text-align: center; max-width: 1100px; margin: 0 auto; }
     .feature-icon { margin-bottom: 8px; color: #FFF; }
     .feature-item h4 { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px; }
     .feature-item p { color: var(--text-muted); font-size: 11px; }
 
-    /* Mobile Structured Footer */
+    /* Footer */
     .main-footer { background: #000000; padding: 48px 16px 28px; font-size: 12px; }
     .footer-container { display: flex; flex-direction: column; gap: 32px; max-width: 1100px; margin: 0 auto; }
     .brand-desc { color: var(--text-muted); font-size: 12px; margin: 12px 0 16px; line-height: 1.5; }
@@ -169,22 +173,38 @@
 
     .col-title { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 12px; color: #FFF; }
     .col-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .col-links a { color: var(--text-muted); font-size: 12px; }
+    .col-links a { color: var(--text-muted); font-size: 12px; cursor: pointer; }
+    .col-links a:hover { color: #FFF; }
 
     .contact-type { display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 2px; }
     .contact-val { color: #FFF; font-size: 12px; }
 
     .footer-bottom { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--border-dark); text-align: center; color: var(--text-muted); font-size: 11px; }
 
+    /* Modal Viewer */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+    }
+    .modal-content {
+      background: #0E0E0E; border: 1px solid var(--border-dark); border-radius: 8px;
+      max-width: 500px; width: 100%; padding: 28px 24px; position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px; background: none; border: none;
+      color: var(--text-muted); font-size: 20px; cursor: pointer;
+    }
+    .modal-title { font-family: var(--font-heading); font-size: 18px; font-weight: 900; margin-bottom: 14px; }
+    .modal-body { color: var(--text-muted); font-size: 13px; line-height: 1.6; max-height: 60vh; overflow-y: auto; }
+
     /* Desktop Adjustments */
     @media (min-width: 768px) {
       .header-container { padding: 14px 28px; }
-      .brand-logo-wrap { width: 54px; height: 54px; }
-      .badge-kr { font-size: 11px; }
-      .badge-en { font-size: 6.5px; }
+      .brand-logo-wrap { height: 56px; }
       .nav-links { gap: 36px; }
       .nav-item { font-size: 12px; }
-      .hero-section { min-height: 600px; padding: 0 48px; background-position: center right; }
+      .hero-slider-container { min-height: 620px; }
+      .hero-slide { padding: 0 48px; justify-content: center; }
       .hero-brand-title { font-size: 68px; }
       .category-grid { gap: 40px; }
       .category-img-wrap { width: 170px; height: 170px; }
@@ -208,22 +228,19 @@
   <header class="main-header">
     <div class="header-container">
       <a href="index.html" class="brand-logo-wrap" title="BULKKOT Home">
-        <div class="badge-fallback">
-          <span class="badge-kr">불꽃</span>
-          <span class="badge-en">BULKKOT</span>
-        </div>
+        <img src="logo.png" alt="BULKKOT Official Logo" class="brand-logo-img">
       </a>
 
       <nav class="nav-links">
         <a href="#home" class="nav-item active">HOME</a>
         <a href="#shop" class="nav-item">SHOP</a>
         <a href="#collections" class="nav-item">COLLECTIONS</a>
-        <a href="#about" class="nav-item">ABOUT</a>
+        <a class="nav-item" onclick="openModal('about')">ABOUT</a>
       </nav>
 
       <div class="header-actions">
-        <!-- Direct Mobile IG Badge -->
-        <a href="https://instagram.com/bulkkot.wear" target="_blank" rel="noopener" title="Instagram" class="action-icon">
+        <!-- Instagram Link -->
+        <a href="https://instagram.com/bulkkot.wear" target="_blank" rel="noopener" title="Instagram @bulkkot.wear" class="action-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
         </a>
         <div class="icon-sep">|</div>
@@ -233,38 +250,57 @@
         </a>
         <div class="icon-sep">|</div>
         <!-- Shopping Bag -->
-        <a href="#cart" title="Shopping Bag" class="action-icon">
+        <a href="#cart" title="Shopping Bag" class="action-icon" onclick="openModal('cart')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
         </a>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero-section" id="home">
-    <div class="hero-content">
-      <span class="hero-kr-accent">불꽃</span>
-      <h1 class="hero-brand-title">BULKKOT</h1>
-      <p class="hero-subhead">PREMIUM EVERYDAY WEAR</p>
-      <p class="hero-desc">Korean-inspired essentials for a new generation.</p>
-      
-      <a href="#collections" class="btn-hero">
-        EXPLORE DROP 001 <span>→</span>
-      </a>
+  <!-- Hero Carousel -->
+  <div class="hero-slider-container" id="home">
+    <div class="hero-slide slide-1 active">
+      <div class="hero-content">
+        <span class="hero-kr-accent">불꽃</span>
+        <h1 class="hero-brand-title">BULKKOT</h1>
+        <p class="hero-subhead">PREMIUM EVERYDAY WEAR</p>
+        <p class="hero-desc">Korean-inspired essentials for a new generation.</p>
+        <a href="#collections" class="btn-hero">EXPLORE DROP 001 <span>→</span></a>
+      </div>
     </div>
-    
-    <div class="hero-dots">
-      <span class="dot active"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-    </div>
-  </section>
 
-  <!-- Categories (Mobile 3-in-a-Row) -->
+    <div class="hero-slide slide-2">
+      <div class="hero-content">
+        <span class="hero-kr-accent">불꽃</span>
+        <h1 class="hero-brand-title">HEAVYWEIGHT</h1>
+        <p class="hero-subhead">OVERSIZED LUXURY CUT</p>
+        <p class="hero-desc">280 GSM French Terry and structured combed cotton.</p>
+        <a href="#shop" class="btn-hero">VIEW ESSENTIALS <span>→</span></a>
+      </div>
+    </div>
+
+    <div class="hero-slide slide-3">
+      <div class="hero-content">
+        <span class="hero-kr-accent">불꽃</span>
+        <h1 class="hero-brand-title">DROP 001</h1>
+        <p class="hero-subhead">LIMITED EDITION CAPSULE</p>
+        <p class="hero-desc">Zero mass production. Individually numbered releases.</p>
+        <a href="#waitlist" class="btn-hero">JOIN VIP WAITLIST <span>→</span></a>
+      </div>
+    </div>
+
+    <div class="hero-slider-dots">
+      <button class="slider-dot active" onclick="setSlide(0)"></button>
+      <button class="slider-dot" onclick="setSlide(1)"></button>
+      <button class="slider-dot" onclick="setSlide(2)"></button>
+    </div>
+  </div>
+
+  <!-- Category Section -->
   <section class="category-section" id="shop">
     <div class="category-grid">
       <!-- TEES -->
-      <div class="category-card">
+      <div class="category-card" onclick="filterCatalog('TEES')">
         <div class="category-img-wrap">
           <img src="https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=400&q=80" alt="TEES">
         </div>
@@ -272,24 +308,24 @@
       </div>
 
       <!-- HOODS -->
-      <div class="category-card">
+      <div class="category-card" onclick="filterCatalog('HOODS')">
         <div class="category-img-wrap">
-          <img src="https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=400&q=80" alt="HOODS">
+          <img src="https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=400&q=80" alt="HOODS">
         </div>
         <span class="category-title">HOODS</span>
       </div>
 
       <!-- SWEATS -->
-      <div class="category-card">
+      <div class="category-card" onclick="filterCatalog('SWEATS')">
         <div class="category-img-wrap">
-          <img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80" alt="SWEATS">
+          <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=400&q=80" alt="SWEATS">
         </div>
         <span class="category-title">SWEATS</span>
       </div>
     </div>
   </section>
 
-  <!-- Promo Dropping Soon -->
+  <!-- Promo Banner -->
   <section class="promo-section" id="collections">
     <div class="promo-card">
       <div class="promo-left">
@@ -306,8 +342,8 @@
   <!-- Dynamic Product Display -->
   <section class="recent-products-section">
     <div class="section-head">
-      <h2>RECENT PRODUCTS</h2>
-      <a href="#shop" class="view-all">VIEW ALL <span>→</span></a>
+      <h2 id="recent-heading">RECENT PRODUCTS</h2>
+      <a href="#shop" class="view-all" onclick="filterCatalog(null)">VIEW ALL <span>→</span></a>
     </div>
 
     <div class="coming-soon-box" id="products-dynamic-container">
@@ -333,7 +369,7 @@
     </div>
   </section>
 
-  <!-- Features (2x2 Grid on Mobile) -->
+  <!-- Features Strip -->
   <section class="features-section" id="about">
     <div class="features-grid">
       <div class="feature-item">
@@ -370,15 +406,12 @@
     </div>
   </section>
 
-  <!-- Mobile Footer -->
+  <!-- Mobile Luxury Footer -->
   <footer class="main-footer">
     <div class="footer-container">
       <div class="footer-col brand-col">
-        <a href="index.html" class="brand-logo-wrap" style="width: 44px; height: 44px;">
-          <div class="badge-fallback">
-            <span class="badge-kr" style="font-size: 9px;">불꽃</span>
-            <span class="badge-en" style="font-size: 5.5px;">BULKKOT</span>
-          </div>
+        <a href="index.html" class="brand-logo-wrap" style="height: 48px; justify-content: flex-start;">
+          <img src="logo.png" alt="BULKKOT" class="brand-logo-img">
         </a>
         <p class="brand-desc">Korean-inspired premium everyday wear for the new generation.</p>
         
@@ -394,10 +427,10 @@
       <div class="footer-col">
         <h5 class="col-title">SHOP</h5>
         <ul class="col-links">
-          <li><a href="#shop">All Products</a></li>
-          <li><a href="#shop">Tees</a></li>
-          <li><a href="#shop">Hoods</a></li>
-          <li><a href="#shop">Sweats</a></li>
+          <li><a onclick="filterCatalog(null)">All Products</a></li>
+          <li><a onclick="filterCatalog('TEES')">Tees</a></li>
+          <li><a onclick="filterCatalog('HOODS')">Hoods</a></li>
+          <li><a onclick="filterCatalog('SWEATS')">Sweats</a></li>
           <li><a href="#collections">Collections</a></li>
         </ul>
       </div>
@@ -405,11 +438,11 @@
       <div class="footer-col">
         <h5 class="col-title">INFO</h5>
         <ul class="col-links">
-          <li><a href="#about">About Us</a></li>
-          <li><a href="#size-guide">Size Guide</a></li>
-          <li><a href="#faq">FAQ</a></li>
-          <li><a href="#shipping">Shipping</a></li>
-          <li><a href="#returns">Returns</a></li>
+          <li><a onclick="openModal('about')">About Us</a></li>
+          <li><a onclick="openModal('size-guide')">Size Guide</a></li>
+          <li><a onclick="openModal('faq')">FAQ</a></li>
+          <li><a onclick="openModal('shipping')">Shipping</a></li>
+          <li><a onclick="openModal('returns')">Returns</a></li>
         </ul>
       </div>
 
@@ -431,7 +464,80 @@
     </div>
   </footer>
 
+  <!-- Detail Information Modal -->
+  <div class="modal-overlay" id="info-modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      <h3 class="modal-title" id="modal-heading">BULKKOT INFO</h3>
+      <div class="modal-body" id="modal-content"></div>
+    </div>
+  </div>
+
   <script src="js/supabase-client.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    // Hero Slider Logic
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.slider-dot');
+
+    function setSlide(idx) {
+      slides[currentSlide].classList.remove('active');
+      dots[currentSlide].classList.remove('active');
+      currentSlide = idx;
+      slides[currentSlide].classList.add('active');
+      dots[currentSlide].classList.add('active');
+    }
+
+    setInterval(() => {
+      let next = (currentSlide + 1) % slides.length;
+      setSlide(next);
+    }, 5000);
+
+    // Modal Content Logic
+    const infoData = {
+      'about': {
+        title: 'ABOUT BULKKOT (불꽃)',
+        body: '<p>BULKKOT represents the spirit of fiery passion and refined Korean streetwear culture. Born out of minimalist aesthetics and modern Seoul fashion, every piece is custom designed with heavyweight fabrics and boxy oversized silhouettes.</p>'
+      },
+      'size-guide': {
+        title: 'OVERSIZED SIZE GUIDE',
+        body: '<p><strong>S:</strong> Chest 42" | Length 28"<br><strong>M:</strong> Chest 44" | Length 29"<br><strong>L:</strong> Chest 46" | Length 30"<br><strong>XL:</strong> Chest 48" | Length 31"<br><br>All garments feature an oversized drop-shoulder cut. If you prefer a regular fitted look, order one size down.</p>'
+      },
+      'faq': {
+        title: 'FREQUENTLY ASKED QUESTIONS',
+        body: '<p><strong>When is DROP 001 releasing?</strong><br>Registered waitlist members will receive private launch links via email 1 hour prior to official launch.<br><br><strong>What fabrics are used?</strong><br>Our tees use 240-280 GSM premium combed cotton, and hoodies are constructed from 400 GSM custom French Terry.</p>'
+      },
+      'shipping': {
+        title: 'SHIPPING POLICY',
+        body: '<p>Free standard express shipping is offered across India on all pre-orders and drop collection purchases. Domestic deliveries take 3-5 business days once dispatched.</p>'
+      },
+      'returns': {
+        title: 'EXCHANGES & RETURNS',
+        body: '<p>Due to the exclusive nature of limited drops, items can be exchanged for alternate sizing within 7 days of delivery, provided original tags and unwashed conditions are met.</p>'
+      },
+      'cart': {
+        title: 'SHOPPING BAG',
+        body: '<p>Your bag is currently empty. DROP 001 is releasing shortly. Join the waitlist below to gain early reservation access.</p>'
+      }
+    };
+
+    function openModal(key) {
+      const data = infoData[key];
+      if (data) {
+        document.getElementById('modal-heading').textContent = data.title;
+        document.getElementById('modal-content').innerHTML = data.body;
+        document.getElementById('info-modal').style.display = 'flex';
+      }
+    }
+
+    function closeModalDirect() {
+      document.getElementById('info-modal').style.display = 'none';
+    }
+
+    function closeModal(e) {
+      if (e.target.id === 'info-modal') closeModalDirect();
+    }
+  </script>
 </body>
 </html>
