@@ -64,23 +64,18 @@
     .action-icon:hover { opacity: 0.7; }
     .icon-sep { color: var(--border-dark); font-size: 12px; }
 
-    /* Hero Carousel */
+    /* Hero Section with exact model image */
     .hero-slider-container { position: relative; min-height: 560px; overflow: hidden; background: #000; border-bottom: 1px solid var(--border-dark); }
     .hero-slide {
-      position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity 0.6s ease, visibility 0.6s;
+      position: absolute; inset: 0; opacity: 1; visibility: visible;
       display: flex; flex-direction: column; justify-content: flex-end; padding: 32px 20px 48px;
       background-size: cover; background-position: center right;
+      background-image: url('hero-model.png');
     }
-    .hero-slide.active { opacity: 1; visibility: visible; }
     .hero-slide::before {
       content: ''; position: absolute; inset: 0;
       background: linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.15) 100%);
     }
-
-    /* Exact Korean Editorial Models */
-    .slide-1 { background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=85'); }
-    .slide-2 { background-image: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=1200&q=85'); }
-    .slide-3 { background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&q=85'); }
 
     .hero-content { max-width: 100%; z-index: 2; }
     .hero-kr-accent { color: var(--accent-red); font-family: var(--font-kr); font-size: 26px; font-weight: 900; display: block; margin-bottom: 2px; }
@@ -104,10 +99,10 @@
     }
 
     .hero-slider-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 5; }
-    .slider-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; border: none; }
+    .slider-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; }
     .slider-dot.active { background: #FFFFFF; width: 16px; border-radius: 3px; }
 
-    /* Category Filter Circles (Mobile 3-in-Row) */
+    /* Category Filter Circles */
     .category-section { padding: 36px 16px 16px; max-width: 1000px; margin: 0 auto; }
     .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; }
     .category-card { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
@@ -165,7 +160,7 @@
     .feature-item h4 { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px; }
     .feature-item p { color: var(--text-muted); font-size: 11px; }
 
-    /* Footer */
+    /* Mobile Luxury Footer */
     .main-footer { background: #000000; padding: 48px 16px 28px; font-size: 12px; }
     .footer-container { display: flex; flex-direction: column; gap: 32px; max-width: 1100px; margin: 0 auto; }
     .brand-desc { color: var(--text-muted); font-size: 12px; margin: 12px 0 16px; line-height: 1.5; }
@@ -258,9 +253,9 @@
     </div>
   </header>
 
-  <!-- Hero Carousel -->
+  <!-- Hero Section -->
   <div class="hero-slider-container" id="home">
-    <div class="hero-slide slide-1 active">
+    <div class="hero-slide">
       <div class="hero-content">
         <span class="hero-kr-accent">불꽃</span>
         <h1 class="hero-brand-title">BULKKOT</h1>
@@ -270,40 +265,20 @@
       </div>
     </div>
 
-    <div class="hero-slide slide-2">
-      <div class="hero-content">
-        <span class="hero-kr-accent">불꽃</span>
-        <h1 class="hero-brand-title">HEAVYWEIGHT</h1>
-        <p class="hero-subhead">OVERSIZED LUXURY CUT</p>
-        <p class="hero-desc">280 GSM French Terry and structured combed cotton.</p>
-        <a href="#shop" class="btn-hero">VIEW ESSENTIALS <span>→</span></a>
-      </div>
-    </div>
-
-    <div class="hero-slide slide-3">
-      <div class="hero-content">
-        <span class="hero-kr-accent">불꽃</span>
-        <h1 class="hero-brand-title">DROP 001</h1>
-        <p class="hero-subhead">LIMITED EDITION CAPSULE</p>
-        <p class="hero-desc">Zero mass production. Individually numbered releases.</p>
-        <a href="#waitlist" class="btn-hero">JOIN VIP WAITLIST <span>→</span></a>
-      </div>
-    </div>
-
     <div class="hero-slider-dots">
-      <button class="slider-dot active" onclick="setSlide(0)"></button>
-      <button class="slider-dot" onclick="setSlide(1)"></button>
-      <button class="slider-dot" onclick="setSlide(2)"></button>
+      <button class="slider-dot active"></button>
+      <button class="slider-dot"></button>
+      <button class="slider-dot"></button>
     </div>
   </div>
 
-  <!-- Category Section (Exact Korean Male Model Imagery) -->
+  <!-- Category Section (Exact Provided Images) -->
   <section class="category-section" id="shop">
     <div class="category-grid">
       <!-- TEES -->
       <div class="category-card" onclick="filterCatalog('TEES')">
         <div class="category-img-wrap">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="TEES">
+          <img src="cat-tees.png" alt="TEES">
         </div>
         <span class="category-title">TEES</span>
       </div>
@@ -311,7 +286,7 @@
       <!-- HOODS -->
       <div class="category-card" onclick="filterCatalog('HOODS')">
         <div class="category-img-wrap">
-          <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" alt="HOODS">
+          <img src="cat-hoods.png" alt="HOODS">
         </div>
         <span class="category-title">HOODS</span>
       </div>
@@ -319,7 +294,7 @@
       <!-- SWEATS -->
       <div class="category-card" onclick="filterCatalog('SWEATS')">
         <div class="category-img-wrap">
-          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" alt="SWEATS">
+          <img src="cat-sweats.png" alt="SWEATS">
         </div>
         <span class="category-title">SWEATS</span>
       </div>
@@ -477,24 +452,6 @@
   <script src="js/supabase-client.js"></script>
   <script src="js/main.js"></script>
   <script>
-    // Hero Slider Logic
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.hero-slide');
-    const dots = document.querySelectorAll('.slider-dot');
-
-    function setSlide(idx) {
-      slides[currentSlide].classList.remove('active');
-      dots[currentSlide].classList.remove('active');
-      currentSlide = idx;
-      slides[currentSlide].classList.add('active');
-      dots[currentSlide].classList.add('active');
-    }
-
-    setInterval(() => {
-      let next = (currentSlide + 1) % slides.length;
-      setSlide(next);
-    }, 5000);
-
     // Modal Content Logic
     const infoData = {
       'about': {
