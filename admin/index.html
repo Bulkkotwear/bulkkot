@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BULKKOT Admin Management</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .admin-container { max-width: 1000px; margin: 60px auto; padding: 0 24px; }
+    .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .form-group label { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; }
+    .form-group input, .form-group select, .form-group textarea {
+      background: #121212; border: 1px solid var(--border-dark); padding: 12px; color: #FFF; font-family: var(--font-body);
+    }
+    .admin-table { width: 100%; border-collapse: collapse; margin-top: 32px; font-size: 14px; }
+    .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid var(--border-dark); text-align: left; }
+  </style>
+</head>
+<body style="background: #080808;">
+
+  <div class="admin-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark); padding-bottom: 24px;">
+      <h1><span class="kr-text">불꽃</span> BULKKOT ADMIN</h1>
+      <div id="auth-status-bar">Checking credentials...</div>
+    </div>
+
+    <!-- Login Area -->
+    <div id="login-section" style="margin-top: 48px; max-width: 400px;">
+      <h3 style="margin-bottom: 16px;">Owner Login</h3>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Restricted to bulkkotwear@gmail.com</p>
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="admin-email" value="bulkkotwear@gmail.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="admin-password" required>
+        </div>
+        <button type="submit" class="btn-primary" style="background: #FFF; color: #000; width: 100%;">AUTHENTICATE</button>
+      </form>
+    </div>
+
+    <!-- Dashboard Content Area -->
+    <div id="dashboard-section" style="display: none; margin-top: 48px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Product Catalog</h2>
+        <button id="logout-btn" style="color: var(--accent-red); font-size: 12px; font-weight: 700;">LOGOUT</button>
+      </div>
+
+      <form id="add-product-form" style="margin-top: 32px; background: #0F0F0F; padding: 24px; border: 1px solid var(--border-dark);">
+        <h3 style="margin-bottom: 20px; font-size: 16px;">Add New Inventory</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="p-name" placeholder="Heavyweight Boxy Tee" required>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="p-category" required>
+              <option value="TEES">TEES</option>
+              <option value="HOODS">HOODS</option>
+              <option value="SWEATS">SWEATS</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="number" id="p-price" step="0.01" placeholder="1899" required>
+          </div>
+          <div class="form-group">
+            <label>SKU</label>
+            <input type="text" id="p-sku" placeholder="BLK-TEE-001" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Image Upload</label>
+          <input type="file" id="p-image-file" accept="image/*">
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 12px;">PUBLISH PRODUCT</button>
+      </form>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Visibility</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="admin-products-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../js/supabase-client.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>
