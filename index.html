@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BULKKOT (불꽃) | Premium Korean-Inspired Everyday Wear</title>
+  <meta name="description" content="Korean-inspired premium everyday wear for Indian youth. Clean, minimal, luxury streetwear.">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement-bar">
+    <span>DROP 001</span> DROPPING SOON — LIMITED PIECES
+  </div>
+
+  <!-- HEADER -->
+  <header class="header-wrapper">
+    <nav class="nav-container">
+      <div class="logo-area">
+        <a href="index.html" class="brand-logo-text">
+          <span class="kr-text">불꽃</span> BULKKOT
+        </a>
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">HOME</a></li>
+        <li><a href="shop.html">SHOP</a></li>
+        <li><a href="collections.html">COLLECTIONS</a></li>
+        <li><a href="about.html">ABOUT</a></li>
+        <li><a href="journal.html">JOURNAL</a></li>
+        <li><a href="contact.html">CONTACT</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="account.html" class="nav-icon-btn">ACCOUNT</a>
+        <a href="wishlist.html" class="nav-icon-btn">WISHLIST <span class="badge-count">0</span></a>
+        <a href="cart.html" class="nav-icon-btn">CART <span class="badge-count">0</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero-section">
+    <div class="hero-bg-container">
+      <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=80" alt="BULKKOT Editorial" class="hero-bg-img">
+      <div class="hero-gradient-overlay"></div>
+    </div>
+    
+    <div class="hero-content">
+      <div class="hero-text-box">
+        <div class="hero-tagline"><span class="kr-text">불꽃</span> BULKKOT</div>
+        <h1 class="hero-title">PREMIUM EVERYDAY WEAR</h1>
+        <p class="hero-desc">Korean-inspired essentials for a new generation. Structured minimal fits engineered for everyday confidence.</p>
+        <a href="#drop-001" class="btn-primary">EXPLORE DROP 001 &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY SECTION -->
+  <section class="categories-section">
+    <div class="category-grid">
+      <a href="shop.html?category=TEES" class="category-card">
+        <img src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80" alt="BULKKOT Tees">
+        <div class="category-meta">
+          <div class="category-name">TEES</div>
+          <div class="category-sub">티셔츠 — Minimal Boxy Cuts</div>
+        </div>
+      </a>
+
+      <a href="shop.html?category=HOODS" class="category-card">
+        <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80" alt="BULKKOT Hoods">
+        <div class="category-meta">
+          <div class="category-name">HOODS</div>
+          <div class="category-sub">후드 — Heavyweight Structure</div>
+        </div>
+      </a>
+
+      <a href="shop.html?category=SWEATS" class="category-card">
+        <img src="https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=800&q=80" alt="BULKKOT Sweats">
+        <div class="category-meta">
+          <div class="category-name">SWEATS</div>
+          <div class="category-sub">스웨트셔츠 — Everyday Comfort</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- DROP 001 SECTION -->
+  <section class="drop-banner" id="drop-001">
+    <div class="drop-banner-content">
+      <div>
+        <div style="color: var(--accent-red); font-size: 12px; font-weight: 700; letter-spacing: 0.15em;">DROP 001</div>
+        <h2 style="font-size: 32px; margin-top: 4px;">COMING SOON</h2>
+        <p style="color: var(--text-muted); font-size: 14px; margin-top: 6px;">First collection. Limited pieces.</p>
+      </div>
+      <a href="#waitlist" class="btn-primary">NOTIFY ME &rarr;</a>
+    </div>
+  </section>
+
+  <!-- RECENT PRODUCTS -->
+  <section class="products-section">
+    <div class="section-head">
+      <div>
+        <h2 style="font-size: 24px;">COLLECTION FEED</h2>
+      </div>
+      <a href="shop.html" style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em;">VIEW ALL &rarr;</a>
+    </div>
+    
+    <div id="products-dynamic-container">
+      <div class="empty-state-box">
+        <h3 style="font-size: 18px; margin-bottom: 8px;">DROP 001 COMING SOON</h3>
+        <p style="color: var(--text-muted); font-size: 14px;">Stay tuned for our first collection drop.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRAND VALUES -->
+  <section class="values-strip">
+    <div class="values-grid">
+      <div class="value-item">
+        <h4>PREMIUM QUALITY</h4>
+        <p>Carefully selected materials and heavyweight construction.</p>
+      </div>
+      <div class="value-item">
+        <h4>OVERSIZED FIT</h4>
+        <p>Engineered modern silhouettes designed for everyday comfort.</p>
+      </div>
+      <div class="value-item">
+        <h4>LIMITED DROPS</h4>
+        <p>Focused seasonal collections produced in limited numbers.</p>
+      </div>
+      <div class="value-item">
+        <h4>SECURE CHECKOUT</h4>
+        <p>100% verified and encrypted customer experience.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER / WAITLIST -->
+  <section class="waitlist-section" id="waitlist">
+    <span class="kr-text" style="font-size: 12px;">불꽃 VIP ACCESS</span>
+    <h2 style="font-size: 28px; margin-top: 8px;">JOIN THE DROP</h2>
+    <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">Be the first to know when DROP 001 launches.</p>
+    
+    <form class="waitlist-form" id="newsletter-form">
+      <input type="email" id="waitlist-email" class="waitlist-input" placeholder="Enter your email address" required>
+      <button type="submit" class="btn-primary" style="background: var(--text-white); color: var(--bg-black);">JOIN WAITLIST</button>
+    </form>
+    <div id="waitlist-status" style="margin-top: 12px; font-size: 13px;"></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a href="index.html" class="brand-logo-text"><span class="kr-text">불꽃</span> BULKKOT</a>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 16px; line-height: 1.6; max-width: 320px;">
+          Korean-inspired premium everyday wear for a new generation. Clean, modern silhouettes at an accessible price.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h5>SHOP</h5>
+        <ul>
+          <li><a href="shop.html">All Products</a></li>
+          <li><a href="shop.html?category=TEES">Tees</a></li>
+          <li><a href="shop.html?category=HOODS">Hoods</a></li>
+          <li><a href="shop.html?category=SWEATS">Sweats</a></li>
+          <li><a href="collections.html">Collections</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>INFO</h5>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="shipping.html">Shipping Details</a></li>
+          <li><a href="returns.html">Returns Policy</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>CONTACT</h5>
+        <ul>
+          <li><a href="mailto:bulkkotwear@gmail.com">bulkkotwear@gmail.com</a></li>
+          <li><a href="https://instagram.com/bulkkot.wear" target="_blank" rel="noopener">@bulkkot.wear</a></li>
+          <li style="color: var(--text-muted); font-size: 12px; margin-top: 16px;">NEW DELHI, INDIA</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>&copy; 2026 BULKKOT (불꽃). All rights reserved.</div>
+      <div>ADMIN: <a href="admin/index.html" style="text-decoration: underline;">PORTAL</a></div>
+    </div>
+  </footer>
+
+  <script src="js/supabase-client.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
