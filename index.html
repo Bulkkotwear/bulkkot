@@ -7,26 +7,211 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-primary: #000000;
+      --bg-secondary: #0A0A0A;
+      --bg-card: #111111;
+      --accent-red: #E60000;
+      --text-primary: #FFFFFF;
+      --text-muted: #8E8E93;
+      --border-dark: rgba(255, 255, 255, 0.12);
+      --font-heading: 'Montserrat', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-kr: 'Noto Sans KR', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); -webkit-font-smoothing: antialiased; line-height: 1.5; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+
+    /* Top Red Bar */
+    .announcement-bar {
+      background-color: var(--accent-red);
+      color: #FFFFFF;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 9px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+    .bar-sep { opacity: 0.6; }
+
+    /* Navigation Header */
+    .main-header { background: #000000; border-bottom: 1px solid var(--border-dark); position: sticky; top: 0; z-index: 100; }
+    .header-container { max-width: 1240px; margin: 0 auto; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .brand-logo-badge {
+      border: 1.5px solid #FFFFFF;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .badge-kr { font-family: var(--font-kr); font-size: 11px; font-weight: 700; line-height: 1.1; }
+    .badge-en { font-family: var(--font-heading); font-size: 7px; font-weight: 900; letter-spacing: 0.05em; }
+
+    .brand-logo-badge.small { width: 48px; height: 48px; }
+    .brand-logo-badge.small .badge-kr { font-size: 10px; }
+    .brand-logo-badge.small .badge-en { font-size: 6px; }
+
+    .nav-links { display: flex; gap: 36px; }
+    .nav-item { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #FFFFFF; position: relative; padding-bottom: 4px; }
+    .nav-item.active::after { content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 2px; background-color: var(--accent-red); }
+
+    .header-actions { display: flex; align-items: center; gap: 14px; }
+    .action-icon { color: #FFFFFF; display: flex; align-items: center; }
+    .icon-sep { color: var(--border-dark); font-size: 14px; }
+
+    /* Hero Banner */
+    .hero-section {
+      position: relative;
+      min-height: 600px;
+      background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.15) 100%),
+                  url('https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=1600&q=80') center right / cover no-repeat;
+      display: flex;
+      align-items: center;
+      padding: 0 48px;
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+    .hero-content { max-width: 520px; padding: 60px 0; }
+    .hero-kr-accent { color: var(--accent-red); font-family: var(--font-kr); font-size: 32px; font-weight: 900; display: block; margin-bottom: 4px; }
+    .hero-brand-title { font-family: var(--font-heading); font-size: 68px; font-weight: 900; letter-spacing: -0.02em; line-height: 0.95; }
+    .hero-subhead { font-family: var(--font-heading); font-size: 13px; font-weight: 800; letter-spacing: 0.22em; margin-top: 16px; }
+    .hero-desc { color: var(--text-muted); font-size: 14px; margin-top: 16px; line-height: 1.6; }
+    
+    .btn-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(0,0,0,0.6);
+      color: #FFFFFF;
+      padding: 14px 28px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      margin-top: 32px;
+      transition: all 0.25s;
+    }
+    .btn-hero:hover { border-color: #FFF; background: #FFF; color: #000; }
+
+    .hero-dots { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+    .dot.active { background: #FFFFFF; width: 18px; border-radius: 4px; }
+
+    /* Category Circles */
+    .category-section { max-width: 960px; margin: 64px auto; padding: 0 24px; }
+    .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; text-align: center; }
+    .category-card { display: flex; flex-direction: column; align-items: center; }
+    .category-img-wrap {
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .category-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .category-card:hover .category-img-wrap { transform: scale(1.05); border-color: var(--accent-red); }
+    .category-title { font-family: var(--font-heading); font-size: 14px; font-weight: 800; letter-spacing: 0.12em; margin-top: 16px; }
+
+    /* Promo Dropping Soon */
+    .promo-section { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
+    .promo-card { background: #0A0A0A; border: 1px solid var(--border-dark); border-radius: 8px; padding: 36px 44px; display: flex; justify-content: space-between; align-items: center; }
+    .promo-tag { color: var(--accent-red); font-size: 11px; font-weight: 800; letter-spacing: 0.12em; }
+    .promo-left h2 { font-family: var(--font-heading); font-size: 26px; font-weight: 900; letter-spacing: 0.05em; margin: 4px 0; }
+    .promo-left p { color: var(--text-muted); font-size: 13px; }
+    .promo-link { color: var(--accent-red); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; display: inline-flex; align-items: center; gap: 8px; }
+
+    /* Recent Products / Coming Soon */
+    .recent-products-section { max-width: 1100px; margin: 56px auto; padding: 0 24px; }
+    .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .section-head h2 { font-family: var(--font-heading); font-size: 16px; font-weight: 800; letter-spacing: 0.08em; }
+    .view-all { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; display: inline-flex; align-items: center; gap: 6px; }
+    
+    .coming-soon-box { background: #EAEAEA; color: #000000; border-radius: 8px; padding: 56px 24px; text-align: center; }
+    .box-icon { color: #111; margin-bottom: 12px; }
+    .coming-soon-box h3 { font-family: var(--font-heading); font-size: 18px; font-weight: 900; letter-spacing: 0.08em; }
+    .coming-soon-box p { color: #666; font-size: 13px; margin-top: 4px; }
+
+    /* Dynamic Grid */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+    .product-card { background: #0E0E0E; border: 1px solid var(--border-dark); padding: 16px; border-radius: 6px; }
+    .product-card-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; margin-bottom: 12px; }
+
+    /* Waitlist */
+    .waitlist-section { max-width: 800px; margin: 56px auto; padding: 0 24px; }
+    .waitlist-card { background: #0A0A0A; border: 1px solid var(--border-dark); padding: 40px; text-align: center; border-radius: 6px; }
+    .waitlist-kr { color: var(--accent-red); font-family: var(--font-kr); font-size: 20px; font-weight: 900; }
+    .waitlist-card h2 { font-family: var(--font-heading); font-size: 18px; font-weight: 800; margin: 8px 0 10px; }
+    .waitlist-card p { color: var(--text-muted); font-size: 13px; max-width: 480px; margin: 0 auto 24px; }
+    .waitlist-form { display: flex; gap: 8px; max-width: 480px; margin: 0 auto; }
+    .waitlist-form input { flex: 1; background: #161616; border: 1px solid var(--border-dark); padding: 12px 16px; color: #FFF; font-size: 13px; outline: none; }
+    .btn-waitlist { background: #FFF; color: #000; border: none; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; padding: 0 20px; cursor: pointer; }
+    .waitlist-status { font-size: 12px; margin-top: 14px; min-height: 18px; }
+
+    /* Features */
+    .features-section { border-top: 1px solid var(--border-dark); border-bottom: 1px solid var(--border-dark); padding: 48px 24px; margin-top: 64px; }
+    .features-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+    .feature-icon { margin-bottom: 14px; color: #FFF; }
+    .feature-item h4 { font-family: var(--font-heading); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .feature-item p { color: var(--text-muted); font-size: 12px; }
+
+    /* Footer */
+    .main-footer { background: #000000; padding: 64px 24px 32px; font-size: 13px; }
+    .footer-container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 48px; }
+    .brand-desc { color: var(--text-muted); font-size: 12px; margin: 16px 0 20px; line-height: 1.6; max-width: 240px; }
+    .social-label { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .social-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; }
+    .social-link:hover { color: #FFF; }
+
+    .col-title { font-family: var(--font-heading); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 18px; color: #FFF; }
+    .col-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .col-links a { color: var(--text-muted); font-size: 13px; }
+    .col-links a:hover { color: #FFF; }
+
+    .contact-type { display: block; color: var(--text-muted); font-size: 12px; margin-bottom: 4px; }
+    .contact-val { color: #FFF; font-size: 13px; }
+
+    .footer-bottom { max-width: 1100px; margin: 48px auto 0; padding-top: 24px; border-top: 1px solid var(--border-dark); text-align: center; color: var(--text-muted); font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .category-grid { grid-template-columns: 1fr; gap: 24px; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+      .footer-container { grid-template-columns: 1fr; gap: 32px; }
+      .promo-card { flex-direction: column; text-align: center; gap: 16px; }
+      .hero-brand-title { font-size: 44px; }
+      .header-container { padding: 14px 16px; }
+      .nav-links { gap: 16px; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Top Red Announcement Bar -->
+  <!-- Announcement Bar -->
   <div class="announcement-bar">
     <span>DROP 001 – DROPPING SOON</span>
-    <span class="bar-separator">|</span>
+    <span class="bar-sep">|</span>
     <span>FREE SHIPPING ALL OVER INDIA</span>
   </div>
 
-  <!-- Header Navigation -->
+  <!-- Header -->
   <header class="main-header">
     <div class="header-container">
       <a href="index.html" class="brand-logo-badge">
-        <div class="badge-inner">
-          <span class="badge-kr">불꽃</span>
-          <span class="badge-en">BULKKOT</span>
-        </div>
+        <span class="badge-kr">불꽃</span>
+        <span class="badge-en">BULKKOT</span>
       </a>
 
       <nav class="nav-links">
@@ -40,7 +225,7 @@
         <a href="admin/index.html" title="Admin / Account" class="action-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </a>
-        <div class="icon-separator">|</div>
+        <div class="icon-sep">|</div>
         <a href="#cart" title="Bag" class="action-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
         </a>
@@ -48,7 +233,7 @@
     </div>
   </header>
 
-  <!-- Hero Banner Section -->
+  <!-- Hero Section -->
   <section class="hero-section" id="home">
     <div class="hero-content">
       <span class="hero-kr-accent">불꽃</span>
@@ -57,18 +242,18 @@
       <p class="hero-desc">Korean-inspired essentials<br>for a new generation.</p>
       
       <a href="#collections" class="btn-hero">
-        EXPLORE DROP 001 <span class="arrow">→</span>
+        EXPLORE DROP 001 <span>→</span>
       </a>
     </div>
     
-    <div class="hero-slider-dots">
+    <div class="hero-dots">
       <span class="dot active"></span>
       <span class="dot"></span>
       <span class="dot"></span>
     </div>
   </section>
 
-  <!-- Category Circle Cards -->
+  <!-- Categories -->
   <section class="category-section" id="shop">
     <div class="category-grid">
       <div class="category-card">
@@ -94,8 +279,8 @@
     </div>
   </section>
 
-  <!-- Dark Promo Dropping Soon Banner -->
-  <section class="promo-banner-section" id="collections">
+  <!-- Promo Banner -->
+  <section class="promo-section" id="collections">
     <div class="promo-card">
       <div class="promo-left">
         <span class="promo-tag">DROP 001</span>
@@ -103,16 +288,16 @@
         <p>First collection. Limited pieces.</p>
       </div>
       <div class="promo-right">
-        <a href="#waitlist" class="promo-link">EXPLORE DROP 001 <span class="arrow">→</span></a>
+        <a href="#waitlist" class="promo-link">EXPLORE DROP 001 <span>→</span></a>
       </div>
     </div>
   </section>
 
-  <!-- Recent Products / Drop 001 Container -->
+  <!-- Dynamic Product Display -->
   <section class="recent-products-section">
-    <div class="section-heading-row">
+    <div class="section-head">
       <h2>RECENT PRODUCTS</h2>
-      <a href="#shop" class="view-all-link">VIEW ALL <span class="arrow">→</span></a>
+      <a href="#shop" class="view-all">VIEW ALL <span>→</span></a>
     </div>
 
     <div class="coming-soon-box" id="products-dynamic-container">
@@ -124,8 +309,8 @@
     </div>
   </section>
 
-  <!-- Newsletter / Waitlist Section -->
-  <section class="newsletter-waitlist-section" id="waitlist">
+  <!-- Waitlist Section -->
+  <section class="waitlist-section" id="waitlist">
     <div class="waitlist-card">
       <span class="waitlist-kr">불꽃</span>
       <h2>JOIN THE DROP WAITLIST</h2>
@@ -138,7 +323,7 @@
     </div>
   </section>
 
-  <!-- Trust Value Props / Badges -->
+  <!-- Features -->
   <section class="features-section" id="about">
     <div class="features-grid">
       <div class="feature-item">
@@ -175,15 +360,13 @@
     </div>
   </section>
 
-  <!-- 4-Column Luxury Footer -->
+  <!-- Footer -->
   <footer class="main-footer">
     <div class="footer-container">
       <div class="footer-col brand-col">
         <a href="index.html" class="brand-logo-badge small">
-          <div class="badge-inner">
-            <span class="badge-kr">불꽃</span>
-            <span class="badge-en">BULKKOT</span>
-          </div>
+          <span class="badge-kr">불꽃</span>
+          <span class="badge-en">BULKKOT</span>
         </a>
         <p class="brand-desc">Korean-inspired premium everyday wear for the new generation.</p>
         
