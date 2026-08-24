@@ -23,7 +23,7 @@
   <div class="admin-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark); padding-bottom: 24px;">
       <h1><span class="kr-text">불꽃</span> BULKKOT ADMIN</h1>
-      <div id="auth-status-bar" style="font-size: 13px;">Ready</div>
+      <div id="auth-status-bar" style="font-size: 13px;">Checking session...</div>
     </div>
 
     <!-- Login Area -->
@@ -31,7 +31,7 @@
       <h3 style="margin-bottom: 16px;">OWNER LOGIN</h3>
       <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Restricted to bulkkotwear@gmail.com</p>
       
-      <form id="admin-login-form">
+      <form id="admin-login-form" onsubmit="return false;">
         <div class="form-group">
           <label>Email</label>
           <input type="email" id="admin-email" value="bulkkotwear@gmail.com" required>
@@ -40,7 +40,7 @@
           <label>Password</label>
           <input type="password" id="admin-password" placeholder="Enter Supabase user password" required>
         </div>
-        <button type="submit" class="btn-submit" id="login-btn" style="width: 100%;">AUTHENTICATE</button>
+        <button type="button" class="btn-submit" id="login-btn" style="width: 100%;">AUTHENTICATE</button>
       </form>
     </div>
 
@@ -51,7 +51,7 @@
         <button id="logout-btn" style="color: var(--accent-red); font-size: 12px; font-weight: 700; cursor: pointer;">LOGOUT</button>
       </div>
 
-      <form id="add-product-form" style="margin-top: 32px; background: #0F0F0F; padding: 24px; border: 1px solid var(--border-dark);">
+      <form id="add-product-form" onsubmit="return false;" style="margin-top: 32px; background: #0F0F0F; padding: 24px; border: 1px solid var(--border-dark);">
         <h3 style="margin-bottom: 20px; font-size: 16px;">Add New Inventory</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="form-group">
@@ -79,7 +79,7 @@
           <label>Image (Optional)</label>
           <input type="file" id="p-image-file" accept="image/*">
         </div>
-        <button type="submit" class="btn-primary" style="margin-top: 12px;">PUBLISH PRODUCT</button>
+        <button type="button" id="publish-btn" class="btn-submit" style="margin-top: 12px; background: var(--accent-red); color: #FFF;">PUBLISH PRODUCT</button>
       </form>
 
       <table class="admin-table">
@@ -99,6 +99,157 @@
   </div>
 
   <script src="../js/supabase-client.js"></script>
-  <script src="../js/admin.js"></script>
+  <script>
+    const ALLOWED_ADMIN = 'bulkkotwear@gmail.com';
+
+    async function initAdmin() {
+      const loginSection = document.getElementById('login-section');
+      const dashboardSection = document.getElementById('dashboard-section');
+      const authStatusBar = document.getElementById('auth-status-bar');
+      const loginBtn = document.getElementById('login-btn');
+      const publishBtn = document.getElementById('publish-btn');
+      const logoutBtn = document.getElementById('logout-btn');
+
+      if (!window.supabaseClient) {
+        authStatusBar.innerHTML = `<span style="color: red;">Supabase Key Missing in js/supabase-client.js</span>`;
+        return;
+      }
+
+      // Check Active Session
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (session) {
+        evaluate(session);
+      } else {
+        authStatusBar.innerHTML = `<span style="color: #8E8E93;">● Unauthenticated</span>`;
+      }
+
+      // Login Click
+      loginBtn.onclick = async () => {
+        const email = document.getElementById('admin-email').value.trim();
+        const password = document.getElementById('admin-password').value.trim();
+        loginBtn.textContent = 'AUTHENTICATING...';
+
+        const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          alert('Login failed: ' + error.message);
+          loginBtn.textContent = 'AUTHENTICATE';
+        } else {
+          evaluate(data.session);
+        }
+      };
+
+      // Logout Click
+      logoutBtn.onclick = async () => {
+        await window.supabaseClient.auth.signOut();
+        window.location.reload();
+      };
+
+      function evaluate(session) {
+        if (session && session.user && session.user.email === ALLOWED_ADMIN) {
+          loginSection.style.display = 'none';
+          dashboardSection.style.display = 'block';
+          authStatusBar.innerHTML = `<span style="color: #4CAF50;">● Connected: ${session.user.email}</span>`;
+          loadProducts();
+        } else if (session) {
+          alert('Unauthorized email: ' + session.user.email);
+          window.supabaseClient.auth.signOut();
+        }
+      }
+
+      async function loadProducts() {
+        const tbody = document.getElementById('admin-products-table-body');
+        const { data: products, error } = await window.supabaseClient
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        tbody.innerHTML = (products && products.length > 0)
+          ? products.map(p => `
+              <tr>
+                <td>${p.sku || '-'}</td>
+                <td>${p.name}</td>
+                <td>${p.category}</td>
+                <td>₹${p.price}</td>
+                <td>${p.visibility ? 'Live' : 'Hidden'}</td>
+                <td>
+                  <button onclick="window.removeProduct('${p.id}')" style="color: var(--accent-red); font-size: 12px; cursor: pointer; border:none; background:none;">Delete</button>
+                </td>
+              </tr>
+            `).join('')
+          : `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No products added yet.</td></tr>`;
+      }
+
+      // Publish Product
+      publishBtn.onclick = async () => {
+        const name = document.getElementById('p-name').value.trim();
+        const category = document.getElementById('p-category').value;
+        const price = parseFloat(document.getElementById('p-price').value);
+        const sku = document.getElementById('p-sku').value.trim();
+        const file = document.getElementById('p-image-file').files[0];
+
+        if (!name || !price) {
+          alert('Please fill product name and price.');
+          return;
+        }
+
+        publishBtn.textContent = 'PUBLISHING...';
+
+        let imageUrl = '';
+        if (file) {
+          const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+          const { data: upData, error: upErr } = await window.supabaseClient.storage
+            .from('product-media')
+            .upload(fileName, file);
+
+          if (!upErr) {
+            const { data: urlData } = window.supabaseClient.storage
+              .from('product-media')
+              .getPublicUrl(fileName);
+            imageUrl = urlData.publicUrl;
+          }
+        }
+
+        const slug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') + '-' + Date.now();
+
+        const { error } = await window.supabaseClient.from('products').insert([{
+          name,
+          slug,
+          category,
+          price,
+          sku,
+          images: imageUrl ? [imageUrl] : [],
+          visibility: true
+        }]);
+
+        publishBtn.textContent = 'PUBLISH PRODUCT';
+
+        if (error) {
+          alert('Error: ' + error.message);
+        } else {
+          alert('Product published successfully!');
+          document.getElementById('p-name').value = '';
+          document.getElementById('p-price').value = '';
+          document.getElementById('p-sku').value = '';
+          document.getElementById('p-image-file').value = '';
+          loadProducts();
+        }
+      };
+
+      window.removeProduct = async function(id) {
+        if (confirm('Delete this product permanently?')) {
+          const { error } = await window.supabaseClient.from('products').delete().eq('id', id);
+          if (error) alert(error.message);
+          else loadProducts();
+        }
+      };
+    }
+
+    document.addEventListener('DOMContentLoaded', initAdmin);
+  </script>
 </body>
 </html>
