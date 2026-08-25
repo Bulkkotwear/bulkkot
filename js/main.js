@@ -1,14 +1,14 @@
 /* =========================================================
-   BULKKOT (불꽃) — MAIN JAVASCRIPT
-   File: js/main.js
+   BULKKOT — MAIN JAVASCRIPT
+   js/main.js
    ========================================================= */
 
 (() => {
   "use strict";
 
-  /* ---------------------------------------------------------
-     DOM Helpers
-  --------------------------------------------------------- */
+  /* =======================================================
+     HELPERS
+  ======================================================= */
 
   const $ = (selector, parent = document) =>
     parent.querySelector(selector);
@@ -16,250 +16,487 @@
   const $$ = (selector, parent = document) =>
     Array.from(parent.querySelectorAll(selector));
 
-  /* ---------------------------------------------------------
-     Body Scroll Lock
-  --------------------------------------------------------- */
+  const body = document.body;
 
-  let scrollPosition = 0;
-
-  function lockBodyScroll() {
-    if (document.body.classList.contains("is-scroll-locked")) {
-      return;
-    }
-
-    scrollPosition = window.scrollY;
-
-    document.body.classList.add("is-scroll-locked");
-
-    document.body.style.top = `-${scrollPosition}px`;
+  function lockBodyScroll(lock) {
+    body.classList.toggle("no-scroll", lock);
   }
 
-  function unlockBodyScroll() {
-    if (!document.body.classList.contains("is-scroll-locked")) {
-      return;
+  function getFocusable(container) {
+    if (!container) return [];
+
+    return $$(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      container
+    );
+  }
+
+  function escapeHTML(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+
+  /* =======================================================
+     MOBILE NAVIGATION DRAWER
+     ======================================================= */
+
+  function toggleMobileDrawer(open) {
+    const drawer = $("[data-mobile-drawer]");
+
+    if (!drawer) return;
+
+    const shouldOpen =
+      typeof open === "boolean"
+        ? open
+        : !drawer.classList.contains("is-open");
+
+    drawer.classList.toggle("is-open", shouldOpen);
+    drawer.setAttribute("aria-hidden", String(!shouldOpen));
+
+    lockBodyScroll(shouldOpen);
+
+    if (shouldOpen) {
+      const firstFocusable = getFocusable(drawer)[0];
+
+      if (firstFocusable) {
+        setTimeout(() => firstFocusable.focus(), 100);
+      }
     }
+  }
 
-    document.body.classList.remove("is-scroll-locked");
+  $$("[data-open-drawer]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      toggleMobileDrawer(true);
+    });
+  });
 
-    document.body.style.top = "";
+  $$("[data-close-drawer]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      toggleMobileDrawer(false);
+    });
+  });
 
-    window.scrollTo({
-      top: scrollPosition,
-      behavior: "instant"
+  const mobileDrawer = $("[data-mobile-drawer]");
+
+  if (mobileDrawer) {
+    mobileDrawer.addEventListener("click", event => {
+      if (event.target === mobileDrawer) {
+        toggleMobileDrawer(false);
+      }
+    });
+
+    $$("a", mobileDrawer).forEach(link => {
+      link.addEventListener("click", () => {
+        toggleMobileDrawer(false);
+      });
     });
   }
 
-  /* ---------------------------------------------------------
-     Mobile Drawer
-  --------------------------------------------------------- */
 
-  const mobileDrawer =
-    document.querySelector("[data-mobile-drawer]");
-
-  function toggleMobileDrawer(open) {
-    if (!mobileDrawer) {
-      return;
-    }
-
-    const shouldOpen =
-      typeof open === "boolean"
-        ? open
-        : !mobileDrawer.classList.contains("is-open");
-
-    mobileDrawer.classList.toggle(
-      "is-open",
-      shouldOpen
-    );
-
-    mobileDrawer.setAttribute(
-      "aria-hidden",
-      String(!shouldOpen)
-    );
-
-    document.body.classList.toggle(
-      "mobile-drawer-open",
-      shouldOpen
-    );
-
-    if (shouldOpen) {
-      lockBodyScroll();
-
-      const firstFocusable =
-        mobileDrawer.querySelector(
-          "button, a, input, [tabindex]:not([tabindex='-1'])"
-        );
-
-      if (firstFocusable) {
-        setTimeout(
-          () => firstFocusable.focus(),
-          100
-        );
-      }
-    } else {
-      unlockBodyScroll();
-    }
-  }
-
-  /* ---------------------------------------------------------
-     Search Modal
-  --------------------------------------------------------- */
-
-  const searchModal =
-    document.querySelector("[data-search-modal]");
+  /* =======================================================
+     SEARCH OVERLAY
+     ======================================================= */
 
   function toggleSearch(open) {
-    if (!searchModal) {
-      return;
-    }
+    const modal = $("[data-search-modal]");
+
+    if (!modal) return;
 
     const shouldOpen =
       typeof open === "boolean"
         ? open
-        : !searchModal.classList.contains("is-open");
+        : !modal.classList.contains("is-open");
 
-    searchModal.classList.toggle(
-      "is-open",
-      shouldOpen
-    );
+    modal.classList.toggle("is-open", shouldOpen);
+    modal.setAttribute("aria-hidden", String(!shouldOpen));
 
-    searchModal.setAttribute(
-      "aria-hidden",
-      String(!shouldOpen)
-    );
+    lockBodyScroll(shouldOpen);
 
     if (shouldOpen) {
-      lockBodyScroll();
-
-      const input =
-        searchModal.querySelector(
-          "input[type='search'], input"
-        );
+      const input = $("input", modal);
 
       if (input) {
-        setTimeout(() => input.focus(), 120);
+        setTimeout(() => input.focus(), 100);
       }
-    } else {
-      unlockBodyScroll();
     }
   }
 
-  function submitSearch(query) {
-    const cleanQuery = String(query || "").trim();
+  $$("[data-open-search]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      toggleSearch(true);
+    });
+  });
 
-    if (!cleanQuery) {
-      return;
-    }
+  $$("[data-close-search]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      toggleSearch(false);
+    });
+  });
 
-    /*
-      Future product-search integration point.
+  const searchModal = $("[data-search-modal]");
 
-      Example:
-      window.location.href =
-        `/shop.html?search=${encodeURIComponent(cleanQuery)}`;
-    */
-
-    document.dispatchEvent(
-      new CustomEvent("bulkkot:search", {
-        detail: {
-          query: cleanQuery
-        }
-      })
-    );
-
-    console.info(
-      "BULKKOT search query:",
-      cleanQuery
-    );
+  if (searchModal) {
+    searchModal.addEventListener("click", event => {
+      if (event.target === searchModal) {
+        toggleSearch(false);
+      }
+    });
   }
 
-  /* ---------------------------------------------------------
-     About Story Modal
-  --------------------------------------------------------- */
+  const searchForm = $("[data-search-form]");
 
-  const aboutModal =
-    document.querySelector("[data-about-modal]");
+  if (searchForm) {
+    searchForm.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const input = $("input[name='q']", searchForm)
+        || $("input", searchForm);
+
+      if (!input) return;
+
+      const query = input.value.trim();
+
+      if (!query) {
+        input.focus();
+        return;
+      }
+
+      /*
+       * Future:
+       * Replace this with Shopify/Supabase/catalog search.
+       */
+
+      filterCatalog(query);
+
+      toggleSearch(false);
+
+      document.dispatchEvent(
+        new CustomEvent("bulkkot:search", {
+          detail: { query }
+        })
+      );
+    });
+  }
+
+
+  /* =======================================================
+     ABOUT STORY MODAL
+     ======================================================= */
 
   function toggleAbout(open) {
-    if (!aboutModal) {
-      return;
-    }
+    const modal = $("[data-about-modal]");
+
+    if (!modal) return;
 
     const shouldOpen =
       typeof open === "boolean"
         ? open
-        : !aboutModal.classList.contains("is-open");
+        : !modal.classList.contains("is-open");
 
-    aboutModal.classList.toggle(
-      "is-open",
-      shouldOpen
-    );
+    modal.classList.toggle("is-open", shouldOpen);
+    modal.setAttribute("aria-hidden", String(!shouldOpen));
 
-    aboutModal.setAttribute(
-      "aria-hidden",
-      String(!shouldOpen)
-    );
+    lockBodyScroll(shouldOpen);
 
     if (shouldOpen) {
-      lockBodyScroll();
-
       const closeButton =
-        aboutModal.querySelector(
-          "[data-close-about]"
-        );
+        $("[data-close-about]", modal);
 
       if (closeButton) {
-        setTimeout(
-          () => closeButton.focus(),
-          100
-        );
+        setTimeout(() => closeButton.focus(), 100);
       }
-    } else {
-      unlockBodyScroll();
     }
   }
 
-  /* ---------------------------------------------------------
-     Carousel
-  --------------------------------------------------------- */
+  $$("[data-open-about]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      toggleAbout(true);
+    });
+  });
 
-  const carousels = new WeakMap();
+  $$("[data-close-about]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      toggleAbout(false);
+    });
+  });
 
-  function initializeCarousel(carousel) {
-    if (!carousel) {
-      return;
+  const aboutModal = $("[data-about-modal]");
+
+  if (aboutModal) {
+    aboutModal.addEventListener("click", event => {
+      if (event.target === aboutModal) {
+        toggleAbout(false);
+      }
+    });
+  }
+
+
+  /* =======================================================
+     LEGAL / HELP / INFORMATION MODALS
+     ======================================================= */
+
+  const policyContent = {
+    faq: {
+      title: "FAQ",
+      korean: "자주 묻는 질문",
+      content: `
+        <p><strong>When will BULKKOT launch?</strong></p>
+        <p>
+          DROP 001 is currently preparing for launch.
+          Join the waitlist to receive the latest updates.
+        </p>
+
+        <p><strong>Where does BULKKOT ship?</strong></p>
+        <p>
+          BULKKOT currently focuses on serving customers in India.
+        </p>
+
+        <p><strong>How can I contact BULKKOT?</strong></p>
+        <p>
+          Email us at
+          <a href="mailto:bulkkotwear@gmail.com">
+            bulkkotwear@gmail.com
+          </a>.
+        </p>
+      `
+    },
+
+    size: {
+      title: "Size Guide",
+      korean: "사이즈 가이드",
+      content: `
+        <p>
+          BULKKOT is designed around an oversized,
+          relaxed everyday silhouette.
+        </p>
+
+        <p>
+          The final size chart will be published with each
+          product before launch.
+        </p>
+
+        <p>
+          Always check the individual product measurements
+          before placing an order.
+        </p>
+      `
+    },
+
+    shipping: {
+      title: "Shipping Policy",
+      korean: "배송 정책",
+      content: `
+        <p>
+          Shipping details and estimated delivery timelines
+          will be displayed during checkout.
+        </p>
+
+        <p>
+          Delivery timelines may vary depending on location,
+          courier availability and order volume.
+        </p>
+      `
+    },
+
+    returns: {
+      title: "Returns & Exchange",
+      korean: "반품 및 교환",
+      content: `
+        <p>
+          BULKKOT's return and exchange conditions will be
+          clearly communicated before checkout.
+        </p>
+
+        <p>
+          Products must meet the applicable return conditions
+          and may be subject to inspection.
+        </p>
+      `
+    },
+
+    privacy: {
+      title: "Privacy Policy",
+      korean: "개인정보 보호",
+      content: `
+        <p>
+          BULKKOT respects your privacy and only uses customer
+          information for legitimate business purposes.
+        </p>
+
+        <p>
+          Information submitted through forms may be used for
+          order processing, customer support and communications
+          that you have requested.
+        </p>
+      `
+    },
+
+    terms: {
+      title: "Terms & Conditions",
+      korean: "이용 약관",
+      content: `
+        <p>
+          By using the BULKKOT website, you agree to follow
+          the applicable website, purchasing and account terms.
+        </p>
+
+        <p>
+          Product availability, pricing and policies may change
+          before launch or from one collection to another.
+        </p>
+      `
+    },
+
+    refund: {
+      title: "Refund Policy",
+      korean: "환불 정책",
+      content: `
+        <p>
+          Refund eligibility will depend on the applicable
+          product and order conditions.
+        </p>
+
+        <p>
+          Final refund rules will be displayed clearly before
+          purchase and checkout.
+        </p>
+      `
+    }
+  };
+
+  function openPolicyModal(type) {
+    const data = policyContent[type];
+
+    if (!data) return;
+
+    let modal = $("[data-policy-modal]");
+
+    if (!modal) {
+      modal = document.createElement("div");
+
+      modal.className = "modal policy-modal";
+      modal.setAttribute("data-policy-modal", "");
+      modal.setAttribute("aria-hidden", "true");
+
+      modal.innerHTML = `
+        <div class="modal__backdrop" data-close-policy></div>
+
+        <div
+          class="modal__dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="policy-modal-title"
+        >
+          <button
+            type="button"
+            class="modal__close"
+            data-close-policy
+            aria-label="Close"
+          >
+            ×
+          </button>
+
+          <p class="modal__korean" data-policy-korean></p>
+
+          <h2
+            id="policy-modal-title"
+            data-policy-title
+          ></h2>
+
+          <div
+            class="modal__content"
+            data-policy-content
+          ></div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      modal.addEventListener("click", event => {
+        if (event.target.closest("[data-close-policy]")) {
+          closePolicyModal();
+        }
+      });
     }
 
-    const track =
-      carousel.querySelector(
-        "[data-carousel-track]"
-      );
+    $("[data-policy-title]", modal).textContent = data.title;
+    $("[data-policy-korean]", modal).textContent = data.korean;
+    $("[data-policy-content]", modal).innerHTML = data.content;
 
-    const slides =
-      $$(".data-slide", carousel);
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
 
-    /*
-      The selector above intentionally falls back to the
-      data attribute query below for valid HTML usage.
-    */
-    const validSlides =
-      $$("[data-slide]", carousel);
+    lockBodyScroll(true);
+  }
 
-    if (!track || validSlides.length === 0) {
-      return;
+  function closePolicyModal() {
+    const modal = $("[data-policy-modal]");
+
+    if (!modal) return;
+
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+
+    lockBodyScroll(false);
+  }
+
+  const policyMap = {
+    faq: "faq",
+    "faq-link": "faq",
+    size: "size",
+    "size-guide": "size",
+    shipping: "shipping",
+    "shipping-policy": "shipping",
+    returns: "returns",
+    "return-policy": "returns",
+    "returns-exchange": "returns",
+    privacy: "privacy",
+    "privacy-policy": "privacy",
+    terms: "terms",
+    "terms-conditions": "terms",
+    refund: "refund",
+    "refund-policy": "refund"
+  };
+
+  document.addEventListener("click", event => {
+    const trigger = event.target.closest("[data-policy]");
+
+    if (!trigger) return;
+
+    event.preventDefault();
+
+    const type =
+      trigger.dataset.policy ||
+      trigger.dataset.policyType;
+
+    if (policyMap[type]) {
+      openPolicyModal(policyMap[type]);
     }
+  });
 
-    const prevButton =
-      carousel.querySelector(
-        "[data-carousel-prev]"
-      );
 
-    const nextButton =
-      carousel.querySelector(
-        "[data-carousel-next]"
-      );
+  /* =======================================================
+     EDITORIAL CAROUSEL
+     ======================================================= */
 
-    const indicators =
-      $$("[data-slide-indicator]", carousel);
+  function initCarousel(carousel) {
+    const track = $("[data-carousel-track]", carousel);
+    const slides = $$("[data-slide]", carousel);
+    const previous = $("[data-carousel-prev]", carousel);
+    const next = $("[data-carousel-next]", carousel);
+
+    if (!track || slides.length === 0) return;
 
     let currentIndex = 0;
     let autoplayTimer = null;
@@ -267,63 +504,64 @@
     let currentX = 0;
     let isDragging = false;
 
-    const totalSlides = validSlides.length;
+    const interval =
+      Number(carousel.dataset.autoplay) || 5000;
 
-    function updateCarousel(
-      index,
-      animate = true
-    ) {
+    function goToSlide(index, animate = true) {
+      if (!slides.length) return;
+
       currentIndex =
-        (index + totalSlides) % totalSlides;
+        (index + slides.length) % slides.length;
 
-      const offset =
-        currentIndex * 100;
-
-      track.style.transition =
-        animate
-          ? "transform 600ms cubic-bezier(.2,.65,.2,1)"
-          : "none";
+      track.style.transition = animate
+        ? "transform 500ms cubic-bezier(.22,.61,.36,1)"
+        : "none";
 
       track.style.transform =
-        `translate3d(-${offset}%, 0, 0)`;
+        `translate3d(-${currentIndex * 100}%, 0, 0)`;
 
-      validSlides.forEach(
-        (slide, slideIndex) => {
-          slide.classList.toggle(
-            "is-active",
-            slideIndex === currentIndex
-          );
+      slides.forEach((slide, index) => {
+        slide.classList.toggle(
+          "is-active",
+          index === currentIndex
+        );
+      });
 
-          slide.setAttribute(
-            "aria-hidden",
-            String(slideIndex !== currentIndex)
-          );
-        }
-      );
+      const dots =
+        $$("[data-carousel-dot]", carousel);
 
-      indicators.forEach(
-        (indicator, indicatorIndex) => {
-          indicator.classList.toggle(
-            "is-active",
-            indicatorIndex === currentIndex
-          );
+      dots.forEach((dot, index) => {
+        dot.classList.toggle(
+          "is-active",
+          index === currentIndex
+        );
 
-          indicator.setAttribute(
-            "aria-current",
-            indicatorIndex === currentIndex
-              ? "true"
-              : "false"
-          );
-        }
-      );
+        dot.setAttribute(
+          "aria-current",
+          index === currentIndex
+            ? "true"
+            : "false"
+        );
+      });
     }
 
-    function next() {
-      updateCarousel(currentIndex + 1);
+    function nextSlide() {
+      goToSlide(currentIndex + 1);
     }
 
-    function previous() {
-      updateCarousel(currentIndex - 1);
+    function previousSlide() {
+      goToSlide(currentIndex - 1);
+    }
+
+    function startAutoplay() {
+      stopAutoplay();
+
+      if (slides.length <= 1) return;
+
+      autoplayTimer = setInterval(
+        nextSlide,
+        interval
+      );
     }
 
     function stopAutoplay() {
@@ -333,314 +571,375 @@
       }
     }
 
-    function startAutoplay() {
-      stopAutoplay();
+    if (next) {
+      next.addEventListener("click", () => {
+        nextSlide();
+        startAutoplay();
+      });
+    }
 
-      if (totalSlides <= 1) {
+    if (previous) {
+      previous.addEventListener("click", () => {
+        previousSlide();
+        startAutoplay();
+      });
+    }
+
+    $$("[data-carousel-dot]", carousel)
+      .forEach((dot, index) => {
+        dot.addEventListener("click", () => {
+          goToSlide(index);
+          startAutoplay();
+        });
+      });
+
+    carousel.addEventListener("mouseenter", stopAutoplay);
+    carousel.addEventListener("mouseleave", startAutoplay);
+
+    carousel.addEventListener(
+      "touchstart",
+      event => {
+        if (!event.touches.length) return;
+
+        startX = event.touches[0].clientX;
+        currentX = startX;
+        isDragging = true;
+
+        stopAutoplay();
+
+        track.style.transition = "none";
+      },
+      { passive: true }
+    );
+
+    carousel.addEventListener(
+      "touchmove",
+      event => {
+        if (!isDragging || !event.touches.length) return;
+
+        currentX = event.touches[0].clientX;
+
+        const difference = currentX - startX;
+        const percentage =
+          (difference / carousel.offsetWidth) * 100;
+
+        track.style.transform =
+          `translate3d(${
+            -currentIndex * 100 + percentage
+          }%, 0, 0)`;
+      },
+      { passive: true }
+    );
+
+    carousel.addEventListener(
+      "touchend",
+      () => {
+        if (!isDragging) return;
+
+        isDragging = false;
+
+        const difference = currentX - startX;
+        const threshold = 50;
+
+        if (Math.abs(difference) > threshold) {
+          if (difference < 0) {
+            nextSlide();
+          } else {
+            previousSlide();
+          }
+        } else {
+          goToSlide(currentIndex);
+        }
+
+        startAutoplay();
+      },
+      { passive: true }
+    );
+
+    carousel.addEventListener(
+      "keydown",
+      event => {
+        if (event.key === "ArrowRight") {
+          nextSlide();
+          startAutoplay();
+        }
+
+        if (event.key === "ArrowLeft") {
+          previousSlide();
+          startAutoplay();
+        }
+      }
+    );
+
+    goToSlide(0, false);
+    startAutoplay();
+  }
+
+  $$("[data-carousel]").forEach(initCarousel);
+
+
+  /* =======================================================
+     CATEGORY FILTER
+     ======================================================= */
+
+  function filterCatalog(category) {
+    const normalizedCategory =
+      String(category || "")
+        .trim()
+        .toLowerCase();
+
+    const products = $$(
+      "[data-product-card]"
+    );
+
+    if (!products.length) {
+      document.dispatchEvent(
+        new CustomEvent("bulkkot:category-filter", {
+          detail: {
+            category: normalizedCategory
+          }
+        })
+      );
+
+      return;
+    }
+
+    products.forEach(product => {
+      const productCategory =
+        String(
+          product.dataset.category || "all"
+        ).toLowerCase();
+
+      const show =
+        !normalizedCategory ||
+        normalizedCategory === "all" ||
+        productCategory === normalizedCategory;
+
+      product.hidden = !show;
+      product.classList.toggle(
+        "is-filtered-out",
+        !show
+      );
+    });
+
+    $$("[data-category]").forEach(button => {
+      const buttonCategory =
+        String(
+          button.dataset.category || ""
+        ).toLowerCase();
+
+      button.classList.toggle(
+        "is-active",
+        buttonCategory === normalizedCategory
+      );
+    });
+
+    document.dispatchEvent(
+      new CustomEvent("bulkkot:category-filter", {
+        detail: {
+          category: normalizedCategory
+        }
+      })
+    );
+  }
+
+  window.filterCatalog = filterCatalog;
+
+  $$("[data-category]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+
+      filterCatalog(
+        button.dataset.category
+      );
+
+      const target =
+        button.dataset.categoryTarget;
+
+      if (target) {
+        const element = $(target);
+
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }
+      }
+    });
+  });
+
+
+  /* =======================================================
+     VIP WAITLIST
+     ======================================================= */
+
+  function initWaitlistForm(form) {
+    const emailInput =
+      $("input[type='email']", form);
+
+    const submitButton =
+      $("button[type='submit']", form);
+
+    let message =
+      $("[data-waitlist-message]", form);
+
+    if (!message) {
+      message = document.createElement("p");
+      message.className =
+        "waitlist__message";
+      message.setAttribute(
+        "data-waitlist-message",
+        ""
+      );
+
+      form.appendChild(message);
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      if (!emailInput) return;
+
+      const email =
+        emailInput.value.trim();
+
+      if (!email) {
+        showWaitlistMessage(
+          message,
+          "Please enter your email address.",
+          "error"
+        );
+
+        emailInput.focus();
         return;
       }
 
-      autoplayTimer = setInterval(
-        next,
-        6000
-      );
-    }
+      const validEmail =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          .test(email);
 
-    prevButton?.addEventListener(
-      "click",
-      () => {
-        previous();
-        startAutoplay();
-      }
-    );
-
-    nextButton?.addEventListener(
-      "click",
-      () => {
-        next();
-        startAutoplay();
-      }
-    );
-
-    indicators.forEach(
-      (indicator, index) => {
-        indicator.addEventListener(
-          "click",
-          () => {
-            updateCarousel(index);
-            startAutoplay();
-          }
+      if (!validEmail) {
+        showWaitlistMessage(
+          message,
+          "Please enter a valid email address.",
+          "error"
         );
+
+        emailInput.focus();
+        return;
       }
-    );
 
-    carousel.addEventListener(
-      "pointerdown",
-      (event) => {
-        startX = event.clientX;
-        currentX = event.clientX;
-        isDragging = true;
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.dataset.originalText =
+          submitButton.textContent;
 
-        track.style.transition = "none";
+        submitButton.textContent =
+          "JOINING...";
       }
-    );
 
-    carousel.addEventListener(
-      "pointermove",
-      (event) => {
-        if (!isDragging) {
-          return;
-        }
+      try {
+        /*
+         * ===================================================
+         * SUPABASE HOOK
+         * ===================================================
+         *
+         * When Supabase is connected, replace this section
+         * with your actual Supabase insert call.
+         *
+         * Example:
+         *
+         * const { error } = await supabase
+         *   .from("waitlist")
+         *   .insert([{ email }]);
+         *
+         * if (error) throw error;
+         *
+         * ===================================================
+         */
 
-        currentX = event.clientX;
-      }
-    );
-
-    carousel.addEventListener(
-      "pointerup",
-      () => {
-        if (!isDragging) {
-          return;
-        }
-
-        const distance =
-          currentX - startX;
-
-        isDragging = false;
-
-        if (Math.abs(distance) > 50) {
-          if (distance < 0) {
-            next();
-          } else {
-            previous();
-          }
+        if (
+          window.BULKKOT_SUPABASE &&
+          typeof window.BULKKOT_SUPABASE.addToWaitlist ===
+            "function"
+        ) {
+          await window.BULKKOT_SUPABASE
+            .addToWaitlist(email);
         } else {
-          updateCarousel(
-            currentIndex
-          );
+          /*
+           * Temporary frontend-only success state.
+           * No fake backend request is made.
+           */
+
+          const waitlist =
+            JSON.parse(
+              localStorage.getItem(
+                "bulkkot_waitlist"
+              ) || "[]"
+            );
+
+          if (!waitlist.includes(email)) {
+            waitlist.push(email);
+
+            localStorage.setItem(
+              "bulkkot_waitlist",
+              JSON.stringify(waitlist)
+            );
+          }
         }
 
-        startAutoplay();
-      }
-    );
-
-    carousel.addEventListener(
-      "pointercancel",
-      () => {
-        isDragging = false;
-        updateCarousel(
-          currentIndex
+        showWaitlistMessage(
+          message,
+          "You're on the list. We'll see you at DROP 001.",
+          "success"
         );
-        startAutoplay();
+
+        emailInput.value = "";
+
+        document.dispatchEvent(
+          new CustomEvent(
+            "bulkkot:waitlist-success",
+            {
+              detail: { email }
+            }
+          )
+        );
+
+      } catch (error) {
+        console.error(
+          "BULKKOT Waitlist Error:",
+          error
+        );
+
+        showWaitlistMessage(
+          message,
+          "Something went wrong. Please try again.",
+          "error"
+        );
+
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+
+          submitButton.textContent =
+            submitButton.dataset.originalText ||
+            "JOIN WAITLIST";
+        }
       }
-    );
-
-    carousel.addEventListener(
-      "mouseenter",
-      stopAutoplay
-    );
-
-    carousel.addEventListener(
-      "mouseleave",
-      startAutoplay
-    );
-
-    carousel.addEventListener(
-      "focusin",
-      stopAutoplay
-    );
-
-    carousel.addEventListener(
-      "focusout",
-      startAutoplay
-    );
-
-    updateCarousel(
-      0,
-      false
-    );
-
-    startAutoplay();
-
-    carousels.set(carousel, {
-      next,
-      previous,
-      updateCarousel,
-      startAutoplay,
-      stopAutoplay
     });
   }
 
-  function initializeAllCarousels() {
-    $$("[data-carousel]").forEach(
-      initializeCarousel
-    );
-  }
-
-  /* ---------------------------------------------------------
-     Waitlist
-  --------------------------------------------------------- */
-
-  function isValidEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      String(email).trim()
-    );
-  }
-
-  async function submitWaitlist(form) {
-    if (!form) {
-      return;
-    }
-
-    const emailInput =
-      form.querySelector(
-        "input[type='email']"
-      );
-
-    const submitButton =
-      form.querySelector(
-        "button[type='submit'], input[type='submit']"
-      );
-
-    const message =
-      form.querySelector(
-        "[data-waitlist-message]"
-      );
-
-    if (!emailInput) {
-      return;
-    }
-
-    const email =
-      emailInput.value.trim();
-
-    if (!isValidEmail(email)) {
-      showFormMessage(
-        message,
-        "Please enter a valid email address.",
-        "error"
-      );
-
-      emailInput.focus();
-
-      return;
-    }
-
-    const originalButtonText =
-      submitButton?.textContent || "JOIN";
-
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent =
-        "JOINING...";
-    }
-
-    try {
-      /*
-        SUPABASE INTEGRATION HOOK
-
-        When Supabase is connected, replace the
-        simulated section below with:
-
-        const { data, error } =
-          await supabase
-            .from("waitlist")
-            .insert([
-              {
-                email: email
-              }
-            ]);
-
-        if (error) {
-          throw error;
-        }
-
-        Keep the rest of the UI handling unchanged.
-      */
-
-      const supabaseClient =
-        window.supabaseClient ||
-        window.BULKKOT_SUPABASE ||
-        null;
-
-      if (supabaseClient?.from) {
-        const { error } =
-          await supabaseClient
-            .from("waitlist")
-            .insert([
-              {
-                email
-              }
-            ]);
-
-        if (error) {
-          throw error;
-        }
-      } else {
-        /*
-          Backend is not connected yet.
-          The form still works as a frontend hook.
-        */
-
-        console.info(
-          "BULKKOT waitlist backend is not connected yet.",
-          { email }
-        );
-      }
-
-      showFormMessage(
-        message,
-        "You're on the list. Welcome to BULKKOT.",
-        "success"
-      );
-
-      emailInput.value = "";
-
-      form.dispatchEvent(
-        new CustomEvent(
-          "bulkkot:waitlist-success",
-          {
-            bubbles: true,
-            detail: {
-              email
-            }
-          }
-        )
-      );
-    } catch (error) {
-      console.error(
-        "BULKKOT waitlist error:",
-        error
-      );
-
-      showFormMessage(
-        message,
-        "Something went wrong. Please try again.",
-        "error"
-      );
-    } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent =
-          originalButtonText;
-      }
-    }
-  }
-
-  function showFormMessage(
+  function showWaitlistMessage(
     element,
     text,
     type
   ) {
-    if (!element) {
-      return;
-    }
-
     element.textContent = text;
 
     element.classList.remove(
-      "is-error",
-      "is-success"
+      "is-success",
+      "is-error"
     );
 
     element.classList.add(
@@ -655,417 +954,183 @@
     );
   }
 
-  /* ---------------------------------------------------------
-     Category Filter
-  --------------------------------------------------------- */
+  $$("[data-waitlist-form]")
+    .forEach(initWaitlistForm);
 
-  function filterCatalog(category) {
-    const normalizedCategory =
-      String(category || "all")
-        .trim()
-        .toLowerCase();
 
-    const products =
-      $$("[data-product-card]");
-
-    products.forEach(
-      (product) => {
-        const productCategory =
-          String(
-            product.dataset.category ||
-              "all"
-          ).toLowerCase();
-
-        const shouldShow =
-          normalizedCategory === "all" ||
-          productCategory ===
-            normalizedCategory;
-
-        product.hidden = !shouldShow;
-
-        product.classList.toggle(
-          "is-filtered-out",
-          !shouldShow
-        );
-      }
-    );
-
-    document.dispatchEvent(
-      new CustomEvent(
-        "bulkkot:category-filter",
-        {
-          detail: {
-            category:
-              normalizedCategory
-          }
-        }
-      )
-    );
-
-    return normalizedCategory;
-  }
-
-  /* ---------------------------------------------------------
-     Search Form
-  --------------------------------------------------------- */
-
-  function initializeSearch() {
-    if (!searchModal) {
-      return;
-    }
-
-    const form =
-      searchModal.querySelector(
-        "form"
-      );
-
-    const input =
-      searchModal.querySelector(
-        "input[type='search'], input"
-      );
-
-    form?.addEventListener(
-      "submit",
-      (event) => {
-        event.preventDefault();
-
-        submitSearch(
-          input?.value
-        );
-      }
-    );
-  }
-
-  /* ---------------------------------------------------------
-     Category Buttons
-  --------------------------------------------------------- */
-
-  function initializeCategoryButtons() {
-    $$("[data-category]").forEach(
-      (button) => {
-        button.addEventListener(
-          "click",
-          () => {
-            filterCatalog(
-              button.dataset.category
-            );
-          }
-        );
-      }
-    );
-  }
-
-  /* ---------------------------------------------------------
-     Event Delegation
-  --------------------------------------------------------- */
+  /* =======================================================
+     CART INTEGRATION
+     ======================================================= */
 
   document.addEventListener(
-    "click",
-    (event) => {
-      const openDrawer =
-        event.target.closest(
-          "[data-open-drawer]"
-        );
-
-      if (openDrawer) {
-        event.preventDefault();
-        toggleMobileDrawer(true);
-        return;
+    "bulkkot:cart-updated",
+    () => {
+      if (
+        window.BULKKOTCart &&
+        typeof window.BULKKOTCart.updateCartBadge ===
+          "function"
+      ) {
+        window.BULKKOTCart.updateCartBadge();
       }
+    }
+  );
 
-      const closeDrawer =
-        event.target.closest(
-          "[data-close-drawer]"
-        );
 
-      if (closeDrawer) {
-        event.preventDefault();
-        toggleMobileDrawer(false);
-        return;
-      }
+  /* =======================================================
+     ESCAPE KEY — CLOSE ALL ACTIVE OVERLAYS
+     ======================================================= */
 
-      const drawerLink =
-        event.target.closest(
-          "[data-mobile-drawer] a"
-        );
+  document.addEventListener(
+    "keydown",
+    event => {
+      if (event.key !== "Escape") return;
 
-      if (drawerLink) {
-        toggleMobileDrawer(false);
-      }
-
-      const openSearch =
-        event.target.closest(
-          "[data-open-search]"
-        );
-
-      if (openSearch) {
-        event.preventDefault();
-        toggleSearch(true);
-        return;
-      }
-
-      const closeSearch =
-        event.target.closest(
-          "[data-close-search]"
-        );
-
-      if (closeSearch) {
-        event.preventDefault();
-        toggleSearch(false);
-        return;
-      }
-
-      const openAbout =
-        event.target.closest(
-          "[data-open-about]"
-        );
-
-      if (openAbout) {
-        event.preventDefault();
-        toggleAbout(true);
-        return;
-      }
-
-      const closeAbout =
-        event.target.closest(
-          "[data-close-about]"
-        );
-
-      if (closeAbout) {
-        event.preventDefault();
-        toggleAbout(false);
-        return;
-      }
-
-      /*
-        Clicking a modal backdrop closes it.
-      */
+      const cartDrawer =
+        $("[data-cart-drawer]");
 
       if (
-        searchModal &&
-        event.target === searchModal
+        cartDrawer &&
+        cartDrawer.classList.contains("is-open")
       ) {
-        toggleSearch(false);
+        if (
+          window.BULKKOTCart &&
+          typeof window.BULKKOTCart.toggleCartDrawer ===
+            "function"
+        ) {
+          window.BULKKOTCart.toggleCartDrawer(false);
+        }
       }
 
-      if (
-        aboutModal &&
-        event.target === aboutModal
-      ) {
-        toggleAbout(false);
-      }
+      const mobileDrawer =
+        $("[data-mobile-drawer]");
 
       if (
         mobileDrawer &&
-        event.target === mobileDrawer
+        mobileDrawer.classList.contains("is-open")
       ) {
         toggleMobileDrawer(false);
       }
-    }
-  );
 
-  /* ---------------------------------------------------------
-     Waitlist Forms
-  --------------------------------------------------------- */
-
-  document.addEventListener(
-    "submit",
-    (event) => {
-      const form =
-        event.target.closest(
-          "[data-waitlist-form]"
-        );
-
-      if (!form) {
-        return;
-      }
-
-      event.preventDefault();
-
-      submitWaitlist(form);
-    }
-  );
-
-  /* ---------------------------------------------------------
-     Escape Key
-  --------------------------------------------------------- */
-
-  document.addEventListener(
-    "keydown",
-    (event) => {
-      if (event.key !== "Escape") {
-        return;
-      }
+      const searchModal =
+        $("[data-search-modal]");
 
       if (
-        searchModal?.classList.contains(
-          "is-open"
-        )
+        searchModal &&
+        searchModal.classList.contains("is-open")
       ) {
         toggleSearch(false);
-        return;
       }
 
+      const aboutModal =
+        $("[data-about-modal]");
+
       if (
-        aboutModal?.classList.contains(
-          "is-open"
-        )
+        aboutModal &&
+        aboutModal.classList.contains("is-open")
       ) {
         toggleAbout(false);
-        return;
       }
 
-      if (
-        mobileDrawer?.classList.contains(
-          "is-open"
-        )
-      ) {
-        toggleMobileDrawer(false);
-        return;
-      }
+      closePolicyModal();
 
-      if (
-        window.BULKKOT_CART &&
-        document.querySelector(
-          "[data-cart-drawer].is-open, #cart-drawer.is-open"
-        )
-      ) {
-        window.BULKKOT_CART.toggleCartDrawer(
-          false
-        );
-      }
+      /*
+       * Only unlock body if no overlay remains open.
+       */
+      requestAnimationFrame(() => {
+        const activeOverlay =
+          $(
+            "[data-cart-drawer].is-open, " +
+            "[data-mobile-drawer].is-open, " +
+            "[data-search-modal].is-open, " +
+            "[data-about-modal].is-open, " +
+            "[data-policy-modal].is-open"
+          );
+
+        if (!activeOverlay) {
+          lockBodyScroll(false);
+        }
+      });
     }
   );
 
-  /* ---------------------------------------------------------
-     Prevent Background Interaction
-  --------------------------------------------------------- */
 
-  window.addEventListener(
-    "pageshow",
-    () => {
-      document.body.classList.remove(
-        "is-scroll-locked",
-        "mobile-drawer-open",
-        "drawer-open"
+  /* =======================================================
+     PREVENT BACKGROUND SCROLL FOR OPEN MODALS
+     ======================================================= */
+
+  function syncBodyScroll() {
+    const activeOverlay =
+      $(
+        "[data-cart-drawer].is-open, " +
+        "[data-mobile-drawer].is-open, " +
+        "[data-search-modal].is-open, " +
+        "[data-about-modal].is-open, " +
+        "[data-policy-modal].is-open"
       );
 
-      document.body.style.top = "";
-    }
-  );
+    lockBodyScroll(Boolean(activeOverlay));
+  }
 
-  /* ---------------------------------------------------------
-     Keyboard Accessibility
-  --------------------------------------------------------- */
+  const observer =
+    new MutationObserver(syncBodyScroll);
+
+  observer.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["class"]
+  });
+
+
+  /* =======================================================
+     REDUCED MOTION
+     ======================================================= */
+
+  const reducedMotion =
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+
+  if (reducedMotion.matches) {
+    $$("[data-carousel]").forEach(
+      carousel => {
+        carousel.dataset.autoplay = "0";
+      }
+    );
+  }
+
+
+  /* =======================================================
+     INITIALIZATION
+     ======================================================= */
 
   document.addEventListener(
-    "keydown",
-    (event) => {
+    "DOMContentLoaded",
+    () => {
+
       if (
-        event.key !== "Tab" ||
-        !document.body.classList.contains(
-          "is-scroll-locked"
-        )
+        window.BULKKOTCart &&
+        typeof window.BULKKOTCart.updateCartBadge ===
+          "function"
       ) {
-        return;
+        window.BULKKOTCart.updateCartBadge();
       }
 
-      const activeOverlay =
-        document.querySelector(
-          "[data-search-modal].is-open, " +
-          "[data-about-modal].is-open, " +
-          "[data-mobile-drawer].is-open"
-        );
-
-      if (!activeOverlay) {
-        return;
+      if (
+        window.BULKKOTCart &&
+        typeof window.BULKKOTCart.renderCartDrawer ===
+          "function"
+      ) {
+        window.BULKKOTCart.renderCartDrawer();
       }
 
-      const focusable = $$(
-        "a[href], button:not([disabled]), " +
-        "input:not([disabled]), select:not([disabled]), " +
-        "textarea:not([disabled]), " +
-        "[tabindex]:not([tabindex='-1'])",
-        activeOverlay
+      /*
+       * Mark JS as loaded.
+       * Useful for CSS progressive enhancement.
+       */
+      document.documentElement.classList.add(
+        "js-loaded"
       );
-
-      if (!focusable.length) {
-        return;
-      }
-
-      const first =
-        focusable[0];
-
-      const last =
-        focusable[focusable.length - 1];
-
-      if (
-        event.shiftKey &&
-        document.activeElement === first
-      ) {
-        event.preventDefault();
-        last.focus();
-      } else if (
-        !event.shiftKey &&
-        document.activeElement === last
-      ) {
-        event.preventDefault();
-        first.focus();
-      }
     }
   );
 
-  /* ---------------------------------------------------------
-     Initialization
-  --------------------------------------------------------- */
-
-  function initialize() {
-    initializeAllCarousels();
-    initializeSearch();
-    initializeCategoryButtons();
-
-    /*
-      If cart.js loaded before main.js,
-      refresh the badge once more.
-    */
-    if (
-      window.BULKKOT_CART?.updateCartBadge
-    ) {
-      window.BULKKOT_CART.updateCartBadge();
-    }
-
-    document.documentElement.classList.add(
-      "js-ready"
-    );
-  }
-
-  if (
-    document.readyState === "loading"
-  ) {
-    document.addEventListener(
-      "DOMContentLoaded",
-      initialize,
-      {
-        once: true
-      }
-    );
-  } else {
-    initialize();
-  }
-
-  /* ---------------------------------------------------------
-     Public BULKKOT API
-  --------------------------------------------------------- */
-
-  window.BULKKOT = {
-    toggleMobileDrawer,
-    toggleSearch,
-    toggleAbout,
-    filterCatalog,
-    submitSearch,
-    submitWaitlist
-  };
-
-  window.filterCatalog =
-    filterCatalog;
 })();
