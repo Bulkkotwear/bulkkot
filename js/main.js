@@ -1,128 +1,1071 @@
-let currentProducts = [];
+/* =========================================================
+   BULKKOT (불꽃) — MAIN JAVASCRIPT
+   File: js/main.js
+   ========================================================= */
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // Waitlist Form Handler
-  const waitlistForm = document.getElementById('newsletter-form');
-  const statusBox = document.getElementById('waitlist-status');
+(() => {
+  "use strict";
 
-  if (waitlistForm) {
-    waitlistForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const emailInput = document.getElementById('waitlist-email');
-      const email = emailInput.value.trim();
+  /* ---------------------------------------------------------
+     DOM Helpers
+  --------------------------------------------------------- */
 
-      statusBox.textContent = 'Registering your access...';
-      statusBox.style.color = '#8E8E93';
+  const $ = (selector, parent = document) =>
+    parent.querySelector(selector);
 
-      const result = await joinWaitlist(email);
+  const $$ = (selector, parent = document) =>
+    Array.from(parent.querySelectorAll(selector));
 
-      if (result.success) {
-        statusBox.textContent = 'Welcome to the waitlist. We will notify you when DROP 001 goes live.';
-        statusBox.style.color = '#FFFFFF';
-        emailInput.value = '';
-      } else {
-        statusBox.textContent = result.error && result.error.includes('duplicate') 
-          ? 'You are already registered on the waitlist.' 
-          : 'Unable to register at this moment. Please try again.';
-        statusBox.style.color = '#E60000';
-      }
+  /* ---------------------------------------------------------
+     Body Scroll Lock
+  --------------------------------------------------------- */
+
+  let scrollPosition = 0;
+
+  function lockBodyScroll() {
+    if (document.body.classList.contains("is-scroll-locked")) {
+      return;
+    }
+
+    scrollPosition = window.scrollY;
+
+    document.body.classList.add("is-scroll-locked");
+
+    document.body.style.top = `-${scrollPosition}px`;
+  }
+
+  function unlockBodyScroll() {
+    if (!document.body.classList.contains("is-scroll-locked")) {
+      return;
+    }
+
+    document.body.classList.remove("is-scroll-locked");
+
+    document.body.style.top = "";
+
+    window.scrollTo({
+      top: scrollPosition,
+      behavior: "instant"
     });
   }
 
-  await loadProductsCategory(null);
-});
+  /* ---------------------------------------------------------
+     Mobile Drawer
+  --------------------------------------------------------- */
 
-// Category Filter
-window.filterCatalog = async function(category) {
-  const heading = document.getElementById('recent-heading');
-  if (heading) {
-    heading.textContent = category ? `${category} COLLECTION` : 'RECENT PRODUCTS';
+  const mobileDrawer =
+    document.querySelector("[data-mobile-drawer]");
+
+  function toggleMobileDrawer(open) {
+    if (!mobileDrawer) {
+      return;
+    }
+
+    const shouldOpen =
+      typeof open === "boolean"
+        ? open
+        : !mobileDrawer.classList.contains("is-open");
+
+    mobileDrawer.classList.toggle(
+      "is-open",
+      shouldOpen
+    );
+
+    mobileDrawer.setAttribute(
+      "aria-hidden",
+      String(!shouldOpen)
+    );
+
+    document.body.classList.toggle(
+      "mobile-drawer-open",
+      shouldOpen
+    );
+
+    if (shouldOpen) {
+      lockBodyScroll();
+
+      const firstFocusable =
+        mobileDrawer.querySelector(
+          "button, a, input, [tabindex]:not([tabindex='-1'])"
+        );
+
+      if (firstFocusable) {
+        setTimeout(
+          () => firstFocusable.focus(),
+          100
+        );
+      }
+    } else {
+      unlockBodyScroll();
+    }
   }
-  await loadProductsCategory(category);
-  
-  const container = document.getElementById('products-dynamic-container');
-  if (container) {
-    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  /* ---------------------------------------------------------
+     Search Modal
+  --------------------------------------------------------- */
+
+  const searchModal =
+    document.querySelector("[data-search-modal]");
+
+  function toggleSearch(open) {
+    if (!searchModal) {
+      return;
+    }
+
+    const shouldOpen =
+      typeof open === "boolean"
+        ? open
+        : !searchModal.classList.contains("is-open");
+
+    searchModal.classList.toggle(
+      "is-open",
+      shouldOpen
+    );
+
+    searchModal.setAttribute(
+      "aria-hidden",
+      String(!shouldOpen)
+    );
+
+    if (shouldOpen) {
+      lockBodyScroll();
+
+      const input =
+        searchModal.querySelector(
+          "input[type='search'], input"
+        );
+
+      if (input) {
+        setTimeout(() => input.focus(), 120);
+      }
+    } else {
+      unlockBodyScroll();
+    }
   }
-};
 
-async function loadProductsCategory(category) {
-  const productContainer = document.getElementById('products-dynamic-container');
-  if (!productContainer) return;
+  function submitSearch(query) {
+    const cleanQuery = String(query || "").trim();
 
-  currentProducts = await getActiveProducts(category);
+    if (!cleanQuery) {
+      return;
+    }
 
-  if (currentProducts && currentProducts.length > 0) {
-    productContainer.className = '';
-    productContainer.innerHTML = `
-      <div class="product-grid">
-        ${currentProducts.map((p, idx) => `
-          <div class="product-card" onclick="openProductQuickView(${idx})" style="cursor: pointer;">
-            <img src="${(p.images && p.images[0]) || 'hero-model.png'}" alt="${p.name}" class="product-card-img">
-            <div style="font-size: 10px; color: var(--accent-red); font-weight: 700; letter-spacing: 0.05em;">${p.category}</div>
-            <div style="font-size: 13px; font-weight: 700; margin: 4px 0;">${p.name}</div>
-            <div style="font-size: 12px; color: var(--text-muted);">₹${p.price}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
+    /*
+      Future product-search integration point.
+
+      Example:
+      window.location.href =
+        `/shop.html?search=${encodeURIComponent(cleanQuery)}`;
+    */
+
+    document.dispatchEvent(
+      new CustomEvent("bulkkot:search", {
+        detail: {
+          query: cleanQuery
+        }
+      })
+    );
+
+    console.info(
+      "BULKKOT search query:",
+      cleanQuery
+    );
+  }
+
+  /* ---------------------------------------------------------
+     About Story Modal
+  --------------------------------------------------------- */
+
+  const aboutModal =
+    document.querySelector("[data-about-modal]");
+
+  function toggleAbout(open) {
+    if (!aboutModal) {
+      return;
+    }
+
+    const shouldOpen =
+      typeof open === "boolean"
+        ? open
+        : !aboutModal.classList.contains("is-open");
+
+    aboutModal.classList.toggle(
+      "is-open",
+      shouldOpen
+    );
+
+    aboutModal.setAttribute(
+      "aria-hidden",
+      String(!shouldOpen)
+    );
+
+    if (shouldOpen) {
+      lockBodyScroll();
+
+      const closeButton =
+        aboutModal.querySelector(
+          "[data-close-about]"
+        );
+
+      if (closeButton) {
+        setTimeout(
+          () => closeButton.focus(),
+          100
+        );
+      }
+    } else {
+      unlockBodyScroll();
+    }
+  }
+
+  /* ---------------------------------------------------------
+     Carousel
+  --------------------------------------------------------- */
+
+  const carousels = new WeakMap();
+
+  function initializeCarousel(carousel) {
+    if (!carousel) {
+      return;
+    }
+
+    const track =
+      carousel.querySelector(
+        "[data-carousel-track]"
+      );
+
+    const slides =
+      $$(".data-slide", carousel);
+
+    /*
+      The selector above intentionally falls back to the
+      data attribute query below for valid HTML usage.
+    */
+    const validSlides =
+      $$("[data-slide]", carousel);
+
+    if (!track || validSlides.length === 0) {
+      return;
+    }
+
+    const prevButton =
+      carousel.querySelector(
+        "[data-carousel-prev]"
+      );
+
+    const nextButton =
+      carousel.querySelector(
+        "[data-carousel-next]"
+      );
+
+    const indicators =
+      $$("[data-slide-indicator]", carousel);
+
+    let currentIndex = 0;
+    let autoplayTimer = null;
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+
+    const totalSlides = validSlides.length;
+
+    function updateCarousel(
+      index,
+      animate = true
+    ) {
+      currentIndex =
+        (index + totalSlides) % totalSlides;
+
+      const offset =
+        currentIndex * 100;
+
+      track.style.transition =
+        animate
+          ? "transform 600ms cubic-bezier(.2,.65,.2,1)"
+          : "none";
+
+      track.style.transform =
+        `translate3d(-${offset}%, 0, 0)`;
+
+      validSlides.forEach(
+        (slide, slideIndex) => {
+          slide.classList.toggle(
+            "is-active",
+            slideIndex === currentIndex
+          );
+
+          slide.setAttribute(
+            "aria-hidden",
+            String(slideIndex !== currentIndex)
+          );
+        }
+      );
+
+      indicators.forEach(
+        (indicator, indicatorIndex) => {
+          indicator.classList.toggle(
+            "is-active",
+            indicatorIndex === currentIndex
+          );
+
+          indicator.setAttribute(
+            "aria-current",
+            indicatorIndex === currentIndex
+              ? "true"
+              : "false"
+          );
+        }
+      );
+    }
+
+    function next() {
+      updateCarousel(currentIndex + 1);
+    }
+
+    function previous() {
+      updateCarousel(currentIndex - 1);
+    }
+
+    function stopAutoplay() {
+      if (autoplayTimer) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
+      }
+    }
+
+    function startAutoplay() {
+      stopAutoplay();
+
+      if (totalSlides <= 1) {
+        return;
+      }
+
+      autoplayTimer = setInterval(
+        next,
+        6000
+      );
+    }
+
+    prevButton?.addEventListener(
+      "click",
+      () => {
+        previous();
+        startAutoplay();
+      }
+    );
+
+    nextButton?.addEventListener(
+      "click",
+      () => {
+        next();
+        startAutoplay();
+      }
+    );
+
+    indicators.forEach(
+      (indicator, index) => {
+        indicator.addEventListener(
+          "click",
+          () => {
+            updateCarousel(index);
+            startAutoplay();
+          }
+        );
+      }
+    );
+
+    carousel.addEventListener(
+      "pointerdown",
+      (event) => {
+        startX = event.clientX;
+        currentX = event.clientX;
+        isDragging = true;
+
+        track.style.transition = "none";
+      }
+    );
+
+    carousel.addEventListener(
+      "pointermove",
+      (event) => {
+        if (!isDragging) {
+          return;
+        }
+
+        currentX = event.clientX;
+      }
+    );
+
+    carousel.addEventListener(
+      "pointerup",
+      () => {
+        if (!isDragging) {
+          return;
+        }
+
+        const distance =
+          currentX - startX;
+
+        isDragging = false;
+
+        if (Math.abs(distance) > 50) {
+          if (distance < 0) {
+            next();
+          } else {
+            previous();
+          }
+        } else {
+          updateCarousel(
+            currentIndex
+          );
+        }
+
+        startAutoplay();
+      }
+    );
+
+    carousel.addEventListener(
+      "pointercancel",
+      () => {
+        isDragging = false;
+        updateCarousel(
+          currentIndex
+        );
+        startAutoplay();
+      }
+    );
+
+    carousel.addEventListener(
+      "mouseenter",
+      stopAutoplay
+    );
+
+    carousel.addEventListener(
+      "mouseleave",
+      startAutoplay
+    );
+
+    carousel.addEventListener(
+      "focusin",
+      stopAutoplay
+    );
+
+    carousel.addEventListener(
+      "focusout",
+      startAutoplay
+    );
+
+    updateCarousel(
+      0,
+      false
+    );
+
+    startAutoplay();
+
+    carousels.set(carousel, {
+      next,
+      previous,
+      updateCarousel,
+      startAutoplay,
+      stopAutoplay
+    });
+  }
+
+  function initializeAllCarousels() {
+    $$("[data-carousel]").forEach(
+      initializeCarousel
+    );
+  }
+
+  /* ---------------------------------------------------------
+     Waitlist
+  --------------------------------------------------------- */
+
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      String(email).trim()
+    );
+  }
+
+  async function submitWaitlist(form) {
+    if (!form) {
+      return;
+    }
+
+    const emailInput =
+      form.querySelector(
+        "input[type='email']"
+      );
+
+    const submitButton =
+      form.querySelector(
+        "button[type='submit'], input[type='submit']"
+      );
+
+    const message =
+      form.querySelector(
+        "[data-waitlist-message]"
+      );
+
+    if (!emailInput) {
+      return;
+    }
+
+    const email =
+      emailInput.value.trim();
+
+    if (!isValidEmail(email)) {
+      showFormMessage(
+        message,
+        "Please enter a valid email address.",
+        "error"
+      );
+
+      emailInput.focus();
+
+      return;
+    }
+
+    const originalButtonText =
+      submitButton?.textContent || "JOIN";
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent =
+        "JOINING...";
+    }
+
+    try {
+      /*
+        SUPABASE INTEGRATION HOOK
+
+        When Supabase is connected, replace the
+        simulated section below with:
+
+        const { data, error } =
+          await supabase
+            .from("waitlist")
+            .insert([
+              {
+                email: email
+              }
+            ]);
+
+        if (error) {
+          throw error;
+        }
+
+        Keep the rest of the UI handling unchanged.
+      */
+
+      const supabaseClient =
+        window.supabaseClient ||
+        window.BULKKOT_SUPABASE ||
+        null;
+
+      if (supabaseClient?.from) {
+        const { error } =
+          await supabaseClient
+            .from("waitlist")
+            .insert([
+              {
+                email
+              }
+            ]);
+
+        if (error) {
+          throw error;
+        }
+      } else {
+        /*
+          Backend is not connected yet.
+          The form still works as a frontend hook.
+        */
+
+        console.info(
+          "BULKKOT waitlist backend is not connected yet.",
+          { email }
+        );
+      }
+
+      showFormMessage(
+        message,
+        "You're on the list. Welcome to BULKKOT.",
+        "success"
+      );
+
+      emailInput.value = "";
+
+      form.dispatchEvent(
+        new CustomEvent(
+          "bulkkot:waitlist-success",
+          {
+            bubbles: true,
+            detail: {
+              email
+            }
+          }
+        )
+      );
+    } catch (error) {
+      console.error(
+        "BULKKOT waitlist error:",
+        error
+      );
+
+      showFormMessage(
+        message,
+        "Something went wrong. Please try again.",
+        "error"
+      );
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent =
+          originalButtonText;
+      }
+    }
+  }
+
+  function showFormMessage(
+    element,
+    text,
+    type
+  ) {
+    if (!element) {
+      return;
+    }
+
+    element.textContent = text;
+
+    element.classList.remove(
+      "is-error",
+      "is-success"
+    );
+
+    element.classList.add(
+      type === "success"
+        ? "is-success"
+        : "is-error"
+    );
+
+    element.setAttribute(
+      "role",
+      "status"
+    );
+  }
+
+  /* ---------------------------------------------------------
+     Category Filter
+  --------------------------------------------------------- */
+
+  function filterCatalog(category) {
+    const normalizedCategory =
+      String(category || "all")
+        .trim()
+        .toLowerCase();
+
+    const products =
+      $$("[data-product-card]");
+
+    products.forEach(
+      (product) => {
+        const productCategory =
+          String(
+            product.dataset.category ||
+              "all"
+          ).toLowerCase();
+
+        const shouldShow =
+          normalizedCategory === "all" ||
+          productCategory ===
+            normalizedCategory;
+
+        product.hidden = !shouldShow;
+
+        product.classList.toggle(
+          "is-filtered-out",
+          !shouldShow
+        );
+      }
+    );
+
+    document.dispatchEvent(
+      new CustomEvent(
+        "bulkkot:category-filter",
+        {
+          detail: {
+            category:
+              normalizedCategory
+          }
+        }
+      )
+    );
+
+    return normalizedCategory;
+  }
+
+  /* ---------------------------------------------------------
+     Search Form
+  --------------------------------------------------------- */
+
+  function initializeSearch() {
+    if (!searchModal) {
+      return;
+    }
+
+    const form =
+      searchModal.querySelector(
+        "form"
+      );
+
+    const input =
+      searchModal.querySelector(
+        "input[type='search'], input"
+      );
+
+    form?.addEventListener(
+      "submit",
+      (event) => {
+        event.preventDefault();
+
+        submitSearch(
+          input?.value
+        );
+      }
+    );
+  }
+
+  /* ---------------------------------------------------------
+     Category Buttons
+  --------------------------------------------------------- */
+
+  function initializeCategoryButtons() {
+    $$("[data-category]").forEach(
+      (button) => {
+        button.addEventListener(
+          "click",
+          () => {
+            filterCatalog(
+              button.dataset.category
+            );
+          }
+        );
+      }
+    );
+  }
+
+  /* ---------------------------------------------------------
+     Event Delegation
+  --------------------------------------------------------- */
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const openDrawer =
+        event.target.closest(
+          "[data-open-drawer]"
+        );
+
+      if (openDrawer) {
+        event.preventDefault();
+        toggleMobileDrawer(true);
+        return;
+      }
+
+      const closeDrawer =
+        event.target.closest(
+          "[data-close-drawer]"
+        );
+
+      if (closeDrawer) {
+        event.preventDefault();
+        toggleMobileDrawer(false);
+        return;
+      }
+
+      const drawerLink =
+        event.target.closest(
+          "[data-mobile-drawer] a"
+        );
+
+      if (drawerLink) {
+        toggleMobileDrawer(false);
+      }
+
+      const openSearch =
+        event.target.closest(
+          "[data-open-search]"
+        );
+
+      if (openSearch) {
+        event.preventDefault();
+        toggleSearch(true);
+        return;
+      }
+
+      const closeSearch =
+        event.target.closest(
+          "[data-close-search]"
+        );
+
+      if (closeSearch) {
+        event.preventDefault();
+        toggleSearch(false);
+        return;
+      }
+
+      const openAbout =
+        event.target.closest(
+          "[data-open-about]"
+        );
+
+      if (openAbout) {
+        event.preventDefault();
+        toggleAbout(true);
+        return;
+      }
+
+      const closeAbout =
+        event.target.closest(
+          "[data-close-about]"
+        );
+
+      if (closeAbout) {
+        event.preventDefault();
+        toggleAbout(false);
+        return;
+      }
+
+      /*
+        Clicking a modal backdrop closes it.
+      */
+
+      if (
+        searchModal &&
+        event.target === searchModal
+      ) {
+        toggleSearch(false);
+      }
+
+      if (
+        aboutModal &&
+        event.target === aboutModal
+      ) {
+        toggleAbout(false);
+      }
+
+      if (
+        mobileDrawer &&
+        event.target === mobileDrawer
+      ) {
+        toggleMobileDrawer(false);
+      }
+    }
+  );
+
+  /* ---------------------------------------------------------
+     Waitlist Forms
+  --------------------------------------------------------- */
+
+  document.addEventListener(
+    "submit",
+    (event) => {
+      const form =
+        event.target.closest(
+          "[data-waitlist-form]"
+        );
+
+      if (!form) {
+        return;
+      }
+
+      event.preventDefault();
+
+      submitWaitlist(form);
+    }
+  );
+
+  /* ---------------------------------------------------------
+     Escape Key
+  --------------------------------------------------------- */
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      if (
+        searchModal?.classList.contains(
+          "is-open"
+        )
+      ) {
+        toggleSearch(false);
+        return;
+      }
+
+      if (
+        aboutModal?.classList.contains(
+          "is-open"
+        )
+      ) {
+        toggleAbout(false);
+        return;
+      }
+
+      if (
+        mobileDrawer?.classList.contains(
+          "is-open"
+        )
+      ) {
+        toggleMobileDrawer(false);
+        return;
+      }
+
+      if (
+        window.BULKKOT_CART &&
+        document.querySelector(
+          "[data-cart-drawer].is-open, #cart-drawer.is-open"
+        )
+      ) {
+        window.BULKKOT_CART.toggleCartDrawer(
+          false
+        );
+      }
+    }
+  );
+
+  /* ---------------------------------------------------------
+     Prevent Background Interaction
+  --------------------------------------------------------- */
+
+  window.addEventListener(
+    "pageshow",
+    () => {
+      document.body.classList.remove(
+        "is-scroll-locked",
+        "mobile-drawer-open",
+        "drawer-open"
+      );
+
+      document.body.style.top = "";
+    }
+  );
+
+  /* ---------------------------------------------------------
+     Keyboard Accessibility
+  --------------------------------------------------------- */
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (
+        event.key !== "Tab" ||
+        !document.body.classList.contains(
+          "is-scroll-locked"
+        )
+      ) {
+        return;
+      }
+
+      const activeOverlay =
+        document.querySelector(
+          "[data-search-modal].is-open, " +
+          "[data-about-modal].is-open, " +
+          "[data-mobile-drawer].is-open"
+        );
+
+      if (!activeOverlay) {
+        return;
+      }
+
+      const focusable = $$(
+        "a[href], button:not([disabled]), " +
+        "input:not([disabled]), select:not([disabled]), " +
+        "textarea:not([disabled]), " +
+        "[tabindex]:not([tabindex='-1'])",
+        activeOverlay
+      );
+
+      if (!focusable.length) {
+        return;
+      }
+
+      const first =
+        focusable[0];
+
+      const last =
+        focusable[focusable.length - 1];
+
+      if (
+        event.shiftKey &&
+        document.activeElement === first
+      ) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === last
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  );
+
+  /* ---------------------------------------------------------
+     Initialization
+  --------------------------------------------------------- */
+
+  function initialize() {
+    initializeAllCarousels();
+    initializeSearch();
+    initializeCategoryButtons();
+
+    /*
+      If cart.js loaded before main.js,
+      refresh the badge once more.
+    */
+    if (
+      window.BULKKOT_CART?.updateCartBadge
+    ) {
+      window.BULKKOT_CART.updateCartBadge();
+    }
+
+    document.documentElement.classList.add(
+      "js-ready"
+    );
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initialize,
+      {
+        once: true
+      }
+    );
   } else {
-    productContainer.className = 'coming-soon-box';
-    productContainer.innerHTML = `
-      <div class="box-icon">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
-      </div>
-      <h3>${category ? `${category} DROPPING SOON` : 'DROP 001 COMING SOON'}</h3>
-      <p>Stay tuned for our first collection.</p>
-    `;
+    initialize();
   }
-}
 
-// Product Quick View Popup
-let selectedProduct = null;
-let selectedSize = 'M';
+  /* ---------------------------------------------------------
+     Public BULKKOT API
+  --------------------------------------------------------- */
 
-window.openProductQuickView = function(idx) {
-  selectedProduct = currentProducts[idx];
-  if (!selectedProduct) return;
+  window.BULKKOT = {
+    toggleMobileDrawer,
+    toggleSearch,
+    toggleAbout,
+    filterCatalog,
+    submitSearch,
+    submitWaitlist
+  };
 
-  selectedSize = 'M';
-  const modal = document.getElementById('product-modal');
-  if (!modal) return;
-
-  document.getElementById('modal-p-img').src = (selectedProduct.images && selectedProduct.images[0]) || 'hero-model.png';
-  document.getElementById('modal-p-name').textContent = selectedProduct.name;
-  document.getElementById('modal-p-cat').textContent = selectedProduct.category;
-  document.getElementById('modal-p-price').textContent = `₹${selectedProduct.price}`;
-  document.getElementById('modal-p-desc').textContent = selectedProduct.description || 'Korean-inspired heavyweight premium street garment.';
-
-  renderSizeSelectors();
-  modal.style.display = 'flex';
-};
-
-function renderSizeSelectors() {
-  const sizes = ['S', 'M', 'L', 'XL'];
-  const container = document.getElementById('size-options');
-  if (!container) return;
-
-  container.innerHTML = sizes.map(s => `
-    <button type="button" onclick="selectProductSize('${s}')" style="background: ${selectedSize === s ? '#FFF' : '#141414'}; color: ${selectedSize === s ? '#000' : '#FFF'}; border: 1px solid var(--border-dark); padding: 8px 14px; font-weight: 700; font-size: 11px; border-radius: 3px;">${s}</button>
-  `).join('');
-}
-
-window.selectProductSize = function(s) {
-  selectedSize = s;
-  renderSizeSelectors();
-};
-
-window.closeProductModal = function() {
-  const modal = document.getElementById('product-modal');
-  if (modal) modal.style.display = 'none';
-};
-
-window.addProductToBag = function() {
-  if (selectedProduct) {
-    addToCart(selectedProduct, selectedSize);
-    closeProductModal();
-  }
-};
+  window.filterCatalog =
+    filterCatalog;
+})();
