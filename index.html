@@ -1,312 +1,3549 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  
-  <!-- Primary Meta Tags -->
-  <title>BULKKOT (불꽃) | Korean-Inspired Luxury Streetwear</title>
-  <meta name="title" content="BULKKOT (불꽃) | Korean-Inspired Luxury Streetwear">
-  <meta name="description" content="Korean-inspired premium everyday wear for a new generation. Heavyweight fabrics, custom silhouettes, and limited capsule drops.">
-  <meta name="theme-color" content="#000000">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Open Graph / Facebook / WhatsApp -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://bulkkot.bulkkotwear.workers.dev/">
-  <meta property="og:title" content="BULKKOT (불꽃) | Premier Streetwear">
-  <meta property="og:description" content="Korean-inspired essentials and oversized heavyweight drops. Explore DROP 001.">
-  <meta property="og:image" content="hero-model.png">
+  <title>BULKKOT — 불꽃 | Premium Everyday Wear</title>
+  <meta
+    name="description"
+    content="BULKKOT — 불꽃. Korean-inspired premium everyday wear for a new generation."
+  />
+  <meta name="keywords" content="BULKKOT, 불꽃, Korean fashion, premium streetwear, oversized clothing, India" />
+  <meta name="author" content="BULKKOT" />
+  <meta name="theme-color" content="#111111" />
 
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://bulkkot.bulkkotwear.workers.dev/">
-  <meta property="twitter:title" content="BULKKOT (불꽃) | Premier Streetwear">
-  <meta property="twitter:description" content="Korean-inspired heavyweight drops for the new generation.">
-  <meta property="twitter:image" content="hero-model.png">
+  <meta property="og:title" content="BULKKOT — 불꽃" />
+  <meta
+    property="og:description"
+    content="Korean-inspired premium everyday wear."
+  />
+  <meta property="og:type" content="website" />
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-  <!-- Fonts Preconnect -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
-  
-  <!-- Modular CSS -->
-  <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/components.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <style>
+    :root {
+      --bk-black: #0a0a0a;
+      --bk-white: #f7f7f5;
+      --bk-red: #d60000;
+      --bk-border: rgba(10, 10, 10, 0.14);
+      --bk-soft: #ececea;
+      --bk-heading: "Montserrat", sans-serif;
+      --bk-body: "Inter", sans-serif;
+      --bk-korean: "Noto Sans KR", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bk-white);
+      color: var(--bk-black);
+      font-family: var(--bk-body);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body.is-locked {
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* --------------------------------------------------
+       ANNOUNCEMENT
+    -------------------------------------------------- */
+
+    .announcement-bar {
+      position: relative;
+      z-index: 1000;
+      overflow: hidden;
+      height: 34px;
+      background: var(--bk-red);
+      color: #050505;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .announcement-track {
+      display: flex;
+      width: max-content;
+      animation: announcement-marquee 28s linear infinite;
+      will-change: transform;
+    }
+
+    .announcement-group {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .announcement-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      padding-right: 42px;
+      font-family: var(--bk-heading);
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .announcement-item .kr {
+      font-family: var(--bk-korean);
+      letter-spacing: 0.08em;
+    }
+
+    .announcement-separator {
+      opacity: 0.55;
+    }
+
+    @keyframes announcement-marquee {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* --------------------------------------------------
+       HEADER
+    -------------------------------------------------- */
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 900;
+      background: rgba(247, 247, 245, 0.94);
+      border-bottom: 1px solid var(--bk-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .header-inner {
+      min-height: 74px;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      justify-self: start;
+    }
+
+    .brand-symbol {
+      width: 27px;
+      height: 27px;
+      flex: 0 0 27px;
+      display: grid;
+      place-items: center;
+      color: var(--bk-black);
+    }
+
+    .brand-symbol svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .brand-wordmark {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 7px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .brand-wordmark .hangul {
+      color: var(--bk-red);
+      font-family: var(--bk-korean);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-wordmark .english {
+      font-family: var(--bk-heading);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+    }
+
+    .desktop-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .desktop-nav a,
+    .utility-link {
+      position: relative;
+      font-family: var(--bk-heading);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .desktop-nav a::after,
+    .utility-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -6px;
+      width: 0;
+      height: 1px;
+      background: currentColor;
+      transition: width 240ms ease;
+    }
+
+    .desktop-nav a:hover::after,
+    .utility-link:hover::after {
+      width: 100%;
+    }
+
+    .header-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .icon-button {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--bk-black);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .icon-button svg {
+      width: 17px;
+      height: 17px;
+      stroke-width: 1.6;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: 0;
+      right: -2px;
+      min-width: 14px;
+      height: 14px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--bk-red);
+      color: white;
+      font-family: var(--bk-heading);
+      font-size: 7px;
+      line-height: 14px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .mobile-menu-button {
+      display: none;
+    }
+
+    /* --------------------------------------------------
+       MOBILE DRAWER
+    -------------------------------------------------- */
+
+    .mobile-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .mobile-drawer.is-open {
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .drawer-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.38);
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+
+    .mobile-drawer.is-open .drawer-backdrop {
+      opacity: 1;
+    }
+
+    .drawer-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: min(88vw, 410px);
+      height: 100%;
+      padding: 28px;
+      background: var(--bk-white);
+      transform: translateX(100%);
+      transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+      overflow-y: auto;
+    }
+
+    .mobile-drawer.is-open .drawer-panel {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--bk-border);
+    }
+
+    .drawer-close {
+      width: 36px;
+      height: 36px;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .drawer-close svg {
+      width: 19px;
+    }
+
+    .drawer-nav {
+      padding-top: 30px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .drawer-nav a {
+      font-family: var(--bk-heading);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .drawer-nav a span {
+      display: block;
+      margin-top: 4px;
+      font-family: var(--bk-korean);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0;
+      opacity: 0.5;
+    }
+
+    .drawer-social {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--bk-border);
+      font-size: 12px;
+    }
+
+    /* --------------------------------------------------
+       HERO
+    -------------------------------------------------- */
+
+    .hero {
+      position: relative;
+      min-height: min(820px, calc(100vh - 108px));
+      background: var(--bk-black);
+      color: white;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+    }
+
+    .hero-media img {
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0.86;
+      transform: scale(1.015);
+      animation: hero-image-in 1.2s ease both;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 54%, rgba(0,0,0,0.08) 100%),
+        linear-gradient(0deg, rgba(0,0,0,0.48), transparent 45%);
+    }
+
+    .hero-content {
+      min-height: inherit;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 72px 32px;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .hero-copy {
+      max-width: 600px;
+    }
+
+    .hero-kicker {
+      margin: 0 0 16px;
+      color: #fff;
+      font-family: var(--bk-korean);
+      font-size: clamp(16px, 2vw, 22px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(42px, 7vw, 92px);
+      line-height: 0.94;
+      font-weight: 800;
+      letter-spacing: -0.065em;
+    }
+
+    .hero-subtitle {
+      max-width: 420px;
+      margin: 24px 0 30px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .button {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 21px;
+      border: 1px solid transparent;
+      font-family: var(--bk-heading);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition:
+        background 220ms ease,
+        color 220ms ease,
+        border-color 220ms ease,
+        transform 220ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      background: white;
+      color: var(--bk-black);
+    }
+
+    .button-primary:hover {
+      background: var(--bk-red);
+      color: white;
+    }
+
+    .button-dark {
+      background: var(--bk-black);
+      color: white;
+    }
+
+    .button-dark:hover {
+      background: var(--bk-red);
+    }
+
+    .button-outline {
+      border-color: var(--bk-black);
+      background: transparent;
+      color: var(--bk-black);
+    }
+
+    .button-outline:hover {
+      background: var(--bk-black);
+      color: white;
+    }
+
+    @keyframes hero-image-in {
+      from {
+        opacity: 0;
+        transform: scale(1.045);
+      }
+      to {
+        opacity: 0.86;
+        transform: scale(1.015);
+      }
+    }
+
+    /* --------------------------------------------------
+       COMMON SECTION
+    -------------------------------------------------- */
+
+    .section {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 96px 32px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 30px;
+      margin-bottom: 34px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      font-family: var(--bk-heading);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.58;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(28px, 4vw, 52px);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.055em;
+    }
+
+    .section-title .kr {
+      font-family: var(--bk-korean);
+      font-size: 0.45em;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      opacity: 0.48;
+      vertical-align: middle;
+      margin-left: 7px;
+    }
+
+    /* --------------------------------------------------
+       CATEGORY BADGES
+    -------------------------------------------------- */
+
+    .category-section {
+      padding-top: 72px;
+      padding-bottom: 48px;
+    }
+
+    .category-row {
+      width: min(620px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(18px, 5vw, 52px);
+    }
+
+    .category-card {
+      min-width: 0;
+      text-align: center;
+    }
+
+    .category-image {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 50%;
+      background: #ddd;
+      border: 1px solid var(--bk-border);
+    }
+
+    .category-image::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.16));
+      pointer-events: none;
+    }
+
+    .category-image img {
+      height: 100%;
+      object-fit: cover;
+      transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .category-card:hover .category-image img {
+      transform: scale(1.06);
+    }
+
+    .category-name {
+      margin: 13px 0 0;
+      font-family: var(--bk-heading);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+    }
+
+    .category-name .kr {
+      display: block;
+      margin-top: 4px;
+      font-family: var(--bk-korean);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0;
+      opacity: 0.55;
+    }
+
+    /* --------------------------------------------------
+       EDITORIAL CAROUSEL
+    -------------------------------------------------- */
+
+    .editorial-section {
+      padding-top: 48px;
+    }
+
+    .carousel {
+      position: relative;
+      overflow: hidden;
+      background: var(--bk-black);
+      color: white;
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .carousel-slide {
+      min-width: 100%;
+      position: relative;
+      min-height: 620px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+
+    .carousel-slide img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .carousel-slide::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(0deg, rgba(0,0,0,0.7), transparent 60%),
+        linear-gradient(90deg, rgba(0,0,0,0.25), transparent);
+    }
+
+    .slide-content {
+      position: relative;
+      z-index: 2;
+      padding: 54px;
+      max-width: 610px;
+    }
+
+    .slide-content .slide-korean {
+      margin: 0 0 10px;
+      font-family: var(--bk-korean);
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.72;
+    }
+
+    .slide-content h3 {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(34px, 6vw, 70px);
+      line-height: 0.94;
+      letter-spacing: -0.065em;
+    }
+
+    .slide-content p {
+      max-width: 410px;
+      margin: 18px 0 0;
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.76);
+    }
+
+    .carousel-controls {
+      position: absolute;
+      right: 30px;
+      bottom: 30px;
+      z-index: 5;
+      display: flex;
+      gap: 8px;
+    }
+
+    .carousel-button {
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,0.5);
+      color: white;
+      background: rgba(0,0,0,0.18);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .carousel-button svg {
+      width: 14px;
+    }
+
+    .carousel-dots {
+      position: absolute;
+      left: 54px;
+      bottom: 35px;
+      z-index: 5;
+      display: flex;
+      gap: 6px;
+    }
+
+    .carousel-dot {
+      width: 28px;
+      height: 1px;
+      border: 0;
+      padding: 0;
+      background: rgba(255,255,255,0.35);
+      cursor: pointer;
+    }
+
+    .carousel-dot.is-active {
+      background: white;
+    }
+
+    /* --------------------------------------------------
+       DROP 001
+    -------------------------------------------------- */
+
+    .drop-section {
+      padding-top: 120px;
+    }
+
+    .drop-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      min-height: 660px;
+      background: #e8e8e5;
+    }
+
+    .drop-image {
+      min-height: 660px;
+      overflow: hidden;
+    }
+
+    .drop-image img {
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .drop-copy {
+      padding: clamp(42px, 6vw, 92px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .drop-copy .drop-label {
+      margin: 0 0 12px;
+      font-family: var(--bk-korean);
+      font-size: 12px;
+      opacity: 0.55;
+    }
+
+    .drop-copy h2 {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(40px, 6vw, 76px);
+      line-height: 0.92;
+      letter-spacing: -0.065em;
+    }
+
+    .drop-copy .status {
+      margin: 22px 0 0;
+      font-family: var(--bk-heading);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      color: var(--bk-red);
+    }
+
+    .drop-copy p {
+      max-width: 390px;
+      margin: 22px 0 30px;
+      line-height: 1.75;
+      font-size: 13px;
+      color: rgba(10,10,10,0.66);
+    }
+
+    /* --------------------------------------------------
+       PRODUCTS
+    -------------------------------------------------- */
+
+    .products-section {
+      padding-top: 120px;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .product-card {
+      min-width: 0;
+    }
+
+    .product-media {
+      position: relative;
+      aspect-ratio: 0.78;
+      overflow: hidden;
+      background: #e9e9e6;
+    }
+
+    .product-media img {
+      height: 100%;
+      object-fit: cover;
+      transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .product-media img.hover-image {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition:
+        opacity 400ms ease,
+        transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .product-card:hover .product-media img:first-child {
+      transform: scale(1.035);
+    }
+
+    .product-card:hover .product-media img.hover-image {
+      opacity: 1;
+      transform: scale(1.035);
+    }
+
+    .product-status {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 2;
+      padding: 6px 8px;
+      background: rgba(247,247,245,0.88);
+      font-family: var(--bk-heading);
+      font-size: 7px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+    }
+
+    .product-info {
+      padding: 15px 2px 0;
+    }
+
+    .product-name {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .product-korean {
+      margin: 4px 0 0;
+      font-family: var(--bk-korean);
+      font-size: 10px;
+      opacity: 0.5;
+    }
+
+    .product-price {
+      margin: 9px 0 0;
+      font-family: var(--bk-body);
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0.55;
+    }
+
+    /* --------------------------------------------------
+       VALUES
+    -------------------------------------------------- */
+
+    .values-section {
+      padding-top: 120px;
+    }
+
+    .values-grid {
+      border-top: 1px solid var(--bk-border);
+      border-bottom: 1px solid var(--bk-border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .value-item {
+      padding: 30px 24px 34px;
+      border-right: 1px solid var(--bk-border);
+    }
+
+    .value-item:last-child {
+      border-right: 0;
+    }
+
+    .value-number {
+      font-family: var(--bk-heading);
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      opacity: 0.4;
+    }
+
+    .value-item h3 {
+      margin: 46px 0 6px;
+      font-family: var(--bk-heading);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .value-item .kr {
+      font-family: var(--bk-korean);
+      font-size: 10px;
+      opacity: 0.48;
+    }
+
+    .value-item p {
+      margin: 16px 0 0;
+      max-width: 240px;
+      font-size: 11px;
+      line-height: 1.7;
+      color: rgba(10,10,10,0.6);
+    }
+
+    /* --------------------------------------------------
+       ABOUT
+    -------------------------------------------------- */
+
+    .about-section {
+      padding-top: 120px;
+    }
+
+    .about-layout {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 90px;
+      align-items: start;
+    }
+
+    .about-mark {
+      font-family: var(--bk-korean);
+      font-size: clamp(80px, 12vw, 180px);
+      font-weight: 800;
+      line-height: 0.8;
+      color: var(--bk-red);
+      letter-spacing: -0.1em;
+    }
+
+    .about-copy h2 {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(36px, 5vw, 68px);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+    }
+
+    .about-copy p {
+      max-width: 690px;
+      margin: 28px 0 30px;
+      font-size: 14px;
+      line-height: 1.85;
+      color: rgba(10,10,10,0.7);
+    }
+
+    /* --------------------------------------------------
+       PHILOSOPHY
+    -------------------------------------------------- */
+
+    .philosophy-section {
+      max-width: none;
+      background: var(--bk-black);
+      color: white;
+      margin-top: 80px;
+      text-align: center;
+      padding: clamp(110px, 16vw, 220px) 32px;
+    }
+
+    .philosophy-korean {
+      margin: 0 0 18px;
+      font-family: var(--bk-korean);
+      font-size: 12px;
+      opacity: 0.5;
+    }
+
+    .philosophy-title {
+      max-width: 1050px;
+      margin: 0 auto;
+      font-family: var(--bk-heading);
+      font-size: clamp(42px, 8vw, 110px);
+      line-height: 0.9;
+      letter-spacing: -0.07em;
+    }
+
+    .philosophy-copy {
+      max-width: 540px;
+      margin: 28px auto 0;
+      font-size: 12px;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.58);
+    }
+
+    /* --------------------------------------------------
+       INSTAGRAM
+    -------------------------------------------------- */
+
+    .instagram-section {
+      text-align: center;
+    }
+
+    .instagram-heading {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(30px, 5vw, 58px);
+      line-height: 1;
+      letter-spacing: -0.055em;
+    }
+
+    .instagram-heading .kr {
+      display: block;
+      margin-top: 10px;
+      font-family: var(--bk-korean);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0;
+      opacity: 0.5;
+    }
+
+    .instagram-handle {
+      display: inline-flex;
+      margin-top: 25px;
+      font-family: var(--bk-heading);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--bk-black);
+      padding-bottom: 5px;
+    }
+
+    .instagram-grid {
+      margin-top: 44px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+
+    .instagram-grid a {
+      overflow: hidden;
+      aspect-ratio: 1;
+      background: #ddd;
+    }
+
+    .instagram-grid img {
+      height: 100%;
+      object-fit: cover;
+      transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .instagram-grid a:hover img {
+      transform: scale(1.05);
+    }
+
+    /* --------------------------------------------------
+       WAITLIST
+    -------------------------------------------------- */
+
+    .waitlist-section {
+      background: #e7e7e3;
+      max-width: none;
+      text-align: center;
+      padding: 100px 32px;
+    }
+
+    .waitlist-inner {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .waitlist-title {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+    }
+
+    .waitlist-korean {
+      margin: 10px 0 0;
+      font-family: var(--bk-korean);
+      font-size: 12px;
+      opacity: 0.5;
+    }
+
+    .waitlist-copy {
+      max-width: 440px;
+      margin: 20px auto 28px;
+      font-size: 12px;
+      line-height: 1.75;
+      color: rgba(10,10,10,0.6);
+    }
+
+    .waitlist-form {
+      max-width: 470px;
+      margin: 0 auto;
+      display: flex;
+      border-bottom: 1px solid var(--bk-black);
+    }
+
+    .waitlist-form input {
+      flex: 1;
+      min-width: 0;
+      height: 50px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font-size: 12px;
+      color: var(--bk-black);
+    }
+
+    .waitlist-form input::placeholder {
+      color: rgba(10,10,10,0.42);
+    }
+
+    .waitlist-form button {
+      border: 0;
+      background: transparent;
+      font-family: var(--bk-heading);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      cursor: pointer;
+    }
+
+    .waitlist-message {
+      min-height: 20px;
+      margin-top: 12px;
+      font-size: 10px;
+    }
+
+    /* --------------------------------------------------
+       CONTACT
+    -------------------------------------------------- */
+
+    .contact-section {
+      border-bottom: 1px solid var(--bk-border);
+    }
+
+    .contact-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 90px;
+    }
+
+    .contact-title {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(36px, 5vw, 65px);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+    }
+
+    .contact-title .kr {
+      display: block;
+      margin-top: 10px;
+      font-family: var(--bk-korean);
+      font-size: 12px;
+      letter-spacing: 0;
+      opacity: 0.45;
+    }
+
+    .contact-list {
+      display: grid;
+      gap: 26px;
+    }
+
+    .contact-item span {
+      display: block;
+      margin-bottom: 7px;
+      font-family: var(--bk-heading);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      opacity: 0.45;
+      text-transform: uppercase;
+    }
+
+    .contact-item a {
+      font-size: 13px;
+      font-weight: 500;
+      border-bottom: 1px solid var(--bk-black);
+      padding-bottom: 3px;
+    }
+
+    /* --------------------------------------------------
+       FOOTER
+    -------------------------------------------------- */
+
+    .site-footer {
+      background: var(--bk-black);
+      color: white;
+      padding: 70px 32px 30px;
+    }
+
+    .footer-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr repeat(4, 1fr);
+      gap: 40px;
+      padding-bottom: 70px;
+    }
+
+    .footer-brand {
+      max-width: 270px;
+    }
+
+    .footer-logo {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      font-family: var(--bk-heading);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+    }
+
+    .footer-logo .kr {
+      color: var(--bk-red);
+      font-family: var(--bk-korean);
+      font-size: 14px;
+      letter-spacing: -0.04em;
+    }
+
+    .footer-brand p {
+      margin: 18px 0 0;
+      color: rgba(255,255,255,0.52);
+      font-size: 11px;
+      line-height: 1.75;
+    }
+
+    .footer-column h3 {
+      margin: 0 0 18px;
+      font-family: var(--bk-heading);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.17em;
+    }
+
+    .footer-column ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .footer-column a {
+      color: rgba(255,255,255,0.56);
+      font-size: 10px;
+      transition: color 180ms ease;
+    }
+
+    .footer-column a:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      padding-top: 25px;
+      border-top: 1px solid rgba(255,255,255,0.13);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      color: rgba(255,255,255,0.4);
+      font-size: 9px;
+    }
+
+    /* --------------------------------------------------
+       MODALS / DRAWERS
+    -------------------------------------------------- */
+
+    .modal-root {
+      position: fixed;
+      inset: 0;
+      z-index: 1400;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .modal-root.is-open {
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      opacity: 0;
+      transition: opacity 260ms ease;
+    }
+
+    .modal-root.is-open .modal-backdrop {
+      opacity: 1;
+    }
+
+    .modal-panel {
+      position: absolute;
+      background: var(--bk-white);
+      color: var(--bk-black);
+    }
+
+    /* Search */
+    .search-panel {
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 38px 32px 45px;
+      transform: translateY(-100%);
+      transition: transform 360ms cubic-bezier(0.22,1,0.36,1);
+    }
+
+    .search-root.is-open .search-panel {
+      transform: translateY(0);
+    }
+
+    .modal-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .modal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-label {
+      font-family: var(--bk-heading);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+    }
+
+    .modal-close {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+    }
+
+    .search-form {
+      margin-top: 45px;
+      border-bottom: 1px solid var(--bk-black);
+      display: flex;
+      align-items: center;
+    }
+
+    .search-form input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      padding: 13px 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(24px, 4vw, 46px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    /* Cart */
+    .cart-panel {
+      top: 0;
+      right: 0;
+      width: min(470px, 100%);
+      height: 100%;
+      padding: 28px;
+      transform: translateX(100%);
+      transition: transform 360ms cubic-bezier(0.22,1,0.36,1);
+      overflow-y: auto;
+    }
+
+    .cart-root.is-open .cart-panel {
+      transform: translateX(0);
+    }
+
+    .cart-content {
+      margin-top: 45px;
+    }
+
+    .cart-empty {
+      min-height: 60vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .cart-empty h2 {
+      margin: 0;
+      font-family: var(--bk-heading);
+      font-size: 28px;
+      letter-spacing: -0.04em;
+    }
+
+    .cart-empty p {
+      max-width: 280px;
+      margin: 12px auto 22px;
+      font-size: 11px;
+      line-height: 1.7;
+      opacity: 0.55;
+    }
+
+    /* About */
+    .about-modal-panel {
+      left: 50%;
+      top: 50%;
+      width: min(900px, calc(100% - 32px));
+      max-height: min(80vh, 760px);
+      overflow-y: auto;
+      padding: clamp(30px, 6vw, 75px);
+      transform: translate(-50%, -47%);
+      opacity: 0;
+      transition:
+        opacity 280ms ease,
+        transform 360ms cubic-bezier(0.22,1,0.36,1);
+    }
+
+    .about-root.is-open .about-modal-panel {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    .story-title {
+      margin: 40px 0 0;
+      font-family: var(--bk-heading);
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: 0.93;
+      letter-spacing: -0.06em;
+    }
+
+    .story-title .kr {
+      display: block;
+      margin-top: 9px;
+      font-family: var(--bk-korean);
+      font-size: 13px;
+      letter-spacing: 0;
+      opacity: 0.5;
+    }
+
+    .story-copy {
+      max-width: 690px;
+      margin-top: 32px;
+      font-size: 14px;
+      line-height: 1.9;
+      color: rgba(10,10,10,0.67);
+    }
+
+    .story-copy p {
+      margin: 0 0 20px;
+    }
+
+    /* --------------------------------------------------
+       RESPONSIVE
+    -------------------------------------------------- */
+
+    @media (max-width: 1050px) {
+      .header-inner {
+        grid-template-columns: auto 1fr auto;
+      }
+
+      .desktop-nav {
+        gap: 18px;
+      }
+
+      .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .footer-top {
+        grid-template-columns: 1.5fr repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 800px) {
+      .header-inner {
+        min-height: 64px;
+        padding: 0 17px;
+        grid-template-columns: auto 1fr auto;
+      }
+
+      .desktop-nav {
+        display: none;
+      }
+
+      .mobile-menu-button {
+        display: grid;
+        order: -1;
+      }
+
+      .brand-lockup {
+        justify-self: center;
+      }
+
+      .header-actions {
+        gap: 2px;
+      }
+
+      .header-actions .account-link {
+        display: none;
+      }
+
+      .section {
+        padding: 72px 17px;
+      }
+
+      .hero {
+        min-height: 680px;
+      }
+
+      .hero-content {
+        padding: 48px 17px;
+      }
+
+      .hero-overlay {
+        background:
+          linear-gradient(90deg, rgba(0,0,0,0.62), rgba(0,0,0,0.16)),
+          linear-gradient(0deg, rgba(0,0,0,0.55), transparent 55%);
+      }
+
+      .category-section {
+        padding-top: 52px;
+        padding-bottom: 34px;
+      }
+
+      .category-row {
+        gap: 12px;
+      }
+
+      .category-name {
+        font-size: 8px;
+        letter-spacing: 0.1em;
+      }
+
+      .category-name .kr {
+        font-size: 8px;
+      }
+
+      .carousel-slide {
+        min-height: 500px;
+      }
+
+      .slide-content {
+        padding: 28px 22px 60px;
+      }
+
+      .carousel-dots {
+        left: 22px;
+        bottom: 27px;
+      }
+
+      .carousel-controls {
+        right: 17px;
+        bottom: 20px;
+      }
+
+      .drop-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .drop-image {
+        min-height: 470px;
+      }
+
+      .drop-copy {
+        min-height: 460px;
+        padding: 45px 25px;
+      }
+
+      .values-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .value-item:nth-child(2) {
+        border-right: 0;
+      }
+
+      .value-item:nth-child(-n+2) {
+        border-bottom: 1px solid var(--bk-border);
+      }
+
+      .about-layout {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+
+      .about-mark {
+        font-size: 90px;
+      }
+
+      .instagram-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .contact-layout {
+        grid-template-columns: 1fr;
+        gap: 50px;
+      }
+
+      .footer-top {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .footer-brand {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .announcement-bar {
+        height: 30px;
+      }
+
+      .announcement-item {
+        font-size: 8px;
+        gap: 13px;
+        padding-right: 28px;
+      }
+
+      .brand-symbol {
+        width: 23px;
+        height: 23px;
+        flex-basis: 23px;
+      }
+
+      .brand-wordmark {
+        gap: 5px;
+      }
+
+      .brand-wordmark .hangul {
+        font-size: 11px;
+      }
+
+      .brand-wordmark .english {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+      }
+
+      .header-actions .instagram-button {
+        display: none;
+      }
+
+      .hero {
+        min-height: 640px;
+      }
+
+      .hero-media img {
+        object-position: 58% center;
+      }
+
+      .hero-title {
+        font-size: 44px;
+      }
+
+      .hero-subtitle {
+        font-size: 12px;
+        margin-top: 18px;
+      }
+
+      .button {
+        min-height: 44px;
+        padding: 0 16px;
+        font-size: 8px;
+      }
+
+      /* REQUIRED: THREE CATEGORY BADGES ALWAYS ONE ROW */
+      .category-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .category-image {
+        width: 100%;
+      }
+
+      .category-name {
+        margin-top: 10px;
+        font-size: 7px;
+      }
+
+      .category-name .kr {
+        margin-top: 3px;
+        font-size: 7px;
+      }
+
+      .section-header {
+        display: block;
+      }
+
+      .section-header .button {
+        margin-top: 18px;
+      }
+
+      .carousel-slide {
+        min-height: 460px;
+      }
+
+      .carousel-slide img {
+        object-position: center;
+      }
+
+      .slide-content h3 {
+        font-size: 42px;
+      }
+
+      .slide-content p {
+        font-size: 11px;
+      }
+
+      .product-grid {
+        gap: 10px;
+      }
+
+      .product-info {
+        padding-top: 11px;
+      }
+
+      .product-name {
+        font-size: 8px;
+      }
+
+      .product-korean {
+        font-size: 8px;
+      }
+
+      .product-price {
+        font-size: 9px;
+      }
+
+      .value-item {
+        padding: 24px 15px 26px;
+      }
+
+      .value-item h3 {
+        margin-top: 32px;
+        font-size: 10px;
+      }
+
+      .value-item p {
+        font-size: 9px;
+      }
+
+      .about-mark {
+        font-size: 72px;
+      }
+
+      .about-copy p {
+        font-size: 12px;
+      }
+
+      .waitlist-section {
+        padding: 75px 17px;
+      }
+
+      .waitlist-form {
+        display: block;
+        border: 0;
+      }
+
+      .waitlist-form input {
+        width: 100%;
+        border-bottom: 1px solid var(--bk-black);
+        margin-bottom: 12px;
+      }
+
+      .waitlist-form button {
+        width: 100%;
+        min-height: 44px;
+        background: var(--bk-black);
+        color: white;
+      }
+
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+        gap: 36px 24px;
+      }
+
+      .footer-brand {
+        grid-column: 1 / -1;
+      }
+
+      .footer-column a {
+        font-size: 9px;
+      }
+
+      .footer-bottom {
+        display: block;
+        line-height: 1.8;
+      }
+
+      .footer-bottom span {
+        display: block;
+      }
+
+      .search-panel {
+        padding: 25px 17px 35px;
+      }
+
+      .cart-panel {
+        padding: 22px 17px;
+      }
+
+      .about-modal-panel {
+        width: calc(100% - 22px);
+        padding: 28px 22px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-  <!-- Top Announcement Bar -->
-  <div class="announcement-bar">
-    <span>DROP 001 – DROPPING SOON</span>
-    <span class="bar-sep">|</span>
-    <span>FREE SHIPPING ALL OVER INDIA</span>
-  </div>
+  <!-- ==================================================
+       1. ANNOUNCEMENT BAR
+  =================================================== -->
 
-  <!-- Luxury Two-Row Header -->
-  <header class="main-header">
-    <div class="header-main-row">
-      <div class="brand-group">
-        <a href="index.html" class="brand-logo-wrap" title="BULKKOT Home">
-          <img src="logo.png" alt="BULKKOT Official Logo" class="brand-logo-img">
-        </a>
-        <div class="brand-text-block">
-          <span class="brand-kr-title">불꽃</span>
-          <span class="brand-en-title">BULKKOT</span>
-        </div>
+  <aside class="announcement-bar" aria-label="BULKKOT announcements">
+    <div class="announcement-track">
+
+      <div class="announcement-group">
+        <span class="announcement-item">
+          DROP 001 — DROPPING SOON
+          <span class="announcement-separator">•</span>
+        </span>
+
+        <span class="announcement-item">
+          <span class="kr">불꽃 DROP 001 — COMING SOON</span>
+          <span class="announcement-separator">•</span>
+        </span>
+
+        <span class="announcement-item">
+          JOIN THE WAITLIST
+          <span class="announcement-separator">•</span>
+        </span>
       </div>
+
+      <div class="announcement-group" aria-hidden="true">
+        <span class="announcement-item">
+          DROP 001 — DROPPING SOON
+          <span class="announcement-separator">•</span>
+        </span>
+
+        <span class="announcement-item">
+          <span class="kr">불꽃 DROP 001 — COMING SOON</span>
+          <span class="announcement-separator">•</span>
+        </span>
+
+        <span class="announcement-item">
+          JOIN THE WAITLIST
+          <span class="announcement-separator">•</span>
+        </span>
+      </div>
+
+    </div>
+  </aside>
+
+
+  <!-- ==================================================
+       2. STICKY HEADER
+  =================================================== -->
+
+  <header class="site-header">
+    <div class="header-inner">
+
+      <button
+        class="icon-button mobile-menu-button"
+        type="button"
+        aria-label="Open navigation menu"
+        data-open-drawer
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+
+      <a href="#home" class="brand-lockup" aria-label="BULKKOT home">
+
+        <span class="brand-symbol" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <path
+              d="M16 2.8C16 2.8 10.6 10.2 10.6 15.7C10.6 19.4 13 21.9 16 21.9C19 21.9 21.4 19.4 21.4 15.7C21.4 12.2 19.6 9.5 18.4 7.8C18.9 12.1 15.9 14.1 15.9 17.2"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M16 29C11.3 29 7.5 25.8 7.5 21.7C7.5 19.3 8.7 17.2 10.4 15.7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+            <path
+              d="M16 29C20.7 29 24.5 25.8 24.5 21.7C24.5 19.3 23.3 17.2 21.6 15.7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+
+        <span class="brand-wordmark">
+          <span class="hangul">불꽃</span>
+          <span class="english">BULKKOT</span>
+        </span>
+
+      </a>
+
+
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="#home">Home</a>
+        <a href="#shop">Shop</a>
+        <a href="#drop-001">Drop 001</a>
+        <a href="#collections">Collections</a>
+        <a href="#about">About</a>
+      </nav>
+
 
       <div class="header-actions">
-        <!-- Instagram Link -->
-        <a href="https://instagram.com/bulkkot.wear" target="_blank" rel="noopener" title="Instagram @bulkkot.wear" class="action-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
-        </a>
-        <!-- Admin/User Portal -->
-        <a href="admin/index.html" title="Admin Portal" class="action-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        </a>
-        <!-- Shopping Bag Trigger -->
-        <a href="javascript:void(0)" title="Shopping Bag" class="action-icon" onclick="toggleCartDrawer(true)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-          <span class="cart-badge" id="cart-count">0</span>
-        </a>
-      </div>
-    </div>
 
-    <!-- Sub Navigation Row -->
-    <div class="header-sub-row">
-      <nav class="nav-links">
-        <a href="#home" class="nav-item active">HOME</a>
-        <a href="#shop" class="nav-item">SHOP</a>
-        <a href="#collections" class="nav-item">COLLECTIONS</a>
-        <a class="nav-item" onclick="openModal('about')">ABOUT</a>
-      </nav>
+        <button
+          class="icon-button"
+          type="button"
+          aria-label="Search"
+          data-open-search
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="m16 16 5 5"></path>
+          </svg>
+        </button>
+
+        <a
+          href="#"
+          class="utility-link account-link"
+          aria-label="Account"
+        >
+          Account
+        </a>
+
+        <button
+          class="icon-button"
+          type="button"
+          aria-label="Shopping cart"
+          data-open-cart
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M5 8h14l-1 12H6L5 8Z"></path>
+            <path d="M9 8a3 3 0 0 1 6 0"></path>
+          </svg>
+          <span class="cart-count" data-cart-count>0</span>
+        </button>
+
+        <a
+          class="icon-button instagram-button"
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="BULKKOT on Instagram"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect>
+            <circle cx="12" cy="12" r="4"></circle>
+            <circle cx="17.4" cy="6.7" r="0.8" fill="currentColor" stroke="none"></circle>
+          </svg>
+        </a>
+
+      </div>
+
     </div>
   </header>
 
-  <!-- Hero Slider -->
-  <div class="hero-slider-container" id="home">
-    <div class="hero-slide slide-1 active">
-      <div class="hero-content">
-        <span class="hero-kr-accent">불꽃</span>
-        <h1 class="hero-brand-title">BULKKOT</h1>
-        <p class="hero-subhead">DROP 001 • PREMIER CAPSULE</p>
-        <p class="hero-desc">Korean-inspired essentials for a new generation.</p>
-        <a href="#collections" class="btn-hero">EXPLORE DROP 001 <span>→</span></a>
-      </div>
-    </div>
 
-    <div class="hero-slide slide-2">
-      <div class="hero-content">
-        <span class="hero-kr-accent">불꽃</span>
-        <h1 class="hero-brand-title">FUTURE DROPS</h1>
-        <p class="hero-subhead">MORE COLLECTIONS DROPPING SOON</p>
-        <p class="hero-desc">Stay ahead. Exclusive numbered capsules in development.</p>
-        <a href="#waitlist" class="btn-hero">JOIN VIP WAITLIST <span>→</span></a>
-      </div>
-    </div>
+  <!-- ==================================================
+       3. MOBILE HAMBURGER DRAWER
+  =================================================== -->
 
-    <div class="hero-slide slide-3">
-      <div class="hero-content">
-        <span class="hero-kr-accent">불꽃</span>
-        <h1 class="hero-brand-title">SEOUL ARCHIVE</h1>
-        <p class="hero-subhead">LIMITED EDITION RELEASES</p>
-        <p class="hero-desc">Heavyweight silhouettes designed for ultimate drape.</p>
-        <a href="#waitlist" class="btn-hero">GET NOTIFIED <span>→</span></a>
-      </div>
-    </div>
+  <div class="mobile-drawer" data-mobile-drawer aria-hidden="true">
 
-    <div class="hero-slider-dots">
-      <button class="slider-dot active" onclick="setSlide(0)"></button>
-      <button class="slider-dot" onclick="setSlide(1)"></button>
-      <button class="slider-dot" onclick="setSlide(2)"></button>
-    </div>
+    <div class="drawer-backdrop" data-close-drawer></div>
+
+    <aside
+      class="drawer-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mobile navigation"
+    >
+
+      <div class="drawer-header">
+
+        <a href="#home" class="brand-lockup" data-close-drawer>
+          <span class="brand-symbol" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path
+                d="M16 2.8C16 2.8 10.6 10.2 10.6 15.7C10.6 19.4 13 21.9 16 21.9C19 21.9 21.4 19.4 21.4 15.7C21.4 12.2 19.6 9.5 18.4 7.8C18.9 12.1 15.9 14.1 15.9 17.2"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M16 29C11.3 29 7.5 25.8 7.5 21.7C7.5 19.3 8.7 17.2 10.4 15.7"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+              <path
+                d="M16 29C20.7 29 24.5 25.8 24.5 21.7C24.5 19.3 23.3 17.2 21.6 15.7"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+
+          <span class="brand-wordmark">
+            <span class="hangul">불꽃</span>
+            <span class="english">BULKKOT</span>
+          </span>
+        </a>
+
+        <button
+          class="drawer-close"
+          type="button"
+          aria-label="Close navigation"
+          data-close-drawer
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M5 5l14 14M19 5L5 19"></path>
+          </svg>
+        </button>
+
+      </div>
+
+      <nav class="drawer-nav">
+        <a href="#home" data-close-drawer>
+          Home
+          <span>홈</span>
+        </a>
+
+        <a href="#shop" data-close-drawer>
+          Shop
+          <span>쇼핑</span>
+        </a>
+
+        <a href="#drop-001" data-close-drawer>
+          Drop 001
+          <span>첫 번째 드롭</span>
+        </a>
+
+        <a href="#collections" data-close-drawer>
+          Collections
+          <span>컬렉션</span>
+        </a>
+
+        <a href="#about" data-close-drawer>
+          About
+          <span>불꽃에 대하여</span>
+        </a>
+      </nav>
+
+      <div class="drawer-social">
+        <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">
+          Instagram — @bulkkot.wear
+        </a>
+      </div>
+
+    </aside>
   </div>
 
-  <!-- Category Section -->
-  <section class="category-section" id="shop">
-    <div class="category-grid">
-      <div class="category-card" onclick="filterCatalog('TEES')">
-        <div class="category-img-wrap">
-          <img src="cat-tees.png" alt="TEES" loading="lazy">
+
+  <main>
+
+    <!-- ==================================================
+         4. HERO
+    =================================================== -->
+
+    <section class="hero" id="home" aria-labelledby="hero-title">
+
+      <div class="hero-media">
+        <img
+          src="https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=2200&q=88"
+          alt="Editorial fashion campaign"
+        />
+      </div>
+
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <div class="hero-copy">
+
+          <p class="hero-kicker">불꽃 | BULKKOT</p>
+
+          <h1 class="hero-title" id="hero-title">
+            PREMIUM<br />
+            EVERYDAY WEAR
+          </h1>
+
+          <p class="hero-subtitle">
+            Korean-inspired essentials for a new generation.
+          </p>
+
+          <a class="button button-primary" href="#drop-001">
+            Explore Drop 001
+          </a>
+
         </div>
-        <span class="category-title">TEES</span>
       </div>
 
-      <div class="category-card" onclick="filterCatalog('HOODS')">
-        <div class="category-img-wrap">
-          <img src="cat-hoods.png" alt="HOODS" loading="lazy">
-        </div>
-        <span class="category-title">HOODS</span>
-      </div>
+    </section>
 
-      <div class="category-card" onclick="filterCatalog('SWEATS')">
-        <div class="category-img-wrap">
-          <img src="cat-sweats.png" alt="SWEATS" loading="lazy">
-        </div>
-        <span class="category-title">SWEATS</span>
-      </div>
-    </div>
-  </section>
 
-  <!-- Promo Banner -->
-  <section class="promo-section" id="collections" style="padding: 24px 16px; max-width: 1100px; margin: 0 auto;">
-    <div style="background: #0A0A0A; border: 1px solid var(--border-dark); border-radius: 8px; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px;">
-      <div>
-        <span style="color: var(--accent-red); font-size: 10px; font-weight: 800; letter-spacing: 0.12em;">DROP 001</span>
-        <h2 style="font-family: var(--font-heading); font-size: 22px; font-weight: 900; margin: 2px 0;">DROPPING SOON</h2>
-        <p style="color: var(--text-muted); font-size: 12px;">First collection. Limited pieces.</p>
-      </div>
-      <div>
-        <a href="#waitlist" style="color: var(--accent-red); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; display: inline-flex; align-items: center; gap: 6px;">EXPLORE DROP 001 <span>→</span></a>
-      </div>
-    </div>
-  </section>
+    <!-- ==================================================
+         5. CATEGORY BADGES
+    =================================================== -->
 
-  <!-- Dynamic Product Display -->
-  <section class="recent-products-section">
-    <div class="section-head">
-      <h2 id="recent-heading">RECENT PRODUCTS</h2>
-      <a href="#shop" class="view-all" onclick="filterCatalog(null)">VIEW ALL <span>→</span></a>
-    </div>
+    <section
+      class="section category-section"
+      id="collections"
+      aria-labelledby="category-title"
+    >
 
-    <div class="coming-soon-box" id="products-dynamic-container">
-      <div class="box-icon">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
-      </div>
-      <h3>DROP 001 COMING SOON</h3>
-      <p>Stay tuned for our first collection.</p>
-    </div>
-  </section>
+      <h2 id="category-title" class="sr-only">
+        BULKKOT Collections
+      </h2>
 
-  <!-- Waitlist Section -->
-  <section class="waitlist-section" id="waitlist" style="padding: 24px 16px; max-width: 800px; margin: 0 auto;">
-    <div style="background: #0A0A0A; border: 1px solid var(--border-dark); padding: 28px 16px; text-align: center; border-radius: 6px;">
-      <span style="color: var(--accent-red); font-family: var(--font-kr); font-size: 18px; font-weight: 900;">불꽃</span>
-      <h2 style="font-family: var(--font-heading); font-size: 16px; font-weight: 800; margin: 6px 0 8px;">JOIN THE DROP WAITLIST</h2>
-      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 18px;">Enter your email to gain early private access 1 hour prior to general public release.</p>
-      <form id="newsletter-form" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-        <input type="email" id="waitlist-email" placeholder="Enter your email address" required style="background: #161616; border: 1px solid var(--border-dark); padding: 14px; color: #FFF; font-size: 13px; outline: none; border-radius: 3px;">
-        <button type="submit" style="background: #FFF; color: #000; border: none; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; padding: 14px; cursor: pointer; border-radius: 3px;">JOIN WAITLIST</button>
-      </form>
-      <div id="waitlist-status" style="font-size: 11px; margin-top: 10px; min-height: 16px;"></div>
-    </div>
-  </section>
+      <div class="category-row">
 
-  <!-- Features Strip -->
-  <section style="border-top: 1px solid var(--border-dark); border-bottom: 1px solid var(--border-dark); padding: 36px 16px; margin-top: 40px;">
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 16px; text-align: center; max-width: 1100px; margin: 0 auto;">
-      <div>
-        <h4 style="font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px;">PREMIUM QUALITY</h4>
-        <p style="color: var(--text-muted); font-size: 11px;">Carefully sourced fabrics</p>
-      </div>
-      <div>
-        <h4 style="font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px;">OVERSIZED FIT</h4>
-        <p style="color: var(--text-muted); font-size: 11px;">Comfort that fits all</p>
-      </div>
-      <div>
-        <h4 style="font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px;">SECURE PAYMENT</h4>
-        <p style="color: var(--text-muted); font-size: 11px;">100% secure checkout</p>
-      </div>
-      <div>
-        <h4 style="font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px;">ALL INDIA SHIPPING</h4>
-        <p style="color: var(--text-muted); font-size: 11px;">Fast express delivery</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer style="background: #000; padding: 48px 16px 28px; font-size: 12px; border-top: 1px solid var(--border-dark);">
-    <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
-      <div class="brand-group">
-        <a href="index.html" class="brand-logo-wrap">
-          <img src="logo.png" alt="BULKKOT" class="brand-logo-img">
+        <a class="category-card" href="#shop" aria-label="Shop T-Shirts">
+          <div class="category-image">
+            <img
+              src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=88"
+              alt="BULKKOT inspired oversized T-shirt editorial"
+              loading="lazy"
+            />
+          </div>
+          <p class="category-name">
+            TEES
+            <span class="kr">티셔츠</span>
+          </p>
         </a>
-        <div class="brand-text-block">
-          <span class="brand-kr-title">불꽃</span>
-          <span class="brand-en-title">BULKKOT</span>
+
+        <a class="category-card" href="#shop" aria-label="Shop Hoodies">
+          <div class="category-image">
+            <img
+              src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=88"
+              alt="BULKKOT inspired hoodie editorial"
+              loading="lazy"
+            />
+          </div>
+          <p class="category-name">
+            HOODS
+            <span class="kr">후드</span>
+          </p>
+        </a>
+
+        <a class="category-card" href="#shop" aria-label="Shop Sweatshirts">
+          <div class="category-image">
+            <img
+              src="https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=crop&w=900&q=88"
+              alt="BULKKOT inspired sweatshirt editorial"
+              loading="lazy"
+            />
+          </div>
+          <p class="category-name">
+            SWEATS
+            <span class="kr">스웨트</span>
+          </p>
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         6. EDITORIAL CAROUSEL
+    =================================================== -->
+
+    <section class="section editorial-section" aria-label="BULKKOT editorial">
+
+      <div class="carousel" data-carousel>
+
+        <div class="carousel-track" data-carousel-track>
+
+          <article class="carousel-slide">
+            <img
+              src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=2200&q=88"
+              alt="BULKKOT editorial fashion"
+              loading="lazy"
+            />
+
+            <div class="slide-content">
+              <p class="slide-korean">첫 번째 드롭</p>
+              <h3>DROP<br />001</h3>
+              <p>
+                The first expression of BULKKOT.
+                A considered beginning built around everyday presence.
+              </p>
+            </div>
+          </article>
+
+          <article class="carousel-slide">
+            <img
+              src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2200&q=88"
+              alt="Minimal fashion editorial"
+              loading="lazy"
+            />
+
+            <div class="slide-content">
+              <p class="slide-korean">곧 공개됩니다</p>
+              <h3>COMING<br />SOON</h3>
+              <p>
+                Premium everyday essentials are taking shape.
+              </p>
+            </div>
+          </article>
+
+          <article class="carousel-slide">
+            <img
+              src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=2200&q=88"
+              alt="Modern streetwear editorial"
+              loading="lazy"
+            />
+
+            <div class="slide-content">
+              <p class="slide-korean">매일을 위한 프리미엄 에센셜</p>
+              <h3>LESS<br />NOISE.</h3>
+              <p>
+                Clean silhouettes. Thoughtful design.
+                Everyday comfort.
+              </p>
+            </div>
+          </article>
+
+          <article class="carousel-slide">
+            <img
+              src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=2200&q=88"
+              alt="Korean-inspired premium fashion editorial"
+              loading="lazy"
+            />
+
+            <div class="slide-content">
+              <p class="slide-korean">매일의 존재감을 위해</p>
+              <h3>MORE<br />PRESENCE.</h3>
+              <p>
+                Designed for people who prefer presence over noise.
+              </p>
+            </div>
+          </article>
+
+        </div>
+
+        <div class="carousel-dots" aria-label="Carousel navigation">
+          <button class="carousel-dot is-active" type="button" aria-label="Slide 1" data-slide="0"></button>
+          <button class="carousel-dot" type="button" aria-label="Slide 2" data-slide="1"></button>
+          <button class="carousel-dot" type="button" aria-label="Slide 3" data-slide="2"></button>
+          <button class="carousel-dot" type="button" aria-label="Slide 4" data-slide="3"></button>
+        </div>
+
+        <div class="carousel-controls">
+          <button class="carousel-button" type="button" aria-label="Previous slide" data-carousel-prev>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M15 5l-7 7 7 7"></path>
+            </svg>
+          </button>
+
+          <button class="carousel-button" type="button" aria-label="Next slide" data-carousel-next>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         7. DROP 001
+    =================================================== -->
+
+    <section class="section drop-section" id="drop-001" aria-labelledby="drop-title">
+
+      <div class="drop-grid">
+
+        <div class="drop-image">
+          <img
+            src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1800&q=88"
+            alt="BULKKOT Drop 001 editorial"
+            loading="lazy"
+          />
+        </div>
+
+        <div class="drop-copy">
+
+          <p class="drop-label">DROP 001 · 첫 번째 드롭</p>
+
+          <h2 id="drop-title">
+            THE FIRST<br />
+            EXPRESSION.
+          </h2>
+
+          <p class="status">
+            COMING SOON
+          </p>
+
+          <p>
+            Clean silhouettes. Oversized comfort.
+            Everyday essentials designed around a quieter
+            kind of presence.
+          </p>
+
+          <div>
+            <a class="button button-dark" href="#waitlist">
+              Join Waitlist
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         8. LATEST PRODUCTS
+    =================================================== -->
+
+    <section class="section products-section" id="shop" aria-labelledby="latest-title">
+
+      <div class="section-header">
+
+        <div>
+          <p class="eyebrow">Latest</p>
+          <h2 class="section-title" id="latest-title">
+            LATEST
+            <span class="kr">최근 제품</span>
+          </h2>
+        </div>
+
+      </div>
+
+      <div
+        class="product-grid"
+        id="product-grid"
+        data-supabase-products
+      >
+
+        <article class="product-card" data-product-id="coming-soon-1">
+          <a href="#waitlist" aria-label="Drop 001 coming soon">
+            <div class="product-media">
+
+              <span class="product-status">
+                COMING SOON
+              </span>
+
+              <img
+                src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=86"
+                alt="Oversized T-shirt editorial"
+                loading="lazy"
+              />
+
+              <img
+                class="hover-image"
+                src="https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=86"
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+              />
+
+            </div>
+
+            <div class="product-info">
+              <h3 class="product-name">DROP 001</h3>
+              <p class="product-korean">첫 번째 드롭</p>
+              <p class="product-price">Coming soon</p>
+            </div>
+          </a>
+        </article>
+
+
+        <article class="product-card" data-product-id="coming-soon-2">
+          <a href="#waitlist" aria-label="Drop 001 coming soon">
+            <div class="product-media">
+
+              <span class="product-status">
+                COMING SOON
+              </span>
+
+              <img
+                src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=1200&q=86"
+                alt="Oversized hoodie editorial"
+                loading="lazy"
+              />
+
+              <img
+                class="hover-image"
+                src="https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=crop&w=1200&q=86"
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+              />
+
+            </div>
+
+            <div class="product-info">
+              <h3 class="product-name">DROP 001</h3>
+              <p class="product-korean">첫 번째 드롭</p>
+              <p class="product-price">Coming soon</p>
+            </div>
+          </a>
+        </article>
+
+
+        <article class="product-card" data-product-id="coming-soon-3">
+          <a href="#waitlist" aria-label="Drop 001 coming soon">
+            <div class="product-media">
+
+              <span class="product-status">
+                COMING SOON
+              </span>
+
+              <img
+                src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=1200&q=86"
+                alt="Premium sweatshirt editorial"
+                loading="lazy"
+              />
+
+              <img
+                class="hover-image"
+                src="https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=1200&q=86"
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+              />
+
+            </div>
+
+            <div class="product-info">
+              <h3 class="product-name">DROP 001</h3>
+              <p class="product-korean">첫 번째 드롭</p>
+              <p class="product-price">Coming soon</p>
+            </div>
+          </a>
+        </article>
+
+
+        <article class="product-card" data-product-id="coming-soon-4">
+          <a href="#waitlist" aria-label="Drop 001 coming soon">
+            <div class="product-media">
+
+              <span class="product-status">
+                COMING SOON
+              </span>
+
+              <img
+                src="https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=1200&q=86"
+                alt="Premium everyday fashion editorial"
+                loading="lazy"
+              />
+
+              <img
+                class="hover-image"
+                src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=1200&q=86"
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+              />
+
+            </div>
+
+            <div class="product-info">
+              <h3 class="product-name">DROP 001</h3>
+              <p class="product-korean">첫 번째 드롭</p>
+              <p class="product-price">Coming soon</p>
+            </div>
+          </a>
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         9. BRAND VALUES
+    =================================================== -->
+
+    <section class="section values-section" aria-labelledby="values-title">
+
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">The BULKKOT Standard</p>
+
+          <h2 class="section-title" id="values-title">
+            WHY BULKKOT
+            <span class="kr">왜 불꽃인가</span>
+          </h2>
         </div>
       </div>
-      <p style="color: var(--text-muted); font-size: 12px; line-height: 1.5;">Korean-inspired premium everyday wear for the new generation.</p>
-      <div style="color: var(--text-muted); font-size: 11px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 18px; text-align: center;">
-        © 2026 BULKKOT (불꽃). All rights reserved.
+
+      <div class="values-grid">
+
+        <article class="value-item">
+          <span class="value-number">01</span>
+          <h3>PREMIUM QUALITY</h3>
+          <span class="kr">프리미엄 퀄리티</span>
+          <p>
+            Considered materials and thoughtful finishing
+            are at the foundation of every piece.
+          </p>
+        </article>
+
+        <article class="value-item">
+          <span class="value-number">02</span>
+          <h3>OVERSIZED FIT</h3>
+          <span class="kr">오버사이즈 핏</span>
+          <p>
+            Relaxed silhouettes designed for everyday
+            movement and comfort.
+          </p>
+        </article>
+
+        <article class="value-item">
+          <span class="value-number">03</span>
+          <h3>CLEAN DESIGN</h3>
+          <span class="kr">클린 디자인</span>
+          <p>
+            Minimal pieces designed to remain relevant
+            beyond short-lived trends.
+          </p>
+        </article>
+
+        <article class="value-item">
+          <span class="value-number">04</span>
+          <h3>EVERYDAY ESSENTIALS</h3>
+          <span class="kr">데일리 에센셜</span>
+          <p>
+            Built to become part of your everyday
+            wardrobe, not a one-time statement.
+          </p>
+        </article>
+
       </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         10. ABOUT BULKKOT
+    =================================================== -->
+
+    <section class="section about-section" id="about" aria-labelledby="about-title">
+
+      <div class="about-layout">
+
+        <div class="about-mark" aria-hidden="true">
+          불꽃
+        </div>
+
+        <div class="about-copy">
+
+          <p class="eyebrow">Our Story</p>
+
+          <h2 id="about-title">
+            ABOUT<br />
+            BULKKOT
+          </h2>
+
+          <p>
+            BULKKOT is a Korean-inspired premium everyday wear
+            brand built for a new generation in India.
+          </p>
+
+          <p>
+            Inspired by the clean aesthetics of Korean fashion
+            and international streetwear, BULKKOT focuses on
+            oversized silhouettes, thoughtful design and
+            everyday comfort.
+          </p>
+
+          <p>
+            Our goal is simple: to make premium-looking,
+            internationally inspired clothing feel more
+            accessible without compromising the way it looks,
+            feels or is presented.
+          </p>
+
+          <button
+            class="button button-outline"
+            type="button"
+            data-open-about
+          >
+            Read Our Story
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         11. BRAND PHILOSOPHY
+    =================================================== -->
+
+    <section class="philosophy-section" aria-labelledby="philosophy-title">
+
+      <p class="philosophy-korean">
+        불꽃의 철학
+      </p>
+
+      <h2 class="philosophy-title" id="philosophy-title">
+        LESS NOISE.<br />
+        MORE PRESENCE.
+      </h2>
+
+      <p class="philosophy-copy">
+        BULKKOT is built around quality, fit, comfort,
+        thoughtful design and consistency. We do not
+        chase every trend. We create everyday pieces
+        with a quieter kind of confidence.
+      </p>
+
+    </section>
+
+
+    <!-- ==================================================
+         12. INSTAGRAM
+    =================================================== -->
+
+    <section class="section instagram-section" aria-labelledby="instagram-title">
+
+      <p class="eyebrow">Follow The Brand</p>
+
+      <h2 class="instagram-heading" id="instagram-title">
+        FOLLOW BULKKOT
+        <span class="kr">불꽃을 팔로우하세요</span>
+      </h2>
+
+      <a
+        class="instagram-handle"
+        href="https://www.instagram.com/bulkkot.wear/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        @bulkkot.wear
+      </a>
+
+      <div class="instagram-grid">
+
+        <a
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="BULKKOT Instagram post"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=84"
+            alt="BULKKOT fashion editorial"
+            loading="lazy"
+          />
+        </a>
+
+        <a
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="BULKKOT Instagram post"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=84"
+            alt="BULKKOT fashion editorial"
+            loading="lazy"
+          />
+        </a>
+
+        <a
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="BULKKOT Instagram post"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=900&q=84"
+            alt="BULKKOT fashion editorial"
+            loading="lazy"
+          />
+        </a>
+
+        <a
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="BULKKOT Instagram post"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&q=84"
+            alt="BULKKOT fashion editorial"
+            loading="lazy"
+          />
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         13. VIP WAITLIST
+    =================================================== -->
+
+    <section class="waitlist-section" id="waitlist" aria-labelledby="waitlist-title">
+
+      <div class="waitlist-inner">
+
+        <p class="eyebrow">Early Access</p>
+
+        <h2 class="waitlist-title" id="waitlist-title">
+          BE FIRST TO KNOW
+        </h2>
+
+        <p class="waitlist-korean">
+          가장 먼저 만나보세요
+        </p>
+
+        <p class="waitlist-copy">
+          Drop 001 is coming. Join the BULKKOT waitlist
+          for early access and launch updates.
+        </p>
+
+        <form class="waitlist-form" id="waitlist-form">
+
+          <label class="sr-only" for="waitlist-email">
+            Email address
+          </label>
+
+          <input
+            id="waitlist-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="Enter your email"
+            required
+          />
+
+          <button type="submit">
+            Join Waitlist
+          </button>
+
+        </form>
+
+        <p
+          class="waitlist-message"
+          id="waitlist-message"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         14. CONTACT
+    =================================================== -->
+
+    <section class="section contact-section" aria-labelledby="contact-title">
+
+      <div class="contact-layout">
+
+        <div>
+          <p class="eyebrow">Get In Touch</p>
+
+          <h2 class="contact-title" id="contact-title">
+            CONTACT
+            <span class="kr">문의하기</span>
+          </h2>
+        </div>
+
+        <div class="contact-list">
+
+          <div class="contact-item">
+            <span>General Enquiries</span>
+            <a href="mailto:bulkkotwear@gmail.com">
+              bulkkotwear@gmail.com
+            </a>
+          </div>
+
+          <div class="contact-item">
+            <span>Collaborations</span>
+            <a href="mailto:bulkkotwear@gmail.com?subject=BULKKOT%20Collaboration%20Enquiry">
+              Contact BULKKOT
+            </a>
+          </div>
+
+          <div class="contact-item">
+            <span>Support</span>
+            <a href="mailto:bulkkotwear@gmail.com?subject=BULKKOT%20Support%20Request">
+              Contact Support
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ==================================================
+       15. LUXURY FOOTER
+  =================================================== -->
+
+  <footer class="site-footer">
+
+    <div class="footer-inner">
+
+      <div class="footer-top">
+
+        <div class="footer-brand">
+
+          <a class="footer-logo" href="#home">
+            <span class="kr">불꽃</span>
+            <span>BULKKOT</span>
+          </a>
+
+          <p>
+            Premium everyday wear.
+            Korean-inspired essentials for India.
+          </p>
+
+        </div>
+
+
+        <div class="footer-column">
+          <h3>SHOP</h3>
+
+          <ul>
+            <li><a href="#shop">All Products</a></li>
+            <li><a href="#shop">Tees</a></li>
+            <li><a href="#shop">Hoods</a></li>
+            <li><a href="#shop">Sweats</a></li>
+            <li><a href="#drop-001">Drop 001</a></li>
+          </ul>
+        </div>
+
+
+        <div class="footer-column">
+          <h3>ABOUT</h3>
+
+          <ul>
+            <li><a href="#about">Our Story</a></li>
+            <li><a href="#about">Brand Philosophy</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+
+
+        <div class="footer-column">
+          <h3>HELP</h3>
+
+          <ul>
+            <li><a href="#">FAQ</a></li>
+            <li><a href="#">Size Guide</a></li>
+            <li><a href="#">Shipping</a></li>
+            <li><a href="#">Returns &amp; Exchange</a></li>
+            <li><a href="#contact">Order Support</a></li>
+          </ul>
+        </div>
+
+
+        <div class="footer-column">
+          <h3>LEGAL / CONNECT</h3>
+
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms &amp; Conditions</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Shipping Policy</a></li>
+            <li>
+              <a
+                href="https://www.instagram.com/bulkkot.wear/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Instagram
+              </a>
+            </li>
+            <li>
+              <a href="mailto:bulkkotwear@gmail.com">
+                Email
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+
+      <div class="footer-bottom">
+
+        <span>
+          © 2026 BULKKOT · 불꽃 | BULKKOT
+        </span>
+
+        <span>
+          Made for everyday presence.
+        </span>
+
+      </div>
+
     </div>
+
   </footer>
 
-  <!-- Slide-out Cart Drawer -->
-  <div class="cart-drawer-overlay" id="cart-overlay" onclick="toggleCartDrawer(false)"></div>
-  <div class="cart-drawer" id="cart-drawer">
-    <div class="drawer-header">
-      <h3 class="drawer-title">SHOPPING BAG</h3>
-      <button class="drawer-close" onclick="toggleCartDrawer(false)">✕</button>
-    </div>
-    <div class="drawer-body"></div>
+
+  <!-- ==================================================
+       16A. SEARCH OVERLAY
+  =================================================== -->
+
+  <div
+    class="modal-root search-root"
+    data-search-modal
+    aria-hidden="true"
+  >
+
+    <div class="modal-backdrop" data-close-search></div>
+
+    <section
+      class="modal-panel search-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search BULKKOT"
+    >
+
+      <div class="modal-inner">
+
+        <div class="modal-top">
+
+          <span class="modal-label">
+            Search
+          </span>
+
+          <button
+            class="modal-close"
+            type="button"
+            aria-label="Close search"
+            data-close-search
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M5 5l14 14M19 5L5 19"></path>
+            </svg>
+          </button>
+
+        </div>
+
+        <form class="search-form" id="search-form">
+
+          <label class="sr-only" for="site-search">
+            Search BULKKOT
+          </label>
+
+          <input
+            id="site-search"
+            type="search"
+            placeholder="Search BULKKOT"
+            autocomplete="off"
+          />
+
+        </form>
+
+      </div>
+
+    </section>
   </div>
 
-  <!-- Product Quick View Modal -->
-  <div class="cart-drawer-overlay" id="product-modal" onclick="closeProductModal()">
-    <div style="background: #0E0E0E; border: 1px solid var(--border-dark); border-radius: 8px; max-width: 440px; width: 90%; padding: 24px; position: relative; margin: auto;" onclick="event.stopPropagation()">
-      <button onclick="closeProductModal()" style="position: absolute; top: 14px; right: 14px; background: none; border: none; color: #888; font-size: 18px;">✕</button>
-      <img id="modal-p-img" src="" alt="Product" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; margin-bottom: 14px; background: #161616;">
-      <div id="modal-p-cat" style="font-size: 10px; color: var(--accent-red); font-weight: 800; letter-spacing: 0.1em;"></div>
-      <h3 id="modal-p-name" style="font-family: var(--font-heading); font-size: 16px; font-weight: 900; margin: 4px 0 6px;"></h3>
-      <div id="modal-p-price" style="font-size: 14px; font-weight: 800; color: #FFF; margin-bottom: 10px;"></div>
-      <p id="modal-p-desc" style="color: var(--text-muted); font-size: 12px; line-height: 1.5; margin-bottom: 16px;"></p>
-      
-      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">SELECT SIZE</div>
-      <div id="size-options" style="display: flex; gap: 8px; margin-bottom: 20px;"></div>
-      
-      <button onclick="addProductToBag()" style="width: 100%; background: #FFF; color: #000; border: none; padding: 13px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; border-radius: 3px;">ADD TO BAG</button>
-    </div>
+
+  <!-- ==================================================
+       16B. CART DRAWER
+  =================================================== -->
+
+  <div
+    class="modal-root cart-root"
+    data-cart-modal
+    aria-hidden="true"
+  >
+
+    <div class="modal-backdrop" data-close-cart></div>
+
+    <aside
+      class="modal-panel cart-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Shopping cart"
+    >
+
+      <div class="modal-top">
+
+        <span class="modal-label">
+          Your Cart
+        </span>
+
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="Close cart"
+          data-close-cart
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M5 5l14 14M19 5L5 19"></path>
+          </svg>
+        </button>
+
+      </div>
+
+      <div class="cart-content" id="cart-content">
+
+        <div class="cart-empty">
+
+          <div>
+
+            <h2>Your cart is empty.</h2>
+
+            <p>
+              Drop 001 is coming soon.
+              Join the waitlist to be first to know.
+            </p>
+
+            <a class="button button-dark" href="#waitlist" data-close-cart>
+              Join Waitlist
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
   </div>
 
-  <!-- Info Modal -->
-  <div class="cart-drawer-overlay" id="info-modal" onclick="closeInfoModal()">
-    <div style="background: #0E0E0E; border: 1px solid var(--border-dark); border-radius: 8px; max-width: 440px; width: 90%; padding: 24px; position: relative; margin: auto;" onclick="event.stopPropagation()">
-      <button onclick="closeInfoModal()" style="position: absolute; top: 14px; right: 14px; background: none; border: none; color: #888; font-size: 18px;">✕</button>
-      <h3 style="font-family: var(--font-heading); font-size: 16px; font-weight: 900; margin-bottom: 10px;">ABOUT BULKKOT (불꽃)</h3>
-      <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6;">BULKKOT represents fiery passion and modern Korean streetwear culture. Born out of minimalist aesthetics and Seoul fashion, every piece is custom crafted with heavyweight fabrics and relaxed oversized draping.</p>
-    </div>
+
+  <!-- ==================================================
+       16C. ABOUT STORY MODAL
+  =================================================== -->
+
+  <div
+    class="modal-root about-root"
+    data-about-modal
+    aria-hidden="true"
+  >
+
+    <div class="modal-backdrop" data-close-about></div>
+
+    <section
+      class="modal-panel about-modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="story-modal-title"
+    >
+
+      <div class="modal-top">
+
+        <span class="modal-label">
+          BULKKOT / OUR STORY
+        </span>
+
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="Close story"
+          data-close-about
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M5 5l14 14M19 5L5 19"></path>
+          </svg>
+        </button>
+
+      </div>
+
+      <h2 class="story-title" id="story-modal-title">
+        ABOUT BULKKOT
+        <span class="kr">불꽃에 대하여</span>
+      </h2>
+
+      <div class="story-copy">
+
+        <p>
+          BULKKOT is a Korean-inspired premium everyday wear
+          brand built for a new generation in India.
+        </p>
+
+        <p>
+          Inspired by the clean aesthetics of Korean fashion
+          and international streetwear, BULKKOT focuses on
+          oversized silhouettes, thoughtful design and
+          everyday comfort.
+        </p>
+
+        <p>
+          We believe premium-looking clothing should not feel
+          unreachable. Our goal is to make internationally
+          inspired everyday wear more accessible without
+          compromising the way it looks, feels or is presented.
+        </p>
+
+        <p>
+          From the way a piece fits to the way it is photographed,
+          packaged and presented, every part of BULKKOT is built
+          around the same idea:
+        </p>
+
+        <p>
+          <strong>Less noise. More presence.</strong>
+        </p>
+
+      </div>
+
+    </section>
+
   </div>
 
-  <script src="js/supabase-client.js"></script>
-  <script src="js/cart.js"></script>
-  <script src="js/main.js"></script>
+
+  <!-- External application scripts -->
+  <script src="js/cart.js" defer></script>
+  <script src="js/main.js" defer></script>
+
+
+  <!-- Page-level interactions -->
   <script>
-    // Hero Slider
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.hero-slide');
-    const dots = document.querySelectorAll('.slider-dot');
+    document.addEventListener("DOMContentLoaded", () => {
 
-    function setSlide(idx) {
-      slides[currentSlide].classList.remove('active');
-      dots[currentSlide].classList.remove('active');
-      currentSlide = idx;
-      slides[currentSlide].classList.add('active');
-      dots[currentSlide].classList.add('active');
-    }
+      const body = document.body;
 
-    setInterval(() => {
-      let next = (currentSlide + 1) % slides.length;
-      setSlide(next);
-    }, 6000);
+      /* -----------------------------------------------
+         Generic modal helpers
+      ------------------------------------------------ */
 
-    function toggleCartDrawer(open) {
-      document.getElementById('cart-drawer').classList.toggle('open', open);
-      document.getElementById('cart-overlay').classList.toggle('open', open);
-    }
+      const openModal = (element) => {
+        if (!element) return;
 
-    function openModal(type) {
-      if (type === 'about') document.getElementById('info-modal').style.display = 'flex';
-    }
-    function closeInfoModal() {
-      document.getElementById('info-modal').style.display = 'none';
-    }
+        element.classList.add("is-open");
+        element.setAttribute("aria-hidden", "false");
+        body.classList.add("is-locked");
+      };
+
+      const closeModal = (element) => {
+        if (!element) return;
+
+        element.classList.remove("is-open");
+        element.setAttribute("aria-hidden", "true");
+
+        if (!document.querySelector(".modal-root.is-open, .mobile-drawer.is-open")) {
+          body.classList.remove("is-locked");
+        }
+      };
+
+
+      /* -----------------------------------------------
+         Mobile drawer
+      ------------------------------------------------ */
+
+      const mobileDrawer = document.querySelector("[data-mobile-drawer]");
+
+      document.querySelectorAll("[data-open-drawer]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (!mobileDrawer) return;
+
+          mobileDrawer.classList.add("is-open");
+          mobileDrawer.setAttribute("aria-hidden", "false");
+          body.classList.add("is-locked");
+        });
+      });
+
+      document.querySelectorAll("[data-close-drawer]").forEach((element) => {
+        element.addEventListener("click", () => {
+          if (!mobileDrawer) return;
+
+          mobileDrawer.classList.remove("is-open");
+          mobileDrawer.setAttribute("aria-hidden", "true");
+
+          if (!document.querySelector(".modal-root.is-open")) {
+            body.classList.remove("is-locked");
+          }
+        });
+      });
+
+
+      /* -----------------------------------------------
+         Search modal
+      ------------------------------------------------ */
+
+      const searchModal = document.querySelector("[data-search-modal]");
+
+      document.querySelectorAll("[data-open-search]").forEach((button) => {
+        button.addEventListener("click", () => {
+          openModal(searchModal);
+
+          window.setTimeout(() => {
+            document.querySelector("#site-search")?.focus();
+          }, 250);
+        });
+      });
+
+      document.querySelectorAll("[data-close-search]").forEach((element) => {
+        element.addEventListener("click", () => {
+          closeModal(searchModal);
+        });
+      });
+
+
+      /* -----------------------------------------------
+         Cart modal
+      ------------------------------------------------ */
+
+      const cartModal = document.querySelector("[data-cart-modal]");
+
+      document.querySelectorAll("[data-open-cart]").forEach((button) => {
+        button.addEventListener("click", () => {
+          openModal(cartModal);
+        });
+      });
+
+      document.querySelectorAll("[data-close-cart]").forEach((element) => {
+        element.addEventListener("click", () => {
+          closeModal(cartModal);
+        });
+      });
+
+
+      /* -----------------------------------------------
+         About story modal
+      ------------------------------------------------ */
+
+      const aboutModal = document.querySelector("[data-about-modal]");
+
+      document.querySelectorAll("[data-open-about]").forEach((button) => {
+        button.addEventListener("click", () => {
+          openModal(aboutModal);
+        });
+      });
+
+      document.querySelectorAll("[data-close-about]").forEach((element) => {
+        element.addEventListener("click", () => {
+          closeModal(aboutModal);
+        });
+      });
+
+
+      /* -----------------------------------------------
+         ESC key
+      ------------------------------------------------ */
+
+      document.addEventListener("keydown", (event) => {
+
+        if (event.key !== "Escape") return;
+
+        document.querySelectorAll(".modal-root.is-open").forEach((modal) => {
+          closeModal(modal);
+        });
+
+        if (mobileDrawer?.classList.contains("is-open")) {
+          mobileDrawer.classList.remove("is-open");
+          mobileDrawer.setAttribute("aria-hidden", "true");
+
+          if (!document.querySelector(".modal-root.is-open")) {
+            body.classList.remove("is-locked");
+          }
+        }
+      });
+
+
+      /* -----------------------------------------------
+         Carousel
+      ------------------------------------------------ */
+
+      const carousel = document.querySelector("[data-carousel]");
+
+      if (carousel) {
+
+        const track = carousel.querySelector("[data-carousel-track]");
+        const slides = carousel.querySelectorAll(".carousel-slide");
+        const dots = carousel.querySelectorAll(".carousel-dot");
+        const previous = carousel.querySelector("[data-carousel-prev]");
+        const next = carousel.querySelector("[data-carousel-next]");
+
+        let currentSlide = 0;
+        let autoPlayTimer;
+
+        const renderSlide = (index) => {
+
+          currentSlide = (index + slides.length) % slides.length;
+
+          track.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+          dots.forEach((dot, dotIndex) => {
+            dot.classList.toggle(
+              "is-active",
+              dotIndex === currentSlide
+            );
+          });
+        };
+
+        const stopAutoPlay = () => {
+          window.clearInterval(autoPlayTimer);
+        };
+
+        const startAutoPlay = () => {
+          stopAutoPlay();
+
+          autoPlayTimer = window.setInterval(() => {
+            renderSlide(currentSlide + 1);
+          }, 6500);
+        };
+
+        previous?.addEventListener("click", () => {
+          renderSlide(currentSlide - 1);
+          startAutoPlay();
+        });
+
+        next?.addEventListener("click", () => {
+          renderSlide(currentSlide + 1);
+          startAutoPlay();
+        });
+
+        dots.forEach((dot) => {
+          dot.addEventListener("click", () => {
+            renderSlide(Number(dot.dataset.slide));
+            startAutoPlay();
+          });
+        });
+
+        carousel.addEventListener("mouseenter", stopAutoPlay);
+        carousel.addEventListener("mouseleave", startAutoPlay);
+
+        renderSlide(0);
+        startAutoPlay();
+      }
+
+
+      /* -----------------------------------------------
+         Waitlist
+      ------------------------------------------------ */
+
+      const waitlistForm = document.querySelector("#waitlist-form");
+      const waitlistMessage = document.querySelector("#waitlist-message");
+
+      waitlistForm?.addEventListener("submit", (event) => {
+
+        event.preventDefault();
+
+        const emailInput = document.querySelector("#waitlist-email");
+        const email = emailInput?.value.trim();
+
+        if (!email) return;
+
+        if (waitlistMessage) {
+          waitlistMessage.textContent =
+            "You're on the list. Drop 001 updates will follow.";
+        }
+
+        waitlistForm.reset();
+
+        /*
+          BACKEND INTEGRATION:
+
+          Connect this handler to Supabase, Formspree,
+          Brevo, Mailchimp, ConvertKit or another email
+          service when the production backend is ready.
+
+          Do not expose private API keys in this HTML file.
+        */
+      });
+
+
+      /* -----------------------------------------------
+         Search
+      ------------------------------------------------ */
+
+      const searchForm = document.querySelector("#search-form");
+
+      searchForm?.addEventListener("submit", (event) => {
+
+        event.preventDefault();
+
+        const query = document
+          .querySelector("#site-search")
+          ?.value
+          .trim();
+
+        if (!query) return;
+
+        /*
+          PRODUCT SEARCH BACKEND:
+
+          Replace this section later with the real
+          Supabase/product search implementation.
+        */
+
+        console.log("BULKKOT search:", query);
+      });
+
+
+      /* -----------------------------------------------
+         Smooth navigation
+      ------------------------------------------------ */
+
+      document.querySelectorAll('a[href^="#"]').forEach((link) => {
+
+        link.addEventListener("click", (event) => {
+
+          const targetId = link.getAttribute("href");
+
+          if (!targetId || targetId === "#") return;
+
+          const target = document.querySelector(targetId);
+
+          if (!target) return;
+
+          event.preventDefault();
+
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+
+          mobileDrawer?.classList.remove("is-open");
+          mobileDrawer?.setAttribute("aria-hidden", "true");
+
+          if (!document.querySelector(".modal-root.is-open")) {
+            body.classList.remove("is-locked");
+          }
+        });
+
+      });
+
+    });
   </script>
+
 </body>
 </html>
