@@ -4,264 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BULKKOT | Korean-Inspired Luxury Streetwear</title>
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Modular CSS -->
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg-primary: #000000;
-      --bg-card: #0A0A0A;
-      --accent-red: #E60000;
-      --text-primary: #FFFFFF;
-      --text-muted: #8E8E93;
-      --border-dark: rgba(255, 255, 255, 0.12);
-      --font-heading: 'Montserrat', sans-serif;
-      --font-body: 'Inter', sans-serif;
-      --font-kr: 'Noto Sans KR', sans-serif;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); -webkit-font-smoothing: antialiased; line-height: 1.4; overflow-x: hidden; width: 100%; }
-    a { color: inherit; text-decoration: none; }
-
-    /* Top Red Bar */
-    .announcement-bar {
-      background-color: var(--accent-red);
-      color: #FFFFFF;
-      text-align: center;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      padding: 8px 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-    }
-    .bar-sep { opacity: 0.6; }
-
-    /* Two-Row Luxury Header */
-    .main-header { background: #000000; border-bottom: 1px solid var(--border-dark); position: sticky; top: 0; z-index: 100; width: 100%; }
-    
-    /* Row 1: Logo + Brand Name & Icons */
-    .header-main-row {
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .brand-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .brand-logo-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 38px;
-      flex-shrink: 0;
-    }
-    .brand-logo-img { height: 100%; width: auto; object-fit: contain; }
-
-    .brand-text-block {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-    }
-    .brand-kr-title { font-family: var(--font-kr); color: var(--accent-red); font-size: 14px; font-weight: 900; }
-    .brand-en-title { font-family: var(--font-heading); font-size: 14px; font-weight: 900; letter-spacing: 0.08em; }
-
-    .header-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-    .action-icon { color: #FFFFFF; display: flex; align-items: center; transition: opacity 0.2s; }
-    .action-icon:hover { opacity: 0.7; }
-
-    /* Row 2: Sub-navigation bar */
-    .header-sub-row {
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      background: #050505;
-      padding: 8px 16px;
-    }
-    .nav-links {
-      display: flex;
-      justify-content: center;
-      gap: 28px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .nav-item {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      position: relative;
-      padding-bottom: 2px;
-      transition: color 0.2s;
-      cursor: pointer;
-    }
-    .nav-item.active, .nav-item:hover { color: #FFF; }
-    .nav-item.active::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: -2px;
-      width: 100%;
-      height: 2px;
-      background-color: var(--accent-red);
-    }
-
-    /* Hero Section */
-    .hero-slider-container { position: relative; min-height: 540px; overflow: hidden; background: #000; border-bottom: 1px solid var(--border-dark); }
-    .hero-slide {
-      position: absolute; inset: 0; opacity: 1; visibility: visible;
-      display: flex; flex-direction: column; justify-content: flex-end; padding: 32px 20px 48px;
-      background-size: cover; background-position: center right;
-      background-image: url('hero-model.png');
-    }
-    .hero-slide::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.15) 100%);
-    }
-
-    .hero-content { max-width: 100%; z-index: 2; }
-    .hero-kr-accent { color: var(--accent-red); font-family: var(--font-kr); font-size: 26px; font-weight: 900; display: block; margin-bottom: 2px; }
-    .hero-brand-title { font-family: var(--font-heading); font-size: 52px; font-weight: 900; letter-spacing: -0.02em; line-height: 0.95; }
-    .hero-subhead { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.2em; margin-top: 12px; }
-    .hero-desc { color: var(--text-muted); font-size: 13px; margin-top: 10px; line-height: 1.5; }
-    
-    .btn-hero {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      background: rgba(0,0,0,0.7);
-      color: #FFFFFF;
-      padding: 12px 24px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      margin-top: 24px;
-      border-radius: 2px;
-    }
-
-    .hero-slider-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 5; }
-    .slider-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; }
-    .slider-dot.active { background: #FFFFFF; width: 16px; border-radius: 3px; }
-
-    /* Category Circles */
-    .category-section { padding: 36px 16px 16px; max-width: 1000px; margin: 0 auto; }
-    .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; }
-    .category-card { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-    
-    .category-img-wrap {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 1.5px solid rgba(255, 255, 255, 0.85);
-      background: #000000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-    .category-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .category-card:active .category-img-wrap { transform: scale(0.95); border-color: var(--accent-red); }
-    .category-title { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; margin-top: 10px; }
-
-    /* Promo Dropping Soon */
-    .promo-section { padding: 24px 16px; max-width: 1100px; margin: 0 auto; }
-    .promo-card { background: #0A0A0A; border: 1px solid var(--border-dark); border-radius: 8px; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; text-align: left; }
-    .promo-tag { color: var(--accent-red); font-size: 10px; font-weight: 800; letter-spacing: 0.12em; }
-    .promo-left h2 { font-family: var(--font-heading); font-size: 22px; font-weight: 900; letter-spacing: 0.05em; margin: 2px 0; }
-    .promo-left p { color: var(--text-muted); font-size: 12px; }
-    .promo-link { color: var(--accent-red); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; display: inline-flex; align-items: center; gap: 6px; }
-
-    /* Dynamic Recent Products */
-    .recent-products-section { padding: 24px 16px; max-width: 1100px; margin: 0 auto; }
-    .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .section-head h2 { font-family: var(--font-heading); font-size: 14px; font-weight: 800; letter-spacing: 0.06em; }
-    .view-all { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
-    
-    .coming-soon-box { background: #EDEDED; color: #000000; border-radius: 8px; padding: 40px 16px; text-align: center; }
-    .box-icon { color: #111; margin-bottom: 8px; }
-    .coming-soon-box h3 { font-family: var(--font-heading); font-size: 15px; font-weight: 900; letter-spacing: 0.06em; }
-    .coming-soon-box p { color: #666; font-size: 12px; margin-top: 4px; }
-
-    .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .product-card { background: #0E0E0E; border: 1px solid var(--border-dark); padding: 12px; border-radius: 6px; }
-    .product-card-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; margin-bottom: 8px; }
-
-    /* Waitlist */
-    .waitlist-section { padding: 24px 16px; max-width: 800px; margin: 0 auto; }
-    .waitlist-card { background: #0A0A0A; border: 1px solid var(--border-dark); padding: 28px 16px; text-align: center; border-radius: 6px; }
-    .waitlist-kr { color: var(--accent-red); font-family: var(--font-kr); font-size: 18px; font-weight: 900; }
-    .waitlist-card h2 { font-family: var(--font-heading); font-size: 16px; font-weight: 800; margin: 6px 0 8px; }
-    .waitlist-card p { color: var(--text-muted); font-size: 12px; margin-bottom: 18px; }
-    .waitlist-form { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-    .waitlist-form input { background: #161616; border: 1px solid var(--border-dark); padding: 14px; color: #FFF; font-size: 13px; outline: none; border-radius: 3px; }
-    .btn-waitlist { background: #FFF; color: #000; border: none; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; padding: 14px; cursor: pointer; border-radius: 3px; }
-    .waitlist-status { font-size: 11px; margin-top: 10px; min-height: 16px; }
-
-    /* Features Strip */
-    .features-section { border-top: 1px solid var(--border-dark); border-bottom: 1px solid var(--border-dark); padding: 36px 16px; margin-top: 40px; }
-    .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 16px; text-align: center; max-width: 1100px; margin: 0 auto; }
-    .feature-icon { margin-bottom: 8px; color: #FFF; }
-    .feature-item h4 { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px; }
-    .feature-item p { color: var(--text-muted); font-size: 11px; }
-
-    /* Footer */
-    .main-footer { background: #000000; padding: 48px 16px 28px; font-size: 12px; }
-    .footer-container { display: flex; flex-direction: column; gap: 32px; max-width: 1100px; margin: 0 auto; }
-    .brand-desc { color: var(--text-muted); font-size: 12px; margin: 12px 0 16px; line-height: 1.5; }
-    .social-label { display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; margin-bottom: 6px; }
-    .social-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; }
-
-    .col-title { font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 12px; color: #FFF; }
-    .col-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .col-links a { color: var(--text-muted); font-size: 12px; cursor: pointer; }
-    .col-links a:hover { color: #FFF; }
-
-    .contact-type { display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 2px; }
-    .contact-val { color: #FFF; font-size: 12px; }
-
-    .footer-bottom { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--border-dark); text-align: center; color: var(--text-muted); font-size: 11px; }
-
-    /* Modal Viewer */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
-    }
-    .modal-content {
-      background: #0E0E0E; border: 1px solid var(--border-dark); border-radius: 8px;
-      max-width: 500px; width: 100%; padding: 28px 24px; position: relative;
-    }
-    .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
-    .modal-title { font-family: var(--font-heading); font-size: 18px; font-weight: 900; margin-bottom: 14px; }
-    .modal-body { color: var(--text-muted); font-size: 13px; line-height: 1.6; max-height: 60vh; overflow-y: auto; }
-
-    /* Desktop Adjustments */
-    @media (min-width: 768px) {
-      .header-main-row { padding: 14px 28px; }
-      .brand-logo-wrap { height: 46px; }
-      .brand-kr-title, .brand-en-title { font-size: 18px; }
-      .nav-links { gap: 40px; }
-      .nav-item { font-size: 12px; }
-      .hero-slider-container { min-height: 620px; }
-      .hero-slide { padding: 0 48px; justify-content: center; }
-      .hero-brand-title { font-size: 68px; }
-      .category-grid { gap: 40px; }
-      .category-img-wrap { width: 170px; height: 170px; }
-      .promo-card { flex-direction: row; justify-content: space-between; padding: 36px 44px; }
-      .waitlist-form { flex-direction: row; }
-      .features-grid { grid-template-columns: repeat(4, 1fr); }
-      .footer-container { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 48px; }
-    }
-  </style>
 </head>
 <body>
 
@@ -274,7 +27,6 @@
 
   <!-- Luxury Two-Row Header -->
   <header class="main-header">
-    <!-- Row 1: Logo + Brand Name & Right Action Icons -->
     <div class="header-main-row">
       <div class="brand-group">
         <a href="index.html" class="brand-logo-wrap" title="BULKKOT Home">
@@ -291,18 +43,19 @@
         <a href="https://instagram.com/bulkkot.wear" target="_blank" rel="noopener" title="Instagram @bulkkot.wear" class="action-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
         </a>
-        <!-- Admin/User Login Access -->
+        <!-- Admin/User Portal -->
         <a href="admin/index.html" title="Admin Portal" class="action-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </a>
-        <!-- Shopping Bag -->
-        <a href="#cart" title="Shopping Bag" class="action-icon" onclick="openModal('cart')">
+        <!-- Shopping Bag Trigger -->
+        <a href="javascript:void(0)" title="Shopping Bag" class="action-icon" onclick="toggleCartDrawer(true)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          <span class="cart-badge" id="cart-count">0</span>
         </a>
       </div>
     </div>
 
-    <!-- Row 2: Sub-Navigation links -->
+    <!-- Sub Navigation Row -->
     <div class="header-sub-row">
       <nav class="nav-links">
         <a href="#home" class="nav-item active">HOME</a>
@@ -313,29 +66,48 @@
     </div>
   </header>
 
-  <!-- Hero Section -->
+  <!-- Hero Slider -->
   <div class="hero-slider-container" id="home">
-    <div class="hero-slide">
+    <div class="hero-slide slide-1 active">
       <div class="hero-content">
         <span class="hero-kr-accent">불꽃</span>
         <h1 class="hero-brand-title">BULKKOT</h1>
-        <p class="hero-subhead">PREMIUM EVERYDAY WEAR</p>
+        <p class="hero-subhead">DROP 001 • PREMIER CAPSULE</p>
         <p class="hero-desc">Korean-inspired essentials for a new generation.</p>
         <a href="#collections" class="btn-hero">EXPLORE DROP 001 <span>→</span></a>
       </div>
     </div>
 
+    <div class="hero-slide slide-2">
+      <div class="hero-content">
+        <span class="hero-kr-accent">불꽃</span>
+        <h1 class="hero-brand-title">FUTURE DROPS</h1>
+        <p class="hero-subhead">MORE COLLECTIONS DROPPING SOON</p>
+        <p class="hero-desc">Stay ahead. Exclusive numbered capsules in development.</p>
+        <a href="#waitlist" class="btn-hero">JOIN VIP WAITLIST <span>→</span></a>
+      </div>
+    </div>
+
+    <div class="hero-slide slide-3">
+      <div class="hero-content">
+        <span class="hero-kr-accent">불꽃</span>
+        <h1 class="hero-brand-title">SEOUL ARCHIVE</h1>
+        <p class="hero-subhead">LIMITED EDITION RELEASES</p>
+        <p class="hero-desc">Heavyweight silhouettes designed for ultimate drape.</p>
+        <a href="#waitlist" class="btn-hero">GET NOTIFIED <span>→</span></a>
+      </div>
+    </div>
+
     <div class="hero-slider-dots">
-      <button class="slider-dot active"></button>
-      <button class="slider-dot"></button>
-      <button class="slider-dot"></button>
+      <button class="slider-dot active" onclick="setSlide(0)"></button>
+      <button class="slider-dot" onclick="setSlide(1)"></button>
+      <button class="slider-dot" onclick="setSlide(2)"></button>
     </div>
   </div>
 
   <!-- Category Section -->
   <section class="category-section" id="shop">
     <div class="category-grid">
-      <!-- TEES -->
       <div class="category-card" onclick="filterCatalog('TEES')">
         <div class="category-img-wrap">
           <img src="cat-tees.png" alt="TEES">
@@ -343,7 +115,6 @@
         <span class="category-title">TEES</span>
       </div>
 
-      <!-- HOODS -->
       <div class="category-card" onclick="filterCatalog('HOODS')">
         <div class="category-img-wrap">
           <img src="cat-hoods.png" alt="HOODS">
@@ -351,7 +122,6 @@
         <span class="category-title">HOODS</span>
       </div>
 
-      <!-- SWEATS -->
       <div class="category-card" onclick="filterCatalog('SWEATS')">
         <div class="category-img-wrap">
           <img src="cat-sweats.png" alt="SWEATS">
@@ -362,15 +132,15 @@
   </section>
 
   <!-- Promo Banner -->
-  <section class="promo-section" id="collections">
-    <div class="promo-card">
-      <div class="promo-left">
-        <span class="promo-tag">DROP 001</span>
-        <h2>DROPPING SOON</h2>
-        <p>First collection. Limited pieces.</p>
+  <section class="promo-section" id="collections" style="padding: 24px 16px; max-width: 1100px; margin: 0 auto;">
+    <div style="background: #0A0A0A; border: 1px solid var(--border-dark); border-radius: 8px; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <span style="color: var(--accent-red); font-size: 10px; font-weight: 800; letter-spacing: 0.12em;">DROP 001</span>
+        <h2 style="font-family: var(--font-heading); font-size: 22px; font-weight: 900; margin: 2px 0;">DROPPING SOON</h2>
+        <p style="color: var(--text-muted); font-size: 12px;">First collection. Limited pieces.</p>
       </div>
-      <div class="promo-right">
-        <a href="#waitlist" class="promo-link">EXPLORE DROP 001 <span>→</span></a>
+      <div>
+        <a href="#waitlist" style="color: var(--accent-red); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; display: inline-flex; align-items: center; gap: 6px;">EXPLORE DROP 001 <span>→</span></a>
       </div>
     </div>
   </section>
@@ -392,30 +162,59 @@
   </section>
 
   <!-- Waitlist Section -->
-  <section class="waitlist-section" id="waitlist">
-    <div class="waitlist-card">
-      <span class="waitlist-kr">불꽃</span>
-      <h2>JOIN THE DROP WAITLIST</h2>
-      <p>Enter your email to gain early private access 1 hour prior to general public release.</p>
-      <form id="newsletter-form" class="waitlist-form">
-        <input type="email" id="waitlist-email" placeholder="Enter your email address" required>
-        <button type="submit" class="btn-waitlist">JOIN WAITLIST</button>
+  <section class="waitlist-section" id="waitlist" style="padding: 24px 16px; max-width: 800px; margin: 0 auto;">
+    <div style="background: #0A0A0A; border: 1px solid var(--border-dark); padding: 28px 16px; text-align: center; border-radius: 6px;">
+      <span style="color: var(--accent-red); font-family: var(--font-kr); font-size: 18px; font-weight: 900;">불꽃</span>
+      <h2 style="font-family: var(--font-heading); font-size: 16px; font-weight: 800; margin: 6px 0 8px;">JOIN THE DROP WAITLIST</h2>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 18px;">Enter your email to gain early private access 1 hour prior to general public release.</p>
+      <form id="newsletter-form" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+        <input type="email" id="waitlist-email" placeholder="Enter your email address" required style="background: #161616; border: 1px solid var(--border-dark); padding: 14px; color: #FFF; font-size: 13px; outline: none; border-radius: 3px;">
+        <button type="submit" style="background: #FFF; color: #000; border: none; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; padding: 14px; cursor: pointer; border-radius: 3px;">JOIN WAITLIST</button>
       </form>
-      <div id="waitlist-status" class="waitlist-status"></div>
+      <div id="waitlist-status" style="font-size: 11px; margin-top: 10px; min-height: 16px;"></div>
     </div>
   </section>
 
-  <!-- Features Strip -->
-  <section class="features-section" id="about">
-    <div class="features-grid">
-      <div class="feature-item">
-        <div class="feature-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        </div>
-        <h4>PREMIUM QUALITY</h4>
-        <p>Carefully sourced fabrics</p>
-      </div>
+  <!-- Slide-out Cart Drawer -->
+  <div class="cart-drawer-overlay" id="cart-overlay" onclick="toggleCartDrawer(false)"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="drawer-header">
+      <h3 class="drawer-title">SHOPPING BAG</h3>
+      <button class="drawer-close" onclick="toggleCartDrawer(false)">✕</button>
+    </div>
+    <div class="drawer-body">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+      <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Your shopping bag is empty.</p>
+      <span style="color: var(--accent-red); font-size: 11px; font-weight: 700; margin-top: 6px;">DROP 001 RELEASING SOON</span>
+    </div>
+  </div>
 
-      <div class="feature-item">
-        <div class="feature-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.u
+  <script src="js/supabase-client.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    // Hero Slider
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.slider-dot');
+
+    function setSlide(idx) {
+      slides[currentSlide].classList.remove('active');
+      dots[currentSlide].classList.remove('active');
+      currentSlide = idx;
+      slides[currentSlide].classList.add('active');
+      dots[currentSlide].classList.add('active');
+    }
+
+    setInterval(() => {
+      let next = (currentSlide + 1) % slides.length;
+      setSlide(next);
+    }, 6000);
+
+    // Slide-out Drawer
+    function toggleCartDrawer(open) {
+      document.getElementById('cart-drawer').classList.toggle('open', open);
+      document.getElementById('cart-overlay').classList.toggle('open', open);
+    }
+  </script>
+</body>
+</html>
