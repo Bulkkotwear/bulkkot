@@ -3,102 +3,342 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BULKKOT Admin Management</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <meta name="robots" content="noindex, nofollow">
+  <title>BULKKOT Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    .admin-container { max-width: 1000px; margin: 60px auto; padding: 0 24px; }
-    .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
-    .form-group label { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; }
-    .form-group input, .form-group select, .form-group textarea {
-      background: #121212; border: 1px solid var(--border-dark); padding: 12px; color: #FFF; font-family: var(--font-body);
+    :root{
+      --bg:#050505; --card:#0E0E0E; --border:rgba(255,255,255,.1);
+      --muted:#8E8E93; --red:#E60000; --white:#FFFFFF;
     }
-    .admin-table { width: 100%; border-collapse: collapse; margin-top: 32px; font-size: 14px; }
-    .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid var(--border-dark); text-align: left; }
-    .btn-submit { background: #FFF; color: #000; padding: 14px 24px; font-weight: 700; cursor: pointer; border: none; }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+    body{background:var(--bg);color:var(--white);min-height:100vh;}
+    h1,h2,h3{font-family:'Montserrat',sans-serif;}
+
+    /* ---------- LOGIN SCREEN ---------- */
+    #login-screen{
+      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+    }
+    .login-box{
+      width:100%; max-width:360px; background:var(--card); border:1px solid var(--border);
+      border-radius:8px; padding:32px 24px;
+    }
+    .login-brand{font-size:11px; letter-spacing:.15em; color:var(--red); font-weight:800; margin-bottom:6px;}
+    .login-box h1{font-size:20px; font-weight:800; margin-bottom:20px;}
+    .field{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
+    label{font-size:11px; color:var(--muted); font-weight:600; letter-spacing:.04em;}
+    input{background:#161616; border:1px solid var(--border); color:#FFF; padding:12px; font-size:13px; border-radius:5px; outline:none;}
+    input:focus{border-color:rgba(255,255,255,.4);}
+    button{cursor:pointer; border:none; border-radius:5px; font-weight:700; font-size:12px; letter-spacing:.04em;}
+    .btn-primary{background:#FFF; color:#000; padding:13px; width:100%; margin-top:6px;}
+    .btn-primary:disabled{opacity:.5; cursor:not-allowed;}
+    #login-error{color:var(--red); font-size:12px; margin-top:12px; min-height:16px;}
+
+    /* ---------- DASHBOARD ---------- */
+    #dashboard{display:none;}
+    .admin-container{max-width:1000px; margin:0 auto; padding:24px 16px 60px;}
+    .admin-header{display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:24px; gap:12px; flex-wrap:wrap;}
+    .admin-title{font-size:20px; font-weight:800;}
+    .admin-sub{font-size:11px; color:var(--muted);}
+    .btn-logout{background:transparent; border:1px solid var(--border); color:var(--muted); padding:8px 14px; font-size:11px;}
+    .btn-logout:hover{color:#FFF; border-color:var(--muted);}
+
+    .admin-card{background:var(--card); border:1px solid var(--border); border-radius:6px; padding:20px; margin-bottom:24px;}
+    .admin-card h3{font-size:15px; margin-bottom:14px;}
+    .form-group{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
+    select, textarea{background:#161616; border:1px solid var(--border); color:#FFF; padding:10px; font-size:13px; border-radius:4px; outline:none;}
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+    .btn-submit{background:#FFF; color:#000; padding:12px; width:100%;}
+
+    .table-wrap{overflow-x:auto; margin-top:6px;}
+    table{width:100%; border-collapse:collapse; text-align:left; font-size:13px;}
+    th, td{padding:12px 8px; border-bottom:1px solid rgba(255,255,255,.08); white-space:nowrap;}
+    th{color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.05em;}
+    .row-actions{display:flex; gap:8px;}
+    .btn-sm{padding:6px 10px; font-size:11px; background:transparent; border:1px solid var(--border); color:var(--muted);}
+    .btn-sm:hover{color:#FFF; border-color:#FFF;}
+    .btn-danger:hover{color:var(--red); border-color:var(--red);}
+    .status-pill{font-size:10px; padding:3px 8px; border-radius:20px; font-weight:700;}
+    .status-active{background:rgba(0,200,90,.15); color:#2ECC71;}
+    .status-hidden{background:rgba(255,255,255,.08); color:var(--muted);}
+
+    @media(min-width:640px){
+      .grid-2{grid-template-columns:1fr 1fr;}
+    }
   </style>
 </head>
-<body style="background: #080808;">
+<body>
 
-  <div class="admin-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark); padding-bottom: 24px;">
-      <h1><span class="kr-text">불꽃</span> BULKKOT ADMIN</h1>
-      <div id="auth-status-bar" style="font-size: 13px;">Ready</div>
-    </div>
-
-    <!-- Login Area -->
-    <div id="login-section" style="margin-top: 48px; max-width: 400px;">
-      <h3 style="margin-bottom: 16px;">OWNER LOGIN</h3>
-      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Restricted to bulkkotwear@gmail.com</p>
-      
-      <form id="admin-login-form">
-        <div class="form-group">
+  <!-- ========== LOGIN SCREEN ========== -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="login-brand">불꽃 BULKKOT</div>
+      <h1>Admin Sign In</h1>
+      <form id="login-form">
+        <div class="field">
           <label>Email</label>
-          <input type="email" id="admin-email" value="bulkkotwear@gmail.com" required>
+          <input type="email" id="login-email" required autocomplete="username">
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Password</label>
-          <input type="password" id="admin-password" placeholder="Enter Supabase user password" required>
+          <input type="password" id="login-password" required autocomplete="current-password">
         </div>
-        <button type="submit" class="btn-submit" id="login-btn" style="width: 100%;">AUTHENTICATE</button>
+        <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
       </form>
+      <div id="login-error"></div>
     </div>
+  </div>
 
-    <!-- Dashboard Content Area -->
-    <div id="dashboard-section" style="display: none; margin-top: 48px;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Product Catalog</h2>
-        <button id="logout-btn" style="color: var(--accent-red); font-size: 12px; font-weight: 700; cursor: pointer; background:none; border:none;">LOGOUT</button>
+  <!-- ========== DASHBOARD (hidden until authenticated) ========== -->
+  <div id="dashboard">
+    <div class="admin-container">
+      <div class="admin-header">
+        <div>
+          <h1 class="admin-title">BULKKOT ADMIN</h1>
+          <span class="admin-sub" id="who-am-i">Signed in</span>
+        </div>
+        <button class="btn-logout" id="logout-btn">Sign Out</button>
       </div>
 
-      <form id="add-product-form" style="margin-top: 32px; background: #0F0F0F; padding: 24px; border: 1px solid var(--border-dark);">
-        <h3 style="margin-bottom: 20px; font-size: 16px;">Add New Inventory</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <!-- Add / Edit Product -->
+      <div class="admin-card">
+        <h3 id="form-heading">Add New Product</h3>
+        <form id="product-form">
+          <input type="hidden" id="p-id">
           <div class="form-group">
             <label>Product Name</label>
-            <input type="text" id="p-name" placeholder="Heavyweight Boxy Tee" required>
+            <input type="text" id="p-name" placeholder="e.g. Oversized Heavyweight Tee" required>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="p-category">
+                <option value="TEES">TEES</option>
+                <option value="HOODS">HOODS</option>
+                <option value="SWEATS">SWEATS</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Price (INR ₹)</label>
+              <input type="number" id="p-price" placeholder="1999" required>
+            </div>
           </div>
           <div class="form-group">
-            <label>Category</label>
-            <select id="p-category" required>
-              <option value="TEES">TEES</option>
-              <option value="HOODS">HOODS</option>
-              <option value="SWEATS">SWEATS</option>
-            </select>
+            <label>Image URL</label>
+            <input type="url" id="p-image" placeholder="https://..." required>
           </div>
           <div class="form-group">
-            <label>Price (₹)</label>
-            <input type="number" id="p-price" step="0.01" placeholder="1899" required>
+            <label>Description (optional)</label>
+            <textarea id="p-description" rows="3" placeholder="Fabric, fit, details..."></textarea>
           </div>
-          <div class="form-group">
-            <label>SKU</label>
-            <input type="text" id="p-sku" placeholder="BLK-TEE-001" required>
+          <div class="grid-2">
+            <button type="submit" class="btn-submit" id="submit-btn">Publish Product</button>
+            <button type="button" class="btn-sm" id="cancel-edit" style="display:none;">Cancel Edit</button>
           </div>
-        </div>
-        <div class="form-group">
-          <label>Image (Optional)</label>
-          <input type="file" id="p-image-file" accept="image/*">
-        </div>
-        <button type="submit" id="publish-btn" class="btn-submit" style="margin-top: 12px; background: var(--accent-red); color: #FFF;">PUBLISH PRODUCT</button>
-      </form>
+        </form>
+      </div>
 
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>SKU</th>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Price</th>
-            <th>Visibility</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="admin-products-table-body"></tbody>
-      </table>
+      <!-- Product List -->
+      <div class="admin-card">
+        <h3>All Products</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="products-rows">
+              <tr><td colspan="5" style="color:#666;text-align:center;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Waitlist -->
+      <div class="admin-card">
+        <h3>VIP Drop Waitlist</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Email</th><th>Date Joined</th></tr></thead>
+            <tbody id="waitlist-rows">
+              <tr><td colspan="2" style="color:#666;text-align:center;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="../js/supabase-client.js"></script>
-  <script src="../js/admin.js"></script>
+  <script>
+    const loginScreen = document.getElementById('login-screen');
+    const dashboard = document.getElementById('dashboard');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const loginBtn = document.getElementById('login-btn');
+
+    // ---- AUTH GATE ----
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        showDashboard(session);
+      } else {
+        loginScreen.style.display = 'flex';
+        dashboard.style.display = 'none';
+      }
+    }
+
+    function showDashboard(session) {
+      loginScreen.style.display = 'none';
+      dashboard.style.display = 'block';
+      document.getElementById('who-am-i').textContent = 'Signed in as ' + session.user.email;
+      loadProducts();
+      loadWaitlist();
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+      loginError.textContent = '';
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign In';
+
+      if (error) {
+        loginError.textContent = 'Invalid email or password.';
+        return;
+      }
+      showDashboard(data.session);
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.reload();
+    });
+
+    // ---- PRODUCT CRUD ----
+    const productForm = document.getElementById('product-form');
+    const cancelEditBtn = document.getElementById('cancel-edit');
+    const formHeading = document.getElementById('form-heading');
+    const submitBtn = document.getElementById('submit-btn');
+
+    function resetForm() {
+      productForm.reset();
+      document.getElementById('p-id').value = '';
+      formHeading.textContent = 'Add New Product';
+      submitBtn.textContent = 'Publish Product';
+      cancelEditBtn.style.display = 'none';
+    }
+
+    cancelEditBtn.addEventListener('click', resetForm);
+
+    productForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('p-id').value;
+      const payload = {
+        name: document.getElementById('p-name').value,
+        category: document.getElementById('p-category').value,
+        price: parseFloat(document.getElementById('p-price').value),
+        images: [document.getElementById('p-image').value],
+        description: document.getElementById('p-description').value,
+        is_active: true
+      };
+
+      let error;
+      if (id) {
+        ({ error } = await supabase.from('products').update(payload).eq('id', id));
+      } else {
+        ({ error } = await supabase.from('products').insert([payload]));
+      }
+
+      if (error) {
+        alert('Error: ' + error.message);
+        return;
+      }
+      resetForm();
+      loadProducts();
+    });
+
+    async function loadProducts() {
+      const tbody = document.getElementById('products-rows');
+      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="color:#666;text-align:center;">No products yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(p => `
+        <tr>
+          <td>${escapeHtml(p.name)}</td>
+          <td>${escapeHtml(p.category)}</td>
+          <td>₹${p.price}</td>
+          <td><span class="status-pill ${p.is_active ? 'status-active' : 'status-hidden'}">${p.is_active ? 'Live' : 'Hidden'}</span></td>
+          <td class="row-actions">
+            <button class="btn-sm" onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&apos;")})'>Edit</button>
+            <button class="btn-sm" onclick="toggleActive('${p.id}', ${!p.is_active})">${p.is_active ? 'Hide' : 'Unhide'}</button>
+            <button class="btn-sm btn-danger" onclick="deleteProduct('${p.id}')">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.editProduct = function(p) {
+      document.getElementById('p-id').value = p.id;
+      document.getElementById('p-name').value = p.name;
+      document.getElementById('p-category').value = p.category;
+      document.getElementById('p-price').value = p.price;
+      document.getElementById('p-image').value = (p.images && p.images[0]) || '';
+      document.getElementById('p-description').value = p.description || '';
+      formHeading.textContent = 'Edit Product';
+      submitBtn.textContent = 'Save Changes';
+      cancelEditBtn.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.toggleActive = async function(id, newState) {
+      await supabase.from('products').update({ is_active: newState }).eq('id', id);
+      loadProducts();
+    };
+
+    window.deleteProduct = async function(id) {
+      if (!confirm('Delete this product permanently?')) return;
+      await supabase.from('products').delete().eq('id', id);
+      loadProducts();
+    };
+
+    // ---- WAITLIST ----
+    async function loadWaitlist() {
+      const tbody = document.getElementById('waitlist-rows');
+      const { data, error } = await supabase.from('waitlist').select('*').order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" style="color:#666;text-align:center;">No signups yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(item => `
+        <tr>
+          <td>${escapeHtml(item.email)}</td>
+          <td style="color:#888;">${new Date(item.created_at).toLocaleDateString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str ?? '';
+      return div.innerHTML;
+    }
+
+    checkSession();
+  </script>
 </body>
 </html>
