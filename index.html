@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BULKKOT | Korean-Inspired Luxury Streetwear</title>
   
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
   
-  <!-- Modular CSS -->
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
 
@@ -18,14 +16,14 @@
 </head>
 <body>
 
-  <!-- Top Announcement -->
+  <!-- Announcement Bar -->
   <div class="announcement-bar">
     <span>DROP 001 – DROPPING SOON</span>
     <span class="bar-sep">|</span>
     <span>FREE SHIPPING ALL OVER INDIA</span>
   </div>
 
-  <!-- Luxury Two-Row Header -->
+  <!-- Main Header -->
   <header class="main-header">
     <div class="header-main-row">
       <div class="brand-group">
@@ -39,15 +37,12 @@
       </div>
 
       <div class="header-actions">
-        <!-- Instagram Link -->
         <a href="https://instagram.com/bulkkot.wear" target="_blank" rel="noopener" title="Instagram @bulkkot.wear" class="action-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
         </a>
-        <!-- Admin/User Portal -->
         <a href="admin/index.html" title="Admin Portal" class="action-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </a>
-        <!-- Shopping Bag Trigger -->
         <a href="javascript:void(0)" title="Shopping Bag" class="action-icon" onclick="toggleCartDrawer(true)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
           <span class="cart-badge" id="cart-count">0</span>
@@ -55,7 +50,6 @@
       </div>
     </div>
 
-    <!-- Sub Navigation Row -->
     <div class="header-sub-row">
       <nav class="nav-links">
         <a href="#home" class="nav-item active">HOME</a>
@@ -182,14 +176,28 @@
       <h3 class="drawer-title">SHOPPING BAG</h3>
       <button class="drawer-close" onclick="toggleCartDrawer(false)">✕</button>
     </div>
-    <div class="drawer-body">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-      <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Your shopping bag is empty.</p>
-      <span style="color: var(--accent-red); font-size: 11px; font-weight: 700; margin-top: 6px;">DROP 001 RELEASING SOON</span>
+    <div class="drawer-body"></div>
+  </div>
+
+  <!-- Product Quick View Modal -->
+  <div class="cart-drawer-overlay" id="product-modal" onclick="closeProductModal()">
+    <div style="background: #0E0E0E; border: 1px solid var(--border-dark); border-radius: 8px; max-width: 440px; width: 90%; padding: 24px; position: relative; margin: auto;" onclick="event.stopPropagation()">
+      <button onclick="closeProductModal()" style="position: absolute; top: 14px; right: 14px; background: none; border: none; color: #888; font-size: 18px;">✕</button>
+      <img id="modal-p-img" src="" alt="Product" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; margin-bottom: 14px; background: #161616;">
+      <div id="modal-p-cat" style="font-size: 10px; color: var(--accent-red); font-weight: 800; letter-spacing: 0.1em;"></div>
+      <h3 id="modal-p-name" style="font-family: var(--font-heading); font-size: 16px; font-weight: 900; margin: 4px 0 6px;"></h3>
+      <div id="modal-p-price" style="font-size: 14px; font-weight: 800; color: #FFF; margin-bottom: 10px;"></div>
+      <p id="modal-p-desc" style="color: var(--text-muted); font-size: 12px; line-height: 1.5; margin-bottom: 16px;"></p>
+      
+      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">SELECT SIZE</div>
+      <div id="size-options" style="display: flex; gap: 8px; margin-bottom: 20px;"></div>
+      
+      <button onclick="addProductToBag()" style="width: 100%; background: #FFF; color: #000; border: none; padding: 13px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; border-radius: 3px;">ADD TO BAG</button>
     </div>
   </div>
 
   <script src="js/supabase-client.js"></script>
+  <script src="js/cart.js"></script>
   <script src="js/main.js"></script>
   <script>
     // Hero Slider
@@ -210,7 +218,6 @@
       setSlide(next);
     }, 6000);
 
-    // Slide-out Drawer
     function toggleCartDrawer(open) {
       document.getElementById('cart-drawer').classList.toggle('open', open);
       document.getElementById('cart-overlay').classList.toggle('open', open);
