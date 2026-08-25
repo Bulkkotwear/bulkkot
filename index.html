@@ -10,7 +10,7 @@
 
   <link rel="icon" href="/logo.png">
 
-  <!-- Google Fonts -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,9 +22,7 @@
 
 <body>
 
-  <!-- =====================================================
-       ANNOUNCEMENT TICKER
-  ====================================================== -->
+  <!-- ANNOUNCEMENT BAR -->
   <div class="announcement-bar" aria-label="Announcement">
     <div class="announcement-track">
       <span>DROP 001 — DROPPING SOON</span>
@@ -36,19 +34,14 @@
     </div>
   </div>
 
-  <!-- =====================================================
-       HEADER
-  ====================================================== -->
+  <!-- HEADER -->
   <header class="site-header">
     <div class="header-inner">
-
-      <!-- Mobile Menu Toggle -->
       <button class="header-menu" type="button" aria-label="Open menu" aria-controls="mobile-drawer" data-open-drawer>
         <span></span>
         <span></span>
       </button>
 
-      <!-- Brand -->
       <a href="#top" class="brand" aria-label="BULKKOT home">
         <img src="/logo.png" alt="BULKKOT logo" class="brand-logo" onerror="this.style.display='none'">
         <span class="brand-name">
@@ -57,7 +50,6 @@
         </span>
       </a>
 
-      <!-- Desktop Navigation -->
       <nav class="desktop-navigation" aria-label="Primary navigation">
         <a href="#top">HOME</a>
         <a href="#shop">SHOP</a>
@@ -66,31 +58,24 @@
         <a href="#about">ABOUT</a>
       </nav>
 
-      <!-- Actions -->
       <div class="header-actions">
-        <!-- Search Button -->
         <button type="button" class="header-action" aria-label="Search" data-open-search>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
         </button>
 
-        <!-- Instagram Direct (Always Visible on Mobile & Desktop) -->
         <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="header-action instagram-action" aria-label="BULKKOT Instagram">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>
         </a>
 
-        <!-- Cart Trigger -->
         <button type="button" class="header-action cart-action" aria-label="Open cart" data-open-cart>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
           <span class="cart-count" data-cart-count hidden>0</span>
         </button>
       </div>
-
     </div>
   </header>
 
-  <!-- =====================================================
-       MOBILE DRAWER
-  ====================================================== -->
+  <!-- MOBILE DRAWER -->
   <aside class="mobile-drawer" id="mobile-drawer" data-mobile-drawer aria-hidden="true">
     <div class="mobile-drawer__header">
       <a href="#top" class="brand">
@@ -119,12 +104,10 @@
 
   <main id="top">
 
-    <!-- ===================================================
-         HERO SECTION (IMAGE 13575)
-    ==================================================== -->
+    <!-- HERO SECTION -->
     <section class="hero">
       <div class="hero-media">
-        <img src="/13575.png" alt="BULKKOT Oversized Black Tee Campaign" class="hero-image">
+        <img src="https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=1800&q=85" alt="BULKKOT Campaign" class="hero-image">
       </div>
 
       <div class="hero-overlay"></div>
@@ -143,9 +126,7 @@
       </div>
     </section>
 
-    <!-- ===================================================
-         CATEGORY ROW (LOCKED IN 1 ROW: TEES, HOODS, SWEATS)
-    ==================================================== -->
+    <!-- CATEGORY CIRCLES -->
     <section class="category-section" id="collections">
       <div class="section-heading">
         <p class="eyebrow">COLLECTIONS · 컬렉션</p>
@@ -153,10 +134,10 @@
       </div>
 
       <div class="category-row">
-        <!-- TEES (IMAGE 13581) -->
+        <!-- TEES -->
         <a href="#shop" class="category-card" data-category="tees">
           <div class="category-image">
-            <img src="/13581.png" alt="BULKKOT Oversized Tees" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=85" alt="BULKKOT Oversized Tees" loading="lazy">
           </div>
           <div class="category-name">
             <strong>TEES</strong>
@@ -164,10 +145,10 @@
           </div>
         </a>
 
-        <!-- HOODS (IMAGE 13579) -->
+        <!-- HOODS -->
         <a href="#shop" class="category-card" data-category="hoods">
           <div class="category-image">
-            <img src="/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=85" alt="BULKKOT Oversized Hoodies" loading="lazy">
           </div>
           <div class="category-name">
             <strong>HOODS</strong>
@@ -175,10 +156,10 @@
           </div>
         </a>
 
-        <!-- SWEATS (IMAGE 13577) -->
+        <!-- SWEATS -->
         <a href="#shop" class="category-card" data-category="sweats">
           <div class="category-image">
-            <img src="/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=crop&w=800&q=85" alt="BULKKOT Oversized Sweatshirts" loading="lazy">
           </div>
           <div class="category-name">
             <strong>SWEATS</strong>
@@ -188,15 +169,13 @@
       </div>
     </section>
 
-    <!-- ===================================================
-         EDITORIAL CAROUSEL
-    ==================================================== -->
+    <!-- EDITORIAL CAROUSEL -->
     <section class="editorial-section">
       <div class="editorial-carousel" data-carousel>
         <div class="editorial-track" data-carousel-track>
 
           <article class="editorial-slide" data-slide>
-            <img src="/13575.png" alt="BULKKOT Editorial Tee" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=85" alt="BULKKOT Editorial 1" loading="lazy">
             <div class="editorial-slide__overlay"></div>
             <div class="editorial-slide__content">
               <p>불꽃 · 001</p>
@@ -206,7 +185,7 @@
           </article>
 
           <article class="editorial-slide" data-slide>
-            <img src="/13579.png" alt="BULKKOT Editorial Hood" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1600&q=85" alt="BULKKOT Editorial 2" loading="lazy">
             <div class="editorial-slide__overlay"></div>
             <div class="editorial-slide__content">
               <p>서울에서 영감</p>
@@ -216,7 +195,7 @@
           </article>
 
           <article class="editorial-slide" data-slide>
-            <img src="/13577.png" alt="BULKKOT Editorial Sweat" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=85" alt="BULKKOT Editorial 3" loading="lazy">
             <div class="editorial-slide__overlay"></div>
             <div class="editorial-slide__content">
               <p>불꽃 · BULKKOT</p>
@@ -238,9 +217,7 @@
       </div>
     </section>
 
-    <!-- ===================================================
-         DROP 001 BANNER
-    ==================================================== -->
+    <!-- DROP 001 -->
     <section class="drop-section" id="drop-001">
       <div class="drop-content">
         <p class="eyebrow">DROP 001 · 첫 번째 드롭</p>
@@ -250,9 +227,7 @@
       </div>
     </section>
 
-    <!-- ===================================================
-         LATEST PRODUCTS GRID
-    ==================================================== -->
+    <!-- PRODUCTS GRID -->
     <section class="shop-section" id="shop">
       <div class="section-heading section-heading--split">
         <div>
@@ -267,7 +242,7 @@
         <!-- Product 01 -->
         <article class="product-card" data-product-card data-category="tees">
           <div class="product-image">
-            <img src="/13575.png" alt="BULKKOT Oversized Tee 001" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85" alt="BULKKOT Oversized Tee" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -282,7 +257,7 @@
         <!-- Product 02 -->
         <article class="product-card" data-product-card data-category="hoods">
           <div class="product-image">
-            <img src="/13579.png" alt="BULKKOT Oversized Hood 001" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=85" alt="BULKKOT Heavyweight Hood" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -297,7 +272,7 @@
         <!-- Product 03 -->
         <article class="product-card" data-product-card data-category="sweats">
           <div class="product-image">
-            <img src="/13577.png" alt="BULKKOT Oversized Sweat 001" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=900&q=85" alt="BULKKOT Minimalist Sweat" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -312,7 +287,7 @@
         <!-- Product 04 -->
         <article class="product-card" data-product-card data-category="tees">
           <div class="product-image">
-            <img src="/13581.png" alt="BULKKOT Signature Tee 001" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&q=85" alt="BULKKOT Signature Tee" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -327,9 +302,7 @@
       </div>
     </section>
 
-    <!-- ===================================================
-         WHY BULKKOT
-    ==================================================== -->
+    <!-- VALUES -->
     <section class="values-section">
       <div class="section-heading">
         <p class="eyebrow">WHY BULKKOT · 왜 불꽃인가</p>
@@ -367,9 +340,7 @@
       </div>
     </section>
 
-    <!-- ===================================================
-         ABOUT
-    ==================================================== -->
+    <!-- ABOUT -->
     <section class="about-section" id="about">
       <div class="about-grid">
         <div class="about-intro">
@@ -388,9 +359,7 @@
       </div>
     </section>
 
-    <!-- ===================================================
-         PHILOSOPHY
-    ==================================================== -->
+    <!-- PHILOSOPHY -->
     <section class="philosophy-section">
       <p class="philosophy-korean">불꽃의 철학</p>
       <h2>LESS NOISE.</h2>
@@ -398,9 +367,7 @@
       <p>Quiet design. Strong identity.</p>
     </section>
 
-    <!-- ===================================================
-         INSTAGRAM
-    ==================================================== -->
+    <!-- INSTAGRAM -->
     <section class="instagram-section">
       <div class="section-heading section-heading--center">
         <p class="eyebrow">SOCIAL · 소셜</p>
@@ -410,9 +377,7 @@
       <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="instagram-handle">@bulkkot.wear</a>
     </section>
 
-    <!-- ===================================================
-         WAITLIST
-    ==================================================== -->
+    <!-- WAITLIST -->
     <section class="waitlist-section" id="waitlist">
       <div class="waitlist-inner">
         <div class="waitlist-copy">
@@ -433,9 +398,7 @@
       </div>
     </section>
 
-    <!-- ===================================================
-         CONTACT
-    ==================================================== -->
+    <!-- CONTACT -->
     <section class="contact-section" id="contact">
       <div class="section-heading">
         <p class="eyebrow">CONTACT · 문의</p>
@@ -456,9 +419,7 @@
 
   </main>
 
-  <!-- =====================================================
-       FOOTER
-  ====================================================== -->
+  <!-- FOOTER -->
   <footer class="site-footer">
     <div class="footer-brand">
       <a href="#top" class="brand">
@@ -511,9 +472,7 @@
     </div>
   </footer>
 
-  <!-- =====================================================
-       MODALS & DRAWERS
-  ====================================================== -->
+  <!-- MODALS -->
   <div class="drawer-overlay" data-cart-overlay></div>
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
     <div class="cart-drawer__header">
@@ -561,7 +520,7 @@
     </div>
   </div>
 
-  <!-- Policy Templates -->
+  <!-- POLICY TEMPLATES -->
   <template id="policy-faq">
     <p><strong>When does Drop 001 launch?</strong></p>
     <p>Drop 001 is coming soon. Join the VIP waitlist to receive access first.</p>
@@ -589,7 +548,7 @@
     <p>By browsing BULKKOT, you agree to lawful use of our services and content.</p>
   </template>
 
-  <!-- Scripts -->
+  <!-- SCRIPTS -->
   <script src="js/cart.js" defer></script>
   <script src="js/main.js" defer></script>
 
