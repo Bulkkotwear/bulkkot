@@ -3,12 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>BULKKOT | Korean-Inspired Luxury Streetwear</title>
   
+  <!-- Primary Meta Tags -->
+  <title>BULKKOT (불꽃) | Korean-Inspired Luxury Streetwear</title>
+  <meta name="title" content="BULKKOT (불꽃) | Korean-Inspired Luxury Streetwear">
+  <meta name="description" content="Korean-inspired premium everyday wear for a new generation. Heavyweight fabrics, custom silhouettes, and limited capsule drops.">
+  <meta name="theme-color" content="#000000">
+
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://bulkkot.bulkkotwear.workers.dev/">
+  <meta property="og:title" content="BULKKOT (불꽃) | Premier Streetwear">
+  <meta property="og:description" content="Korean-inspired essentials and oversized heavyweight drops. Explore DROP 001.">
+  <meta property="og:image" content="hero-model.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://bulkkot.bulkkotwear.workers.dev/">
+  <meta property="twitter:title" content="BULKKOT (불꽃) | Premier Streetwear">
+  <meta property="twitter:description" content="Korean-inspired heavyweight drops for the new generation.">
+  <meta property="twitter:image" content="hero-model.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="logo.png">
+
+  <!-- Fonts Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
   
+  <!-- Modular CSS -->
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
 
@@ -16,14 +40,14 @@
 </head>
 <body>
 
-  <!-- Announcement Bar -->
+  <!-- Top Announcement Bar -->
   <div class="announcement-bar">
     <span>DROP 001 – DROPPING SOON</span>
     <span class="bar-sep">|</span>
     <span>FREE SHIPPING ALL OVER INDIA</span>
   </div>
 
-  <!-- Main Header -->
+  <!-- Luxury Two-Row Header -->
   <header class="main-header">
     <div class="header-main-row">
       <div class="brand-group">
@@ -37,12 +61,15 @@
       </div>
 
       <div class="header-actions">
+        <!-- Instagram Link -->
         <a href="https://instagram.com/bulkkot.wear" target="_blank" rel="noopener" title="Instagram @bulkkot.wear" class="action-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
         </a>
+        <!-- Admin/User Portal -->
         <a href="admin/index.html" title="Admin Portal" class="action-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </a>
+        <!-- Shopping Bag Trigger -->
         <a href="javascript:void(0)" title="Shopping Bag" class="action-icon" onclick="toggleCartDrawer(true)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
           <span class="cart-badge" id="cart-count">0</span>
@@ -50,6 +77,7 @@
       </div>
     </div>
 
+    <!-- Sub Navigation Row -->
     <div class="header-sub-row">
       <nav class="nav-links">
         <a href="#home" class="nav-item active">HOME</a>
@@ -104,21 +132,21 @@
     <div class="category-grid">
       <div class="category-card" onclick="filterCatalog('TEES')">
         <div class="category-img-wrap">
-          <img src="cat-tees.png" alt="TEES">
+          <img src="cat-tees.png" alt="TEES" loading="lazy">
         </div>
         <span class="category-title">TEES</span>
       </div>
 
       <div class="category-card" onclick="filterCatalog('HOODS')">
         <div class="category-img-wrap">
-          <img src="cat-hoods.png" alt="HOODS">
+          <img src="cat-hoods.png" alt="HOODS" loading="lazy">
         </div>
         <span class="category-title">HOODS</span>
       </div>
 
       <div class="category-card" onclick="filterCatalog('SWEATS')">
         <div class="category-img-wrap">
-          <img src="cat-sweats.png" alt="SWEATS">
+          <img src="cat-sweats.png" alt="SWEATS" loading="lazy">
         </div>
         <span class="category-title">SWEATS</span>
       </div>
@@ -169,6 +197,47 @@
     </div>
   </section>
 
+  <!-- Features Strip -->
+  <section style="border-top: 1px solid var(--border-dark); border-bottom: 1px solid var(--border-dark); padding: 36px 16px; margin-top: 40px;">
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 16px; text-align: center; max-width: 1100px; margin: 0 auto;">
+      <div>
+        <h4 style="font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px;">PREMIUM QUALITY</h4>
+        <p style="color: var(--text-muted); font-size: 11px;">Carefully sourced fabrics</p>
+      </div>
+      <div>
+        <h4 style="font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px;">OVERSIZED FIT</h4>
+        <p style="color: var(--text-muted); font-size: 11px;">Comfort that fits all</p>
+      </div>
+      <div>
+        <h4 style="font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px;">SECURE PAYMENT</h4>
+        <p style="color: var(--text-muted); font-size: 11px;">100% secure checkout</p>
+      </div>
+      <div>
+        <h4 style="font-family: var(--font-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 4px;">ALL INDIA SHIPPING</h4>
+        <p style="color: var(--text-muted); font-size: 11px;">Fast express delivery</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background: #000; padding: 48px 16px 28px; font-size: 12px; border-top: 1px solid var(--border-dark);">
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+      <div class="brand-group">
+        <a href="index.html" class="brand-logo-wrap">
+          <img src="logo.png" alt="BULKKOT" class="brand-logo-img">
+        </a>
+        <div class="brand-text-block">
+          <span class="brand-kr-title">불꽃</span>
+          <span class="brand-en-title">BULKKOT</span>
+        </div>
+      </div>
+      <p style="color: var(--text-muted); font-size: 12px; line-height: 1.5;">Korean-inspired premium everyday wear for the new generation.</p>
+      <div style="color: var(--text-muted); font-size: 11px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 18px; text-align: center;">
+        © 2026 BULKKOT (불꽃). All rights reserved.
+      </div>
+    </div>
+  </footer>
+
   <!-- Slide-out Cart Drawer -->
   <div class="cart-drawer-overlay" id="cart-overlay" onclick="toggleCartDrawer(false)"></div>
   <div class="cart-drawer" id="cart-drawer">
@@ -193,6 +262,15 @@
       <div id="size-options" style="display: flex; gap: 8px; margin-bottom: 20px;"></div>
       
       <button onclick="addProductToBag()" style="width: 100%; background: #FFF; color: #000; border: none; padding: 13px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; border-radius: 3px;">ADD TO BAG</button>
+    </div>
+  </div>
+
+  <!-- Info Modal -->
+  <div class="cart-drawer-overlay" id="info-modal" onclick="closeInfoModal()">
+    <div style="background: #0E0E0E; border: 1px solid var(--border-dark); border-radius: 8px; max-width: 440px; width: 90%; padding: 24px; position: relative; margin: auto;" onclick="event.stopPropagation()">
+      <button onclick="closeInfoModal()" style="position: absolute; top: 14px; right: 14px; background: none; border: none; color: #888; font-size: 18px;">✕</button>
+      <h3 style="font-family: var(--font-heading); font-size: 16px; font-weight: 900; margin-bottom: 10px;">ABOUT BULKKOT (불꽃)</h3>
+      <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6;">BULKKOT represents fiery passion and modern Korean streetwear culture. Born out of minimalist aesthetics and Seoul fashion, every piece is custom crafted with heavyweight fabrics and relaxed oversized draping.</p>
     </div>
   </div>
 
@@ -221,6 +299,13 @@
     function toggleCartDrawer(open) {
       document.getElementById('cart-drawer').classList.toggle('open', open);
       document.getElementById('cart-overlay').classList.toggle('open', open);
+    }
+
+    function openModal(type) {
+      if (type === 'about') document.getElementById('info-modal').style.display = 'flex';
+    }
+    function closeInfoModal() {
+      document.getElementById('info-modal').style.display = 'none';
     }
   </script>
 </body>
