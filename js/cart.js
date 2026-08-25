@@ -1,199 +1,154 @@
 /* =========================================================
-   BULKKOT (불꽃) — CART SYSTEM
-   File: js/cart.js
+   BULKKOT — CART MANAGEMENT
+   js/cart.js
    ========================================================= */
 
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "bulkkot_cart";
+  const CART_KEY = "bulkkot_cart";
 
-  /* ---------------------------------------------------------
-     Helpers
-  --------------------------------------------------------- */
-
-  function normalizeCartItem(product, size) {
-    if (!product || !product.id) {
-      throw new Error("A valid product with an id is required.");
-    }
-
-    return {
-      id: String(product.id),
-      name: product.name || "BULKKOT Product",
-      price: Number(product.price) || 0,
-      image: product.image || "",
-      size: size || "One Size",
-      quantity: Number(product.quantity) > 0 ? Number(product.quantity) : 1
-    };
-  }
-
-  function formatPrice(value) {
-    const amount = Number(value) || 0;
-
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0
-    }).format(amount);
-  }
-
-  function escapeHTML(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  /* ---------------------------------------------------------
-     LocalStorage
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     CART STORAGE
+  ------------------------------------------------------- */
 
   function getCart() {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const storedCart = localStorage.getItem(CART_KEY);
+      const cart = storedCart ? JSON.parse(storedCart) : [];
 
-      if (!stored) {
-        return [];
-      }
-
-      const parsed = JSON.parse(stored);
-
-      return Array.isArray(parsed) ? parsed : [];
+      return Array.isArray(cart) ? cart : [];
     } catch (error) {
-      console.error("BULKKOT cart read error:", error);
+      console.error("BULKKOT Cart: Failed to read cart.", error);
       return [];
     }
   }
 
   function saveCart(cart) {
-    const safeCart = Array.isArray(cart) ? cart : [];
-
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(safeCart));
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      updateCartBadge();
+      renderCartDrawer();
     } catch (error) {
-      console.error("BULKKOT cart save error:", error);
+      console.error("BULKKOT Cart: Failed to save cart.", error);
+    }
+  }
+
+  /* -------------------------------------------------------
+     ADD TO CART
+  ------------------------------------------------------- */
+
+  function addToCart(product, size) {
+    if (!product || !product.id) {
+      console.error("BULKKOT Cart: Invalid product.");
+      return;
     }
 
-    updateCartBadge();
-    renderCartDrawer();
+    if (!size) {
+      console.warn("BULKKOT Cart: Product size is required.");
+      return;
+    }
 
+    const cart = getCart();
+
+    const existingItem = cart.find(
+      item => String(item.id) === String(product.id) && item.size === size
+    );
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({
+        id: product.id,
+        name: product.name || "BULKKOT Product",
+        price: Number(product.price) || 0,
+        image: product.image || "",
+        size,
+        quantity: 1
+      });
+    }
+
+    saveCart(cart);
+
+    // Optional UI feedback
     document.dispatchEvent(
       new CustomEvent("bulkkot:cart-updated", {
-        detail: {
-          cart: safeCart
-        }
+        detail: { cart }
       })
     );
   }
 
-  /* ---------------------------------------------------------
-     Add Product
-  --------------------------------------------------------- */
-
-  function addToCart(product, size) {
-    try {
-      const item = normalizeCartItem(product, size);
-      const cart = getCart();
-
-      const existingItem = cart.find(
-        (cartItem) =>
-          String(cartItem.id) === item.id &&
-          String(cartItem.size) === item.size
-      );
-
-      if (existingItem) {
-        existingItem.quantity += item.quantity;
-      } else {
-        cart.push(item);
-      }
-
-      saveCart(cart);
-
-      toggleCartDrawer(true);
-
-      return cart;
-    } catch (error) {
-      console.error("BULKKOT addToCart error:", error);
-      return getCart();
-    }
-  }
-
-  /* ---------------------------------------------------------
-     Quantity
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     UPDATE QUANTITY
+  ------------------------------------------------------- */
 
   function updateQuantity(id, size, delta) {
     const cart = getCart();
 
     const item = cart.find(
-      (cartItem) =>
-        String(cartItem.id) === String(id) &&
-        String(cartItem.size) === String(size)
+      product =>
+        String(product.id) === String(id) &&
+        product.size === size
     );
 
-    if (!item) {
-      return cart;
-    }
+    if (!item) return;
 
     item.quantity += Number(delta) || 0;
 
     if (item.quantity <= 0) {
-      const updatedCart = cart.filter(
-        (cartItem) =>
-          !(
-            String(cartItem.id) === String(id) &&
-            String(cartItem.size) === String(size)
-          )
-      );
-
-      saveCart(updatedCart);
-      return updatedCart;
+      removeFromCart(id, size);
+      return;
     }
 
     saveCart(cart);
-
-    return cart;
   }
 
-  /* ---------------------------------------------------------
-     Remove
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     REMOVE ITEM
+  ------------------------------------------------------- */
 
   function removeFromCart(id, size) {
     const cart = getCart();
 
     const updatedCart = cart.filter(
-      (cartItem) =>
+      item =>
         !(
-          String(cartItem.id) === String(id) &&
-          String(cartItem.size) === String(size)
+          String(item.id) === String(id) &&
+          item.size === size
         )
     );
 
     saveCart(updatedCart);
-
-    return updatedCart;
   }
 
-  /* ---------------------------------------------------------
-     Subtotal
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     SUBTOTAL
+  ------------------------------------------------------- */
 
   function calculateSubtotal() {
     return getCart().reduce((total, item) => {
-      return (
-        total +
-        (Number(item.price) || 0) *
-          (Number(item.quantity) || 0)
-      );
+      const price = Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 0;
+
+      return total + price * quantity;
     }, 0);
   }
 
-  /* ---------------------------------------------------------
-     Cart Badge
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     FORMAT PRICE
+  ------------------------------------------------------- */
+
+  function formatPrice(price) {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0
+    }).format(price);
+  }
+
+  /* -------------------------------------------------------
+     CART COUNT
+  ------------------------------------------------------- */
 
   function updateCartBadge() {
     const cart = getCart();
@@ -205,188 +160,161 @@
 
     document.querySelectorAll(
       ".cart-count, [data-cart-count]"
-    ).forEach((element) => {
+    ).forEach(element => {
       element.textContent = count;
 
-      element.hidden = count <= 0;
-
-      element.setAttribute(
-        "aria-label",
-        `${count} item${count === 1 ? "" : "s"} in cart`
-      );
+      element.hidden = count === 0;
+      element.setAttribute("aria-label", `${count} items in cart`);
     });
-
-    return count;
   }
 
-  /* ---------------------------------------------------------
-     Cart Drawer
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     RENDER CART DRAWER
+  ------------------------------------------------------- */
 
   function renderCartDrawer() {
-    const cart = getCart();
-
     const drawerBodies = document.querySelectorAll(
-      ".drawer__body"
+      ".drawer__body, #cart-content"
     );
 
-    const cartContents = document.querySelectorAll(
-      "#cart-content"
-    );
+    if (!drawerBodies.length) return;
 
-    const targets = [
-      ...drawerBodies,
-      ...cartContents
-    ];
+    const cart = getCart();
+    const subtotal = calculateSubtotal();
 
-    if (!targets.length) {
-      return;
-    }
+    drawerBodies.forEach(container => {
+      if (!cart.length) {
+        container.innerHTML = `
+          <div class="cart-empty">
+            <p class="cart-empty__korean">장바구니가 비어 있습니다</p>
+            <h3>Your cart is empty.</h3>
+            <p>
+              Discover the latest BULKKOT essentials
+              and build your collection.
+            </p>
 
-    if (!cart.length) {
-      const emptyMarkup = `
-        <div class="cart-empty">
-          <span class="cart-empty__eyebrow">BULKKOT</span>
-          <h3>Your cart is empty.</h3>
-          <p>Discover the latest essentials from BULKKOT.</p>
-          <button
-            type="button"
-            class="button button--primary"
-            data-close-cart
-          >
-            CONTINUE SHOPPING
-          </button>
-        </div>
-      `;
+            <button
+              type="button"
+              class="btn btn--primary"
+              data-close-cart
+            >
+              CONTINUE SHOPPING
+            </button>
+          </div>
+        `;
 
-      targets.forEach((target) => {
-        target.innerHTML = emptyMarkup;
-      });
+        return;
+      }
 
-      return;
-    }
+      container.innerHTML = `
+        <div class="cart-items">
+          ${cart.map(item => `
+            <article class="cart-item">
 
-    const itemsMarkup = cart
-      .map((item) => {
-        const lineTotal =
-          (Number(item.price) || 0) *
-          (Number(item.quantity) || 0);
-
-        return `
-          <article class="cart-item">
-            <div class="cart-item__image">
-              ${
-                item.image
-                  ? `<img
-                      src="${escapeHTML(item.image)}"
-                      alt="${escapeHTML(item.name)}"
-                      loading="lazy"
-                    >`
-                  : `<div class="cart-item__image-placeholder">
-                      불꽃
-                    </div>`
-              }
-            </div>
-
-            <div class="cart-item__details">
-              <div class="cart-item__top">
-                <h4>${escapeHTML(item.name)}</h4>
-
-                <button
-                  type="button"
-                  class="cart-item__remove"
-                  data-cart-remove
-                  data-id="${escapeHTML(item.id)}"
-                  data-size="${escapeHTML(item.size)}"
-                  aria-label="Remove ${escapeHTML(item.name)}"
-                >
-                  ×
-                </button>
+              <div class="cart-item__image">
+                ${
+                  item.image
+                    ? `<img
+                        src="${escapeHTML(item.image)}"
+                        alt="${escapeHTML(item.name)}"
+                        loading="lazy"
+                      >`
+                    : `<div class="cart-item__image-placeholder"></div>`
+                }
               </div>
 
-              <p class="cart-item__meta">
-                Size: ${escapeHTML(item.size)}
-              </p>
+              <div class="cart-item__info">
 
-              <div class="cart-item__bottom">
-                <div class="cart-quantity">
-                  <button
-                    type="button"
-                    data-cart-quantity
-                    data-id="${escapeHTML(item.id)}"
-                    data-size="${escapeHTML(item.size)}"
-                    data-delta="-1"
-                    aria-label="Decrease quantity"
-                  >
-                    −
-                  </button>
-
-                  <span>${item.quantity}</span>
+                <div class="cart-item__top">
+                  <div>
+                    <h3>${escapeHTML(item.name)}</h3>
+                    <span class="cart-item__size">
+                      SIZE ${escapeHTML(item.size)}
+                    </span>
+                  </div>
 
                   <button
                     type="button"
-                    data-cart-quantity
+                    class="cart-item__remove"
+                    data-remove-cart-item
                     data-id="${escapeHTML(item.id)}"
                     data-size="${escapeHTML(item.size)}"
-                    data-delta="1"
-                    aria-label="Increase quantity"
+                    aria-label="Remove ${escapeHTML(item.name)}"
                   >
-                    +
+                    ×
                   </button>
                 </div>
 
-                <strong>${formatPrice(lineTotal)}</strong>
+                <div class="cart-item__bottom">
+
+                  <div class="cart-quantity">
+                    <button
+                      type="button"
+                      data-cart-minus
+                      data-id="${escapeHTML(item.id)}"
+                      data-size="${escapeHTML(item.size)}"
+                      aria-label="Decrease quantity"
+                    >
+                      −
+                    </button>
+
+                    <span>${item.quantity}</span>
+
+                    <button
+                      type="button"
+                      data-cart-plus
+                      data-id="${escapeHTML(item.id)}"
+                      data-size="${escapeHTML(item.size)}"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <strong>
+                    ${formatPrice(item.price * item.quantity)}
+                  </strong>
+
+                </div>
+
               </div>
-            </div>
-          </article>
-        `;
-      })
-      .join("");
 
-    const subtotal = calculateSubtotal();
-
-    const markup = `
-      <div class="cart-list">
-        ${itemsMarkup}
-      </div>
-
-      <div class="cart-summary">
-        <div class="cart-summary__row">
-          <span>Subtotal</span>
-          <strong>${formatPrice(subtotal)}</strong>
+            </article>
+          `).join("")}
         </div>
 
-        <p class="cart-summary__note">
-          Shipping and taxes calculated at checkout.
-        </p>
+        <div class="cart-summary">
 
-        <button
-          type="button"
-          class="button button--primary button--full"
-          data-cart-checkout
-        >
-          CHECKOUT
-        </button>
-      </div>
-    `;
+          <div class="cart-summary__row">
+            <span>Subtotal</span>
+            <strong>${formatPrice(subtotal)}</strong>
+          </div>
 
-    targets.forEach((target) => {
-      target.innerHTML = markup;
+          <p class="cart-summary__note">
+            Shipping and taxes calculated at checkout.
+          </p>
+
+          <button
+            type="button"
+            class="btn btn--primary cart-checkout"
+            data-cart-checkout
+          >
+            CHECKOUT
+          </button>
+
+        </div>
+      `;
     });
   }
 
-  /* ---------------------------------------------------------
-     Drawer Controls
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     CART DRAWER
+  ------------------------------------------------------- */
 
   function toggleCartDrawer(open) {
-    const drawer =
-      document.querySelector("[data-cart-drawer]") ||
-      document.querySelector("#cart-drawer");
+    const drawer = document.querySelector("[data-cart-drawer]");
 
-    if (!drawer) {
-      return;
-    }
+    if (!drawer) return;
 
     const shouldOpen =
       typeof open === "boolean"
@@ -397,32 +325,30 @@
     drawer.setAttribute("aria-hidden", String(!shouldOpen));
 
     document.body.classList.toggle(
-      "drawer-open",
+      "cart-drawer-open",
       shouldOpen
     );
 
     if (shouldOpen) {
       renderCartDrawer();
 
-      const focusTarget =
-        drawer.querySelector(
-          "[data-close-cart], button, a"
-        );
+      const firstFocusable = drawer.querySelector(
+        "button, a, input, [tabindex]:not([tabindex='-1'])"
+      );
 
-      if (focusTarget) {
-        setTimeout(() => focusTarget.focus(), 100);
+      if (firstFocusable) {
+        setTimeout(() => firstFocusable.focus(), 100);
       }
     }
   }
 
-  /* ---------------------------------------------------------
-     Event Delegation
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     EVENT DELEGATION
+  ------------------------------------------------------- */
 
-  document.addEventListener("click", (event) => {
-    const addButton = event.target.closest(
-      "[data-add-to-cart]"
-    );
+  document.addEventListener("click", event => {
+
+    const addButton = event.target.closest("[data-add-to-cart]");
 
     if (addButton) {
       event.preventDefault();
@@ -433,45 +359,57 @@
         product = JSON.parse(
           addButton.getAttribute("data-product") || "{}"
         );
-      } catch (error) {
-        console.error("Invalid product JSON:", error);
+      } catch {
+        console.error("BULKKOT Cart: Invalid product data.");
       }
 
       const size =
         addButton.getAttribute("data-size") ||
-        document.querySelector(
-          "[data-product-size].is-selected"
-        )?.getAttribute("data-product-size") ||
-        "One Size";
+        document.querySelector("[data-product-size].is-selected")
+          ?.getAttribute("data-product-size") ||
+        document.querySelector("[data-product-size]:checked")
+          ?.value;
+
+      if (!size) {
+        alert("Please select a size.");
+        return;
+      }
 
       addToCart(product, size);
+      toggleCartDrawer(true);
 
       return;
     }
 
-    const quantityButton = event.target.closest(
-      "[data-cart-quantity]"
-    );
+    const plusButton = event.target.closest("[data-cart-plus]");
 
-    if (quantityButton) {
-      event.preventDefault();
-
+    if (plusButton) {
       updateQuantity(
-        quantityButton.dataset.id,
-        quantityButton.dataset.size,
-        Number(quantityButton.dataset.delta)
+        plusButton.dataset.id,
+        plusButton.dataset.size,
+        1
+      );
+
+      return;
+    }
+
+    const minusButton = event.target.closest("[data-cart-minus]");
+
+    if (minusButton) {
+      updateQuantity(
+        minusButton.dataset.id,
+        minusButton.dataset.size,
+        -1
       );
 
       return;
     }
 
     const removeButton = event.target.closest(
-      "[data-cart-remove]"
+      "[data-remove-cart-item]"
     );
 
     if (removeButton) {
-      event.preventDefault();
-
       removeFromCart(
         removeButton.dataset.id,
         removeButton.dataset.size
@@ -480,21 +418,21 @@
       return;
     }
 
-    const openButton = event.target.closest(
+    const openCartButton = event.target.closest(
       "[data-open-cart]"
     );
 
-    if (openButton) {
+    if (openCartButton) {
       event.preventDefault();
       toggleCartDrawer(true);
       return;
     }
 
-    const closeButton = event.target.closest(
+    const closeCartButton = event.target.closest(
       "[data-close-cart]"
     );
 
-    if (closeButton) {
+    if (closeCartButton) {
       event.preventDefault();
       toggleCartDrawer(false);
       return;
@@ -507,45 +445,58 @@
     if (checkoutButton) {
       event.preventDefault();
 
+      const cart = getCart();
+
+      if (!cart.length) return;
+
       document.dispatchEvent(
         new CustomEvent("bulkkot:checkout", {
           detail: {
-            cart: getCart(),
+            cart,
             subtotal: calculateSubtotal()
           }
         })
       );
-
-      console.info(
-        "BULKKOT checkout hook ready. Connect your payment backend here."
-      );
     }
   });
 
-  /* ---------------------------------------------------------
-     Escape
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     CLOSE CART WITH ESC
+  ------------------------------------------------------- */
 
-  document.addEventListener("keydown", (event) => {
+  document.addEventListener("keydown", event => {
     if (event.key === "Escape") {
       toggleCartDrawer(false);
     }
   });
 
-  /* ---------------------------------------------------------
-     Initialization
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     SAFE HTML
+  ------------------------------------------------------- */
+
+  function escapeHTML(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  /* -------------------------------------------------------
+     INITIALIZE
+  ------------------------------------------------------- */
 
   document.addEventListener("DOMContentLoaded", () => {
     updateCartBadge();
     renderCartDrawer();
   });
 
-  /* ---------------------------------------------------------
-     Public API
-  --------------------------------------------------------- */
+  /* -------------------------------------------------------
+     PUBLIC API
+  ------------------------------------------------------- */
 
-  window.BULKKOT_CART = {
+  window.BULKKOTCart = {
     getCart,
     saveCart,
     addToCart,
@@ -557,14 +508,4 @@
     toggleCartDrawer
   };
 
-  // Backward-compatible global functions
-  window.getCart = getCart;
-  window.saveCart = saveCart;
-  window.addToCart = addToCart;
-  window.updateQuantity = updateQuantity;
-  window.removeFromCart = removeFromCart;
-  window.calculateSubtotal = calculateSubtotal;
-  window.updateCartBadge = updateCartBadge;
-  window.renderCartDrawer = renderCartDrawer;
-  window.toggleCartDrawer = toggleCartDrawer;
 })();
