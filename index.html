@@ -19,10 +19,22 @@
   <link rel="stylesheet" href="/css/global.css">
   <link rel="stylesheet" href="/css/components.css">
 
-  <!-- EXACT CUSTOM IMAGE FOCAL FIT -->
+  <!-- BULKKOT UNIVERSAL IMAGE FIT SYSTEM (AUTO-ALIGNED) -->
   <style>
-    /* Hero Image */
-    .hero-media {
+    /* GLOBAL IMAGE RESET */
+    img {
+      display: block;
+      max-width: 100%;
+      border: 0;
+      object-fit: cover;
+      image-rendering: auto;
+      backface-visibility: hidden;
+    }
+
+    /* HERO IMAGE */
+    .hero,
+    .hero-media,
+    .hero__media {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -30,119 +42,138 @@
       overflow: hidden;
       background: #000;
     }
-    .hero-media img {
+    .hero-media img,
+    .hero img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center 20% !important;
-      display: block;
+      transform: scale(1.001);
     }
 
-    /* Category Circles */
-    .category-row {
-      display: flex;
+    /* CATEGORY CIRCLES (TEES / HOODS / SWEATS LOCKED IN 1 ROW) */
+    .category-section .category-row {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      align-items: flex-start;
       justify-content: center;
-      gap: 24px;
-      align-items: center;
+      gap: clamp(12px, 4vw, 42px);
+      width: 100%;
     }
     .category-card {
+      flex: 1 1 0;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-decoration: none;
-      flex: 1;
-      max-width: 260px;
     }
     .category-image {
-      width: 100%;
-      max-width: 220px;
+      position: relative;
+      width: clamp(82px, 24vw, 150px);
       aspect-ratio: 1 / 1;
-      border-radius: 50%;
       overflow: hidden;
+      border-radius: 50%;
+      flex: 0 0 auto;
       background: #111;
       border: 1px solid rgba(255, 255, 255, 0.15);
-      margin-bottom: 16px;
-      position: relative;
+      margin-bottom: 12px;
     }
     .category-image img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
-      transition: transform 0.4s ease;
-    }
-    .img-fit-tees {
-      object-position: center 15% !important;
-      transform: scale(1.1);
-    }
-    .img-fit-hoods {
-      object-position: center 15% !important;
-      transform: scale(1.1);
-    }
-    .img-fit-sweats {
-      object-position: center 18% !important;
-      transform: scale(1.1);
+      transition: transform 700ms cubic-bezier(.22, .61, .36, 1);
     }
     .category-card:hover .category-image img {
-      transform: scale(1.18);
+      transform: scale(1.12);
     }
 
-    /* Product Cards */
+    /* SPECIFIC FOCAL CROP FOR LANDSCAPE PHOTOS */
+    .crop-tees {
+      object-position: center 15% !important;
+      transform: scale(1.05);
+    }
+    .crop-hoods {
+      object-position: center 15% !important;
+      transform: scale(1.05);
+    }
+    .crop-sweats {
+      object-position: center 18% !important;
+      transform: scale(1.05);
+    }
+
+    /* EDITORIAL SLIDER */
+    .editorial-carousel,
+    [data-carousel] {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+    [data-carousel-track] {
+      display: flex;
+      width: 100%;
+      will-change: transform;
+      touch-action: pan-y;
+    }
+    [data-slide] {
+      position: relative;
+      flex: 0 0 100%;
+      width: 100%;
+      min-width: 100%;
+      min-height: 480px;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #000;
+    }
+    [data-slide] img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 25% !important;
+    }
+
+    /* PRODUCT GRID */
     .product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 24px;
     }
     .product-card {
-      background: #0a0a0a;
+      background: #0d0d0d;
       border: 1px solid rgba(255, 255, 255, 0.08);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
     .product-image {
+      position: relative;
       width: 100%;
-      aspect-ratio: 4 / 5;
+      aspect-ratio: 3 / 4;
       overflow: hidden;
       background: #111;
-      position: relative;
     }
     .product-image img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center 20% !important;
-      display: block;
-      transition: transform 0.4s ease;
+      transition: transform 700ms cubic-bezier(.22, .61, .36, 1);
     }
     .product-card:hover .product-image img {
-      transform: scale(1.05);
+      transform: scale(1.04);
     }
 
-    /* Lookbook Carousel */
-    .editorial-slide {
-      min-height: 480px;
-      aspect-ratio: 16 / 9;
-      position: relative;
-      overflow: hidden;
-      background: #000;
-    }
-    .editorial-slide img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 25% !important;
-      display: block;
-    }
-
-    @media (max-width: 768px) {
-      .category-row {
-        gap: 12px;
-      }
+    /* MOBILE TUNING */
+    @media (max-width: 767px) {
       .category-image {
-        max-width: 110px;
+        width: clamp(76px, 25vw, 110px);
       }
-      .editorial-slide {
+      .category-section .category-row {
+        gap: 10px;
+      }
+      [data-slide] {
         min-height: 340px;
         aspect-ratio: 4 / 5;
       }
@@ -267,7 +298,7 @@
         <!-- TEES -->
         <a href="#shop" class="category-card" data-category="tees">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" class="img-fit-tees" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" class="crop-tees" loading="lazy">
           </div>
           <div class="category-name">
             <strong>TEES</strong>
@@ -278,7 +309,7 @@
         <!-- HOODS -->
         <a href="#shop" class="category-card" data-category="hoods">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" class="img-fit-hoods" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" class="crop-hoods" loading="lazy">
           </div>
           <div class="category-name">
             <strong>HOODS</strong>
@@ -289,7 +320,7 @@
         <!-- SWEATS -->
         <a href="#shop" class="category-card" data-category="sweats">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" class="img-fit-sweats" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" class="crop-sweats" loading="lazy">
           </div>
           <div class="category-name">
             <strong>SWEATS</strong>
