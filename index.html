@@ -8,7 +8,7 @@
 
   <title>BULKKOT (불꽃) — Premium Everyday Wear</title>
 
-  <link rel="icon" href="/logo.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,8 +16,131 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+
+  <!-- AUTO-FIT IMAGE SYSTEM (Pixel-Perfect Alignment) -->
+  <style>
+    /* Hero Image Auto-Fit */
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b0b0b;
+    }
+    .hero-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    /* Category Circles Auto-Fit (Exact 1:1 Circle Lock) */
+    .category-row {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      align-items: flex-start;
+    }
+    .category-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      flex: 1;
+      max-width: 280px;
+    }
+    .category-image {
+      width: 100%;
+      max-width: 220px;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      overflow: hidden;
+      background-color: #151515;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      position: relative;
+      margin: 0 auto 16px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .category-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      transition: transform 0.4s ease;
+      display: block;
+    }
+    .category-card:hover .category-image img {
+      transform: scale(1.06);
+    }
+
+    /* Product Grid Auto-Fit (Exact 3:4 Card Ratio Lock) */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+    .product-card {
+      display: flex;
+      flex-direction: column;
+      background: #0d0d0d;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+    .product-image {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+      background-color: #141414;
+      position: relative;
+    }
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      transition: transform 0.4s ease;
+      display: block;
+    }
+    .product-card:hover .product-image img {
+      transform: scale(1.04);
+    }
+
+    /* Editorial Carousel Auto-Fit */
+    .editorial-slide {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      min-height: 480px;
+      overflow: hidden;
+      background-color: #111;
+    }
+    .editorial-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .category-row {
+        gap: 12px;
+      }
+      .category-image {
+        max-width: 110px;
+      }
+      .editorial-slide {
+        min-height: 360px;
+        aspect-ratio: 4 / 5;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -43,7 +166,7 @@
       </button>
 
       <a href="#top" class="brand" aria-label="BULKKOT home">
-        <img src="logo.png" alt="BULKKOT logo" class="brand-logo" onerror="this.style.display='none'">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" onerror="this.style.display='none'">
         <span class="brand-name">
           <span class="brand-korean">불꽃</span>
           <span class="brand-english">BULKKOT</span>
@@ -107,12 +230,7 @@
     <!-- HERO SECTION -->
     <section class="hero">
       <div class="hero-media">
-        <img 
-          src="13575.png" 
-          data-fallback="https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=1800&q=85" 
-          alt="BULKKOT Campaign" 
-          class="hero-image auto-img"
-        >
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Campaign" class="hero-image">
       </div>
 
       <div class="hero-overlay"></div>
@@ -142,13 +260,7 @@
         <!-- TEES -->
         <a href="#shop" class="category-card" data-category="tees">
           <div class="category-image">
-            <img 
-              src="13581.png" 
-              data-fallback="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=85" 
-              alt="BULKKOT Oversized Tees" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" loading="lazy">
           </div>
           <div class="category-name">
             <strong>TEES</strong>
@@ -159,13 +271,7 @@
         <!-- HOODS -->
         <a href="#shop" class="category-card" data-category="hoods">
           <div class="category-image">
-            <img 
-              src="13579.png" 
-              data-fallback="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=85" 
-              alt="BULKKOT Oversized Hoodies" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy">
           </div>
           <div class="category-name">
             <strong>HOODS</strong>
@@ -176,13 +282,7 @@
         <!-- SWEATS -->
         <a href="#shop" class="category-card" data-category="sweats">
           <div class="category-image">
-            <img 
-              src="13577.png" 
-              data-fallback="https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=crop&w=800&q=85" 
-              alt="BULKKOT Oversized Sweatshirts" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy">
           </div>
           <div class="category-name">
             <strong>SWEATS</strong>
@@ -198,13 +298,7 @@
         <div class="editorial-track" data-carousel-track>
 
           <article class="editorial-slide" data-slide>
-            <img 
-              src="13575.png" 
-              data-fallback="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=85" 
-              alt="BULKKOT Editorial 1" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Editorial 1" loading="lazy">
             <div class="editorial-slide__overlay"></div>
             <div class="editorial-slide__content">
               <p>불꽃 · 001</p>
@@ -214,13 +308,7 @@
           </article>
 
           <article class="editorial-slide" data-slide>
-            <img 
-              src="13579.png" 
-              data-fallback="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1600&q=85" 
-              alt="BULKKOT Editorial 2" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Editorial 2" loading="lazy">
             <div class="editorial-slide__overlay"></div>
             <div class="editorial-slide__content">
               <p>서울에서 영감</p>
@@ -230,13 +318,7 @@
           </article>
 
           <article class="editorial-slide" data-slide>
-            <img 
-              src="13577.png" 
-              data-fallback="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=85" 
-              alt="BULKKOT Editorial 3" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Editorial 3" loading="lazy">
             <div class="editorial-slide__overlay"></div>
             <div class="editorial-slide__content">
               <p>불꽃 · BULKKOT</p>
@@ -258,7 +340,7 @@
       </div>
     </section>
 
-    <!-- DROP 001 -->
+    <!-- DROP 001 BANNER -->
     <section class="drop-section" id="drop-001">
       <div class="drop-content">
         <p class="eyebrow">DROP 001 · 첫 번째 드롭</p>
@@ -268,7 +350,7 @@
       </div>
     </section>
 
-    <!-- PRODUCTS GRID -->
+    <!-- LATEST PRODUCTS GRID -->
     <section class="shop-section" id="shop">
       <div class="section-heading section-heading--split">
         <div>
@@ -283,13 +365,7 @@
         <!-- Product 01 -->
         <article class="product-card" data-product-card data-category="tees">
           <div class="product-image">
-            <img 
-              src="13575.png" 
-              data-fallback="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85" 
-              alt="BULKKOT Oversized Tee" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Tee" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -304,13 +380,7 @@
         <!-- Product 02 -->
         <article class="product-card" data-product-card data-category="hoods">
           <div class="product-image">
-            <img 
-              src="13579.png" 
-              data-fallback="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=85" 
-              alt="BULKKOT Heavyweight Hood" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Heavyweight Hood" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -325,13 +395,7 @@
         <!-- Product 03 -->
         <article class="product-card" data-product-card data-category="sweats">
           <div class="product-image">
-            <img 
-              src="13577.png" 
-              data-fallback="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=900&q=85" 
-              alt="BULKKOT Minimalist Sweat" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Minimalist Sweat" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -346,13 +410,7 @@
         <!-- Product 04 -->
         <article class="product-card" data-product-card data-category="tees">
           <div class="product-image">
-            <img 
-              src="13581.png" 
-              data-fallback="https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&q=85" 
-              alt="BULKKOT Signature Tee" 
-              loading="lazy" 
-              class="auto-img"
-            >
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Signature Tee" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -537,7 +595,7 @@
     </div>
   </footer>
 
-  <!-- MODALS -->
+  <!-- MODALS & DRAWERS -->
   <div class="drawer-overlay" data-cart-overlay></div>
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
     <div class="cart-drawer__header">
@@ -585,7 +643,7 @@
     </div>
   </div>
 
-  <!-- POLICY TEMPLATES -->
+  <!-- Policy Templates -->
   <template id="policy-faq">
     <p><strong>When does Drop 001 launch?</strong></p>
     <p>Drop 001 is coming soon. Join the VIP waitlist to receive access first.</p>
@@ -613,24 +671,12 @@
     <p>By browsing BULKKOT, you agree to lawful use of our services and content.</p>
   </template>
 
-  <!-- SCRIPTS -->
-  <script src="js/cart.js" defer></script>
-  <script src="js/main.js" defer></script>
+  <!-- Scripts -->
+  <script src="/js/cart.js" defer></script>
+  <script src="/js/main.js" defer></script>
 
-  <!-- IMAGE RESILIENCE & MODAL ENGINE -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      // Auto-fallback for images
-      document.querySelectorAll("img.auto-img").forEach(img => {
-        img.addEventListener("error", function () {
-          const fallback = this.getAttribute("data-fallback");
-          if (fallback && this.src !== fallback) {
-            this.src = fallback;
-          }
-        });
-      });
-
-      // Modals
       const modal = document.querySelector("[data-policy-modal]");
       const title = document.querySelector("[data-policy-title]");
       const content = document.querySelector("[data-policy-content]");
