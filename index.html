@@ -10,55 +10,311 @@
 
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
 
-  <!-- Fonts -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Core Styles -->
   <link rel="stylesheet" href="/css/global.css">
   <link rel="stylesheet" href="/css/components.css">
 
-  <!-- BULKKOT UNIVERSAL IMAGE FIT SYSTEM (AUTO-ALIGNED) -->
   <style>
-    /* GLOBAL IMAGE RESET */
+    /* =========================================================
+       COMPLETE STANDALONE RECOVERY & FIT STYLES
+       ========================================================= */
+    :root {
+      --bg-color: #050505;
+      --card-bg: #0c0c0c;
+      --text-main: #ffffff;
+      --text-muted: #8e8e93;
+      --accent: #e50914;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --font-kr: 'Noto Sans KR', sans-serif;
+      --font-en: 'Montserrat', 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-en);
+      overflow-x: hidden;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
     img {
       display: block;
       max-width: 100%;
-      border: 0;
-      object-fit: cover;
-      image-rendering: auto;
-      backface-visibility: hidden;
+      height: auto;
     }
 
-    /* HERO IMAGE */
-    .hero,
-    .hero-media,
-    .hero__media {
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Announcement Bar */
+    .announcement-bar {
+      background: #000;
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 0;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-align: center;
+      overflow: hidden;
+      white-space: nowrap;
+      color: #ccc;
+    }
+    .announcement-track {
+      display: inline-block;
+      animation: ticker 25s linear infinite;
+    }
+    .announcement-track span {
+      margin: 0 20px;
+    }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Site Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(5, 5, 5, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      height: 64px;
+    }
+    .header-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      height: 100%;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-menu {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 5px;
+    }
+    .header-menu span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: #fff;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+    .brand-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      font-size: 16px;
+    }
+    .brand-korean {
+      color: var(--accent);
+      font-family: var(--font-kr);
+    }
+    .desktop-navigation {
+      display: none;
+      gap: 28px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+    }
+    .desktop-navigation a {
+      transition: opacity 0.2s;
+    }
+    .desktop-navigation a:hover {
+      opacity: 0.6;
+    }
+    @media (min-width: 860px) {
+      .desktop-navigation { display: flex; }
+      .header-menu { display: none; }
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-action {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-action svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      min-height: 85vh;
+      display: flex;
+      align-items: flex-end;
+      padding: 60px 20px;
+      background: #000;
+      overflow: hidden;
+    }
+    .hero-media {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      overflow: hidden;
-      background: #000;
+      z-index: 1;
     }
-    .hero-media img,
-    .hero img {
+    .hero-media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20% !important;
-      transform: scale(1.001);
+      object-position: center 20%;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: linear-gradient(to top, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.4) 50%, rgba(5,5,5,0.2) 100%);
+    }
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .hero-korean {
+      font-family: var(--font-kr);
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .hero h1 {
+      font-size: clamp(38px, 8vw, 76px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .hero-label {
+      font-size: 12px;
+      letter-spacing: 0.25em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .hero-description {
+      font-size: 15px;
+      color: #bbb;
+      max-width: 480px;
+      margin-bottom: 24px;
+    }
+    .button {
+      display: inline-block;
+      padding: 14px 32px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      border-radius: 0;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.25s ease;
+    }
+    .button--primary {
+      background: #fff;
+      color: #000;
+      border: 1px solid #fff;
+    }
+    .button--primary:hover {
+      background: #e0e0e0;
+    }
+    .button--outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.4);
+    }
+    .button--outline:hover {
+      border-color: #fff;
     }
 
-    /* CATEGORY CIRCLES (TEES / HOODS / SWEATS LOCKED IN 1 ROW) */
-    .category-section .category-row {
+    /* Common Section Headings */
+    .section-heading {
+      margin-bottom: 36px;
+      text-align: left;
+    }
+    .section-heading--center {
+      text-align: center;
+    }
+    .section-heading--split {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .section-heading h2 {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .section-status {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    /* Category Section (LOCKED IN 1 ROW ALWAYS) */
+    .category-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 20px;
+    }
+    .category-row {
       display: flex !important;
       flex-direction: row !important;
       flex-wrap: nowrap !important;
-      align-items: flex-start;
       justify-content: center;
-      gap: clamp(12px, 4vw, 42px);
+      align-items: flex-start;
+      gap: clamp(12px, 4vw, 48px);
       width: 100%;
     }
     .category-card {
@@ -71,112 +327,544 @@
     }
     .category-image {
       position: relative;
-      width: clamp(82px, 24vw, 150px);
+      width: clamp(86px, 24vw, 160px);
       aspect-ratio: 1 / 1;
-      overflow: hidden;
       border-radius: 50%;
-      flex: 0 0 auto;
+      overflow: hidden;
       background: #111;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid var(--border-color);
       margin-bottom: 12px;
+      flex: 0 0 auto;
     }
     .category-image img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 700ms cubic-bezier(.22, .61, .36, 1);
+      transition: transform 0.6s cubic-bezier(.25, 1, .5, 1);
     }
+    .crop-tees { object-position: center 15% !important; }
+    .crop-hoods { object-position: center 15% !important; }
+    .crop-sweats { object-position: center 18% !important; }
+    
     .category-card:hover .category-image img {
-      transform: scale(1.12);
+      transform: scale(1.1);
+    }
+    .category-name {
+      text-align: center;
+    }
+    .category-name strong {
+      display: block;
+      font-size: clamp(12px, 2vw, 15px);
+      font-weight: 800;
+      letter-spacing: 0.1em;
+    }
+    .category-name span {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-kr);
     }
 
-    /* SPECIFIC FOCAL CROP FOR LANDSCAPE PHOTOS */
-    .crop-tees {
-      object-position: center 15% !important;
-      transform: scale(1.05);
+    /* Editorial Lookbook Slider */
+    .editorial-section {
+      width: 100%;
+      margin: 80px 0;
+      background: #000;
     }
-    .crop-hoods {
-      object-position: center 15% !important;
-      transform: scale(1.05);
-    }
-    .crop-sweats {
-      object-position: center 18% !important;
-      transform: scale(1.05);
-    }
-
-    /* EDITORIAL SLIDER */
-    .editorial-carousel,
-    [data-carousel] {
+    .editorial-carousel {
       position: relative;
       width: 100%;
       overflow: hidden;
     }
-    [data-carousel-track] {
+    .editorial-track {
       display: flex;
       width: 100%;
-      will-change: transform;
-      touch-action: pan-y;
+      transition: transform 0.5s ease;
     }
-    [data-slide] {
+    .editorial-slide {
       position: relative;
       flex: 0 0 100%;
       width: 100%;
-      min-width: 100%;
       min-height: 480px;
       aspect-ratio: 16 / 9;
-      overflow: hidden;
       background: #000;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      padding: 40px 30px;
     }
-    [data-slide] img {
+    .editorial-slide img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 25% !important;
+      object-position: center 25%;
+    }
+    .editorial-slide__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+    }
+    .editorial-slide__content {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .editorial-slide__content p {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .editorial-slide__content h2 {
+      font-size: clamp(32px, 6vw, 60px);
+      font-weight: 900;
+      line-height: 1;
+    }
+    .editorial-slide__content span {
+      font-size: clamp(20px, 4vw, 36px);
+      font-weight: 300;
+      color: #ddd;
     }
 
-    /* PRODUCT GRID */
+    /* Drop 001 Banner */
+    .drop-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 60px 30px;
+      background: #0d0d0d;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+    .drop-content {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .drop-content h2 {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+    .drop-content p {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+
+    /* Product Grid (3:4 Ratio Fixed) */
+    .shop-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 20px;
+    }
     .product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 24px;
     }
     .product-card {
-      background: #0d0d0d;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      overflow: hidden;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
     .product-image {
       position: relative;
       width: 100%;
       aspect-ratio: 3 / 4;
-      overflow: hidden;
       background: #111;
+      overflow: hidden;
     }
     .product-image img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20% !important;
-      transition: transform 700ms cubic-bezier(.22, .61, .36, 1);
+      object-position: center 20%;
+      transition: transform 0.6s cubic-bezier(.25, 1, .5, 1);
     }
     .product-card:hover .product-image img {
-      transform: scale(1.04);
+      transform: scale(1.06);
+    }
+    .product-status {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 4px 8px;
+    }
+    .product-information {
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-top: 1px solid var(--border-color);
+    }
+    .product-information h3 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .product-information p {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-kr);
+    }
+    .product-information span {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--accent);
     }
 
-    /* MOBILE TUNING */
+    /* Why Bulkkot Grid */
+    .values-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 20px;
+    }
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .value-block {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 24px;
+    }
+    .value-block span {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .value-block h3 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+    .value-block p {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-kr);
+      margin-bottom: 10px;
+    }
+    .value-block small {
+      font-size: 13px;
+      color: #aaa;
+      line-height: 1.4;
+      display: block;
+    }
+
+    /* About Section */
+    .about-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 20px;
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 40px 30px;
+    }
+    @media (min-width: 768px) {
+      .about-grid { grid-template-columns: 1fr 2fr; }
+    }
+    .about-intro h2 {
+      font-size: 48px;
+      font-weight: 900;
+      font-family: var(--font-kr);
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .about-intro span {
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .about-copy p {
+      color: #bbb;
+      margin-bottom: 16px;
+      font-size: 15px;
+    }
+    .about-copy .about-lead {
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .about-signature {
+      font-style: italic;
+      color: #fff !important;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+
+    /* Philosophy Banner */
+    .philosophy-section {
+      background: #000;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      padding: 70px 20px;
+      text-align: center;
+    }
+    .philosophy-korean {
+      font-size: 13px;
+      color: var(--accent);
+      font-family: var(--font-kr);
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      margin-bottom: 8px;
+    }
+    .philosophy-section h2 {
+      font-size: clamp(32px, 7vw, 64px);
+      font-weight: 900;
+      line-height: 1;
+    }
+    .philosophy-section h3 {
+      font-size: clamp(26px, 5vw, 52px);
+      font-weight: 300;
+      color: #888;
+      margin-bottom: 12px;
+    }
+    .philosophy-section p {
+      color: var(--text-muted);
+      font-size: 14px;
+      letter-spacing: 0.1em;
+    }
+
+    /* Instagram Section */
+    .instagram-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .instagram-handle {
+      display: inline-block;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #fff;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 4px;
+      transition: opacity 0.2s;
+    }
+    .instagram-handle:hover {
+      opacity: 0.7;
+    }
+
+    /* Waitlist Section */
+    .waitlist-section {
+      max-width: 700px;
+      margin: 80px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .waitlist-copy h2 {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    .waitlist-copy span {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: var(--font-kr);
+      display: block;
+      margin-bottom: 12px;
+    }
+    .waitlist-copy p {
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .waitlist-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .waitlist-input-row input {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    .waitlist-input-row input:focus {
+      border-color: #fff;
+    }
+
+    /* Contact Section */
+    .contact-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 20px;
+    }
+    .contact-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .contact-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.2s;
+    }
+    .contact-item:hover {
+      border-color: rgba(255,255,255,0.3);
+    }
+    .contact-item span {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .contact-item strong {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Footer */
+    .site-footer {
+      background: #000;
+      border-top: 1px solid var(--border-color);
+      padding: 60px 20px 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 40px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+    @media (min-width: 768px) {
+      .footer-brand { grid-column: span 2; }
+    }
+    .footer-brand p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .footer-tagline {
+      color: #fff !important;
+      font-size: 12px !important;
+      font-style: italic;
+    }
+    .footer-column h3 {
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+    .footer-column a,
+    .footer-column button {
+      display: block;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      text-align: left;
+      padding: 0;
+      font-family: inherit;
+    }
+    .footer-column a:hover,
+    .footer-column button:hover {
+      color: #fff;
+    }
+    .footer-bottom {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--border-color);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* Mobile Drawer */
+    .mobile-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: #000;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(.25, 1, .5, 1);
+    }
+    .mobile-drawer.is-open {
+      transform: translateX(0);
+    }
+    .mobile-drawer__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 32px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .mobile-navigation {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin: 40px 0;
+    }
+    .mobile-navigation a {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .mobile-navigation a small {
+      font-size: 14px;
+      color: var(--accent);
+      font-family: var(--font-kr);
+    }
+    .mobile-drawer__footer {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
     @media (max-width: 767px) {
-      .category-image {
-        width: clamp(76px, 25vw, 110px);
-      }
-      .category-section .category-row {
-        gap: 10px;
-      }
-      [data-slide] {
-        min-height: 340px;
-        aspect-ratio: 4 / 5;
-      }
+      .hero { min-height: 75vh; }
+      .editorial-slide { min-height: 360px; aspect-ratio: 4 / 5; }
     }
   </style>
 </head>
@@ -198,7 +886,7 @@
   <!-- HEADER -->
   <header class="site-header">
     <div class="header-inner">
-      <button class="header-menu" type="button" aria-label="Open menu" aria-controls="mobile-drawer" data-open-drawer>
+      <button class="header-menu" type="button" aria-label="Open menu" data-open-drawer>
         <span></span>
         <span></span>
       </button>
@@ -220,18 +908,9 @@
       </nav>
 
       <div class="header-actions">
-        <button type="button" class="header-action" aria-label="Search" data-open-search>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
-        </button>
-
-        <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="header-action instagram-action" aria-label="BULKKOT Instagram">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>
+        <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="header-action" aria-label="BULKKOT Instagram">
+          <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>
         </a>
-
-        <button type="button" class="header-action cart-action" aria-label="Open cart" data-open-cart>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
-          <span class="cart-count" data-cart-count hidden>0</span>
-        </button>
       </div>
     </div>
   </header>
@@ -248,7 +927,7 @@
       <button type="button" class="drawer-close" aria-label="Close menu" data-close-drawer>×</button>
     </div>
 
-    <nav class="mobile-navigation" aria-label="Mobile navigation">
+    <nav class="mobile-navigation">
       <a href="#top" data-close-drawer><span>HOME</span><small>홈</small></a>
       <a href="#shop" data-close-drawer><span>SHOP</span><small>쇼핑</small></a>
       <a href="#drop-001" data-close-drawer><span>DROP 001</span><small>첫 번째 드롭</small></a>
@@ -280,11 +959,6 @@
         <p class="hero-description">Korean-inspired minimalist heavyweight essentials.</p>
         <a href="#drop-001" class="button button--primary">EXPLORE DROP 001</a>
       </div>
-
-      <div class="hero-scroll">
-        <span>SCROLL</span>
-        <i></i>
-      </div>
     </section>
 
     <!-- CATEGORY CIRCLES -->
@@ -296,9 +970,9 @@
 
       <div class="category-row">
         <!-- TEES -->
-        <a href="#shop" class="category-card" data-category="tees">
+        <a href="#shop" class="category-card">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" class="crop-tees" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Tees" class="crop-tees" loading="lazy">
           </div>
           <div class="category-name">
             <strong>TEES</strong>
@@ -307,9 +981,9 @@
         </a>
 
         <!-- HOODS -->
-        <a href="#shop" class="category-card" data-category="hoods">
+        <a href="#shop" class="category-card">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" class="crop-hoods" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Hoods" class="crop-hoods" loading="lazy">
           </div>
           <div class="category-name">
             <strong>HOODS</strong>
@@ -318,9 +992,9 @@
         </a>
 
         <!-- SWEATS -->
-        <a href="#shop" class="category-card" data-category="sweats">
+        <a href="#shop" class="category-card">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" class="crop-sweats" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Sweats" class="crop-sweats" loading="lazy">
           </div>
           <div class="category-name">
             <strong>SWEATS</strong>
@@ -332,11 +1006,10 @@
 
     <!-- EDITORIAL CAROUSEL -->
     <section class="editorial-section">
-      <div class="editorial-carousel" data-carousel>
-        <div class="editorial-track" data-carousel-track>
-
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Editorial 1" loading="lazy">
+      <div class="editorial-carousel">
+        <div class="editorial-track">
+          <article class="editorial-slide">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Editorial" loading="lazy">
             <div class="editorial-slide__overlay"></div>
             <div class="editorial-slide__content">
               <p>불꽃 · 001</p>
@@ -344,36 +1017,6 @@
               <span>MORE PRESENCE.</span>
             </div>
           </article>
-
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Editorial 2" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <p>서울에서 영감</p>
-              <h2>MADE FOR</h2>
-              <span>EVERYDAY.</span>
-            </div>
-          </article>
-
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Editorial 3" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <p>불꽃 · BULKKOT</p>
-              <h2>QUIETLY</h2>
-              <span>DISTINCT.</span>
-            </div>
-          </article>
-
-        </div>
-
-        <button type="button" class="carousel-control carousel-control--prev" aria-label="Previous slide" data-carousel-prev>←</button>
-        <button type="button" class="carousel-control carousel-control--next" aria-label="Next slide" data-carousel-next>→</button>
-
-        <div class="carousel-indicators">
-          <button type="button" data-slide-indicator aria-label="Go to slide 1"></button>
-          <button type="button" data-slide-indicator aria-label="Go to slide 2"></button>
-          <button type="button" data-slide-indicator aria-label="Go to slide 3"></button>
         </div>
       </div>
     </section>
@@ -399,11 +1042,10 @@
       </div>
 
       <div class="product-grid">
-
         <!-- Product 01 -->
-        <article class="product-card" data-product-card data-category="tees">
+        <article class="product-card">
           <div class="product-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Tee" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="OVERSIZED TEE 001" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -416,9 +1058,9 @@
         </article>
 
         <!-- Product 02 -->
-        <article class="product-card" data-product-card data-category="hoods">
+        <article class="product-card">
           <div class="product-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Heavyweight Hood" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="OVERSIZED HOOD 001" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -431,9 +1073,9 @@
         </article>
 
         <!-- Product 03 -->
-        <article class="product-card" data-product-card data-category="sweats">
+        <article class="product-card">
           <div class="product-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Minimalist Sweat" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="OVERSIZED SWEAT 001" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -446,9 +1088,9 @@
         </article>
 
         <!-- Product 04 -->
-        <article class="product-card" data-product-card data-category="tees">
+        <article class="product-card">
           <div class="product-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Signature Tee" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="SIGNATURE TEE 001" loading="lazy">
             <span class="product-status">COMING SOON</span>
           </div>
           <div class="product-information">
@@ -459,11 +1101,10 @@
             <span>DROP 001</span>
           </div>
         </article>
-
       </div>
     </section>
 
-    <!-- VALUES -->
+    <!-- WHY BULKKOT -->
     <section class="values-section">
       <div class="section-heading">
         <p class="eyebrow">WHY BULKKOT · 왜 불꽃인가</p>
@@ -515,7 +1156,6 @@
           <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
           <p>We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.</p>
           <p class="about-signature">Less noise. More presence.</p>
-          <button type="button" class="text-button" data-open-about>READ OUR STORY →</button>
         </div>
       </div>
     </section>
@@ -548,13 +1188,11 @@
           <p>Join the VIP waitlist to receive access before Drop 001 goes live.</p>
         </div>
 
-        <form class="waitlist-form" data-waitlist-form novalidate>
-          <label for="waitlist-email">EMAIL ADDRESS</label>
+        <form class="waitlist-form" onsubmit="event.preventDefault(); alert('Added to VIP Waitlist!');">
           <div class="waitlist-input-row">
-            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" required>
+            <input type="email" placeholder="your@email.com" required>
             <button type="submit" class="button button--primary">JOIN</button>
           </div>
-          <div class="waitlist-message" data-waitlist-message aria-live="polite"></div>
         </form>
       </div>
     </section>
@@ -604,21 +1242,6 @@
     <div class="footer-column">
       <h3>ABOUT</h3>
       <a href="#about">About BULKKOT</a>
-      <button type="button" data-open-about>Brand Story</button>
-    </div>
-
-    <div class="footer-column">
-      <h3>HELP</h3>
-      <button type="button" data-open-policy="faq">FAQ</button>
-      <button type="button" data-open-policy="size">Size Guide</button>
-      <button type="button" data-open-policy="shipping">Shipping Policy</button>
-      <button type="button" data-open-policy="returns">Returns & Exchange</button>
-    </div>
-
-    <div class="footer-column">
-      <h3>LEGAL</h3>
-      <button type="button" data-open-policy="privacy">Privacy Policy</button>
-      <button type="button" data-open-policy="terms">Terms & Conditions</button>
     </div>
 
     <div class="footer-column">
@@ -633,129 +1256,19 @@
     </div>
   </footer>
 
-  <!-- MODALS -->
-  <div class="drawer-overlay" data-cart-overlay></div>
-  <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
-    <div class="cart-drawer__header">
-      <div>
-        <p class="eyebrow">BULKKOT</p>
-        <h2>YOUR CART</h2>
-      </div>
-      <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
-    </div>
-    <div class="drawer__body" id="cart-content"></div>
-  </aside>
-
-  <div class="search-modal" data-search-modal aria-hidden="true">
-    <div class="search-modal__inner">
-      <button type="button" class="drawer-close" data-close-search aria-label="Close search">×</button>
-      <p class="eyebrow">BULKKOT SEARCH</p>
-      <h2>SEARCH</h2>
-      <form class="search-form">
-        <label for="site-search" class="sr-only">Search</label>
-        <input id="site-search" type="search" placeholder="Search products..." autocomplete="off">
-        <button type="submit" class="button button--primary">SEARCH</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="content-modal" data-about-modal aria-hidden="true">
-    <div class="content-modal__panel">
-      <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
-      <p class="eyebrow">BULKKOT · 불꽃</p>
-      <h2>OUR STORY</h2>
-      <div class="modal-copy">
-        <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
-        <p>We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
-        <p class="modal-signature">Less noise. More presence.</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="content-modal" data-policy-modal aria-hidden="true">
-    <div class="content-modal__panel content-modal__panel--large">
-      <button type="button" class="drawer-close" data-close-policy aria-label="Close information">×</button>
-      <p class="eyebrow" data-policy-eyebrow>BULKKOT</p>
-      <h2 data-policy-title>INFORMATION</h2>
-      <div class="modal-copy" data-policy-content></div>
-    </div>
-  </div>
-
-  <!-- Policy Templates -->
-  <template id="policy-faq">
-    <p><strong>When does Drop 001 launch?</strong></p>
-    <p>Drop 001 is coming soon. Join the VIP waitlist to receive access first.</p>
-    <p><strong>Where do you ship?</strong></p>
-    <p>We ship nationwide across India.</p>
-  </template>
-
-  <template id="policy-size">
-    <p>BULKKOT garments feature relaxed, boxy oversized silhouettes. A complete measurement chart will accompany each product upon launch.</p>
-  </template>
-
-  <template id="policy-shipping">
-    <p>All Drop 001 orders will be fulfilled using express courier partners with door-to-door tracking.</p>
-  </template>
-
-  <template id="policy-returns">
-    <p>We offer 7-day exchanges on unused garments in original packaging with tags intact.</p>
-  </template>
-
-  <template id="policy-privacy">
-    <p>BULKKOT respects your privacy. Email addresses collected for the VIP waitlist are only used for launch updates.</p>
-  </template>
-
-  <template id="policy-terms">
-    <p>By browsing BULKKOT, you agree to lawful use of our services and content.</p>
-  </template>
-
-  <!-- Scripts -->
-  <script src="/js/cart.js" defer></script>
-  <script src="/js/main.js" defer></script>
-
+  <!-- MOBILE MENU SCRIPT -->
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const modal = document.querySelector("[data-policy-modal]");
-      const title = document.querySelector("[data-policy-title]");
-      const content = document.querySelector("[data-policy-content]");
-      const closeBtn = document.querySelector("[data-close-policy]");
+    const drawer = document.getElementById('mobile-drawer');
+    const openBtn = document.querySelector('[data-open-drawer]');
+    const closeBtns = document.querySelectorAll('[data-close-drawer]');
 
-      const titles = {
-        faq: "FAQ",
-        size: "SIZE GUIDE",
-        shipping: "SHIPPING POLICY",
-        returns: "RETURNS & EXCHANGE",
-        privacy: "PRIVACY POLICY",
-        terms: "TERMS & CONDITIONS"
-      };
+    openBtn?.addEventListener('click', () => {
+      drawer.classList.add('is-open');
+    });
 
-      document.querySelectorAll("[data-open-policy]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const type = btn.getAttribute("data-open-policy");
-          const tpl = document.getElementById("policy-" + type);
-          if (tpl && modal && content) {
-            title.textContent = titles[type] || "INFORMATION";
-            content.innerHTML = "";
-            content.appendChild(tpl.content.cloneNode(true));
-            modal.classList.add("is-open");
-            modal.setAttribute("aria-hidden", "false");
-            document.body.classList.add("modal-open");
-          }
-        });
-      });
-
-      closeBtn?.addEventListener("click", () => {
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("modal-open");
-      });
-
-      modal?.addEventListener("click", (e) => {
-        if (e.target === modal) {
-          modal.classList.remove("is-open");
-          modal.setAttribute("aria-hidden", "true");
-          document.body.classList.remove("modal-open");
-        }
+    closeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        drawer.classList.remove('is-open');
       });
     });
   </script>
