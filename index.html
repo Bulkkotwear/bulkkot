@@ -19,31 +19,31 @@
   <link rel="stylesheet" href="/css/global.css">
   <link rel="stylesheet" href="/css/components.css">
 
-  <!-- AUTO-FIT IMAGE SYSTEM (Pixel-Perfect Alignment) -->
+  <!-- EXACT CUSTOM IMAGE FOCAL FIT -->
   <style>
-    /* Hero Image Auto-Fit */
+    /* Hero Image */
     .hero-media {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #0b0b0b;
+      background: #000;
     }
     .hero-media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
+      object-position: center 20% !important;
       display: block;
     }
 
-    /* Category Circles Auto-Fit (Exact 1:1 Circle Lock) */
+    /* Category Circles */
     .category-row {
       display: flex;
       justify-content: center;
       gap: 24px;
-      align-items: flex-start;
+      align-items: center;
     }
     .category-card {
       display: flex;
@@ -51,7 +51,7 @@
       align-items: center;
       text-decoration: none;
       flex: 1;
-      max-width: 280px;
+      max-width: 260px;
     }
     .category-image {
       width: 100%;
@@ -59,72 +59,79 @@
       aspect-ratio: 1 / 1;
       border-radius: 50%;
       overflow: hidden;
-      background-color: #151515;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #111;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      margin-bottom: 16px;
       position: relative;
-      margin: 0 auto 16px auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     .category-image img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
-      transition: transform 0.4s ease;
       display: block;
+      transition: transform 0.4s ease;
+    }
+    .img-fit-tees {
+      object-position: center 15% !important;
+      transform: scale(1.1);
+    }
+    .img-fit-hoods {
+      object-position: center 15% !important;
+      transform: scale(1.1);
+    }
+    .img-fit-sweats {
+      object-position: center 18% !important;
+      transform: scale(1.1);
     }
     .category-card:hover .category-image img {
-      transform: scale(1.06);
+      transform: scale(1.18);
     }
 
-    /* Product Grid Auto-Fit (Exact 3:4 Card Ratio Lock) */
+    /* Product Cards */
     .product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 24px;
-      align-items: stretch;
     }
     .product-card {
-      display: flex;
-      flex-direction: column;
-      background: #0d0d0d;
+      background: #0a0a0a;
       border: 1px solid rgba(255, 255, 255, 0.08);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     .product-image {
       width: 100%;
-      aspect-ratio: 3 / 4;
+      aspect-ratio: 4 / 5;
       overflow: hidden;
-      background-color: #141414;
+      background: #111;
       position: relative;
     }
     .product-image img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
-      transition: transform 0.4s ease;
+      object-position: center 20% !important;
       display: block;
+      transition: transform 0.4s ease;
     }
     .product-card:hover .product-image img {
-      transform: scale(1.04);
+      transform: scale(1.05);
     }
 
-    /* Editorial Carousel Auto-Fit */
+    /* Lookbook Carousel */
     .editorial-slide {
-      position: relative;
-      aspect-ratio: 16 / 9;
       min-height: 480px;
+      aspect-ratio: 16 / 9;
+      position: relative;
       overflow: hidden;
-      background-color: #111;
+      background: #000;
     }
     .editorial-slide img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center center;
+      object-position: center 25% !important;
       display: block;
     }
 
@@ -136,7 +143,7 @@
         max-width: 110px;
       }
       .editorial-slide {
-        min-height: 360px;
+        min-height: 340px;
         aspect-ratio: 4 / 5;
       }
     }
@@ -260,7 +267,7 @@
         <!-- TEES -->
         <a href="#shop" class="category-card" data-category="tees">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" class="img-fit-tees" loading="lazy">
           </div>
           <div class="category-name">
             <strong>TEES</strong>
@@ -271,7 +278,7 @@
         <!-- HOODS -->
         <a href="#shop" class="category-card" data-category="hoods">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" class="img-fit-hoods" loading="lazy">
           </div>
           <div class="category-name">
             <strong>HOODS</strong>
@@ -282,7 +289,7 @@
         <!-- SWEATS -->
         <a href="#shop" class="category-card" data-category="sweats">
           <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" class="img-fit-sweats" loading="lazy">
           </div>
           <div class="category-name">
             <strong>SWEATS</strong>
@@ -350,7 +357,7 @@
       </div>
     </section>
 
-    <!-- LATEST PRODUCTS GRID -->
+    <!-- PRODUCTS GRID -->
     <section class="shop-section" id="shop">
       <div class="section-heading section-heading--split">
         <div>
@@ -595,7 +602,7 @@
     </div>
   </footer>
 
-  <!-- MODALS & DRAWERS -->
+  <!-- MODALS -->
   <div class="drawer-overlay" data-cart-overlay></div>
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
     <div class="cart-drawer__header">
