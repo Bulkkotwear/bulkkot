@@ -8,9 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 :root{
   --bg:#050505; --surface:#0E0E0E; --surface-2:#161616; --border:rgba(255,255,255,.1);
@@ -65,7 +63,8 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase;}
   <div class="login-box">
     <span class="login-brand">불꽃 BULKKOT</span>
     <h1>Admin Sign In</h1>
-    <form id="login-form">
+    <!-- action="javascript:void(0) lagaya hai taaki form reload na ho -->
+    <form id="login-form" action="javascript:void(0);">
       <div class="field"><label>Email</label><input type="email" id="login-email" required autocomplete="username"></div>
       <div class="field"><label>Password</label><input type="password" id="login-password" required autocomplete="current-password"></div>
       <button type="submit" class="btn btn-primary" id="login-btn">Sign In</button>
@@ -94,63 +93,85 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase;}
   </main>
 </div>
 
+<!-- Script ko body ke end me rakha hai, DOMContentLoaded ke andar -->
 <script>
-const SUPABASE_URL = 'https://pgubjluqgqvrybvehzeh.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NTQ1MTAsImV4cCI6MjA1NDQzMDUxMH0.F_r3N9p_yG8fK2kS9r_mN2i-5uB-0aK8rX8d4L2wV4';
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("DOM fully loaded. Wiring login form...");
 
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  const SUPABASE_URL = 'https://pgubjluqgqvrybvehzeh.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NTQ1MTAsImV4cCI6MjA1NDQzMDUxMH0.F_r3N9p_yG8fK2kS9r_mN2i-5uB-0aK8rX8d4L2wV4';
 
-const loginScreen = document.getElementById('login-screen');
-const appShell = document.getElementById('app');
+  const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-async function checkSession() {
-  if (!supabase) return;
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) { showApp(session); } 
-  else { loginScreen.style.display = 'flex'; appShell.style.display = 'none'; }
-}
+  const loginScreen = document.getElementById('login-screen');
+  const appShell = document.getElementById('app');
+  const loginForm = document.getElementById('login-form');
 
-function showApp(session) {
-  loginScreen.style.display = 'none';
-  appShell.style.display = 'block';
-  document.getElementById('who-am-i').textContent = session.user.email;
-}
-
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('login-btn');
-  const errorBox = document.getElementById('login-error');
-
-  btn.disabled = true;
-  btn.textContent = 'Signing in...';
-  errorBox.textContent = '';
-
-  try {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      errorBox.textContent = 'Error: ' + error.message;
-      return;
-    }
-
-    showApp(data.session);
-  } catch (err) {
-    errorBox.textContent = 'Unexpected error: ' + err.message;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
+  if (!loginForm) {
+    console.error("CRITICAL: login-form element not found in DOM!");
+    return;
   }
-});
 
-document.getElementById('logout-btn').addEventListener('click', async () => {
-  await supabase.auth.signOut();
-  window.location.reload();
-});
+  console.log("Login form wired successfully — waiting for submit.");
 
-checkSession();
+  async function checkSession() {
+    if (!supabase) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) { showApp(session); } 
+    else { loginScreen.style.display = 'flex'; appShell.style.display = 'none'; }
+  }
+
+  function showApp(session) {
+    loginScreen.style.display = 'none';
+    appShell.style.display = 'block';
+    document.getElementById('who-am-i').textContent = session.user.email;
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    console.log("Login form submitted!");
+    
+    const btn = document.getElementById('login-btn');
+    const errorBox = document.getElementById('login-error');
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+    errorBox.textContent = '';
+
+    try {
+      if (!supabase) {
+        throw new Error("Supabase client is not initialized.");
+      }
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        errorBox.textContent = 'Error: ' + error.message;
+        return;
+      }
+
+      showApp(data.session);
+    } catch (err) {
+      errorBox.textContent = 'Unexpected error: ' + err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  });
+
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.reload();
+    });
+  }
+
+  checkSession();
+});
 </script>
 </body>
 </html>
