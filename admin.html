@@ -8,7 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+
+<!-- ⚠️ SUPABASE SCRIPT BAAKI CODE SE PEHLE HONA CHAHIYE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root{
   --bg:#050505; --surface:#0E0E0E; --surface-2:#161616; --border:rgba(255,255,255,.1);
@@ -342,23 +345,44 @@ function showApp(session) {
   loadDashboard();
 }
 
+// ⚠️ NEW DEBUG-FRIENDLY LOGIN HANDLER
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('login-btn');
-  btn.disabled = true; btn.textContent = 'Verifying Credentials...';
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
+  const errorBox = document.getElementById('login-error');
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  errorBox.textContent = '';
+  errorBox.style.color = '#E50914';
+
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { 
-      document.getElementById('login-error').textContent = error.message; 
-      btn.disabled = false; btn.textContent = 'Sign In';
-      return; 
+    if (typeof supabase === 'undefined' || supabase === null) {
+      throw new Error('Supabase client load nahi hua. Script error.');
     }
+
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      console.error('Supabase login error:', error);
+      errorBox.textContent = 'Login failed: ' + error.message;
+      return;
+    }
+
+    console.log('Logged in:', data.session.user.email);
+    errorBox.style.color = '#2ECC71';
+    errorBox.textContent = 'Success! Loading dashboard...';
     showApp(data.session);
-  } catch(err) {
-    document.getElementById('login-error').textContent = "Connection Error. Try again.";
-    btn.disabled = false; btn.textContent = 'Sign In';
+
+  } catch (err) {
+    console.error('Unexpected login error:', err);
+    errorBox.textContent = 'Unexpected error: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
   }
 });
 
