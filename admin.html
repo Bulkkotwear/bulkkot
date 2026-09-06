@@ -22,90 +22,93 @@ input,textarea,select{font-family:inherit;}
 
 /* ---- LOGIN ---- */
 #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-.login-box{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:32px 24px;}
-.login-brand{font-size:11px;letter-spacing:.15em;color:var(--flame);font-weight:800;margin-bottom:6px;}
-.login-box h1{font-size:20px;margin-bottom:20px;}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
-.field label{font-size:11px;color:var(--muted);font-weight:600;}
-.field input,.field textarea{background:var(--surface-2);border:1px solid var(--border);color:#FFF;padding:12px;font-size:13px;border-radius:5px;outline:none;width:100%;}
+.login-box{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:32px 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+.login-brand{font-size:12px;letter-spacing:.15em;color:var(--flame);font-weight:800;margin-bottom:8px; display:block;}
+.login-box h1{font-size:22px;margin-bottom:24px;}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.field label{font-size:12px;color:var(--muted);font-weight:600;}
+.field input,.field textarea{background:var(--surface-2);border:1px solid var(--border);color:#FFF;padding:12px;font-size:13px;border-radius:5px;outline:none;width:100%; transition: border-color 0.2s;}
+.field input:focus, .field textarea:focus { border-color: var(--flame); }
 .field textarea{resize:vertical;min-height:70px;}
-.btn{border-radius:5px;font-weight:700;font-size:12px;letter-spacing:.03em;padding:12px 18px;transition:opacity .15s;}
+.btn{border-radius:5px;font-weight:700;font-size:13px;letter-spacing:.03em;padding:12px 18px; transition:all .2s; cursor:pointer;}
 .btn:hover{opacity:.85;}
-.btn-primary{background:#FFF;color:#000;width:100%;}
+.btn-primary{background:#FFF;color:#000;width:100%; border:none;}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-#login-error{color:var(--flame);font-size:12px;margin-top:12px;min-height:16px;}
+#login-error{color:var(--flame);font-size:13px;margin-top:12px;min-height:16px; font-weight: 500;}
 
 /* ---- APP SHELL ---- */
 #app{display:none;min-height:100vh;}
 .sidebar{
-  position:fixed;top:0;left:0;bottom:0;width:220px;background:var(--surface);
-  border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--surface);
+  border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;
   z-index:50; transition:transform .3s;
 }
-.sidebar-brand{font-size:11px;letter-spacing:.15em;color:var(--flame);font-weight:800;padding:0 8px 20px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.sidebar-brand{font-size:12px;letter-spacing:.15em;color:var(--flame);font-weight:800;padding:0 8px 24px;border-bottom:1px solid var(--border);margin-bottom:20px;}
 .nav-item{
-  display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:6px;color:var(--muted);
-  font-size:13px;font-weight:600;background:transparent;width:100%;text-align:left;margin-bottom:4px;
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:6px;color:var(--muted);
+  font-size:14px;font-weight:600;background:transparent;width:100%;text-align:left;margin-bottom:6px;
 }
 .nav-item:hover{color:var(--ink);background:var(--surface-2);}
-.nav-item.active{color:var(--ink);background:rgba(229,9,20,.12);border-left:2px solid var(--flame);}
-.sidebar-footer{margin-top:auto;padding-top:14px;border-top:1px solid var(--border);}
-.btn-logout{background:transparent;border:1px solid var(--border) !important;color:var(--muted);font-size:11px;padding:9px 12px;width:100%;border-radius:5px;}
+.nav-item.active{color:var(--ink);background:rgba(229,9,20,.12);border-left:3px solid var(--flame);}
+.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--border);}
+.btn-logout{background:transparent;border:1px solid var(--border) !important;color:var(--muted);font-size:12px;padding:10px 12px;width:100%;border-radius:5px;}
 .btn-logout:hover{color:var(--ink);border-color:var(--muted) !important;}
 
-.main{margin-left:220px;padding:28px 32px;max-width:1100px;}
+.main{margin-left:240px;padding:32px 40px;max-width:1200px;}
 .page{display:none;}
 .page.active{display:block;}
-.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:10px;}
-.page-header h1{font-size:22px;}
-.page-header p{font-size:12px;color:var(--muted);margin-top:2px;}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;flex-wrap:wrap;gap:12px;}
+.page-header h1{font-size:26px;}
+.page-header p{font-size:13px;color:var(--muted);margin-top:4px;}
 
 .mobile-toggle{display:none;position:fixed;top:14px;left:14px;z-index:60;background:var(--surface);border:1px solid var(--border);border-radius:6px;width:38px;height:38px;color:var(--ink);font-size:18px;}
 
 /* ---- Cards / Stats ---- */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;}
-.stat-card .label{font-size:11px;color:var(--muted);letter-spacing:.05em;margin-bottom:6px;}
-.stat-card .value{font-size:26px;font-weight:800;font-family:'Montserrat',sans-serif;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;}
+.stat-card .label{font-size:12px;color:var(--muted);letter-spacing:.05em;margin-bottom:8px; font-weight: 600;}
+.stat-card .value{font-size:32px;font-weight:800;font-family:'Montserrat',sans-serif;}
 
-.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:22px;}
-.card h3{font-size:15px;margin-bottom:16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:26px;margin-bottom:26px;}
+.card h3{font-size:18px;margin-bottom:20px;}
 
 /* ---- Forms ---- */
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .field input,.field select,.field textarea{background:var(--surface-2);}
-.btn-submit{background:#FFF;color:#000;padding:12px;width:100%;border-radius:5px;font-weight:700;font-size:12px;}
-.btn-sm{padding:7px 12px;font-size:11px;background:transparent;border:1px solid var(--border) !important;color:var(--muted);border-radius:5px;}
+.field select { color: white; padding: 12px; border: 1px solid var(--border); border-radius: 5px; outline: none;}
+.btn-submit{background:var(--flame);color:#FFF;padding:14px;width:100%;border-radius:5px;font-weight:700;font-size:13px; border:none;}
+.btn-submit:hover{background:#b80710;}
+.btn-sm{padding:8px 14px;font-size:12px;background:transparent;border:1px solid var(--border) !important;color:var(--muted);border-radius:5px;}
 .btn-sm:hover{color:var(--ink);border-color:var(--ink) !important;}
 .btn-danger:hover{color:var(--flame);border-color:var(--flame) !important;}
 
-.size-stock-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.size-stock-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 .size-stock-row .field label{text-align:center;}
 .size-stock-row .field input{text-align:center;}
 
 .image-upload-box{
-  border:1px dashed var(--border);border-radius:6px;padding:16px;text-align:center;cursor:pointer;
-  background:var(--surface-2);
+  border:2px dashed var(--border);border-radius:6px;padding:24px;text-align:center;cursor:pointer;
+  background:var(--surface-2); transition: border-color 0.2s;
 }
 .image-upload-box:hover{border-color:var(--muted);}
-.image-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-.image-preview img{width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--border);}
+.image-preview{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.image-preview img{width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--border);}
 
 /* ---- Tables ---- */
 .table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
-th,td{padding:12px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
-th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
-.status-pill{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:700;text-transform:uppercase;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th,td{padding:16px 12px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;}
+.status-pill{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:700;text-transform:uppercase;}
 .status-active,.status-paid,.status-delivered{background:rgba(46,204,113,.15);color:#2ECC71;}
 .status-hidden,.status-pending,.status-processing{background:rgba(255,255,255,.08);color:var(--muted);}
 .status-shipped{background:rgba(52,152,219,.15);color:#3498DB;}
 .status-failed,.status-cancelled{background:rgba(229,9,20,.15);color:var(--flame);}
-.row-actions{display:flex;gap:6px;}
+.row-actions{display:flex;gap:8px;}
 
 /* ---- Content editor ---- */
-.content-section-group{margin-bottom:26px;}
-.content-section-group h4{font-size:12px;letter-spacing:.1em;color:var(--flame);text-transform:uppercase;margin-bottom:12px;}
+.content-section-group{margin-bottom:30px;}
+.content-section-group h4{font-size:13px;letter-spacing:.1em;color:var(--flame);text-transform:uppercase;margin-bottom:14px;}
 
 @media(max-width:860px){
   .sidebar{transform:translateX(-100%);}
@@ -122,12 +125,12 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05
 <!-- ============ LOGIN ============ -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-brand">불꽃 BULKKOT</div>
+    <span class="login-brand">불꽃 BULKKOT</span>
     <h1>Admin Sign In</h1>
     <form id="login-form">
       <div class="field"><label>Email</label><input type="email" id="login-email" required autocomplete="username"></div>
       <div class="field"><label>Password</label><input type="password" id="login-password" required autocomplete="current-password"></div>
-      <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
+      <button type="submit" class="btn btn-primary" id="login-btn">Sign In</button>
     </form>
     <div id="login-error"></div>
   </div>
@@ -145,13 +148,12 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05
     <button class="nav-item" data-page="orders">📦 Orders</button>
     <button class="nav-item" data-page="waitlist">📧 Waitlist</button>
     <div class="sidebar-footer">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;" id="who-am-i"></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="who-am-i"></div>
       <button class="btn btn-logout" id="logout-btn">Sign Out</button>
     </div>
   </aside>
 
   <div class="main">
-
     <!-- DASHBOARD -->
     <section class="page active" id="page-dashboard">
       <div class="page-header"><div><h1>Dashboard</h1><p>Store overview at a glance</p></div></div>
@@ -170,7 +172,6 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05
     <!-- PRODUCTS -->
     <section class="page" id="page-products">
       <div class="page-header"><div><h1>Products</h1><p>Add, edit, and manage inventory</p></div></div>
-
       <div class="card">
         <h3 id="product-form-heading">Add New Product</h3>
         <form id="product-form">
@@ -204,7 +205,7 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05
             <input type="hidden" id="p-image-url">
           </div>
 
-          <div class="form-row" style="margin-top:14px;">
+          <div class="form-row" style="margin-top:20px;">
             <button type="submit" class="btn-submit" id="product-submit-btn">Publish Product</button>
             <button type="button" class="btn-sm" id="cancel-product-edit" style="display:none;">Cancel Edit</button>
           </div>
@@ -222,8 +223,8 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05
       <div class="page-header"><div><h1>Site Content</h1><p>Edit any text or image on your website — changes go live instantly</p></div></div>
       <div class="card">
         <div id="content-editor-container"><p style="color:#666;">Loading...</p></div>
-        <button type="button" class="btn-submit" id="save-content-btn" style="margin-top:10px;">Save All Changes</button>
-        <div id="content-save-status" style="font-size:12px;margin-top:8px;min-height:16px;"></div>
+        <button type="button" class="btn-submit" id="save-content-btn" style="margin-top:16px;">Save All Changes</button>
+        <div id="content-save-status" style="font-size:13px;margin-top:12px;min-height:16px;"></div>
       </div>
     </section>
 
@@ -249,16 +250,86 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05
         <div class="table-wrap"><table><thead><tr><th>Email</th><th>Date Joined</th></tr></thead><tbody id="waitlist-rows"><tr><td colspan="2" style="color:#666;text-align:center;">Loading...</td></tr></tbody></table></div>
       </div>
     </section>
-
   </div>
 </div>
 
-<script src="/js/supabase-client.js"></script>
 <script>
+// ==========================================
+// 1. BACKEND: SUPABASE LOGIC (MERGED)
+// ==========================================
+const SUPABASE_URL = 'https://pgubjluqgqvrybvehzeh.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NTQ1MTAsImV4cCI6MjA1NDQzMDUxMH0.F_r3N9p_yG8fK2kS9r_mN2i-5uB-0aK8rX8d4L2wV4';
+
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+async function getAllProducts() {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+  if (error) { console.error('getAllProducts:', error); return []; }
+  return data || [];
+}
+async function saveProduct(payload, id = null) {
+  if (!supabase) return { success: false, error: 'No client' };
+  let error;
+  if (id) { ({ error } = await supabase.from('products').update(payload).eq('id', id)); } 
+  else { ({ error } = await supabase.from('products').insert([payload])); }
+  return { success: !error, error: error?.message };
+}
+async function deleteProduct(id) {
+  if (!supabase) return { success: false };
+  const { error } = await supabase.from('products').delete().eq('id', id);
+  return { success: !error, error: error?.message };
+}
+async function getWaitlist() {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('waitlist').select('*').order('created_at', { ascending: false });
+  if (error) { console.error('getWaitlist:', error); return []; }
+  return data || [];
+}
+async function getAllOrders() {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+  if (error) { console.error('getAllOrders:', error); return []; }
+  return data || [];
+}
+async function getOrderItems(orderId) {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('order_items').select('*').eq('order_id', orderId);
+  if (error) { console.error('getOrderItems:', error); return []; }
+  return data || [];
+}
+async function updateOrderStatus(orderId, fulfillmentStatus) {
+  if (!supabase) return { success: false };
+  const { error } = await supabase.from('orders').update({ fulfillment_status: fulfillmentStatus }).eq('id', orderId);
+  return { success: !error, error: error?.message };
+}
+async function getSiteContent() {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('site_content').select('*').order('section');
+  if (error) { console.error('getSiteContent:', error); return []; }
+  return data || [];
+}
+async function updateSiteContentValue(key, value) {
+  if (!supabase) return { success: false };
+  const { error } = await supabase.from('site_content').update({ value, updated_at: new Date().toISOString() }).eq('key', key);
+  return { success: !error, error: error?.message };
+}
+async function uploadImage(file, bucket = 'product-images') {
+  if (!supabase) return { success: false, error: 'No client' };
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, { cacheControl: '3600', upsert: false });
+  if (error) return { success: false, error: error.message };
+  const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+  return { success: true, url: publicUrlData.publicUrl };
+}
+
+// ==========================================
+// 2. FRONTEND: UI LOGIC (MERGED)
+// ==========================================
 const loginScreen = document.getElementById('login-screen');
 const appShell = document.getElementById('app');
 
-// ---- AUTH ----
 async function checkSession() {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) { showApp(session); } else { loginScreen.style.display = 'flex'; appShell.style.display = 'none'; }
@@ -274,13 +345,21 @@ function showApp(session) {
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('login-btn');
-  btn.disabled = true; btn.textContent = 'Signing in...';
+  btn.disabled = true; btn.textContent = 'Verifying Credentials...';
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  btn.disabled = false; btn.textContent = 'Sign In';
-  if (error) { document.getElementById('login-error').textContent = 'Invalid email or password.'; return; }
-  showApp(data.session);
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { 
+      document.getElementById('login-error').textContent = error.message; 
+      btn.disabled = false; btn.textContent = 'Sign In';
+      return; 
+    }
+    showApp(data.session);
+  } catch(err) {
+    document.getElementById('login-error').textContent = "Connection Error. Try again.";
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
@@ -288,7 +367,6 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   window.location.reload();
 });
 
-// ---- NAVIGATION ----
 document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -306,13 +384,10 @@ document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
   });
 });
 
-document.getElementById('mobile-toggle').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('open');
-});
+document.getElementById('mobile-toggle').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open') );
 
 function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str ?? ''; return d.innerHTML; }
 
-// ---- DASHBOARD ----
 async function loadDashboard() {
   const [orders, waitlist, products] = await Promise.all([getAllOrders(), getWaitlist(), getAllProducts()]);
   document.getElementById('stat-orders').textContent = orders.length;
@@ -332,7 +407,6 @@ async function loadDashboard() {
     </tr>`).join('') : '<tr><td colspan="5" style="color:#666;text-align:center;">No orders yet.</td></tr>';
 }
 
-// ---- PRODUCTS ----
 let editingProductId = null;
 
 document.getElementById('image-upload-box').addEventListener('click', () => document.getElementById('p-image-file').click());
@@ -431,22 +505,13 @@ window.editProduct = function(p) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-window.toggleProductActive = async function(id, newState) {
-  await saveProduct({ is_active: newState }, id);
-  loadProducts();
-};
+window.toggleProductActive = async function(id, newState) { await saveProduct({ is_active: newState }, id); loadProducts(); };
+window.removeProduct = async function(id) { if (!confirm('Delete this product permanently?')) return; await deleteProduct(id); loadProducts(); };
 
-window.removeProduct = async function(id) {
-  if (!confirm('Delete this product permanently?')) return;
-  await deleteProduct(id);
-  loadProducts();
-};
-
-// ---- SITE CONTENT ----
 async function loadContentEditor() {
   const rows = await getSiteContent();
   const container = document.getElementById('content-editor-container');
-  if (!rows.length) { container.innerHTML = '<p style="color:#666;">No content fields found. Did you run 03_site_content_cms.sql?</p>'; return; }
+  if (!rows.length) { container.innerHTML = '<p style="color:#666;">No content fields found.</p>'; return; }
 
   const sections = {};
   rows.forEach(r => { (sections[r.section] = sections[r.section] || []).push(r); });
@@ -483,7 +548,6 @@ document.getElementById('save-content-btn').addEventListener('click', async () =
   statusEl.style.color = hadError ? 'var(--flame)' : '#2ECC71';
 });
 
-// ---- ORDERS ----
 async function loadOrders() {
   const orders = await getAllOrders();
   const tbody = document.getElementById('orders-rows');
@@ -494,7 +558,7 @@ async function loadOrders() {
       <td>₹${o.total}</td>
       <td><span class="status-pill status-${o.payment_status}">${o.payment_status}</span></td>
       <td>
-        <select onchange="changeOrderStatus('${o.id}', this.value)" style="background:var(--surface-2);border:1px solid var(--border);color:#FFF;padding:5px 8px;border-radius:4px;font-size:11px;">
+        <select onchange="changeOrderStatus('${o.id}', this.value)" style="background:var(--surface-2);border:1px solid var(--border);color:#FFF;padding:6px 10px;border-radius:4px;font-size:12px;">
           ${['processing','shipped','delivered','cancelled'].map(s => `<option value="${s}" ${o.fulfillment_status === s ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
       </td>
@@ -503,9 +567,7 @@ async function loadOrders() {
     </tr>`).join('') : '<tr><td colspan="7" style="color:#666;text-align:center;">No orders yet.</td></tr>';
 }
 
-window.changeOrderStatus = async function(id, status) {
-  await updateOrderStatus(id, status);
-};
+window.changeOrderStatus = async function(id, status) { await updateOrderStatus(id, status); };
 
 window.viewOrderDetail = async function(orderId) {
   const orders = await getAllOrders();
@@ -515,19 +577,18 @@ window.viewOrderDetail = async function(orderId) {
   const content = document.getElementById('order-detail-content');
 
   content.innerHTML = `
-    <p style="font-size:13px;margin-bottom:4px;"><strong>${escapeHtml(order.order_number)}</strong></p>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">${escapeHtml(order.customer_name)} · ${escapeHtml(order.customer_email)} · ${escapeHtml(order.customer_phone)}</p>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">${escapeHtml(order.shipping_address)}, ${escapeHtml(order.shipping_city)}, ${escapeHtml(order.shipping_state)} - ${escapeHtml(order.shipping_pincode)}</p>
+    <p style="font-size:14px;margin-bottom:6px;"><strong>${escapeHtml(order.order_number)}</strong></p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">${escapeHtml(order.customer_name)} · ${escapeHtml(order.customer_email)} · ${escapeHtml(order.customer_phone)}</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">${escapeHtml(order.shipping_address)}, ${escapeHtml(order.shipping_city)}, ${escapeHtml(order.shipping_state)} - ${escapeHtml(order.shipping_pincode)}</p>
     <div class="table-wrap"><table><thead><tr><th>Product</th><th>Size</th><th>Qty</th><th>Price</th></tr></thead><tbody>
       ${items.map(i => `<tr><td>${escapeHtml(i.product_name)}</td><td>${escapeHtml(i.size)}</td><td>${i.quantity}</td><td>₹${i.unit_price}</td></tr>`).join('')}
     </tbody></table></div>
-    <p style="margin-top:12px;font-size:14px;font-weight:700;">Total: ₹${order.total}</p>
+    <p style="margin-top:16px;font-size:16px;font-weight:700;">Total: ₹${order.total}</p>
   `;
   card.style.display = 'block';
   card.scrollIntoView({ behavior: 'smooth' });
 };
 
-// ---- WAITLIST ----
 async function loadWaitlistTable() {
   const rows = await getWaitlist();
   const tbody = document.getElementById('waitlist-rows');
@@ -546,6 +607,7 @@ document.getElementById('export-waitlist-btn').addEventListener('click', async (
   URL.revokeObjectURL(url);
 });
 
+// INITIALIZE APP
 checkSession();
 </script>
 </body>
