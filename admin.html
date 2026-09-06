@@ -88,7 +88,6 @@ input,textarea,select{font-family:inherit;}
   </main>
 </div>
 
-<!-- DIRECT SCRIPT AT THE VERY END (NO DOMCONTENTLOADED HASSLE) -->
 <script>
 const SUPABASE_URL = 'https://pgubjluqgqvrybvehzeh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NTQ1MTAsImV4cCI6MjA1NDQzMDUxMH0.F_r3N9p_yG8fK2kS9r_mN2i-5uB-0aK8rX8d4L2wV4';
@@ -99,7 +98,6 @@ const loginScreen = document.getElementById('login-screen');
 const appShell = document.getElementById('app');
 const loginForm = document.getElementById('login-form');
 
-// Check active session immediately
 supabase.auth.getSession().then(({ data: { session } }) => {
   if (session) {
     loginScreen.style.display = 'none';
@@ -108,7 +106,6 @@ supabase.auth.getSession().then(({ data: { session } }) => {
   }
 });
 
-// Handle Login Form Submit directly
 loginForm.onsubmit = async (e) => {
   e.preventDefault();
   const btn = document.getElementById('login-btn');
