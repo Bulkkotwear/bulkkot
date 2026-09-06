@@ -1,141 +1,827 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>BULKKOT Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-:root{
-  --bg:#050505; --surface:#0E0E0E; --surface-2:#161616; --border:rgba(255,255,255,.1);
-  --muted:#8E8B87; --ink:#F5F3EF; --flame:#E50914;
-}
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
-body{background:var(--bg);color:var(--ink);}
-h1,h2,h3{font-family:'Montserrat',sans-serif;}
-button{cursor:pointer;border:none;font-family:inherit;}
-input,textarea,select{font-family:inherit;}
-
-#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-.login-box{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:32px 24px;}
-.login-brand{font-size:12px;letter-spacing:.15em;color:var(--flame);font-weight:800;margin-bottom:8px; display:block;}
-.login-box h1{font-size:22px;margin-bottom:24px;}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
-.field label{font-size:12px;color:var(--muted);font-weight:600;}
-.field input{background:var(--surface-2);border:1px solid var(--border);color:#FFF;padding:12px;font-size:13px;border-radius:5px;outline:none;width:100%;}
-.btn{border-radius:5px;font-weight:700;font-size:13px;padding:12px 18px;cursor:pointer;}
-.btn-primary{background:#FFF;color:#000;width:100%;border:none;}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-#login-error{color:var(--flame);font-size:13px;margin-top:12px;font-weight:500;}
-
-#app{display:none;min-height:100vh;}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--surface);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;z-index:50;}
-.sidebar-brand{font-size:12px;letter-spacing:.15em;color:var(--flame);font-weight:800;padding-bottom:24px;border-bottom:1px solid var(--border);margin-bottom:20px;}
-.nav-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:6px;color:var(--muted);font-size:14px;font-weight:600;background:transparent;width:100%;text-align:left;margin-bottom:6px;}
-.nav-item.active{color:var(--ink);background:rgba(229,9,20,.12);border-left:3px solid var(--flame);}
-.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--border);}
-.btn-logout{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:10px 12px;width:100%;border-radius:5px;}
-
-.main{margin-left:240px;padding:32px 40px;max-width:1200px;}
-.page{display:none;}
-.page.active{display:block;}
-.page-header{margin-bottom:32px;}
-.page-header h1{font-size:26px;}
-
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;}
-.stat-card .label{font-size:12px;color:var(--muted);margin-bottom:8px;}
-.stat-card .value{font-size:32px;font-weight:800;font-family:'Montserrat',sans-serif;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:26px;margin-bottom:26px;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BULKKOT — Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #080808; --panel: #101010; --border: #242424; --text: #f5f5f5;
+      --muted: #8d8d8d; --red: #e31b23; --green: #31c48d; --yellow: #f5c542; --danger: #ef4444; --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
+    button, input, textarea, select { font: inherit; cursor: pointer; }
+    .hidden { display: none !important; }
+    #loginScreen { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 50% 0%, rgba(227, 27, 35, .10), transparent 40%), var(--bg); }
+    .login-card { width: min(430px, 100%); background: rgba(16, 16, 16, .96); border: 1px solid var(--border); border-radius: 20px; padding: 34px; box-shadow: 0 30px 80px rgba(0, 0, 0, .45); }
+    .brand { font-size: 30px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 5px; }
+    .brand span { color: var(--red); }
+    .login-subtitle { color: var(--muted); margin: 0 0 28px; font-size: 14px; }
+    .field { margin-bottom: 17px; }
+    .field label { display: block; margin-bottom: 7px; color: #cfcfcf; font-size: 13px; font-weight: 600; }
+    input, textarea, select { width: 100%; color: var(--text); background: #0b0b0b; border: 1px solid var(--border); border-radius: 10px; outline: none; padding: 12px 13px; }
+    input:focus, textarea:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(227, 27, 35, .10); }
+    textarea { min-height: 110px; resize: vertical; }
+    select option { background: #111; }
+    .btn { border: 0; border-radius: 10px; padding: 11px 15px; color: var(--text); background: #202020; font-weight: 700; transition: .15s; }
+    .btn:hover { background: #2a2a2a; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: var(--red); }
+    .btn-primary:hover { background: #c9141b; }
+    .btn-danger { background: rgba(239, 68, 68, .12); color: #ff7777; border: 1px solid rgba(239, 68, 68, .25); }
+    .btn-success { background: rgba(49, 196, 141, .12); color: var(--green); border: 1px solid rgba(49, 196, 141, .25); }
+    .btn-full { width: 100%; }
+    #app { min-height: 100vh; display: grid; grid-template-columns: 250px 1fr; }
+    .sidebar { position: sticky; top: 0; height: 100vh; background: #0b0b0b; border-right: 1px solid var(--border); padding: 22px 14px; display: flex; flex-direction: column; z-index: 20; }
+    .sidebar-logo { padding: 8px 12px 25px; font-size: 24px; font-weight: 900; letter-spacing: -1px; }
+    .sidebar-logo span { color: var(--red); }
+    .nav { display: flex; flex-direction: column; gap: 5px; }
+    .nav-btn { width: 100%; border: 0; text-align: left; color: #999; background: transparent; padding: 12px 13px; border-radius: 9px; font-weight: 650; }
+    .nav-btn:hover, .nav-btn.active { color: #fff; background: rgba(227, 27, 35, .12); }
+    .sidebar-bottom { margin-top: auto; }
+    .user-email { color: var(--muted); font-size: 11px; word-break: break-all; padding: 10px 12px; }
+    .main { min-width: 0; }
+    .topbar { height: 70px; padding: 0 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(8, 8, 8, .85); backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 10; }
+    .page-title { font-size: 19px; font-weight: 800; }
+    .content { padding: 28px; max-width: 1600px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 25px; }
+    .stat { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .stat-label { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .stat-value { font-size: 27px; font-weight: 850; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 18px; overflow: hidden; }
+    .panel-header { padding: 17px 19px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .panel-title { font-size: 15px; font-weight: 800; }
+    .panel-body { padding: 19px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 650px; }
+    th { text-align: left; color: #777; font-size: 11px; text-transform: uppercase; padding: 12px 15px; border-bottom: 1px solid var(--border); }
+    td { padding: 14px 15px; border-bottom: 1px solid #1d1d1d; font-size: 13px; }
+    .empty { color: var(--muted); text-align: center; padding: 35px; }
+    .badge { display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .badge-processing { background: rgba(245, 197, 66, .12); color: var(--yellow); }
+    .badge-shipped { background: rgba(70, 150, 255, .12); color: #70aaff; }
+    .badge-delivered { background: rgba(49, 196, 141, .12); color: var(--green); }
+    .badge-cancelled { background: rgba(239, 68, 68, .12); color: #ff7777; }
+    .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .product-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .product-image { aspect-ratio: 1 / 1; background: #151515; overflow: hidden; }
+    .product-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .product-info { padding: 14px; }
+    .product-name { font-weight: 800; margin-bottom: 4px; }
+    .product-meta { color: var(--muted); font-size: 12px; }
+    .product-actions { display: flex; gap: 7px; margin-top: 13px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .stock-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+    .image-preview { width: 130px; height: 130px; margin-top: 10px; border-radius: 10px; overflow: hidden; background: #181818; border: 1px solid var(--border); }
+    .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .content-editor { display: grid; grid-template-columns: 220px 1fr; gap: 15px; }
+    .content-key-list { border-right: 1px solid var(--border); padding-right: 15px; }
+    .content-key { width: 100%; border: 0; text-align: left; color: #999; background: transparent; padding: 10px; border-radius: 8px; margin-bottom: 4px; }
+    .content-key:hover, .content-key.active { color: #fff; background: #1a1a1a; }
+    .modal { position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, .72); display: grid; place-items: center; padding: 20px; }
+    .modal-box { width: min(700px, 100%); max-height: 90vh; overflow-y: auto; background: #111; border: 1px solid var(--border); border-radius: 16px; }
+    .modal-header { padding: 17px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-body { padding: 20px; }
+    .close-btn { border: 0; background: transparent; color: #aaa; font-size: 22px; }
+    #toastContainer { position: fixed; right: 18px; bottom: 18px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 12px 15px; background: #171717; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; }
+    .toast.error { border-color: rgba(239, 68, 68, .4); }
+    .toast.success { border-color: rgba(49, 196, 141, .35); }
+    #loadingOverlay { position: fixed; inset: 0; z-index: 500; background: rgba(8,8,8,.85); display: grid; place-items: center; }
+    .loader { width: 34px; height: 34px; border: 3px solid #333; border-top-color: var(--red); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
-<div id="login-screen">
-  <div class="login-box">
-    <span class="login-brand">불꽃 BULKKOT</span>
-    <h1>Admin Sign In</h1>
-    <form id="login-form">
-      <div class="field"><label>Email</label><input type="email" id="login-email" required autocomplete="username"></div>
-      <div class="field"><label>Password</label><input type="password" id="login-password" required autocomplete="current-password"></div>
-      <button type="submit" class="btn btn-primary" id="login-btn">Sign In</button>
-    </form>
-    <div id="login-error"></div>
-  </div>
-</div>
+  <div id="loadingOverlay" class="hidden"><div class="loader"></div></div>
 
-<div id="app">
-  <aside class="sidebar">
-    <div class="sidebar-brand">불꽃 BULKKOT ADMIN</div>
-    <button class="nav-item active" data-page="dashboard">📊 Dashboard</button>
-    <div class="sidebar-footer">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="who-am-i"></div>
-      <button class="btn btn-logout" id="logout-btn">Sign Out</button>
+  <section id="loginScreen">
+    <div class="login-card">
+      <div class="brand">불꽃 <span>BULKKOT</span></div>
+      <p class="login-subtitle">Secure administration panel</p>
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@example.com">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
+        </div>
+        <button id="loginButton" class="btn btn-primary btn-full" type="submit">Sign in</button>
+      </form>
     </div>
-  </aside>
-  <main class="main">
-    <section class="page active" id="page-dashboard">
-      <div class="page-header"><h1>Dashboard Overview</h1></div>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">TOTAL ORDERS</div><div class="value" id="stat-orders">0</div></div>
-        <div class="stat-card"><div class="label">TOTAL REVENUE</div><div class="value" id="stat-revenue">₹0</div></div>
+  </section>
+
+  <section id="app" class="hidden">
+    <aside class="sidebar">
+      <div class="sidebar-logo">불꽃 <span>BULKKOT</span></div>
+      <nav class="nav">
+        <button class="nav-btn active" data-page="dashboard" type="button">◈ Dashboard</button>
+        <button class="nav-btn" data-page="products" type="button">□ Products</button>
+        <button class="nav-btn" data-page="content" type="button">✦ Site Content</button>
+        <button class="nav-btn" data-page="orders" type="button">≡ Orders</button>
+        <button class="nav-btn" data-page="waitlist" type="button">♡ Waitlist</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div id="userEmail" class="user-email"></div>
+        <button id="logoutButton" class="btn btn-danger btn-full" type="button">Logout</button>
       </div>
-    </section>
-  </main>
-</div>
+    </aside>
 
-<script>
-const SUPABASE_URL = 'https://pgubjluqgqvrybvehzeh.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NTQ1MTAsImV4cCI6MjA1NDQzMDUxMH0.F_r3N9p_yG8fK2kS9r_mN2i-5uB-0aK8rX8d4L2wV4';
+    <main class="main">
+      <header class="topbar">
+        <div id="pageTitle" class="page-title">Dashboard</div>
+        <button id="refreshButton" class="btn" type="button">Refresh</button>
+      </header>
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      <div class="content">
+        <section id="page-dashboard" class="page">
+          <div class="stats">
+            <div class="stat"><div class="stat-label">Total Orders</div><div id="statOrders" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">Total Revenue</div><div id="statRevenue" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">VIP Waitlist</div><div id="statWaitlist" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">Active Products</div><div id="statProducts" class="stat-value">—</div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Recent Orders</div>
+              <button class="btn" data-page-link="orders" type="button">View all</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+                <tbody id="recentOrdersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-const loginScreen = document.getElementById('login-screen');
-const appShell = document.getElementById('app');
-const loginForm = document.getElementById('login-form');
+        <section id="page-products" class="page hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Products</div>
+              <button id="addProductButton" class="btn btn-primary" type="button">+ Add Product</button>
+            </div>
+            <div class="panel-body"><div id="productsGrid" class="product-grid"></div></div>
+          </div>
+        </section>
 
-supabase.auth.getSession().then(({ data: { session } }) => {
-  if (session) {
-    loginScreen.style.display = 'none';
-    appShell.style.display = 'block';
-    document.getElementById('who-am-i').textContent = session.user.email;
-  }
-});
+        <section id="page-content" class="page hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Site Content</div>
+              <button id="saveContentButton" class="btn btn-primary" type="button">Save Changes</button>
+            </div>
+            <div class="panel-body">
+              <div class="content-editor">
+                <div id="contentKeyList" class="content-key-list"></div>
+                <div>
+                  <div class="field"><label>Content Key</label><input id="contentKey" type="text" readonly></div>
+                  <div class="field"><label>Text / Value</label><textarea id="contentValue" placeholder="Enter site content..."></textarea></div>
+                  <div class="field"><label>Image URL</label><input id="contentImage" type="url" placeholder="https://..."></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-loginForm.onsubmit = async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('login-btn');
-  const errorBox = document.getElementById('login-error');
+        <section id="page-orders" class="page hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Orders</div>
+              <select id="orderStatusFilter" style="max-width:180px">
+                <option value="">All statuses</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Order</th><th>Customer</th><th>Email</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
+                <tbody id="ordersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-  btn.disabled = true;
-  btn.textContent = 'Signing in...';
-  errorBox.textContent = '';
+        <section id="page-waitlist" class="page hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">VIP Waitlist</div>
+              <button id="exportWaitlistButton" class="btn btn-success" type="button">Export CSV</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Email</th><th>Name</th><th>Date</th></tr></thead>
+                <tbody id="waitlistBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </section>
 
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
+  <div id="productModal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong id="productModalTitle">Add Product</strong>
+        <button id="closeProductModal" class="close-btn" type="button">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="productForm">
+          <input id="productId" type="hidden">
+          <div class="form-grid">
+            <div class="field"><label>Product Name *</label><input id="productName" required></div>
+            <div class="field"><label>Category *</label>
+              <select id="productCategory" required>
+                <option value="TEES">TEES</option><option value="HOODS">HOODS</option><option value="SWEATS">SWEATS</option>
+              </select>
+            </div>
+            <div class="field"><label>Price (₹) *</label><input id="productPrice" type="number" min="0" step="0.01" required></div>
+            <div class="field"><label>Product Image</label><input id="productImage" type="file" accept="image/jpeg,image/png,image/webp">
+              <div id="productImagePreview" class="image-preview hidden"><img id="productImagePreviewImg" alt="Preview"></div>
+            </div>
+            <div class="field full"><label>Stock by Size</label>
+              <div class="stock-grid">
+                <div><label>S</label><input id="stockS" type="number" min="0" value="0"></div>
+                <div><label>M</label><input id="stockM" type="number" min="0" value="0"></div>
+                <div><label>L</label><input id="stockL" type="number" min="0" value="0"></div>
+                <div><label>XL</label><input id="stockXL" type="number" min="0" value="0"></div>
+              </div>
+            </div>
+            <div class="field full"><label>Description</label><textarea id="productDescription"></textarea></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
+            <button id="cancelProductButton" class="btn" type="button">Cancel</button>
+            <button id="saveProductButton" class="btn btn-primary" type="submit">Save Product</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  <div id="orderModal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header"><strong>Order Details</strong><button id="closeOrderModal" class="close-btn" type="button">×</button></div>
+      <div id="orderModalBody" class="modal-body"></div>
+    </div>
+  </div>
 
-  if (error) {
-    errorBox.textContent = 'Error: ' + error.message;
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
-    return;
-  }
+  <div id="toastContainer"></div>
 
-  loginScreen.style.display = 'none';
-  appShell.style.display = 'block';
-  document.getElementById('who-am-i').textContent = data.session.user.email;
-};
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      "use strict";
 
-document.getElementById('logout-btn').onclick = async () => {
-  await supabase.auth.signOut();
-  window.location.reload();
-};
-</script>
+      const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NTQ1MTAsImV4cCI6MjA1NDQzMDUxMH0.F_r3N9p_yG8fK2kS9r_mN2i-5uB-0aK8rX8d4L2wV4";
+      const PRODUCT_BUCKET = "product-images";
+
+      const { createClient } = window.supabase;
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+      });
+
+      const state = { user: null, session: null, products: [], orders: [], waitlist: [], siteContent: [], selectedContent: null, currentPage: "dashboard" };
+
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+      function setLoading(isLoading) { $("#loadingOverlay").classList.toggle("hidden", !isLoading); }
+
+      function showToast(message, type = "success") {
+        const container = $("#toastContainer");
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = String(message);
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4500);
+      }
+
+      function getErrorMessage(error) {
+        if (!error) return "Something went wrong.";
+        if (typeof error === "string") return error;
+        return error.message || JSON.stringify(error);
+      }
+
+      function escapeHTML(value) {
+        if (value === null || value === undefined) return "";
+        return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+      }
+
+      function formatDate(value) {
+        if (!value) return "—";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+      }
+
+      function formatCurrency(value) {
+        return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(value || 0));
+      }
+
+      async function getCurrentSession() {
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          return data?.session || null;
+        } catch { return null; }
+      }
+
+      async function handleLogin(event) {
+        event.preventDefault();
+        const email = $("#loginEmail").value.trim();
+        const password = $("#loginPassword").value;
+        const button = $("#loginButton");
+        button.disabled = true;
+        button.textContent = "Signing in…";
+
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          state.session = data.session;
+          state.user = data.user;
+          showApp();
+          await loadInitialData();
+          showToast("Signed in successfully.");
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          button.disabled = false;
+          button.textContent = "Sign in";
+        }
+      }
+
+      async function handleLogout() {
+        try {
+          setLoading(true);
+          await supabase.auth.signOut();
+          state.user = null;
+          state.session = null;
+          showLogin();
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function showLogin() {
+        $("#loginScreen").classList.remove("hidden");
+        $("#app").classList.add("hidden");
+        $("#loginPassword").value = "";
+      }
+
+      function showApp() {
+        $("#loginScreen").classList.add("hidden");
+        $("#app").classList.remove("hidden");
+        $("#userEmail").textContent = state.user?.email || "";
+      }
+
+      supabase.auth.onAuthStateChange((event, session) => {
+        state.session = session || null;
+        state.user = session?.user || null;
+        if (session?.user) showApp(); else showLogin();
+      });
+
+      async function loadInitialData() {
+        if (!state.user) return;
+        setLoading(true);
+        try {
+          await Promise.all([loadDashboard(), loadProducts(), loadOrders(), loadWaitlist(), loadSiteContent()]);
+        } catch (error) {
+          showToast("Some admin data could not be loaded.", "error");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function loadDashboard() {
+        const [ordersResult, waitlistResult, productsResult] = await Promise.all([
+          supabase.from("orders").select("id,total,status,customer_name,created_at", { count: "exact" }),
+          supabase.from("waitlist").select("id", { count: "exact", head: true }),
+          supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true)
+        ]);
+
+        if (ordersResult.error) throw ordersResult.error;
+        if (waitlistResult.error) throw waitlistResult.error;
+        if (productsResult.error) throw productsResult.error;
+
+        const orders = ordersResult.data || [];
+        const revenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+
+        $("#statOrders").textContent = ordersResult.count ?? orders.length;
+        $("#statRevenue").textContent = formatCurrency(revenue);
+        $("#statWaitlist").textContent = waitlistResult.count ?? 0;
+        $("#statProducts").textContent = productsResult.count ?? 0;
+
+        renderRecentOrders(orders);
+      }
+
+      function renderRecentOrders(orders) {
+        const body = $("#recentOrdersBody");
+        const recent = [...orders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
+        if (!recent.length) { body.innerHTML = `<tr><td colspan="5" class="empty">No orders yet.</td></tr>`; return; }
+        body.innerHTML = recent.map(order => `
+          <tr>
+            <td><strong>#${escapeHTML(order.id)}</strong></td>
+            <td>${escapeHTML(order.customer_name || "—")}</td>
+            <td>${formatCurrency(order.total)}</td>
+            <td>${statusBadge(order.status)}</td>
+            <td>${formatDate(order.created_at)}</td>
+          </tr>
+        `).join("");
+      }
+
+      async function loadProducts() {
+        const { data, error } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        state.products = data || [];
+        renderProducts();
+      }
+
+      function renderProducts() {
+        const grid = $("#productsGrid");
+        if (!state.products.length) { grid.innerHTML = `<div class="empty">No products found.</div>`; return; }
+        grid.innerHTML = state.products.map(product => {
+          const stock = product.stock || {};
+          const image = product.image_url || "";
+          return `
+            <article class="product-card">
+              <div class="product-image">${image ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" loading="lazy">` : ""}</div>
+              <div class="product-info">
+                <div class="product-name">${escapeHTML(product.name)}</div>
+                <div class="product-meta">${escapeHTML(product.category || "")} · ${formatCurrency(product.price)}</div>
+                <div class="product-meta" style="margin-top:7px">S: ${Number(stock.S || 0)} · M: ${Number(stock.M || 0)} · L: ${Number(stock.L || 0)} · XL: ${Number(stock.XL || 0)}</div>
+                <div style="margin-top:7px">
+                  ${product.active ? `<span class="badge badge-delivered">Active</span>` : `<span class="badge badge-cancelled">Inactive</span>`}
+                </div>
+                <div class="product-actions">
+                  <button class="btn" type="button" data-edit-product="${escapeHTML(product.id)}">Edit</button>
+                  <button class="btn ${product.active ? "btn-danger" : "btn-success"}" type="button" data-toggle-product="${escapeHTML(product.id)}">${product.active ? "Deactivate" : "Activate"}</button>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join("");
+      }
+
+      function openProductModal(product = null) {
+        $("#productForm").reset();
+        $("#productId").value = product?.id || "";
+        $("#productModalTitle").textContent = product ? "Edit Product" : "Add Product";
+        $("#productName").value = product?.name || "";
+        $("#productCategory").value = product?.category || "TEES";
+        $("#productPrice").value = product?.price ?? "";
+        $("#productDescription").value = product?.description || "";
+        const stock = product?.stock || {};
+        $("#stockS").value = Number(stock.S || 0);
+        $("#stockM").value = Number(stock.M || 0);
+        $("#stockL").value = Number(stock.L || 0);
+        $("#stockXL").value = Number(stock.XL || 0);
+        $("#productImage").value = "";
+        const preview = $("#productImagePreview");
+        const previewImg = $("#productImagePreviewImg");
+        if (product?.image_url) {
+          previewImg.src = product.image_url;
+          preview.classList.remove("hidden");
+        } else {
+          preview.classList.add("hidden");
+          previewImg.removeAttribute("src");
+        }
+        $("#productModal").classList.remove("hidden");
+      }
+
+      function closeProductModal() { $("#productModal").classList.add("hidden"); }
+
+      async function uploadProductImage(file) {
+        if (!file) return null;
+        const extension = file.name.split(".").pop().toLowerCase();
+        const path = `products/${crypto.randomUUID()}.${extension}`;
+        const { error } = await supabase.storage.from(PRODUCT_BUCKET).upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+        if (error) throw error;
+        const { data } = supabase.storage.from(PRODUCT_BUCKET).getPublicUrl(path);
+        return data?.publicUrl || null;
+      }
+
+      async function saveProduct(event) {
+        event.preventDefault();
+        const button = $("#saveProductButton");
+        button.disabled = true;
+        button.textContent = "Saving…";
+
+        try {
+          const id = $("#productId").value.trim();
+          const name = $("#productName").value.trim();
+          const category = $("#productCategory").value;
+          const price = Number($("#productPrice").value);
+          const description = $("#productDescription").value.trim();
+
+          const stock = {
+            S: Math.max(0, parseInt($("#stockS").value || 0, 10)),
+            M: Math.max(0, parseInt($("#stockM").value || 0, 10)),
+            L: Math.max(0, parseInt($("#stockL").value || 0, 10)),
+            XL: Math.max(0, parseInt($("#stockXL").value || 0, 10))
+          };
+
+          const existing = state.products.find(product => String(product.id) === String(id));
+          let imageUrl = existing?.image_url || null;
+          const file = $("#productImage").files[0];
+          if (file) imageUrl = await uploadProductImage(file);
+
+          const payload = { name, category, price, description, stock, image_url: imageUrl, active: existing?.active ?? true, updated_at: new Date().toISOString() };
+
+          let result;
+          if (id) {
+            result = await supabase.from("products").update(payload).eq("id", id).select().single();
+          } else {
+            result = await supabase.from("products").insert(payload).select().single();
+          }
+
+          if (result.error) throw result.error;
+          showToast(id ? "Product updated." : "Product created.");
+          closeProductModal();
+          await Promise.all([loadProducts(), loadDashboard()]);
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          button.disabled = false;
+          button.textContent = "Save Product";
+        }
+      }
+
+      async function toggleProduct(productId) {
+        const product = state.products.find(item => String(item.id) === String(productId));
+        if (!product) return;
+        const nextActive = !Boolean(product.active);
+        try {
+          setLoading(true);
+          const { error } = await supabase.from("products").update({ active: nextActive, updated_at: new Date().toISOString() }).eq("id", productId);
+          if (error) throw error;
+          showToast(nextActive ? "Product activated." : "Product deactivated.");
+          await Promise.all([loadProducts(), loadDashboard()]);
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function loadOrders() {
+        const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        state.orders = data || [];
+        renderOrders();
+      }
+
+      function statusBadge(status) {
+        const safeStatus = String(status || "processing").toLowerCase();
+        return `<span class="badge badge-${safeStatus}">${escapeHTML(safeStatus)}</span>`;
+      }
+
+      function renderOrders() {
+        const body = $("#ordersBody");
+        const filter = $("#orderStatusFilter").value;
+        const orders = filter ? state.orders.filter(order => order.status === filter) : state.orders;
+
+        if (!orders.length) { body.innerHTML = `<tr><td colspan="7" class="empty">No orders found.</td></tr>`; return; }
+        body.innerHTML = orders.map(order => {
+          const id = escapeHTML(order.id);
+          const status = String(order.status || "processing").toLowerCase();
+          return `
+            <tr>
+              <td><strong>#${id}</strong></td>
+              <td>${escapeHTML(order.customer_name || "—")}</td>
+              <td>${escapeHTML(order.customer_email || "—")}</td>
+              <td>${formatCurrency(order.total)}</td>
+              <td>
+                <select class="order-status-select" data-order-status="${id}">
+                  <option value="processing" ${status === "processing" ? "selected" : ""}>Processing</option>
+                  <option value="shipped" ${status === "shipped" ? "selected" : ""}>Shipped</option>
+                  <option value="delivered" ${status === "delivered" ? "selected" : ""}>Delivered</option>
+                  <option value="cancelled" ${status === "cancelled" ? "selected" : ""}>Cancelled</option>
+                </select>
+              </td>
+              <td>${formatDate(order.created_at)}</td>
+              <td><button class="btn" type="button" data-view-order="${id}">View</button></td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      async function updateOrderStatus(orderId, status) {
+        try {
+          setLoading(true);
+          const { error } = await supabase.from("orders").update({ status, updated_at: new Date().toISOString() }).eq("id", orderId);
+          if (error) throw error;
+          const order = state.orders.find(item => String(item.id) === String(orderId));
+          if (order) order.status = status;
+          renderOrders();
+          showToast("Order status updated.");
+          await loadDashboard();
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function openOrderModal(order) {
+        const body = $("#orderModalBody");
+        let itemsHTML = "<div>No item data.</div>";
+        if (Array.isArray(order.items)) {
+          itemsHTML = order.items.map(item => `
+            <div style="background:#0b0b0b;border:1px solid var(--border);padding:10px;border-radius:8px;margin-bottom:8px;">
+              <strong>${escapeHTML(item.name || item.product_name || "Product")}</strong>
+              <div style="color:var(--muted);font-size:12px;margin-top:4px;">Size: ${escapeHTML(item.size || "—")} · Qty: ${Number(item.quantity || 0)}</div>
+            </div>
+          `).join("");
+        }
+
+        body.innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:15px;">
+            <div style="background:#0b0b0b;padding:10px;border-radius:8px;border:1px solid var(--border)">ID: #${escapeHTML(order.id)}</div>
+            <div style="background:#0b0b0b;padding:10px;border-radius:8px;border:1px solid var(--border)">Total: ${formatCurrency(order.total)}</div>
+          </div>
+          <div style="font-weight:800;margin-bottom:8px;">Items</div>
+          ${itemsHTML}
+        `;
+        $("#orderModal").classList.remove("hidden");
+      }
+
+      async function loadWaitlist() {
+        const { data, error } = await supabase.from("waitlist").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        state.waitlist = data || [];
+        renderWaitlist();
+      }
+
+      function renderWaitlist() {
+        const body = $("#waitlistBody");
+        if (!state.waitlist.length) { body.innerHTML = `<tr><td colspan="3" class="empty">No waitlist entries.</td></tr>`; return; }
+        body.innerHTML = state.waitlist.map(entry => `
+          <tr><td>${escapeHTML(entry.email)}</td><td>${escapeHTML(entry.name || "—")}</td><td>${formatDate(entry.created_at)}</td></tr>
+        `).join("");
+      }
+
+      function exportWaitlistCSV() {
+        if (!state.waitlist.length) { showToast("No waitlist entries to export.", "error"); return; }
+        const csv = ["ID,Name,Email,Created At", ...state.waitlist.map(e => `"${e.id}","${e.name || ""}","${e.email}","${e.created_at}"`)].join("\r\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `bulkkot-waitlist.csv`;
+        link.click();
+        link.remove();
+        showToast("Waitlist CSV exported.");
+      }
+
+      async function loadSiteContent() {
+        const { data, error } = await supabase.from("site_content").select("*").order("content_key", { ascending: true });
+        if (error) throw error;
+        state.siteContent = data || [];
+        renderContentKeys();
+        if (state.siteContent.length && !state.selectedContent) selectContent(state.siteContent[0]);
+      }
+
+      function renderContentKeys() {
+        const list = $("#contentKeyList");
+        if (!state.siteContent.length) { list.innerHTML = `<div class="empty">No site content entries.</div>`; return; }
+        list.innerHTML = state.siteContent.map(item => `
+          <button type="button" class="content-key ${state.selectedContent?.id === item.id ? "active" : ""}" data-content-id="${escapeHTML(item.id)}">${escapeHTML(item.content_key)}</button>
+        `).join("");
+      }
+
+      function selectContent(item) {
+        state.selectedContent = item;
+        $("#contentKey").value = item.content_key || "";
+        $("#contentValue").value = item.content_value || "";
+        $("#contentImage").value = item.image_url || "";
+        renderContentKeys();
+      }
+
+      async function saveSiteContent() {
+        const item = state.selectedContent;
+        if (!item) return;
+        const button = $("#saveContentButton");
+        button.disabled = true;
+        button.textContent = "Saving…";
+        try {
+          const { data, error } = await supabase.from("site_content").update({
+            content_value: $("#contentValue").value,
+            image_url: $("#contentImage").value.trim() || null,
+            updated_at: new Date().toISOString()
+          }).eq("id", item.id).select().single();
+          if (error) throw error;
+          state.selectedContent = data;
+          const idx = state.siteContent.findIndex(c => c.id === item.id);
+          if (idx !== -1) state.siteContent[idx] = data;
+          renderContentKeys();
+          showToast("Site content updated.");
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          button.disabled = false;
+          button.textContent = "Save Changes";
+        }
+      }
+
+      const pageTitles = { dashboard: "Dashboard", products: "Products", content: "Site Content", orders: "Orders", waitlist: "VIP Waitlist" };
+
+      function showPage(pageName) {
+        if (!pageTitles[pageName]) pageName = "dashboard";
+        state.currentPage = pageName;
+        $$(".page").forEach(p => p.classList.toggle("hidden", p.id !== `page-${pageName}`));
+        $$(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.page === pageName));
+        $("#pageTitle").textContent = pageTitles[pageName];
+
+        if (pageName === "dashboard") loadDashboard();
+        if (pageName === "products") loadProducts();
+        if (pageName === "orders") loadOrders();
+        if (pageName === "waitlist") loadWaitlist();
+        if (pageName === "content") loadSiteContent();
+      }
+
+      document.addEventListener("click", async (e) => {
+        const nav = e.target.closest("[data-page]");
+        if (nav) { showPage(nav.dataset.page); return; }
+        const pageLink = e.target.closest("[data-page-link]");
+        if (pageLink) { showPage(pageLink.dataset.pageLink); return; }
+        const editBtn = e.target.closest("[data-edit-product]");
+        if (editBtn) {
+          const product = state.products.find(p => String(p.id) === String(editBtn.dataset.editProduct));
+          if (product) openProductModal(product);
+          return;
+        }
+        const toggleBtn = e.target.closest("[data-toggle-product]");
+        if (toggleBtn) { await toggleProduct(toggleBtn.dataset.toggleProduct); return; }
+        const viewOrder = e.target.closest("[data-view-order]");
+        if (viewOrder) {
+          const order = state.orders.find(o => String(o.id) === String(viewOrder.dataset.viewOrder));
+          if (order) openOrderModal(order);
+          return;
+        }
+        const contentBtn = e.target.closest("[data-content-id]");
+        if (contentBtn) {
+          const item = state.siteContent.find(c => String(c.id) === String(contentBtn.dataset.contentId));
+          if (item) selectContent(item);
+          return;
+        }
+      });
+
+      document.addEventListener("change", async (e) => {
+        const select = e.target.closest("[data-order-status]");
+        if (select) await updateOrderStatus(select.dataset.orderStatus, select.value);
+      });
+
+      $("#loginForm").addEventListener("submit", handleLogin);
+      $("#logoutButton").addEventListener("click", handleLogout);
+      $("#refreshButton").addEventListener("click", async () => { setLoading(true); await loadInitialData(); setLoading(false); showToast("Refreshed."); });
+      $("#addProductButton").addEventListener("click", () => openProductModal());
+      $("#closeProductModal").addEventListener("click", closeProductModal);
+      $("#cancelProductButton").addEventListener("click", closeProductModal);
+      $("#productForm").addEventListener("submit", saveProduct);
+      $("#closeOrderModal").addEventListener("click", () => $("#orderModal").classList.add("hidden"));
+      $("#saveContentButton").addEventListener("click", saveSiteContent);
+      $("#exportWaitlistButton").addEventListener("click", exportWaitlistCSV);
+      $("#orderStatusFilter").addEventListener("change", renderOrders);
+
+      $("#productImage").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        const preview = $("#productImagePreview");
+        const image = $("#productImagePreviewImg");
+        if (!file) { preview.classList.add("hidden"); return; }
+        const url = URL.createObjectURL(file);
+        image.src = url;
+        preview.classList.remove("hidden");
+      });
+
+      (async function init() {
+        try {
+          setLoading(true);
+          const session = await getCurrentSession();
+          if (session?.user) {
+            state.session = session;
+            state.user = session.user;
+            showApp();
+            await loadInitialData();
+          } else {
+            showLogin();
+          }
+        } catch {
+          showLogin();
+        } finally {
+          setLoading(false);
+        }
+      })();
+    });
+  </script>
 </body>
 </html>
