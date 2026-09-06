@@ -51,10 +51,6 @@ input,textarea,select{font-family:inherit;}
 .stat-card .label{font-size:12px;color:var(--muted);margin-bottom:8px;}
 .stat-card .value{font-size:32px;font-weight:800;font-family:'Montserrat',sans-serif;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:26px;margin-bottom:26px;}
-.table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:14px;}
-th,td{padding:16px 12px;border-bottom:1px solid var(--border);text-align:left;}
-th{color:var(--muted);font-size:11px;text-transform:uppercase;}
 </style>
 </head>
 <body>
@@ -63,7 +59,6 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase;}
   <div class="login-box">
     <span class="login-brand">불꽃 BULKKOT</span>
     <h1>Admin Sign In</h1>
-    <!-- action="javascript:void(0) lagaya hai taaki form reload na ho -->
     <form id="login-form" action="javascript:void(0);">
       <div class="field"><label>Email</label><input type="email" id="login-email" required autocomplete="username"></div>
       <div class="field"><label>Password</label><input type="password" id="login-password" required autocomplete="current-password"></div>
@@ -93,26 +88,15 @@ th{color:var(--muted);font-size:11px;text-transform:uppercase;}
   </main>
 </div>
 
-<!-- Script ko body ke end me rakha hai, DOMContentLoaded ke andar -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM fully loaded. Wiring login form...");
-
   const SUPABASE_URL = 'https://pgubjluqgqvrybvehzeh.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NTQ1MTAsImV4cCI6MjA1NDQzMDUxMH0.F_r3N9p_yG8fK2kS9r_mN2i-5uB-0aK8rX8d4L2wV4';
 
   const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
   const loginScreen = document.getElementById('login-screen');
   const appShell = document.getElementById('app');
   const loginForm = document.getElementById('login-form');
-
-  if (!loginForm) {
-    console.error("CRITICAL: login-form element not found in DOM!");
-    return;
-  }
-
-  console.log("Login form wired successfully — waiting for submit.");
 
   async function checkSession() {
     if (!supabase) return;
@@ -129,8 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log("Login form submitted!");
-    
     const btn = document.getElementById('login-btn');
     const errorBox = document.getElementById('login-error');
 
@@ -139,10 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     errorBox.textContent = '';
 
     try {
-      if (!supabase) {
-        throw new Error("Supabase client is not initialized.");
-      }
-
+      if (!supabase) throw new Error("Supabase client missing.");
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
 
@@ -152,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
         errorBox.textContent = 'Error: ' + error.message;
         return;
       }
-
       showApp(data.session);
     } catch (err) {
       errorBox.textContent = 'Unexpected error: ' + err.message;
@@ -162,13 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      window.location.reload();
-    });
-  }
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  });
 
   checkSession();
 });
