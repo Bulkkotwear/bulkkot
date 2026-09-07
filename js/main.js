@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Controller
- * Version: 2.0
+ * Version: 2.1
  */
 (function () {
   'use strict';
@@ -54,7 +54,7 @@
     if (!grid) return;
 
     if (!supabase) {
-      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">Store connection unavailable.</p>';
+      grid.innerHTML = '<p class="catalog-message catalog-message--error">Store connection unavailable.</p>';
       return;
     }
 
@@ -72,7 +72,7 @@
       renderProducts(getVisibleProducts());
     } catch (error) {
       console.error("BULKKOT catalog error:", error);
-      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #e50914; padding: 40px;">Failed to load catalog.</p>';
+      grid.innerHTML = '<p class="catalog-message catalog-message--error">Failed to load catalog.</p>';
     }
   }
 
@@ -110,7 +110,7 @@
     if (!grid) return;
 
     if (!products.length) {
-      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">No matching pieces found.</p>';
+      grid.innerHTML = '<p class="catalog-message">No matching pieces found.</p>';
       return;
     }
 
@@ -132,7 +132,7 @@
       const isSelected = selectedSize === size;
       return `
         <button type="button"
-          style="padding: 4px 10px; font-size: 11px; font-weight: 700; border: 1px solid ${isSelected ? '#fff' : '#333'}; background: ${isSelected ? '#fff' : 'transparent'}; color: ${isSelected ? '#000' : '#fff'}; cursor: ${stock <= 0 ? 'not-allowed' : 'pointer'}; opacity: ${stock <= 0 ? 0.3 : 1}; margin-right: 4px; margin-bottom: 6px; border-radius: 2px;"
+          class="product-size-btn ${isSelected ? 'is-selected' : ''} ${stock <= 0 ? 'is-disabled' : ''}"
           data-size-product="${escapeHTML(String(product.id))}"
           data-size="${size}"
           ${stock <= 0 ? "disabled" : ""}>
@@ -145,20 +145,23 @@
 
     return `
       <article class="product-card" data-product-card data-category="${escapeHTML(category)}">
-        <div class="product-image" style="cursor: pointer;" data-product-view="${escapeHTML(String(product.id))}">
-          <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" loading="lazy">
-          <span class="product-status">${soldOut ? "SOLD OUT" : escapeHTML(product.drop || "DROP 001")}</span>
-        </div>
-        <div class="product-information" style="padding: 16px 0; display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <h3 style="font-size: 15px; font-weight: 800; text-transform: uppercase;">${escapeHTML(product.name)}</h3>
-            <span style="font-weight: 700; font-size: 14px;">${formatPrice(product.price)}</span>
+        <button type="button" class="product-card__image-button" data-product-view="${escapeHTML(String(product.id))}" aria-label="View ${escapeHTML(product.name)}">
+          <div class="product-image">
+            <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" loading="lazy">
+            <span class="product-status">${soldOut ? "SOLD OUT" : escapeHTML(product.drop || "DROP 001")}</span>
           </div>
-          <p style="font-size: 12px; color: #888; margin-top: -4px;">${categoryKorean}</p>
-          <div style="display: flex; flex-wrap: wrap; margin-top: 4px;">${sizePills}</div>
+        </button>
+        <div class="product-information">
+          <div class="product-information__header">
+            <div>
+              <h3>${escapeHTML(product.name)}</h3>
+              <p class="product-category">${categoryKorean}</p>
+            </div>
+            <span class="product-price">${formatPrice(product.price)}</span>
+          </div>
+          <div class="product-sizes">${sizePills}</div>
           <button type="button"
-            class="button button--primary"
-            style="width: 100%; margin-top: 8px; padding: 10px 0; font-size: 11px; letter-spacing: 0.1em;"
+            class="button button--primary product-add-button"
             data-add-product="${escapeHTML(String(product.id))}"
             ${soldOut ? "disabled" : ""}>
             ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
@@ -212,7 +215,7 @@
     modal.setAttribute("aria-hidden", "true");
 
     modal.innerHTML = `
-      <div class="content-modal__panel product-detail-panel" style="max-width: 600px;">
+      <div class="content-modal__panel product-detail-panel">
         <button type="button" class="drawer-close" data-product-modal-close aria-label="Close product">×</button>
         <div id="product-modal-content"></div>
       </div>
@@ -239,22 +242,24 @@
     const image = product.image_url || "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
 
     content.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 16px;">
-        <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" style="width: 100%; max-height: 380px; object-fit: cover;">
-        <div>
+      <div class="product-detail">
+        <div class="product-detail__media">
+          <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}">
+        </div>
+        <div class="product-detail__info">
           <p class="eyebrow">${escapeHTML(product.drop || "DROP 001")}</p>
-          <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">${escapeHTML(product.name)}</h2>
-          <p style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">${formatPrice(product.price)}</p>
-          ${product.description ? `<p style="color: #aaa; font-size: 13px; line-height: 1.6; margin-bottom: 16px;">${escapeHTML(product.description)}</p>` : ""}
-          <div style="margin-bottom: 16px;">
-            <p style="font-size: 11px; font-weight: 700; margin-bottom: 8px;">SELECT SIZE</p>
-            <div style="display: flex; gap: 8px;">
+          <h2>${escapeHTML(product.name)}</h2>
+          <p class="product-detail__price">${formatPrice(product.price)}</p>
+          ${product.description ? `<p class="product-detail__description">${escapeHTML(product.description)}</p>` : ""}
+          <div class="product-detail__sizes">
+            <p>SELECT SIZE</p>
+            <div>
               ${sizes.map(size => {
                 const stock = getStock(product, size);
                 const selected = selectedSizes[product.id] === size;
                 return `
                   <button type="button"
-                    style="padding: 8px 14px; font-size: 12px; font-weight: 700; border: 1px solid ${selected ? '#fff' : '#333'}; background: ${selected ? '#fff' : 'transparent'}; color: ${selected ? '#000' : '#fff'}; cursor: ${stock <= 0 ? 'not-allowed' : 'pointer'}; opacity: ${stock <= 0 ? 0.3 : 1};"
+                    class="product-size-btn ${selected ? 'is-selected' : ''} ${stock <= 0 ? 'is-disabled' : ''}"
                     data-modal-size="${size}"
                     ${stock <= 0 ? "disabled" : ""}>
                     ${size}
@@ -263,7 +268,7 @@
               }).join("")}
             </div>
           </div>
-          <button type="button" class="button button--primary" id="product-modal-add" style="width: 100%; padding: 14px 0;"
+          <button type="button" class="button button--primary" id="product-modal-add"
             ${getTotalStock(product) <= 0 ? "disabled" : ""}>
             ${getTotalStock(product) <= 0 ? "SOLD OUT" : "ADD TO BAG"}
           </button>
@@ -310,10 +315,7 @@
       const button = form.querySelector("button[type='submit']");
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        if (message) {
-          message.textContent = "Please enter a valid email address.";
-          message.style.color = "#e50914";
-        }
+        if (message) message.textContent = "Please enter a valid email address.";
         return;
       }
 
@@ -353,11 +355,27 @@
     document.querySelectorAll(".category-card[data-category]").forEach(card => {
       card.addEventListener("click", () => {
         activeCategory = String(card.dataset.category || "all").toLowerCase();
+        updateCategoryButtons();
         refreshCatalog();
         setTimeout(() => {
           document.getElementById("shop")?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 50);
       });
+    });
+
+    document.querySelectorAll("[data-shop-category]").forEach(button => {
+      button.addEventListener("click", () => {
+        activeCategory = String(button.dataset.shopCategory || "all").toLowerCase();
+        updateCategoryButtons();
+        refreshCatalog();
+      });
+    });
+  }
+
+  function updateCategoryButtons() {
+    document.querySelectorAll("[data-shop-category]").forEach(button => {
+      const category = String(button.dataset.shopCategory || "all").toLowerCase();
+      button.classList.toggle("is-active", category === activeCategory);
     });
   }
 
@@ -375,6 +393,15 @@
       document.body.classList.remove("modal-open");
       refreshCatalog();
       document.getElementById("shop")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function initSort() {
+    const sort = document.getElementById("shop-sort");
+    if (!sort) return;
+    sort.addEventListener("change", () => {
+      activeSort = sort.value || "featured";
+      refreshCatalog();
     });
   }
 
@@ -422,6 +449,7 @@
     initWaitlist();
     initCategoryFilter();
     initSearch();
+    initSort();
     initUI();
   });
 })();
