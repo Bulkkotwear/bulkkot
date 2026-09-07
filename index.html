@@ -2,384 +2,643 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BULKKOT (불꽃) — Admin Control Hub</title>
-  
-  <!-- Fonts -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="BULKKOT (불꽃) — Korean-inspired premium everyday wear. Drop 001 coming soon.">
+  <meta name="theme-color" content="#000000">
+
+  <title>BULKKOT (불꽃) — Premium Everyday Wear</title>
+
+  <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Noto+Sans+KR:wght@700&display=swap" rel="stylesheet">
-  
-  <!-- Supabase JS Client CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <link rel="stylesheet" href="admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
 </head>
+
 <body>
 
-  <!-- ==========================================
-       LOGIN OVERLAY SCREEN (AUTH GATE)
-  =========================================== -->
-  <div id="login-screen" class="login-wrapper">
-    <div class="login-card">
-      <div class="login-header">
-        <span class="brand-kr">불꽃</span>
-        <h2>BULKKOT ADMIN</h2>
-        <p>Enter administrative credentials</p>
-      </div>
-      <form id="admin-login-form">
-        <div class="form-group">
-          <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" required placeholder="admin@bulkkot.com" autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <div id="login-error" class="error-badge" style="display: none;"></div>
-        <button type="submit" id="login-btn" class="btn btn-primary btn-block">AUTHENTICATE</button>
-      </form>
+  <!-- =====================================================
+       ANNOUNCEMENT TICKER
+  ====================================================== -->
+  <div class="announcement-bar" aria-label="Announcement">
+    <div class="announcement-track">
+      <span>DROP 001 — DROPPING SOON</span>
+      <span>불꽃 DROP 001 — COMING SOON</span>
+      <span>JOIN THE VIP WAITLIST</span>
+      <span>DROP 001 — DROPPING SOON</span>
+      <span>불꽃 DROP 001 — COMING SOON</span>
+      <span>JOIN THE VIP WAITLIST</span>
     </div>
   </div>
 
-  <!-- ==========================================
-       AUTHENTICATED ADMIN APP
-  =========================================== -->
-  <div id="admin-app" class="admin-layout" style="display: none;">
-    
-    <!-- Sidebar Navigation -->
-    <aside class="admin-sidebar">
-      <div class="sidebar-brand">
-        <span class="brand-kr">불꽃</span>
-        <span class="brand-text">BULKKOT</span>
-      </div>
-      
-      <nav class="sidebar-nav">
-        <button class="nav-item active" data-tab="dashboard">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Dashboard
-        </button>
-        <button class="nav-item" data-tab="products">
-          <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          Products Manager
-        </button>
-        <button class="nav-item" data-tab="site-content">
-          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Site Content Editor
-        </button>
-        <button class="nav-item" data-tab="orders">
-          <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          Orders Manager
-        </button>
-        <button class="nav-item" data-tab="waitlist">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Waitlist Signups
-        </button>
-        <button class="nav-item" data-tab="media">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          Media Library
-        </button>
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+  <header class="site-header">
+    <div class="header-inner">
+
+      <!-- Mobile Menu Toggle -->
+      <button class="header-menu" type="button" aria-label="Open menu" aria-controls="mobile-drawer" data-open-drawer>
+        <span></span>
+        <span></span>
+      </button>
+
+      <!-- Brand -->
+      <a href="#top" class="brand" aria-label="BULKKOT home">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" onerror="this.style.display='none'">
+        <span class="brand-name">
+          <span class="brand-korean">불꽃</span>
+          <span class="brand-english">BULKKOT</span>
+        </span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="desktop-navigation" aria-label="Primary navigation">
+        <a href="#top">HOME</a>
+        <a href="#shop">SHOP</a>
+        <a href="#drop-001">DROP 001</a>
+        <a href="#collections">COLLECTIONS</a>
+        <a href="#about">ABOUT</a>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="user-meta">
-          <span id="current-user-email">admin@bulkkot.com</span>
-        </div>
-        <button id="logout-btn" class="btn btn-secondary btn-block">Sign Out</button>
+      <!-- Actions -->
+      <div class="header-actions">
+        <!-- Search Button -->
+        <button type="button" class="header-action" aria-label="Search" data-open-search>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
+        </button>
+
+        <!-- Instagram Direct -->
+        <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="header-action instagram-action" aria-label="BULKKOT Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+
+        <!-- Cart Trigger -->
+        <button type="button" class="header-action cart-action" aria-label="Open cart" data-open-cart>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+          <span class="cart-count" data-cart-count hidden>0</span>
+        </button>
       </div>
-    </aside>
 
-    <!-- Main Workspace -->
-    <main class="admin-main">
-      
-      <!-- Top Mobile / Status Bar -->
-      <header class="admin-topbar">
-        <h1 id="view-title">Dashboard Overview</h1>
-        <div class="topbar-actions">
-          <a href="/" target="_blank" class="btn btn-outline btn-sm">View Live Site ↗</a>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       MOBILE DRAWER
+  ====================================================== -->
+  <aside class="mobile-drawer" id="mobile-drawer" data-mobile-drawer aria-hidden="true">
+    <div class="mobile-drawer__header">
+      <a href="#top" class="brand">
+        <span class="brand-name">
+          <span class="brand-korean">불꽃</span>
+          <span class="brand-english">BULKKOT</span>
+        </span>
+      </a>
+      <button type="button" class="drawer-close" aria-label="Close menu" data-close-drawer>×</button>
+    </div>
+
+    <nav class="mobile-navigation" aria-label="Mobile navigation">
+      <a href="#top" data-close-drawer><span>HOME</span><small>홈</small></a>
+      <a href="#shop" data-close-drawer><span>SHOP</span><small>쇼핑</small></a>
+      <a href="#drop-001" data-close-drawer><span>DROP 001</span><small>첫 번째 드롭</small></a>
+      <a href="#collections" data-close-drawer><span>COLLECTIONS</span><small>컬렉션</small></a>
+      <a href="#about" data-close-drawer><span>ABOUT</span><small>브랜드 소개</small></a>
+      <a href="#contact" data-close-drawer><span>CONTACT</span><small>문의</small></a>
+    </nav>
+
+    <div class="mobile-drawer__footer">
+      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">@bulkkot.wear</a>
+      <a href="mailto:bulkkotwear@gmail.com">bulkkotwear@gmail.com</a>
+    </div>
+  </aside>
+
+  <main id="top">
+
+    <!-- ===================================================
+         HERO SECTION
+    ==================================================== -->
+    <section class="hero">
+      <div class="hero-media">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Black Tee Campaign" class="hero-image">
+      </div>
+
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <p class="hero-korean">불꽃</p>
+        <h1>BULKKOT</h1>
+        <p class="hero-label">PREMIUM EVERYDAY WEAR</p>
+        <p class="hero-description">Korean-inspired minimalist heavyweight essentials.</p>
+        <a href="#drop-001" class="button button--primary">EXPLORE DROP 001</a>
+      </div>
+
+      <div class="hero-scroll">
+        <span>SCROLL</span>
+        <i></i>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         CATEGORY ROW (TEES, HOODS, SWEATS)
+    ==================================================== -->
+    <section class="category-section" id="collections">
+      <div class="section-heading">
+        <p class="eyebrow">COLLECTIONS · 컬렉션</p>
+        <h2>THE ESSENTIALS</h2>
+      </div>
+
+      <div class="category-row">
+        <!-- TEES -->
+        <a href="#shop" class="category-card" data-category="tees">
+          <div class="category-image">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" loading="lazy">
+          </div>
+          <div class="category-name">
+            <strong>TEES</strong>
+            <span>티셔츠</span>
+          </div>
+        </a>
+
+        <!-- HOODS -->
+        <a href="#shop" class="category-card" data-category="hoods">
+          <div class="category-image">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy">
+          </div>
+          <div class="category-name">
+            <strong>HOODS</strong>
+            <span>후드</span>
+          </div>
+        </a>
+
+        <!-- SWEATS -->
+        <a href="#shop" class="category-card" data-category="sweats">
+          <div class="category-image">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy">
+          </div>
+          <div class="category-name">
+            <strong>SWEATS</strong>
+            <span>스웨트</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         EDITORIAL CAROUSEL
+    ==================================================== -->
+    <section class="editorial-section">
+      <div class="editorial-carousel" data-carousel>
+        <div class="editorial-track" data-carousel-track>
+
+          <article class="editorial-slide" data-slide>
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Editorial Tee" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <p>불꽃 · 001</p>
+              <h2>LESS NOISE.</h2>
+              <span>MORE PRESENCE.</span>
+            </div>
+          </article>
+
+          <article class="editorial-slide" data-slide>
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Editorial Hood" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <p>서울에서 영감</p>
+              <h2>MADE FOR</h2>
+              <span>EVERYDAY.</span>
+            </div>
+          </article>
+
+          <article class="editorial-slide" data-slide>
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Editorial Sweat" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <p>불꽃 · BULKKOT</p>
+              <h2>QUIETLY</h2>
+              <span>DISTINCT.</span>
+            </div>
+          </article>
+
         </div>
-      </header>
 
-      <!-- TAB 1: DASHBOARD -->
-      <section id="tab-dashboard" class="tab-pane active">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-label">TOTAL ORDERS</span>
-            <strong id="stat-total-orders" class="stat-value">0</strong>
-            <small class="stat-sub">Lifetime completed</small>
+        <button type="button" class="carousel-control carousel-control--prev" aria-label="Previous slide" data-carousel-prev>←</button>
+        <button type="button" class="carousel-control carousel-control--next" aria-label="Next slide" data-carousel-next>→</button>
+
+        <div class="carousel-indicators">
+          <button type="button" data-slide-indicator aria-label="Go to slide 1"></button>
+          <button type="button" data-slide-indicator aria-label="Go to slide 2"></button>
+          <button type="button" data-slide-indicator aria-label="Go to slide 3"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         DROP 001 BANNER
+    ==================================================== -->
+    <section class="drop-section" id="drop-001">
+      <div class="drop-content">
+        <p class="eyebrow">DROP 001 · 첫 번째 드롭</p>
+        <h2>COMING SOON</h2>
+        <p>The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.</p>
+        <a href="#waitlist" class="button button--outline">JOIN WAITLIST</a>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         LATEST PRODUCTS GRID
+    ==================================================== -->
+    <section class="shop-section" id="shop">
+      <div class="section-heading section-heading--split">
+        <div>
+          <p class="eyebrow">RECENT PRODUCTS · 최근 제품</p>
+          <h2>LATEST</h2>
+        </div>
+        <span class="section-status">DROP 001 · COMING SOON</span>
+      </div>
+
+      <div class="product-grid">
+
+        <!-- Product 01 -->
+        <article class="product-card" data-product-card data-category="tees">
+          <div class="product-image">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Tee 001" loading="lazy">
+            <span class="product-status">COMING SOON</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-label">TOTAL REVENUE</span>
-            <strong id="stat-total-revenue" class="stat-value">₹0</strong>
-            <small class="stat-sub">Gross sales amount</small>
+          <div class="product-information">
+            <div>
+              <h3>OVERSIZED TEE 001</h3>
+              <p>티셔츠</p>
+            </div>
+            <span>DROP 001</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-label">ACTIVE PRODUCTS</span>
-            <strong id="stat-active-products" class="stat-value">0</strong>
-            <small class="stat-sub">Live on storefront</small>
+        </article>
+
+        <!-- Product 02 -->
+        <article class="product-card" data-product-card data-category="hoods">
+          <div class="product-image">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hood 001" loading="lazy">
+            <span class="product-status">COMING SOON</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-label">VIP WAITLIST</span>
-            <strong id="stat-waitlist-count" class="stat-value">0</strong>
-            <small class="stat-sub">Interested shoppers</small>
+          <div class="product-information">
+            <div>
+              <h3>OVERSIZED HOOD 001</h3>
+              <p>후드</p>
+            </div>
+            <span>DROP 001</span>
           </div>
+        </article>
+
+        <!-- Product 03 -->
+        <article class="product-card" data-product-card data-category="sweats">
+          <div class="product-image">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweat 001" loading="lazy">
+            <span class="product-status">COMING SOON</span>
+          </div>
+          <div class="product-information">
+            <div>
+              <h3>OVERSIZED SWEAT 001</h3>
+              <p>스웨트</p>
+            </div>
+            <span>DROP 001</span>
+          </div>
+        </article>
+
+        <!-- Product 04 -->
+        <article class="product-card" data-product-card data-category="tees">
+          <div class="product-image">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Signature Tee 001" loading="lazy">
+            <span class="product-status">COMING SOON</span>
+          </div>
+          <div class="product-information">
+            <div>
+              <h3>SIGNATURE TEE 001</h3>
+              <p>티셔츠</p>
+            </div>
+            <span>DROP 001</span>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ===================================================
+         WHY BULKKOT
+    ==================================================== -->
+    <section class="values-section">
+      <div class="section-heading">
+        <p class="eyebrow">WHY BULKKOT · 왜 불꽃인가</p>
+        <h2>BUILT WITH INTENT.</h2>
+      </div>
+
+      <div class="values-grid">
+        <article class="value-block">
+          <span>01</span>
+          <h3>PREMIUM QUALITY</h3>
+          <p>프리미엄 퀄리티</p>
+          <small>Heavyweight combed cotton and custom drapes.</small>
+        </article>
+
+        <article class="value-block">
+          <span>02</span>
+          <h3>OVERSIZED FIT</h3>
+          <p>오버사이즈 핏</p>
+          <small>Relaxed drop-shoulder cuts for modern comfort.</small>
+        </article>
+
+        <article class="value-block">
+          <span>03</span>
+          <h3>CLEAN DESIGN</h3>
+          <p>클린 디자인</p>
+          <small>Zero unnecessary noise. Pure timeless silhouette.</small>
+        </article>
+
+        <article class="value-block">
+          <span>04</span>
+          <h3>EVERYDAY ESSENTIAL</h3>
+          <p>데일리 에센셜</p>
+          <small>Garments crafted to live beyond seasonal trends.</small>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         ABOUT
+    ==================================================== -->
+    <section class="about-section" id="about">
+      <div class="about-grid">
+        <div class="about-intro">
+          <p class="eyebrow">THE BRAND · 브랜드</p>
+          <h2>불꽃</h2>
+          <span>THE SPARK</span>
         </div>
 
-        <div class="card mt-4">
-          <div class="card-header">
-            <h3>Recent Orders Overview</h3>
-          </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
-                  <th>Amount</th>
-                  <th>Payment</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody id="dashboard-recent-orders">
-                <tr><td colspan="6" class="text-center">Loading latest activities...</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="about-copy">
+          <p class="about-lead">Premium clothing shouldn't feel unreachable.</p>
+          <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
+          <p>We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.</p>
+          <p class="about-signature">Less noise. More presence.</p>
+          <button type="button" class="text-button" data-open-about>READ OUR STORY →</button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- TAB 2: PRODUCTS MANAGER -->
-      <section id="tab-products" class="tab-pane">
-        <div class="action-bar">
-          <div class="search-bar">
-            <input type="text" id="product-search" placeholder="Search products by title or category...">
-          </div>
-          <button id="open-product-modal-btn" class="btn btn-primary">+ Add New Product</button>
-        </div>
+    <!-- ===================================================
+         PHILOSOPHY
+    ==================================================== -->
+    <section class="philosophy-section">
+      <p class="philosophy-korean">불꽃의 철학</p>
+      <h2>LESS NOISE.</h2>
+      <h3>MORE PRESENCE.</h3>
+      <p>Quiet design. Strong identity.</p>
+    </section>
 
-        <div class="card mt-3">
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Preview</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Inventory (S / M / L / XL)</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="products-table-body">
-                <tr><td colspan="7" class="text-center">Loading product catalog...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+    <!-- ===================================================
+         INSTAGRAM
+    ==================================================== -->
+    <section class="instagram-section">
+      <div class="section-heading section-heading--center">
+        <p class="eyebrow">SOCIAL · 소셜</p>
+        <h2>FOLLOW BULKKOT</h2>
+        <span>불꽃을 팔로우하세요</span>
+      </div>
+      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="instagram-handle">@bulkkot.wear</a>
+    </section>
 
-      <!-- TAB 3: SITE CONTENT EDITOR -->
-      <section id="tab-site-content" class="tab-pane">
-        <div class="info-banner">
-          <p>Modify live texts, announcement ticker, hero titles and visual URLs instantly. Edits sync dynamically with the live site database without redeploying code.</p>
+    <!-- ===================================================
+         WAITLIST
+    ==================================================== -->
+    <section class="waitlist-section" id="waitlist">
+      <div class="waitlist-inner">
+        <div class="waitlist-copy">
+          <p class="eyebrow">DROP 001</p>
+          <h2>BE FIRST TO KNOW</h2>
+          <span>가장 먼저 만나보세요</span>
+          <p>Join the VIP waitlist to receive access before Drop 001 goes live.</p>
         </div>
 
-        <div class="tabs-subnav" id="content-sections-tabs">
-          <button class="subnav-btn active" data-content-group="announcement">Announcement</button>
-          <button class="subnav-btn" data-content-group="hero">Hero Section</button>
-          <button class="subnav-btn" data-content-group="drop">Drop 001</button>
-          <button class="subnav-btn" data-content-group="about">About Brand</button>
-          <button class="subnav-btn" data-content-group="philosophy">Philosophy</button>
-          <button class="subnav-btn" data-content-group="contact">Contact & Social</button>
-        </div>
-
-        <form id="site-content-form">
-          <div id="content-fields-container" class="card mt-3">
-            <!-- Dynamic Key-Value Inputs generated via admin.js -->
+        <form class="waitlist-form" data-waitlist-form novalidate>
+          <label for="waitlist-email">EMAIL ADDRESS</label>
+          <div class="waitlist-input-row">
+            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" required>
+            <button type="submit" class="button button--primary">JOIN</button>
           </div>
-          <div class="form-actions-fixed">
-            <button type="submit" id="save-content-btn" class="btn btn-primary">SAVE ALL CHANGES LIVE</button>
-          </div>
+          <div class="waitlist-message" data-waitlist-message aria-live="polite"></div>
         </form>
-      </section>
-
-      <!-- TAB 4: ORDERS MANAGER -->
-      <section id="tab-orders" class="tab-pane">
-        <div class="card">
-          <div class="card-header">
-            <h3>Customer Orders</h3>
-          </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Order #</th>
-                  <th>Customer Name</th>
-                  <th>Contact Info</th>
-                  <th>Total</th>
-                  <th>Payment</th>
-                  <th>Fulfillment Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="orders-table-body">
-                <tr><td colspan="7" class="text-center">Fetching orders...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 5: WAITLIST MANAGER -->
-      <section id="tab-waitlist" class="tab-pane">
-        <div class="action-bar">
-          <div>
-            <h3>VIP Signups Catalog</h3>
-            <p class="text-muted">Direct subscriber list for Drop 001 launch announcement.</p>
-          </div>
-          <button id="export-waitlist-csv" class="btn btn-secondary">↓ Export CSV</button>
-        </div>
-
-        <div class="card mt-3">
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Email Address</th>
-                  <th>Date Joined</th>
-                </tr>
-              </thead>
-              <tbody id="waitlist-table-body">
-                <tr><td colspan="3" class="text-center">Loading subscriber list...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 6: MEDIA LIBRARY -->
-      <section id="tab-media" class="tab-pane">
-        <div class="action-bar">
-          <p class="text-muted">All uploaded assets in Supabase Storage Bucket (<code>product-images</code>).</p>
-          <label class="btn btn-primary" style="cursor: pointer;">
-            + Upload New Media
-            <input type="file" id="media-direct-upload" accept="image/*" multiple style="display: none;">
-          </label>
-        </div>
-
-        <div id="media-gallery" class="media-grid mt-3">
-          <!-- Populated dynamically -->
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <!-- ==========================================
-       MODAL: ADD / EDIT PRODUCT
-  =========================================== -->
-  <div id="product-modal" class="modal-backdrop" style="display: none;">
-    <div class="modal-card modal-lg">
-      <div class="modal-header">
-        <h3 id="product-modal-title">Add New Product</h3>
-        <button type="button" class="modal-close" data-close-modal="product-modal">&times;</button>
       </div>
-      <form id="product-form">
-        <input type="hidden" id="prod-id">
+    </section>
 
-        <div class="form-row">
-          <div class="form-group flex-2">
-            <label for="prod-name">Product Name *</label>
-            <input type="text" id="prod-name" required placeholder="e.g. OVERSIZED TEE 001">
-          </div>
-          <div class="form-group flex-1">
-            <label for="prod-category">Category *</label>
-            <select id="prod-category" required>
-              <option value="tees">Tees (티셔츠)</option>
-              <option value="hoods">Hoods (후드)</option>
-              <option value="sweats">Sweats (스웨트)</option>
-              <option value="bottoms">Bottoms</option>
-              <option value="accessories">Accessories</option>
-            </select>
-          </div>
-          <div class="form-group flex-1">
-            <label for="prod-price">Price (₹ INR) *</label>
-            <input type="number" id="prod-price" required min="0" step="1" placeholder="2499">
-          </div>
-        </div>
+    <!-- ===================================================
+         CONTACT
+    ==================================================== -->
+    <section class="contact-section" id="contact">
+      <div class="section-heading">
+        <p class="eyebrow">CONTACT · 문의</p>
+        <h2>GET IN TOUCH</h2>
+      </div>
 
-        <div class="form-group">
-          <label for="prod-desc">Product Description & Specs</label>
-          <textarea id="prod-desc" rows="3" placeholder="Heavyweight 280 GSM combed cotton. Boxy drop-shoulder cut..."></textarea>
-        </div>
+      <div class="contact-list">
+        <a href="mailto:bulkkotwear@gmail.com" class="contact-item">
+          <span>GENERAL ENQUIRIES</span>
+          <strong>bulkkotwear@gmail.com</strong>
+        </a>
+        <a href="mailto:bulkkotwear@gmail.com?subject=BULKKOT%20Collaboration" class="contact-item">
+          <span>COLLABORATIONS</span>
+          <strong>CONTACT US →</strong>
+        </a>
+      </div>
+    </section>
 
-        <!-- Inventory matrix (JSONB format) -->
-        <label>Size Inventory Allocation</label>
-        <div class="form-row sizes-grid">
-          <div class="form-group">
-            <label class="size-label">Small (S)</label>
-            <input type="number" id="size-s" min="0" value="0">
-          </div>
-          <div class="form-group">
-            <label class="size-label">Medium (M)</label>
-            <input type="number" id="size-m" min="0" value="0">
-          </div>
-          <div class="form-group">
-            <label class="size-label">Large (L)</label>
-            <input type="number" id="size-l" min="0" value="0">
-          </div>
-          <div class="form-group">
-            <label class="size-label">X-Large (XL)</label>
-            <input type="number" id="size-xl" min="0" value="0">
-          </div>
-        </div>
+  </main>
 
-        <!-- Supabase Direct Storage Image Upload -->
-        <div class="form-group">
-          <label>Product Images (Upload to Supabase Storage)</label>
-          <div class="drop-zone" id="product-drop-zone">
-            <input type="file" id="prod-images-input" multiple accept="image/*" style="display: none;">
-            <p>Click here or drag images to upload directly to <code>product-images</code> bucket</p>
-          </div>
-          <div id="product-images-preview" class="image-previews-tray"></div>
-        </div>
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <a href="#top" class="brand">
+        <span class="brand-name">
+          <span class="brand-korean">불꽃</span>
+          <span class="brand-english">BULKKOT</span>
+        </span>
+      </a>
+      <p>Korean-inspired premium everyday wear.</p>
+      <p class="footer-tagline">Less noise. More presence.</p>
+    </div>
 
-        <div class="form-group">
-          <label class="checkbox-inline">
-            <input type="checkbox" id="prod-is-active" checked>
-            <span>Product is Active and visible on Storefront</span>
-          </label>
-        </div>
+    <div class="footer-column">
+      <h3>SHOP</h3>
+      <a href="#shop">Tees</a>
+      <a href="#shop">Hoods</a>
+      <a href="#shop">Sweats</a>
+      <a href="#drop-001">Drop 001</a>
+    </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-close-modal="product-modal">Cancel</button>
-          <button type="submit" id="save-product-btn" class="btn btn-primary">Save Product</button>
-        </div>
+    <div class="footer-column">
+      <h3>ABOUT</h3>
+      <a href="#about">About BULKKOT</a>
+      <button type="button" data-open-about>Brand Story</button>
+    </div>
+
+    <div class="footer-column">
+      <h3>HELP</h3>
+      <button type="button" data-open-policy="faq">FAQ</button>
+      <button type="button" data-open-policy="size">Size Guide</button>
+      <button type="button" data-open-policy="shipping">Shipping Policy</button>
+      <button type="button" data-open-policy="returns">Returns & Exchange</button>
+    </div>
+
+    <div class="footer-column">
+      <h3>LEGAL</h3>
+      <button type="button" data-open-policy="privacy">Privacy Policy</button>
+      <button type="button" data-open-policy="terms">Terms & Conditions</button>
+    </div>
+
+    <div class="footer-column">
+      <h3>CONNECT</h3>
+      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">Instagram</a>
+      <a href="mailto:bulkkotwear@gmail.com">Email</a>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 BULKKOT (불꽃). ALL RIGHTS RESERVED.</span>
+      <span>INDIA</span>
+    </div>
+  </footer>
+
+  <!-- =====================================================
+       MODALS & DRAWERS
+  ====================================================== -->
+  <div class="drawer-overlay" data-cart-overlay></div>
+  <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
+    <div class="cart-drawer__header">
+      <div>
+        <p class="eyebrow">BULKKOT</p>
+        <h2>YOUR CART</h2>
+      </div>
+      <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
+    </div>
+    <div class="drawer__body" id="cart-content"></div>
+  </aside>
+
+  <div class="search-modal" data-search-modal aria-hidden="true">
+    <div class="search-modal__inner">
+      <button type="button" class="drawer-close" data-close-search aria-label="Close search">×</button>
+      <p class="eyebrow">BULKKOT SEARCH</p>
+      <h2>SEARCH</h2>
+      <form class="search-form">
+        <label for="site-search" class="sr-only">Search</label>
+        <input id="site-search" type="search" placeholder="Search products..." autocomplete="off">
+        <button type="submit" class="button button--primary">SEARCH</button>
       </form>
     </div>
   </div>
 
-  <!-- ==========================================
-       MODAL: ORDER DETAILS & FULFILLMENT
-  =========================================== -->
-  <div id="order-modal" class="modal-backdrop" style="display: none;">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="order-modal-title">Order #---</h3>
-        <button type="button" class="modal-close" data-close-modal="order-modal">&times;</button>
-      </div>
-      <div id="order-modal-body" class="order-detail-content">
-        <!-- Rendered via JS -->
+  <div class="content-modal" data-about-modal aria-hidden="true">
+    <div class="content-modal__panel">
+      <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
+      <p class="eyebrow">BULKKOT · 불꽃</p>
+      <h2>OUR STORY</h2>
+      <div class="modal-copy">
+        <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
+        <p>We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
+        <p class="modal-signature">Less noise. More presence.</p>
       </div>
     </div>
   </div>
 
-  <!-- Notification Toast -->
-  <div id="admin-toast" class="admin-toast"></div>
+  <div class="content-modal" data-policy-modal aria-hidden="true">
+    <div class="content-modal__panel content-modal__panel--large">
+      <button type="button" class="drawer-close" data-close-policy aria-label="Close information">×</button>
+      <p class="eyebrow" data-policy-eyebrow>BULKKOT</p>
+      <h2 data-policy-title>INFORMATION</h2>
+      <div class="modal-copy" data-policy-content></div>
+    </div>
+  </div>
 
-  <script src="admin.js"></script>
+  <!-- Policy Templates -->
+  <template id="policy-faq">
+    <p><strong>When does Drop 001 launch?</strong></p>
+    <p>Drop 001 is coming soon. Join the VIP waitlist to receive access first.</p>
+    <p><strong>Where do you ship?</strong></p>
+    <p>We ship nationwide across India.</p>
+  </template>
+
+  <template id="policy-size">
+    <p>BULKKOT garments feature relaxed, boxy oversized silhouettes. A complete measurement chart will accompany each product upon launch.</p>
+  </template>
+
+  <template id="policy-shipping">
+    <p>All Drop 001 orders will be fulfilled using express courier partners with door-to-door tracking.</p>
+  </template>
+
+  <template id="policy-returns">
+    <p>We offer 7-day exchanges on unused garments in original packaging with tags intact.</p>
+  </template>
+
+  <template id="policy-privacy">
+    <p>BULKKOT respects your privacy. Email addresses collected for the VIP waitlist are only used for launch updates.</p>
+  </template>
+
+  <template id="policy-terms">
+    <p>By browsing BULKKOT, you agree to lawful use of our services and content.</p>
+  </template>
+
+  <!-- Scripts -->
+  <script src="js/cart.js" defer></script>
+  <script src="js/main.js" defer></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const modal = document.querySelector("[data-policy-modal]");
+      const title = document.querySelector("[data-policy-title]");
+      const content = document.querySelector("[data-policy-content]");
+      const closeBtn = document.querySelector("[data-close-policy]");
+
+      const titles = {
+        faq: "FAQ",
+        size: "SIZE GUIDE",
+        shipping: "SHIPPING POLICY",
+        returns: "RETURNS & EXCHANGE",
+        privacy: "PRIVACY POLICY",
+        terms: "TERMS & CONDITIONS"
+      };
+
+      document.querySelectorAll("[data-open-policy]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const type = btn.getAttribute("data-open-policy");
+          const tpl = document.getElementById("policy-" + type);
+          if (tpl && modal && content) {
+            title.textContent = titles[type] || "INFORMATION";
+            content.innerHTML = "";
+            content.appendChild(tpl.content.cloneNode(true));
+            modal.classList.add("is-open");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("modal-open");
+          }
+        });
+      });
+
+      closeBtn?.addEventListener("click", () => {
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+      });
+
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          modal.classList.remove("is-open");
+          modal.setAttribute("aria-hidden", "true");
+          document.body.classList.remove("modal-open");
+        }
+      });
+    });
+  </script>
+
 </body>
 </html>
