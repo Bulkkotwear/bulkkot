@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Controller
- * Version: 2.1
+ * Version: 2.2 (Carousel & Layout Fixed)
  */
 (function () {
   'use strict';
@@ -49,6 +49,7 @@
       .filter(Boolean).join(" ").toLowerCase();
   }
 
+  /* 1. Dynamic Catalog */
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
     if (!grid) return;
@@ -303,6 +304,46 @@
     }
   }
 
+  /* 2. Editorial Carousel (Slider Stack Fix) */
+  function initEditorialCarousel() {
+    const carousel = document.querySelector("[data-carousel]");
+    if (!carousel) return;
+
+    const track = carousel.querySelector("[data-carousel-track]");
+    const slides = Array.from(carousel.querySelectorAll("[data-slide]"));
+    const prevBtn = carousel.querySelector("[data-carousel-prev]");
+    const nextBtn = carousel.querySelector("[data-carousel-next]");
+    const dots = Array.from(carousel.querySelectorAll("[data-carousel-dot], [data-slide-indicator]"));
+
+    let currentIndex = 0;
+    const total = slides.length;
+    if (total === 0) return;
+
+    function goToSlide(index) {
+      currentIndex = (index + total) % total;
+      if (track) {
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+      }
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle("is-active", idx === currentIndex);
+      });
+    }
+
+    prevBtn?.addEventListener("click", () => goToSlide(currentIndex - 1));
+    nextBtn?.addEventListener("click", () => goToSlide(currentIndex + 1));
+
+    dots.forEach((dot, idx) => {
+      dot.addEventListener("click", () => goToSlide(idx));
+    });
+
+    // Autoplay slider every 5s
+    setInterval(() => {
+      goToSlide(currentIndex + 1);
+    }, 5000);
+
+    goToSlide(0);
+  }
+
   function initWaitlist() {
     const form = document.querySelector("[data-waitlist-form]");
     const message = document.querySelector("[data-waitlist-message]");
@@ -446,6 +487,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     initCatalog();
+    initEditorialCarousel();
     initWaitlist();
     initCategoryFilter();
     initSearch();
