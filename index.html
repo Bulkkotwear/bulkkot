@@ -25,7 +25,7 @@
 
 <body>
 
-<!-- ANNOUNCEMENT TICKER -->
+  <!-- ANNOUNCEMENT TICKER -->
   <div class="announcement-bar" aria-label="Announcement">
     <div class="announcement-track">
       <div class="announcement-content">
@@ -71,7 +71,7 @@
         </button>
 
         <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="header-action instagram-action" aria-label="BULKKOT Instagram">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="12" cy="4" r="4"/><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>
         </a>
 
         <button type="button" class="header-action cart-action" aria-label="Open cart" data-open-cart>
@@ -100,6 +100,7 @@
       <a href="#drop-001" data-close-drawer><span>DROP 001</span><small>첫 번째 드롭</small></a>
       <a href="#collections" data-close-drawer><span>COLLECTIONS</span><small>컬렉션</small></a>
       <a href="#about" data-close-drawer><span>ABOUT</span><small>브랜드 소개</small></a>
+      <button type="button" data-size-guide-open data-close-drawer style="text-align:left; background:transparent; border:0; color:#fff; font-size:14px; font-weight:700; padding:12px 0; cursor:pointer;"><span>SIZE GUIDE</span><small style="display:block; color:#777; font-size:10px;">사이즈 가이드</small></button>
       <a href="#contact" data-close-drawer><span>CONTACT</span><small>문의</small></a>
     </nav>
 
@@ -207,15 +208,18 @@
           <button type="button" class="shop-filter" data-shop-category="sweats">SWEATS</button>
         </div>
 
-        <label class="shop-sort">
-          <span class="sr-only">Sort products</span>
-          <select id="shop-sort" aria-label="Sort products">
-            <option value="featured">FEATURED</option>
-            <option value="newest">NEWEST</option>
-            <option value="price-low">PRICE: LOW TO HIGH</option>
-            <option value="price-high">PRICE: HIGH TO LOW</option>
-          </select>
-        </label>
+        <div class="shop-toolbar__actions">
+          <button type="button" class="size-guide-trigger" data-size-guide-open>SIZE GUIDE</button>
+          <label class="shop-sort">
+            <span class="sr-only">Sort products</span>
+            <select id="shop-sort" aria-label="Sort products">
+              <option value="featured">FEATURED</option>
+              <option value="newest">NEWEST</option>
+              <option value="price-low">PRICE: LOW TO HIGH</option>
+              <option value="price-high">PRICE: HIGH TO LOW</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <!-- DYNAMIC PRODUCT GRID -->
@@ -319,7 +323,7 @@
     <div class="footer-column">
       <h3>HELP</h3>
       <button type="button" data-open-policy="faq">FAQ</button>
-      <button type="button" data-open-policy="size">Size Guide</button>
+      <button type="button" data-size-guide-open>Size Guide</button>
       <button type="button" data-open-policy="shipping">Shipping Policy</button>
       <button type="button" data-open-policy="returns">Returns & Exchange</button>
     </div>
@@ -384,13 +388,77 @@
     </div>
   </div>
 
+  <!-- BULKKOT SIZE GUIDE MODAL -->
+  <div class="size-guide-modal" data-size-guide-modal aria-hidden="true">
+    <div class="size-guide-backdrop" data-size-guide-close></div>
+    <div class="size-guide-panel" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
+      <button type="button" class="size-guide-close" data-size-guide-close aria-label="Close size guide">×</button>
+      <div class="size-guide-header">
+        <span class="size-guide-eyebrow">BULKKOT / FIT GUIDE</span>
+        <h2 id="size-guide-title">SIZE GUIDE</h2>
+        <p>Exact garment measurements. All measurements are in inches.</p>
+      </div>
+
+      <div class="size-guide-tabs" role="tablist" aria-label="Size categories">
+        <button type="button" class="size-guide-tab is-active" data-size-guide-tab="tees" role="tab" aria-selected="true">TEES</button>
+        <button type="button" class="size-guide-tab" data-size-guide-tab="hoodies" role="tab" aria-selected="false">HOODS & SWEATS</button>
+      </div>
+
+      <!-- TEES -->
+      <div class="size-guide-table-wrap is-active" data-size-guide-panel="tees">
+        <div class="size-guide-table-scroll">
+          <table class="size-guide-table">
+            <thead>
+              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
+            </thead>
+            <tbody>
+              <tr><th>S</th><td>42"</td><td>28.5"</td><td>20.5"</td><td>8.5"</td></tr>
+              <tr><th>M</th><td>44"</td><td>29.5"</td><td>21.5"</td><td>9.0"</td></tr>
+              <tr><th>L</th><td>46"</td><td>30.5"</td><td>22.5"</td><td>9.5"</td></tr>
+              <tr><th>XL</th><td>48"</td><td>31.5"</td><td>23.5"</td><td>10.0"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="size-guide-fabric">
+          <strong>OVERSIZED TEES</strong>
+          <span>220+ GSM Heavyweight Combed Cotton</span>
+        </div>
+      </div>
+
+      <!-- HOODIES & SWEATS -->
+      <div class="size-guide-table-wrap" data-size-guide-panel="hoodies" hidden>
+        <div class="size-guide-table-scroll">
+          <table class="size-guide-table">
+            <thead>
+              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
+            </thead>
+            <tbody>
+              <tr><th>S</th><td>44"</td><td>27.5"</td><td>22.0"</td><td>23.5"</td></tr>
+              <tr><th>M</th><td>46"</td><td>28.5"</td><td>23.0"</td><td>24.0"</td></tr>
+              <tr><th>L</th><td>48"</td><td>29.5"</td><td>24.0"</td><td>24.5"</td></tr>
+              <tr><th>XL</th><td>50"</td><td>30.5"</td><td>25.0"</td><td>25.0"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="size-guide-fabric">
+          <strong>OVERSIZED HOODIES & SWEATS</strong>
+          <span>380+ GSM Heavyweight Fleece</span>
+        </div>
+      </div>
+
+      <div class="size-guide-fit">
+        <span class="size-guide-fit-label">FIT</span>
+        <p>Boxy, relaxed drop-shoulder cut. True to streetwear size — size down for a regular fit.</p>
+      </div>
+    </div>
+  </div>
+
   <template id="policy-faq">
     <p><strong>When does Drop 001 launch?</strong></p>
     <p>Drop 001 is coming soon. Join the VIP waitlist to receive access first.</p>
     <p><strong>Where do you ship?</strong></p>
     <p>We ship nationwide across India.</p>
   </template>
-  <template id="policy-size"><p>BULKKOT garments feature relaxed, boxy oversized silhouettes. A complete measurement chart will accompany each product upon launch.</p></template>
   <template id="policy-shipping"><p>All Drop 001 orders will be fulfilled using express courier partners with door-to-door tracking.</p></template>
   <template id="policy-returns"><p>We offer 7-day exchanges on unused garments in original packaging with tags intact.</p></template>
   <template id="policy-privacy"><p>BULKKOT respects your privacy. Email addresses collected for the VIP waitlist are only used for launch updates.</p></template>
@@ -409,7 +477,6 @@
 
       const titles = {
         faq: "FAQ",
-        size: "SIZE GUIDE",
         shipping: "SHIPPING POLICY",
         returns: "RETURNS & EXCHANGE",
         privacy: "PRIVACY POLICY",
