@@ -67,6 +67,10 @@
 
       <div class="header-actions">
         <button type="button" class="header-track-order" data-open-track-order aria-label="Track your order">TRACK ORDER</button>
+        
+        <button type="button" class="header-account" data-open-account aria-label="Open account">
+          <span data-account-label>ACCOUNT</span>
+        </button>
 
         <button type="button" class="header-action" aria-label="Search" data-open-search>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
@@ -104,6 +108,7 @@
       <a href="#about" data-close-drawer><span>ABOUT</span><small>브랜드 소개</small></a>
       <button type="button" data-size-guide-open data-close-drawer style="text-align:left; background:transparent; border:0; color:#fff; font-size:14px; font-weight:700; padding:12px 0; cursor:pointer;"><span>SIZE GUIDE</span><small style="display:block; color:#777; font-size:10px;">사이즈 가이드</small></button>
       <button type="button" class="mobile-nav-track" data-open-track-order data-close-drawer><span>TRACK ORDER</span><small>주문 배송 조회</small></button>
+      <button type="button" class="mobile-nav-track" data-open-account data-close-drawer><span>ACCOUNT</span><small>계정 및 로그인</small></button>
       <a href="#contact" data-close-drawer><span>CONTACT</span><small>문의</small></a>
     </nav>
 
@@ -326,6 +331,7 @@
     <div class="footer-column">
       <h3>HELP</h3>
       <button type="button" data-open-track-order>Track Order</button>
+      <button type="button" data-open-account>My Account</button>
       <button type="button" data-open-policy="faq">FAQ</button>
       <button type="button" data-size-guide-open>Size Guide</button>
       <button type="button" data-open-policy="shipping">Shipping Policy</button>
@@ -347,6 +353,19 @@
     </div>
   </footer>
 
+  <!-- WHATSAPP FLOAT BUTTON -->
+  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20BULKKOT%2C%20I%20need%20help%20with%20Drop%20001%20sizing%2Forder" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Chat with BULKKOT on WhatsApp">
+    <span class="whatsapp-float__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.53 0 .2 5.32.2 11.88c0 2.1.55 4.15 1.6 5.96L.1 24l6.3-1.65a11.87 11.87 0 0 0 5.67 1.44h.01c6.55 0 11.88-5.33 11.88-11.89 0-3.17-1.23-6.15-3.44-8.42ZM12.08 21.76h-.01a9.85 9.85 0 0 1-5.02-1.37l-.36-.21-3.74.98 1-3.65-.23-.37a9.86 9.86 0 1 1 8.36 4.62Zm5.41-7.39c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.21 5.08 4.5.71.31 1.26.49 1.69.63.71.23 1.35.2 1.86.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.28.17-1.41-.07-.12-.27-.2-.57-.35Z" fill="currentColor"/>
+      </svg>
+    </span>
+    <span class="whatsapp-float__text">
+      <strong>CHAT WITH US</strong>
+      <small>Need help?</small>
+    </span>
+  </a>
+
   <!-- MODALS & DRAWERS -->
   <div class="drawer-overlay" data-cart-overlay></div>
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
@@ -356,6 +375,110 @@
     </div>
     <div class="drawer__body" id="cart-content"></div>
   </aside>
+
+  <!-- CUSTOMER ACCOUNT MODAL -->
+  <div class="account-modal" data-account-modal aria-hidden="true">
+    <div class="account-backdrop" data-account-close></div>
+    <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
+      <button type="button" class="account-close" data-account-close aria-label="Close account">×</button>
+
+      <!-- AUTH VIEW -->
+      <div class="account-auth-view" data-account-auth>
+        <div class="account-header">
+          <p class="eyebrow">BULKKOT · ACCOUNT</p>
+          <h2 id="account-title">SIGN IN</h2>
+          <p>Sign in to view your orders and save your shipping details.</p>
+        </div>
+
+        <form class="account-auth-form" data-account-login-form novalidate>
+          <div class="account-field">
+            <label for="account-email">EMAIL</label>
+            <input id="account-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+          </div>
+          <div class="account-field">
+            <label for="account-password">PASSWORD</label>
+            <input id="account-password" type="password" name="password" autocomplete="current-password" placeholder="Your password" required>
+          </div>
+          <button type="submit" class="button button--primary account-submit">SIGN IN</button>
+          <p class="account-message" data-account-message aria-live="polite"></p>
+        </form>
+
+        <div class="account-divider"><span>OR</span></div>
+
+        <button type="button" class="account-google" data-google-login>
+          <span class="account-google-icon">G</span> CONTINUE WITH GOOGLE
+        </button>
+
+        <div class="account-auth-switch">
+          <span>Don't have an account?</span>
+          <button type="button" data-account-signup-toggle>CREATE ACCOUNT</button>
+        </div>
+      </div>
+
+      <!-- USER ACCOUNT VIEW -->
+      <div class="account-user-view" data-account-user hidden>
+        <div class="account-header">
+          <p class="eyebrow">BULKKOT · ACCOUNT</p>
+          <h2>MY ACCOUNT</h2>
+          <p data-account-user-email>—</p>
+        </div>
+
+        <section class="account-section">
+          <div class="account-section-head">
+            <div>
+              <span class="eyebrow">PROFILE</span>
+              <h3>SHIPPING DETAILS</h3>
+            </div>
+          </div>
+
+          <form class="account-profile-form" data-account-profile-form>
+            <div class="account-field">
+              <label for="account-name">FULL NAME</label>
+              <input id="account-name" name="full_name" type="text" autocomplete="name" placeholder="Full name">
+            </div>
+            <div class="account-field">
+              <label for="account-phone">PHONE</label>
+              <input id="account-phone" name="phone" type="tel" autocomplete="tel" placeholder="Phone number">
+            </div>
+            <div class="account-field">
+              <label for="account-address">ADDRESS</label>
+              <textarea id="account-address" name="shipping_address" autocomplete="street-address" placeholder="House / street / area" rows="3"></textarea>
+            </div>
+            <div class="account-profile-grid">
+              <div class="account-field">
+                <label for="account-city">CITY</label>
+                <input id="account-city" name="shipping_city" type="text" autocomplete="address-level2">
+              </div>
+              <div class="account-field">
+                <label for="account-state">STATE</label>
+                <input id="account-state" name="shipping_state" type="text" autocomplete="address-level1">
+              </div>
+              <div class="account-field">
+                <label for="account-pincode">PINCODE</label>
+                <input id="account-pincode" name="shipping_pincode" type="text" inputmode="numeric" autocomplete="postal-code">
+              </div>
+            </div>
+            <button type="submit" class="button button--primary" style="margin-top:10px;">SAVE DETAILS</button>
+            <p class="account-message" data-profile-message aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="account-section">
+          <div class="account-section-head">
+            <div>
+              <span class="eyebrow">HISTORY</span>
+              <h3>MY ORDERS</h3>
+            </div>
+          </div>
+          <div class="account-orders" data-account-orders>
+            <div class="account-orders-loading">Loading orders...</div>
+          </div>
+        </section>
+
+        <button type="button" class="account-signout" data-account-signout>SIGN OUT</button>
+      </div>
+    </section>
+  </div>
 
   <!-- BULKKOT GUEST ORDER TRACKING MODAL -->
   <div class="track-order-modal" data-track-order-modal aria-hidden="true">
@@ -384,7 +507,6 @@
         <p class="track-order-message" data-track-order-message aria-live="polite"></p>
       </form>
 
-      <!-- RESULT PANEL -->
       <div class="track-order-result" data-track-order-result hidden>
         <div class="track-order-result-head">
           <div>
@@ -395,9 +517,7 @@
         </div>
 
         <div class="track-progress">
-          <div class="track-progress-line" aria-hidden="true">
-            <span data-track-progress-line></span>
-          </div>
+          <div class="track-progress-line" aria-hidden="true"><span data-track-progress-line></span></div>
           <div class="track-progress-steps">
             <div class="track-step" data-track-step="ORDER PLACED"><span class="track-step-dot"></span><strong>ORDER PLACED</strong></div>
             <div class="track-step" data-track-step="PAYMENT CONFIRMED"><span class="track-step-dot"></span><strong>PAYMENT CONFIRMED</strong></div>
