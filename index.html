@@ -2,643 +2,479 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="BULKKOT (불꽃) — Korean-inspired premium everyday wear. Drop 001 coming soon.">
-  <meta name="theme-color" content="#000000">
-
-  <title>BULKKOT (불꽃) — Premium Everyday Wear</title>
-
-  <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
-
-  <!-- Google Fonts -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BULKKOT — Heavyweight Streetwear</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #070707;
+      --surface: #0f0f0f;
+      --surface-2: #161616;
+      --border: #222222;
+      --text: #f5f5f5;
+      --muted: #888888;
+      --flame: #e50914;
+      --flame-dark: #b80710;
+      --green: #31c48d;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font-family: inherit; }
 
-  <!-- Core Styles -->
-  <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/components.css">
+    /* Nav */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; height: 70px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%; background: rgba(7, 7, 7, 0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border); z-index: 100;
+    }
+    .logo { font-size: 22px; font-weight: 900; letter-spacing: -1px; }
+    .logo span { color: var(--flame); }
+    nav { display: flex; gap: 24px; align-items: center; }
+    nav a { font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); transition: color .2s; }
+    nav a:hover { color: #fff; }
+    .cart-trigger { background: transparent; border: 1px solid var(--border); color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; gap: 8px; align-items: center; }
+    .cart-count { background: var(--flame); color: #fff; border-radius: 50%; padding: 2px 7px; font-size: 10px; }
+
+    /* Hero */
+    .hero {
+      min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center; padding: 120px 20px 60px;
+      background: radial-gradient(circle at 50% 30%, rgba(229, 9, 20, 0.12), transparent 60%);
+    }
+    .hero-tag { font-size: 12px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--flame); margin-bottom: 16px; }
+    .hero h1 { font-size: clamp(38px, 8vw, 76px); font-weight: 900; letter-spacing: -2px; line-height: 1.05; max-width: 900px; margin-bottom: 20px; }
+    .hero p { font-size: 16px; color: var(--muted); max-width: 540px; margin-bottom: 32px; line-height: 1.6; }
+    .btn-cta { background: var(--flame); color: #fff; padding: 15px 36px; border-radius: 30px; font-weight: 800; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; border: none; cursor: pointer; transition: background .2s; }
+    .btn-cta:hover { background: var(--flame-dark); }
+
+    /* Section Headers */
+    .section-head { text-align: center; margin-bottom: 40px; }
+    .section-head h2 { font-size: 32px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
+    .section-head p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+    /* Store Grid */
+    .shop-section { max-width: 1280px; margin: 0 auto; padding: 60px 20px 100px; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+    .product-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+    .product-img-wrap { aspect-ratio: 1/1; background: var(--surface-2); position: relative; overflow: hidden; }
+    .product-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
+    .product-card:hover .product-img-wrap img { transform: scale(1.04); }
+    .product-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+    .product-cat { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; color: var(--flame); text-transform: uppercase; margin-bottom: 6px; }
+    .product-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+    .product-price { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+    .size-select-wrap { display: flex; gap: 8px; margin-bottom: 16px; }
+    .size-btn { flex: 1; padding: 7px 0; background: var(--surface-2); border: 1px solid var(--border); color: #fff; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+    .size-btn.active { border-color: var(--flame); background: rgba(229, 9, 20, 0.15); color: #fff; }
+    .size-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .add-to-cart-btn { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 4px; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; margin-top: auto; transition: opacity .2s; }
+    .add-to-cart-btn:hover { opacity: 0.9; }
+
+    /* Waitlist / Newsletter */
+    .vip-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 20px; text-align: center; }
+    .vip-box { max-width: 500px; margin: 0 auto; }
+    .vip-box h2 { font-size: 32px; font-weight: 900; margin-bottom: 12px; }
+    .vip-box p { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+    .vip-form { display: flex; gap: 8px; }
+    .vip-form input { flex: 1; padding: 14px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: #fff; font-size: 13px; outline: none; }
+    .vip-form input:focus { border-color: var(--flame); }
+    .vip-form button { padding: 14px 24px; background: var(--flame); color: #fff; border: none; border-radius: 4px; font-weight: 800; font-size: 12px; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+
+    /* Cart Drawer */
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; opacity: 0; pointer-events: none; transition: opacity .3s; }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .cart-drawer { position: fixed; top: 0; right: 0; width: min(420px, 100%); height: 100%; background: var(--surface); border-left: 1px solid var(--border); z-index: 201; transform: translateX(100%); transition: transform .3s ease; display: flex; flex-direction: column; }
+    .cart-drawer.open { transform: translateX(0); }
+    .drawer-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .drawer-title { font-size: 18px; font-weight: 900; }
+    .close-drawer { background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer; }
+    .cart-items { padding: 20px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 16px; }
+    .cart-item { display: flex; gap: 14px; background: var(--surface-2); padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); }
+    .cart-item-img { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; }
+    .cart-item-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .cart-item-title { font-size: 14px; font-weight: 800; }
+    .cart-item-meta { font-size: 12px; color: var(--muted); margin: 3px 0 6px; }
+    .cart-item-remove { color: var(--flame); font-size: 11px; cursor: pointer; background: none; border: none; width: fit-content; font-weight: 700; }
+    .drawer-footer { padding: 20px; border-top: 1px solid var(--border); background: var(--surface); }
+    .drawer-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; margin-bottom: 16px; }
+    .checkout-btn { width: 100%; padding: 14px; background: var(--flame); color: #fff; border: none; border-radius: 4px; font-weight: 800; text-transform: uppercase; cursor: pointer; font-size: 13px; }
+
+    /* Toast */
+    #toastContainer { position: fixed; bottom: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+    .toast { background: var(--surface-2); border: 1px solid var(--border); color: #fff; padding: 12px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .toast.success { border-color: var(--green); }
+    .toast.error { border-color: var(--flame); }
+
+    /* Footer */
+    footer { padding: 40px 20px; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+  </style>
 </head>
-
 <body>
 
-  <!-- =====================================================
-       ANNOUNCEMENT TICKER
-  ====================================================== -->
-  <div class="announcement-bar" aria-label="Announcement">
-    <div class="announcement-track">
-      <span>DROP 001 — DROPPING SOON</span>
-      <span>불꽃 DROP 001 — COMING SOON</span>
-      <span>JOIN THE VIP WAITLIST</span>
-      <span>DROP 001 — DROPPING SOON</span>
-      <span>불꽃 DROP 001 — COMING SOON</span>
-      <span>JOIN THE VIP WAITLIST</span>
-    </div>
-  </div>
-
-  <!-- =====================================================
-       HEADER
-  ====================================================== -->
-  <header class="site-header">
-    <div class="header-inner">
-
-      <!-- Mobile Menu Toggle -->
-      <button class="header-menu" type="button" aria-label="Open menu" aria-controls="mobile-drawer" data-open-drawer>
-        <span></span>
-        <span></span>
+  <header>
+    <div class="logo">불꽃 <span>BULKKOT</span></div>
+    <nav>
+      <a href="#shop">Shop</a>
+      <a href="#vip">VIP Access</a>
+      <button class="cart-trigger" id="cartOpenBtn">
+        CART <span class="cart-count" id="cartCount">0</span>
       </button>
-
-      <!-- Brand -->
-      <a href="#top" class="brand" aria-label="BULKKOT home">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" onerror="this.style.display='none'">
-        <span class="brand-name">
-          <span class="brand-korean">불꽃</span>
-          <span class="brand-english">BULKKOT</span>
-        </span>
-      </a>
-
-      <!-- Desktop Navigation -->
-      <nav class="desktop-navigation" aria-label="Primary navigation">
-        <a href="#top">HOME</a>
-        <a href="#shop">SHOP</a>
-        <a href="#drop-001">DROP 001</a>
-        <a href="#collections">COLLECTIONS</a>
-        <a href="#about">ABOUT</a>
-      </nav>
-
-      <!-- Actions -->
-      <div class="header-actions">
-        <!-- Search Button -->
-        <button type="button" class="header-action" aria-label="Search" data-open-search>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
-        </button>
-
-        <!-- Instagram Direct -->
-        <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="header-action instagram-action" aria-label="BULKKOT Instagram">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>
-        </a>
-
-        <!-- Cart Trigger -->
-        <button type="button" class="header-action cart-action" aria-label="Open cart" data-open-cart>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
-          <span class="cart-count" data-cart-count hidden>0</span>
-        </button>
-      </div>
-
-    </div>
+    </nav>
   </header>
 
-  <!-- =====================================================
-       MOBILE DRAWER
-  ====================================================== -->
-  <aside class="mobile-drawer" id="mobile-drawer" data-mobile-drawer aria-hidden="true">
-    <div class="mobile-drawer__header">
-      <a href="#top" class="brand">
-        <span class="brand-name">
-          <span class="brand-korean">불꽃</span>
-          <span class="brand-english">BULKKOT</span>
-        </span>
-      </a>
-      <button type="button" class="drawer-close" aria-label="Close menu" data-close-drawer>×</button>
+  <section class="hero">
+    <span class="hero-tag" id="dyn-hero-tag">DROP 001 // UNCOMPROMISED</span>
+    <h1 id="dyn-hero-title">ENGINEERED HEAVYWEIGHT STREETWEAR</h1>
+    <p id="dyn-hero-desc">Ultra-dense custom knit cotton. Meticulously constructed silhouettes built for lifetime wear.</p>
+    <a href="#shop" class="btn-cta">Explore Collection</a>
+  </section>
+
+  <section class="shop-section" id="shop">
+    <div class="section-head">
+      <h2>Live Collection</h2>
+      <p>Direct from our warehouse. Strictly limited availability.</p>
     </div>
+    <div class="product-grid" id="productGrid">
+      <div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 40px;">
+        Loading catalog...
+      </div>
+    </div>
+  </section>
 
-    <nav class="mobile-navigation" aria-label="Mobile navigation">
-      <a href="#top" data-close-drawer><span>HOME</span><small>홈</small></a>
-      <a href="#shop" data-close-drawer><span>SHOP</span><small>쇼핑</small></a>
-      <a href="#drop-001" data-close-drawer><span>DROP 001</span><small>첫 번째 드롭</small></a>
-      <a href="#collections" data-close-drawer><span>COLLECTIONS</span><small>컬렉션</small></a>
-      <a href="#about" data-close-drawer><span>ABOUT</span><small>브랜드 소개</small></a>
-      <a href="#contact" data-close-drawer><span>CONTACT</span><small>문의</small></a>
-    </nav>
+  <section class="vip-section" id="vip">
+    <div class="vip-box">
+      <h2>JOIN THE INNER CIRCLE</h2>
+      <p>Get instant priority access to secret capsule drops, private links, and restock notifications.</p>
+      <form class="vip-form" id="waitlistForm">
+        <input type="email" id="waitlistEmail" placeholder="Enter your email" required>
+        <button type="submit" id="waitlistSubmitBtn">Get VIP Access</button>
+      </form>
+    </div>
+  </section>
 
-    <div class="mobile-drawer__footer">
-      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">@bulkkot.wear</a>
-      <a href="mailto:bulkkotwear@gmail.com">bulkkotwear@gmail.com</a>
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="drawer-header">
+      <div class="drawer-title">Shopping Bag</div>
+      <button class="close-drawer" id="cartCloseBtn">×</button>
+    </div>
+    <div class="cart-items" id="cartItemsList">
+      <div style="text-align: center; color: var(--muted); padding: 40px 0;">Your cart is empty.</div>
+    </div>
+    <div class="drawer-footer">
+      <div class="drawer-total">
+        <span>Subtotal</span>
+        <span id="cartSubtotal">₹0</span>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn">Proceed To Checkout</button>
     </div>
   </aside>
 
-  <main id="top">
-
-    <!-- ===================================================
-         HERO SECTION
-    ==================================================== -->
-    <section class="hero">
-      <div class="hero-media">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Black Tee Campaign" class="hero-image">
-      </div>
-
-      <div class="hero-overlay"></div>
-
-      <div class="hero-content">
-        <p class="hero-korean">불꽃</p>
-        <h1>BULKKOT</h1>
-        <p class="hero-label">PREMIUM EVERYDAY WEAR</p>
-        <p class="hero-description">Korean-inspired minimalist heavyweight essentials.</p>
-        <a href="#drop-001" class="button button--primary">EXPLORE DROP 001</a>
-      </div>
-
-      <div class="hero-scroll">
-        <span>SCROLL</span>
-        <i></i>
-      </div>
-    </section>
-
-    <!-- ===================================================
-         CATEGORY ROW (TEES, HOODS, SWEATS)
-    ==================================================== -->
-    <section class="category-section" id="collections">
-      <div class="section-heading">
-        <p class="eyebrow">COLLECTIONS · 컬렉션</p>
-        <h2>THE ESSENTIALS</h2>
-      </div>
-
-      <div class="category-row">
-        <!-- TEES -->
-        <a href="#shop" class="category-card" data-category="tees">
-          <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" loading="lazy">
-          </div>
-          <div class="category-name">
-            <strong>TEES</strong>
-            <span>티셔츠</span>
-          </div>
-        </a>
-
-        <!-- HOODS -->
-        <a href="#shop" class="category-card" data-category="hoods">
-          <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy">
-          </div>
-          <div class="category-name">
-            <strong>HOODS</strong>
-            <span>후드</span>
-          </div>
-        </a>
-
-        <!-- SWEATS -->
-        <a href="#shop" class="category-card" data-category="sweats">
-          <div class="category-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy">
-          </div>
-          <div class="category-name">
-            <strong>SWEATS</strong>
-            <span>스웨트</span>
-          </div>
-        </a>
-      </div>
-    </section>
-
-    <!-- ===================================================
-         EDITORIAL CAROUSEL
-    ==================================================== -->
-    <section class="editorial-section">
-      <div class="editorial-carousel" data-carousel>
-        <div class="editorial-track" data-carousel-track>
-
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Editorial Tee" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <p>불꽃 · 001</p>
-              <h2>LESS NOISE.</h2>
-              <span>MORE PRESENCE.</span>
-            </div>
-          </article>
-
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Editorial Hood" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <p>서울에서 영감</p>
-              <h2>MADE FOR</h2>
-              <span>EVERYDAY.</span>
-            </div>
-          </article>
-
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Editorial Sweat" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <p>불꽃 · BULKKOT</p>
-              <h2>QUIETLY</h2>
-              <span>DISTINCT.</span>
-            </div>
-          </article>
-
-        </div>
-
-        <button type="button" class="carousel-control carousel-control--prev" aria-label="Previous slide" data-carousel-prev>←</button>
-        <button type="button" class="carousel-control carousel-control--next" aria-label="Next slide" data-carousel-next>→</button>
-
-        <div class="carousel-indicators">
-          <button type="button" data-slide-indicator aria-label="Go to slide 1"></button>
-          <button type="button" data-slide-indicator aria-label="Go to slide 2"></button>
-          <button type="button" data-slide-indicator aria-label="Go to slide 3"></button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================================================
-         DROP 001 BANNER
-    ==================================================== -->
-    <section class="drop-section" id="drop-001">
-      <div class="drop-content">
-        <p class="eyebrow">DROP 001 · 첫 번째 드롭</p>
-        <h2>COMING SOON</h2>
-        <p>The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.</p>
-        <a href="#waitlist" class="button button--outline">JOIN WAITLIST</a>
-      </div>
-    </section>
-
-    <!-- ===================================================
-         LATEST PRODUCTS GRID
-    ==================================================== -->
-    <section class="shop-section" id="shop">
-      <div class="section-heading section-heading--split">
+  <div class="drawer-overlay" id="checkoutModalOverlay"></div>
+  <div class="cart-drawer" id="checkoutModal" style="width: min(500px, 100%);">
+    <div class="drawer-header">
+      <div class="drawer-title">Complete Order</div>
+      <button class="close-drawer" id="checkoutCloseBtn">×</button>
+    </div>
+    <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
+      <form id="orderForm" style="display:flex; flex-direction:column; gap: 14px;">
         <div>
-          <p class="eyebrow">RECENT PRODUCTS · 최근 제품</p>
-          <h2>LATEST</h2>
+          <label style="font-size:12px; color:var(--muted); font-weight:700;">Full Name *</label>
+          <input type="text" id="custName" required style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:#fff; margin-top:4px;">
         </div>
-        <span class="section-status">DROP 001 · COMING SOON</span>
-      </div>
-
-      <div class="product-grid">
-
-        <!-- Product 01 -->
-        <article class="product-card" data-product-card data-category="tees">
-          <div class="product-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Tee 001" loading="lazy">
-            <span class="product-status">COMING SOON</span>
-          </div>
-          <div class="product-information">
-            <div>
-              <h3>OVERSIZED TEE 001</h3>
-              <p>티셔츠</p>
-            </div>
-            <span>DROP 001</span>
-          </div>
-        </article>
-
-        <!-- Product 02 -->
-        <article class="product-card" data-product-card data-category="hoods">
-          <div class="product-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hood 001" loading="lazy">
-            <span class="product-status">COMING SOON</span>
-          </div>
-          <div class="product-information">
-            <div>
-              <h3>OVERSIZED HOOD 001</h3>
-              <p>후드</p>
-            </div>
-            <span>DROP 001</span>
-          </div>
-        </article>
-
-        <!-- Product 03 -->
-        <article class="product-card" data-product-card data-category="sweats">
-          <div class="product-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweat 001" loading="lazy">
-            <span class="product-status">COMING SOON</span>
-          </div>
-          <div class="product-information">
-            <div>
-              <h3>OVERSIZED SWEAT 001</h3>
-              <p>스웨트</p>
-            </div>
-            <span>DROP 001</span>
-          </div>
-        </article>
-
-        <!-- Product 04 -->
-        <article class="product-card" data-product-card data-category="tees">
-          <div class="product-image">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Signature Tee 001" loading="lazy">
-            <span class="product-status">COMING SOON</span>
-          </div>
-          <div class="product-information">
-            <div>
-              <h3>SIGNATURE TEE 001</h3>
-              <p>티셔츠</p>
-            </div>
-            <span>DROP 001</span>
-          </div>
-        </article>
-
-      </div>
-    </section>
-
-    <!-- ===================================================
-         WHY BULKKOT
-    ==================================================== -->
-    <section class="values-section">
-      <div class="section-heading">
-        <p class="eyebrow">WHY BULKKOT · 왜 불꽃인가</p>
-        <h2>BUILT WITH INTENT.</h2>
-      </div>
-
-      <div class="values-grid">
-        <article class="value-block">
-          <span>01</span>
-          <h3>PREMIUM QUALITY</h3>
-          <p>프리미엄 퀄리티</p>
-          <small>Heavyweight combed cotton and custom drapes.</small>
-        </article>
-
-        <article class="value-block">
-          <span>02</span>
-          <h3>OVERSIZED FIT</h3>
-          <p>오버사이즈 핏</p>
-          <small>Relaxed drop-shoulder cuts for modern comfort.</small>
-        </article>
-
-        <article class="value-block">
-          <span>03</span>
-          <h3>CLEAN DESIGN</h3>
-          <p>클린 디자인</p>
-          <small>Zero unnecessary noise. Pure timeless silhouette.</small>
-        </article>
-
-        <article class="value-block">
-          <span>04</span>
-          <h3>EVERYDAY ESSENTIAL</h3>
-          <p>데일리 에센셜</p>
-          <small>Garments crafted to live beyond seasonal trends.</small>
-        </article>
-      </div>
-    </section>
-
-    <!-- ===================================================
-         ABOUT
-    ==================================================== -->
-    <section class="about-section" id="about">
-      <div class="about-grid">
-        <div class="about-intro">
-          <p class="eyebrow">THE BRAND · 브랜드</p>
-          <h2>불꽃</h2>
-          <span>THE SPARK</span>
+        <div>
+          <label style="font-size:12px; color:var(--muted); font-weight:700;">Email Address *</label>
+          <input type="email" id="custEmail" required style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:#fff; margin-top:4px;">
         </div>
-
-        <div class="about-copy">
-          <p class="about-lead">Premium clothing shouldn't feel unreachable.</p>
-          <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
-          <p>We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.</p>
-          <p class="about-signature">Less noise. More presence.</p>
-          <button type="button" class="text-button" data-open-about>READ OUR STORY →</button>
+        <div>
+          <label style="font-size:12px; color:var(--muted); font-weight:700;">Phone Number *</label>
+          <input type="tel" id="custPhone" required style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:#fff; margin-top:4px;">
         </div>
-      </div>
-    </section>
-
-    <!-- ===================================================
-         PHILOSOPHY
-    ==================================================== -->
-    <section class="philosophy-section">
-      <p class="philosophy-korean">불꽃의 철학</p>
-      <h2>LESS NOISE.</h2>
-      <h3>MORE PRESENCE.</h3>
-      <p>Quiet design. Strong identity.</p>
-    </section>
-
-    <!-- ===================================================
-         INSTAGRAM
-    ==================================================== -->
-    <section class="instagram-section">
-      <div class="section-heading section-heading--center">
-        <p class="eyebrow">SOCIAL · 소셜</p>
-        <h2>FOLLOW BULKKOT</h2>
-        <span>불꽃을 팔로우하세요</span>
-      </div>
-      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="instagram-handle">@bulkkot.wear</a>
-    </section>
-
-    <!-- ===================================================
-         WAITLIST
-    ==================================================== -->
-    <section class="waitlist-section" id="waitlist">
-      <div class="waitlist-inner">
-        <div class="waitlist-copy">
-          <p class="eyebrow">DROP 001</p>
-          <h2>BE FIRST TO KNOW</h2>
-          <span>가장 먼저 만나보세요</span>
-          <p>Join the VIP waitlist to receive access before Drop 001 goes live.</p>
+        <div>
+          <label style="font-size:12px; color:var(--muted); font-weight:700;">Shipping Address *</label>
+          <textarea id="custAddress" required rows="3" style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:#fff; margin-top:4px; resize:none;"></textarea>
         </div>
-
-        <form class="waitlist-form" data-waitlist-form novalidate>
-          <label for="waitlist-email">EMAIL ADDRESS</label>
-          <div class="waitlist-input-row">
-            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" required>
-            <button type="submit" class="button button--primary">JOIN</button>
-          </div>
-          <div class="waitlist-message" data-waitlist-message aria-live="polite"></div>
-        </form>
-      </div>
-    </section>
-
-    <!-- ===================================================
-         CONTACT
-    ==================================================== -->
-    <section class="contact-section" id="contact">
-      <div class="section-heading">
-        <p class="eyebrow">CONTACT · 문의</p>
-        <h2>GET IN TOUCH</h2>
-      </div>
-
-      <div class="contact-list">
-        <a href="mailto:bulkkotwear@gmail.com" class="contact-item">
-          <span>GENERAL ENQUIRIES</span>
-          <strong>bulkkotwear@gmail.com</strong>
-        </a>
-        <a href="mailto:bulkkotwear@gmail.com?subject=BULKKOT%20Collaboration" class="contact-item">
-          <span>COLLABORATIONS</span>
-          <strong>CONTACT US →</strong>
-        </a>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- =====================================================
-       FOOTER
-  ====================================================== -->
-  <footer class="site-footer">
-    <div class="footer-brand">
-      <a href="#top" class="brand">
-        <span class="brand-name">
-          <span class="brand-korean">불꽃</span>
-          <span class="brand-english">BULKKOT</span>
-        </span>
-      </a>
-      <p>Korean-inspired premium everyday wear.</p>
-      <p class="footer-tagline">Less noise. More presence.</p>
-    </div>
-
-    <div class="footer-column">
-      <h3>SHOP</h3>
-      <a href="#shop">Tees</a>
-      <a href="#shop">Hoods</a>
-      <a href="#shop">Sweats</a>
-      <a href="#drop-001">Drop 001</a>
-    </div>
-
-    <div class="footer-column">
-      <h3>ABOUT</h3>
-      <a href="#about">About BULKKOT</a>
-      <button type="button" data-open-about>Brand Story</button>
-    </div>
-
-    <div class="footer-column">
-      <h3>HELP</h3>
-      <button type="button" data-open-policy="faq">FAQ</button>
-      <button type="button" data-open-policy="size">Size Guide</button>
-      <button type="button" data-open-policy="shipping">Shipping Policy</button>
-      <button type="button" data-open-policy="returns">Returns & Exchange</button>
-    </div>
-
-    <div class="footer-column">
-      <h3>LEGAL</h3>
-      <button type="button" data-open-policy="privacy">Privacy Policy</button>
-      <button type="button" data-open-policy="terms">Terms & Conditions</button>
-    </div>
-
-    <div class="footer-column">
-      <h3>CONNECT</h3>
-      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">Instagram</a>
-      <a href="mailto:bulkkotwear@gmail.com">Email</a>
-    </div>
-
-    <div class="footer-bottom">
-      <span>© 2026 BULKKOT (불꽃). ALL RIGHTS RESERVED.</span>
-      <span>INDIA</span>
-    </div>
-  </footer>
-
-  <!-- =====================================================
-       MODALS & DRAWERS
-  ====================================================== -->
-  <div class="drawer-overlay" data-cart-overlay></div>
-  <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
-    <div class="cart-drawer__header">
-      <div>
-        <p class="eyebrow">BULKKOT</p>
-        <h2>YOUR CART</h2>
-      </div>
-      <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
-    </div>
-    <div class="drawer__body" id="cart-content"></div>
-  </aside>
-
-  <div class="search-modal" data-search-modal aria-hidden="true">
-    <div class="search-modal__inner">
-      <button type="button" class="drawer-close" data-close-search aria-label="Close search">×</button>
-      <p class="eyebrow">BULKKOT SEARCH</p>
-      <h2>SEARCH</h2>
-      <form class="search-form">
-        <label for="site-search" class="sr-only">Search</label>
-        <input id="site-search" type="search" placeholder="Search products..." autocomplete="off">
-        <button type="submit" class="button button--primary">SEARCH</button>
+        <button type="submit" id="placeOrderBtn" class="checkout-btn" style="margin-top:10px;">Place Order</button>
       </form>
     </div>
   </div>
 
-  <div class="content-modal" data-about-modal aria-hidden="true">
-    <div class="content-modal__panel">
-      <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
-      <p class="eyebrow">BULKKOT · 불꽃</p>
-      <h2>OUR STORY</h2>
-      <div class="modal-copy">
-        <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
-        <p>We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
-        <p class="modal-signature">Less noise. More presence.</p>
-      </div>
-    </div>
-  </div>
+  <div id="toastContainer"></div>
 
-  <div class="content-modal" data-policy-modal aria-hidden="true">
-    <div class="content-modal__panel content-modal__panel--large">
-      <button type="button" class="drawer-close" data-close-policy aria-label="Close information">×</button>
-      <p class="eyebrow" data-policy-eyebrow>BULKKOT</p>
-      <h2 data-policy-title>INFORMATION</h2>
-      <div class="modal-copy" data-policy-content></div>
-    </div>
-  </div>
-
-  <!-- Policy Templates -->
-  <template id="policy-faq">
-    <p><strong>When does Drop 001 launch?</strong></p>
-    <p>Drop 001 is coming soon. Join the VIP waitlist to receive access first.</p>
-    <p><strong>Where do you ship?</strong></p>
-    <p>We ship nationwide across India.</p>
-  </template>
-
-  <template id="policy-size">
-    <p>BULKKOT garments feature relaxed, boxy oversized silhouettes. A complete measurement chart will accompany each product upon launch.</p>
-  </template>
-
-  <template id="policy-shipping">
-    <p>All Drop 001 orders will be fulfilled using express courier partners with door-to-door tracking.</p>
-  </template>
-
-  <template id="policy-returns">
-    <p>We offer 7-day exchanges on unused garments in original packaging with tags intact.</p>
-  </template>
-
-  <template id="policy-privacy">
-    <p>BULKKOT respects your privacy. Email addresses collected for the VIP waitlist are only used for launch updates.</p>
-  </template>
-
-  <template id="policy-terms">
-    <p>By browsing BULKKOT, you agree to lawful use of our services and content.</p>
-  </template>
-
-  <!-- Scripts -->
-  <script src="js/cart.js" defer></script>
-  <script src="js/main.js" defer></script>
+  <footer>
+    <p>© 2026 BULKKOT WEAR. All rights reserved. Heavyweight Apparel Co.</p>
+  </footer>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const modal = document.querySelector("[data-policy-modal]");
-      const title = document.querySelector("[data-policy-title]");
-      const content = document.querySelector("[data-policy-content]");
-      const closeBtn = document.querySelector("[data-close-policy]");
+    document.addEventListener("DOMContentLoaded", () => {
+      const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      const titles = {
-        faq: "FAQ",
-        size: "SIZE GUIDE",
-        shipping: "SHIPPING POLICY",
-        returns: "RETURNS & EXCHANGE",
-        privacy: "PRIVACY POLICY",
-        terms: "TERMS & CONDITIONS"
+      let products = [];
+      let cart = JSON.parse(localStorage.getItem("bulkkot_cart") || "[]");
+      let selectedSizes = {};
+
+      const $ = (s) => document.querySelector(s);
+
+      function toast(msg, type = "success") {
+        const c = $("#toastContainer");
+        const t = document.createElement("div");
+        t.className = `toast ${type}`;
+        t.textContent = msg;
+        c.appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+      }
+
+      function formatINR(val) {
+        return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val || 0);
+      }
+
+      // Sync Site Content
+      async function loadSiteContent() {
+        try {
+          const { data } = await supabase.from("site_content").select("*");
+          if (data) {
+            data.forEach(item => {
+              if (item.key === "hero_title" && $("#dyn-hero-title")) $("#dyn-hero-title").textContent = item.value;
+              if (item.key === "hero_subtitle" && $("#dyn-hero-desc")) $("#dyn-hero-desc").textContent = item.value;
+            });
+          }
+        } catch (err) {
+          console.error("Content load err:", err);
+        }
+      }
+
+      // Fetch & Render Live Products
+      async function loadProducts() {
+        const grid = $("#productGrid");
+        try {
+          const { data, error } = await supabase
+            .from("products")
+            .select("*")
+            .eq("active", true)
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+          products = data || [];
+
+          if (!products.length) {
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 40px;">No drops available right now. Check back soon.</div>`;
+            return;
+          }
+
+          grid.innerHTML = products.map(p => {
+            const stock = p.stock || {};
+            const sizes = ["S", "M", "L", "XL"];
+            const defaultSize = sizes.find(s => (stock[s] || 0) > 0) || "M";
+            if (!selectedSizes[p.id]) selectedSizes[p.id] = defaultSize;
+
+            const sizeButtons = sizes.map(s => {
+              const qty = stock[s] || 0;
+              const isSelected = selectedSizes[p.id] === s;
+              return `
+                <button type="button" 
+                  class="size-btn ${isSelected ? 'active' : ''}" 
+                  ${qty <= 0 ? 'disabled' : ''} 
+                  onclick="selectProductSize('${p.id}', '${s}')">
+                  ${s} ${qty <= 0 ? '(0)' : ''}
+                </button>
+              `;
+            }).join("");
+
+            return `
+              <div class="product-card">
+                <div class="product-img-wrap">
+                  <img src="${p.image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600'}" alt="${p.name}" loading="lazy">
+                </div>
+                <div class="product-info">
+                  <span class="product-cat">${p.category || 'APPAREL'}</span>
+                  <div class="product-title">${p.name}</div>
+                  <div class="product-price">${formatINR(p.price)}</div>
+                  <div class="size-select-wrap">${sizeButtons}</div>
+                  <button type="button" class="add-to-cart-btn" onclick="addToCart('${p.id}')">Add To Bag</button>
+                </div>
+              </div>
+            `;
+          }).join("");
+        } catch (err) {
+          grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--flame); padding: 40px;">Failed to load catalog. Please refresh.</div>`;
+          console.error(err);
+        }
+      }
+
+      window.selectProductSize = (productId, size) => {
+        selectedSizes[productId] = size;
+        loadProducts();
       };
 
-      document.querySelectorAll("[data-open-policy]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const type = btn.getAttribute("data-open-policy");
-          const tpl = document.getElementById("policy-" + type);
-          if (tpl && modal && content) {
-            title.textContent = titles[type] || "INFORMATION";
-            content.innerHTML = "";
-            content.appendChild(tpl.content.cloneNode(true));
-            modal.classList.add("is-open");
-            modal.setAttribute("aria-hidden", "false");
-            document.body.classList.add("modal-open");
-          }
-        });
-      });
+      // Cart Actions
+      window.addToCart = (productId) => {
+        const p = products.find(i => String(i.id) === String(productId));
+        if (!p) return;
+        const size = selectedSizes[productId] || "M";
 
-      closeBtn?.addEventListener("click", () => {
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("modal-open");
-      });
-
-      modal?.addEventListener("click", (e) => {
-        if (e.target === modal) {
-          modal.classList.remove("is-open");
-          modal.setAttribute("aria-hidden", "true");
-          document.body.classList.remove("modal-open");
+        const existing = cart.find(item => item.id === p.id && item.size === size);
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          cart.push({
+            id: p.id,
+            name: p.name,
+            price: Number(p.price),
+            image_url: p.image_url,
+            size: size,
+            quantity: 1
+          });
         }
-      });
+        saveCart();
+        toast(`Added ${p.name} (${size}) to Bag!`);
+        openCartDrawer();
+      };
+
+      window.removeFromCart = (idx) => {
+        cart.splice(idx, 1);
+        saveCart();
+        renderCart();
+      };
+
+      function saveCart() {
+        localStorage.setItem("bulkkot_cart", JSON.stringify(cart));
+        updateCartBadge();
+      }
+
+      function updateCartBadge() {
+        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+        $("#cartCount").textContent = total;
+      }
+
+      function renderCart() {
+        const list = $("#cartItemsList");
+        if (!cart.length) {
+          list.innerHTML = `<div style="text-align: center; color: var(--muted); padding: 40px 0;">Your cart is empty.</div>`;
+          $("#cartSubtotal").textContent = formatINR(0);
+          return;
+        }
+
+        let total = 0;
+        list.innerHTML = cart.map((item, idx) => {
+          total += item.price * item.quantity;
+          return `
+            <div class="cart-item">
+              <img src="${item.image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=200'}" class="cart-item-img">
+              <div class="cart-item-info">
+                <div class="cart-item-title">${item.name}</div>
+                <div class="cart-item-meta">Size: ${item.size} | Qty: ${item.quantity}</div>
+                <div style="font-weight:700;">${formatINR(item.price * item.quantity)}</div>
+                <button type="button" class="cart-item-remove" onclick="removeFromCart(${idx})">Remove</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+        $("#cartSubtotal").textContent = formatINR(total);
+      }
+
+      function openCartDrawer() {
+        renderCart();
+        $("#cartDrawer").classList.add("open");
+        $("#drawerOverlay").classList.add("open");
+      }
+
+      function closeCartDrawer() {
+        $("#cartDrawer").classList.remove("open");
+        $("#drawerOverlay").classList.remove("open");
+      }
+
+      $("#cartOpenBtn").onclick = openCartDrawer;
+      $("#cartCloseBtn").onclick = closeCartDrawer;
+      $("#drawerOverlay").onclick = closeCartDrawer;
+
+      // Checkout
+      $("#checkoutBtn").onclick = () => {
+        if (!cart.length) return toast("Your bag is empty!", "error");
+        closeCartDrawer();
+        $("#checkoutModal").classList.add("open");
+        $("#checkoutModalOverlay").classList.add("open");
+      };
+
+      const closeCheckout = () => {
+        $("#checkoutModal").classList.remove("open");
+        $("#checkoutModalOverlay").classList.remove("open");
+      };
+
+      $("#checkoutCloseBtn").onclick = closeCheckout;
+      $("#checkoutModalOverlay").onclick = closeCheckout;
+
+      // Submit Order
+      $("#orderForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = $("#placeOrderBtn");
+        btn.disabled = true;
+        btn.textContent = "Processing Order...";
+
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const orderPayload = {
+          customer_name: $("#custName").value.trim(),
+          customer_email: $("#custEmail").value.trim(),
+          customer_phone: $("#custPhone").value.trim(),
+          shipping_address: $("#custAddress").value.trim(),
+          items: cart,
+          total: total,
+          status: "processing",
+          created_at: new Date().toISOString()
+        };
+
+        try {
+          const { error } = await supabase.from("orders").insert(orderPayload);
+          if (error) throw error;
+
+          toast("Order Placed Successfully! We will contact you soon.", "success");
+          cart = [];
+          saveCart();
+          closeCheckout();
+          $("#orderForm").reset();
+        } catch (err) {
+          console.error(err);
+          toast("Failed to place order: " + err.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Place Order";
+        }
+      };
+
+      // Waitlist Submit
+      $("#waitlistForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = $("#waitlistSubmitBtn");
+        const email = $("#waitlistEmail").value.trim();
+        btn.disabled = true;
+        btn.textContent = "Joining...";
+
+        try {
+          const { error } = await supabase.from("waitlist").insert({ email });
+          if (error) throw error;
+          toast("You are on the VIP Waitlist!", "success");
+          $("#waitlistEmail").value = "";
+        } catch (err) {
+          toast(err.message || "Could not join waitlist.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Get VIP Access";
+        }
+      };
+
+      // Init
+      updateCartBadge();
+      loadSiteContent();
+      loadProducts();
     });
   </script>
-
 </body>
 </html>
