@@ -1,1136 +1,262 @@
-/* =========================================================
-   BULKKOT — MAIN JAVASCRIPT
-   js/main.js
-   ========================================================= */
+/**
+ * BULKKOT — Dynamic Main Controller
+ */
+(function () {
+  'use strict';
 
-(() => {
-  "use strict";
+  // Supabase Init
+  const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+  const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-  /* =======================================================
-     HELPERS
-  ======================================================= */
+  let liveProducts = [];
+  const selectedSizes = {};
 
-  const $ = (selector, parent = document) =>
-    parent.querySelector(selector);
+  // 1. Fetch & Render Dynamic Catalog
+  async function initCatalog() {
+    const grid = document.getElementById("products-grid");
+    if (!grid || !supabase) return;
 
-  const $$ = (selector, parent = document) =>
-    Array.from(parent.querySelectorAll(selector));
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("active", true)
+        .order("created_at", { ascending: false });
 
-  const body = document.body;
+      if (error) throw error;
+      liveProducts = data || [];
 
-  function lockBodyScroll(lock) {
-    body.classList.toggle("no-scroll", lock);
-  }
-
-  function getFocusable(container) {
-    if (!container) return [];
-
-    return $$(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      container
-    );
-  }
-
-  function escapeHTML(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-
-  /* =======================================================
-     MOBILE NAVIGATION DRAWER
-     ======================================================= */
-
-  function toggleMobileDrawer(open) {
-    const drawer = $("[data-mobile-drawer]");
-
-    if (!drawer) return;
-
-    const shouldOpen =
-      typeof open === "boolean"
-        ? open
-        : !drawer.classList.contains("is-open");
-
-    drawer.classList.toggle("is-open", shouldOpen);
-    drawer.setAttribute("aria-hidden", String(!shouldOpen));
-
-    lockBodyScroll(shouldOpen);
-
-    if (shouldOpen) {
-      const firstFocusable = getFocusable(drawer)[0];
-
-      if (firstFocusable) {
-        setTimeout(() => firstFocusable.focus(), 100);
-      }
-    }
-  }
-
-  $$("[data-open-drawer]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      toggleMobileDrawer(true);
-    });
-  });
-
-  $$("[data-close-drawer]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      toggleMobileDrawer(false);
-    });
-  });
-
-  const mobileDrawer = $("[data-mobile-drawer]");
-
-  if (mobileDrawer) {
-    mobileDrawer.addEventListener("click", event => {
-      if (event.target === mobileDrawer) {
-        toggleMobileDrawer(false);
-      }
-    });
-
-    $$("a", mobileDrawer).forEach(link => {
-      link.addEventListener("click", () => {
-        toggleMobileDrawer(false);
-      });
-    });
-  }
-
-
-  /* =======================================================
-     SEARCH OVERLAY
-     ======================================================= */
-
-  function toggleSearch(open) {
-    const modal = $("[data-search-modal]");
-
-    if (!modal) return;
-
-    const shouldOpen =
-      typeof open === "boolean"
-        ? open
-        : !modal.classList.contains("is-open");
-
-    modal.classList.toggle("is-open", shouldOpen);
-    modal.setAttribute("aria-hidden", String(!shouldOpen));
-
-    lockBodyScroll(shouldOpen);
-
-    if (shouldOpen) {
-      const input = $("input", modal);
-
-      if (input) {
-        setTimeout(() => input.focus(), 100);
-      }
-    }
-  }
-
-  $$("[data-open-search]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      toggleSearch(true);
-    });
-  });
-
-  $$("[data-close-search]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      toggleSearch(false);
-    });
-  });
-
-  const searchModal = $("[data-search-modal]");
-
-  if (searchModal) {
-    searchModal.addEventListener("click", event => {
-      if (event.target === searchModal) {
-        toggleSearch(false);
-      }
-    });
-  }
-
-  const searchForm = $("[data-search-form]");
-
-  if (searchForm) {
-    searchForm.addEventListener("submit", event => {
-      event.preventDefault();
-
-      const input = $("input[name='q']", searchForm)
-        || $("input", searchForm);
-
-      if (!input) return;
-
-      const query = input.value.trim();
-
-      if (!query) {
-        input.focus();
+      if (!liveProducts.length) {
+        grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">No drops currently live. Join waitlist below.</p>`;
         return;
       }
 
-      /*
-       * Future:
-       * Replace this with Shopify/Supabase/catalog search.
-       */
-
-      filterCatalog(query);
-
-      toggleSearch(false);
-
-      document.dispatchEvent(
-        new CustomEvent("bulkkot:search", {
-          detail: { query }
-        })
-      );
-    });
-  }
-
-
-  /* =======================================================
-     ABOUT STORY MODAL
-     ======================================================= */
-
-  function toggleAbout(open) {
-    const modal = $("[data-about-modal]");
-
-    if (!modal) return;
-
-    const shouldOpen =
-      typeof open === "boolean"
-        ? open
-        : !modal.classList.contains("is-open");
-
-    modal.classList.toggle("is-open", shouldOpen);
-    modal.setAttribute("aria-hidden", String(!shouldOpen));
-
-    lockBodyScroll(shouldOpen);
-
-    if (shouldOpen) {
-      const closeButton =
-        $("[data-close-about]", modal);
-
-      if (closeButton) {
-        setTimeout(() => closeButton.focus(), 100);
-      }
+      renderProducts(liveProducts);
+    } catch (err) {
+      console.error("Products load err:", err);
+      grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #e50914; padding: 40px;">Failed to load catalog.</p>`;
     }
   }
 
-  $$("[data-open-about]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      toggleAbout(true);
-    });
-  });
-
-  $$("[data-close-about]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      toggleAbout(false);
-    });
-  });
-
-  const aboutModal = $("[data-about-modal]");
-
-  if (aboutModal) {
-    aboutModal.addEventListener("click", event => {
-      if (event.target === aboutModal) {
-        toggleAbout(false);
-      }
-    });
-  }
-
-
-  /* =======================================================
-     LEGAL / HELP / INFORMATION MODALS
-     ======================================================= */
-
-  const policyContent = {
-    faq: {
-      title: "FAQ",
-      korean: "자주 묻는 질문",
-      content: `
-        <p><strong>When will BULKKOT launch?</strong></p>
-        <p>
-          DROP 001 is currently preparing for launch.
-          Join the waitlist to receive the latest updates.
-        </p>
-
-        <p><strong>Where does BULKKOT ship?</strong></p>
-        <p>
-          BULKKOT currently focuses on serving customers in India.
-        </p>
-
-        <p><strong>How can I contact BULKKOT?</strong></p>
-        <p>
-          Email us at
-          <a href="mailto:bulkkotwear@gmail.com">
-            bulkkotwear@gmail.com
-          </a>.
-        </p>
-      `
-    },
-
-    size: {
-      title: "Size Guide",
-      korean: "사이즈 가이드",
-      content: `
-        <p>
-          BULKKOT is designed around an oversized,
-          relaxed everyday silhouette.
-        </p>
-
-        <p>
-          The final size chart will be published with each
-          product before launch.
-        </p>
-
-        <p>
-          Always check the individual product measurements
-          before placing an order.
-        </p>
-      `
-    },
-
-    shipping: {
-      title: "Shipping Policy",
-      korean: "배송 정책",
-      content: `
-        <p>
-          Shipping details and estimated delivery timelines
-          will be displayed during checkout.
-        </p>
-
-        <p>
-          Delivery timelines may vary depending on location,
-          courier availability and order volume.
-        </p>
-      `
-    },
-
-    returns: {
-      title: "Returns & Exchange",
-      korean: "반품 및 교환",
-      content: `
-        <p>
-          BULKKOT's return and exchange conditions will be
-          clearly communicated before checkout.
-        </p>
-
-        <p>
-          Products must meet the applicable return conditions
-          and may be subject to inspection.
-        </p>
-      `
-    },
-
-    privacy: {
-      title: "Privacy Policy",
-      korean: "개인정보 보호",
-      content: `
-        <p>
-          BULKKOT respects your privacy and only uses customer
-          information for legitimate business purposes.
-        </p>
-
-        <p>
-          Information submitted through forms may be used for
-          order processing, customer support and communications
-          that you have requested.
-        </p>
-      `
-    },
-
-    terms: {
-      title: "Terms & Conditions",
-      korean: "이용 약관",
-      content: `
-        <p>
-          By using the BULKKOT website, you agree to follow
-          the applicable website, purchasing and account terms.
-        </p>
-
-        <p>
-          Product availability, pricing and policies may change
-          before launch or from one collection to another.
-        </p>
-      `
-    },
-
-    refund: {
-      title: "Refund Policy",
-      korean: "환불 정책",
-      content: `
-        <p>
-          Refund eligibility will depend on the applicable
-          product and order conditions.
-        </p>
-
-        <p>
-          Final refund rules will be displayed clearly before
-          purchase and checkout.
-        </p>
-      `
-    }
-  };
-
-  function openPolicyModal(type) {
-    const data = policyContent[type];
-
-    if (!data) return;
-
-    let modal = $("[data-policy-modal]");
-
-    if (!modal) {
-      modal = document.createElement("div");
-
-      modal.className = "modal policy-modal";
-      modal.setAttribute("data-policy-modal", "");
-      modal.setAttribute("aria-hidden", "true");
-
-      modal.innerHTML = `
-        <div class="modal__backdrop" data-close-policy></div>
-
-        <div
-          class="modal__dialog"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="policy-modal-title"
-        >
-          <button
-            type="button"
-            class="modal__close"
-            data-close-policy
-            aria-label="Close"
-          >
-            ×
-          </button>
-
-          <p class="modal__korean" data-policy-korean></p>
-
-          <h2
-            id="policy-modal-title"
-            data-policy-title
-          ></h2>
-
-          <div
-            class="modal__content"
-            data-policy-content
-          ></div>
-        </div>
-      `;
-
-      document.body.appendChild(modal);
-
-      modal.addEventListener("click", event => {
-        if (event.target.closest("[data-close-policy]")) {
-          closePolicyModal();
-        }
-      });
-    }
-
-    $("[data-policy-title]", modal).textContent = data.title;
-    $("[data-policy-korean]", modal).textContent = data.korean;
-    $("[data-policy-content]", modal).innerHTML = data.content;
-
-    modal.classList.add("is-open");
-    modal.setAttribute("aria-hidden", "false");
-
-    lockBodyScroll(true);
-  }
-
-  function closePolicyModal() {
-    const modal = $("[data-policy-modal]");
-
-    if (!modal) return;
-
-    modal.classList.remove("is-open");
-    modal.setAttribute("aria-hidden", "true");
-
-    lockBodyScroll(false);
-  }
-
-  const policyMap = {
-    faq: "faq",
-    "faq-link": "faq",
-    size: "size",
-    "size-guide": "size",
-    shipping: "shipping",
-    "shipping-policy": "shipping",
-    returns: "returns",
-    "return-policy": "returns",
-    "returns-exchange": "returns",
-    privacy: "privacy",
-    "privacy-policy": "privacy",
-    terms: "terms",
-    "terms-conditions": "terms",
-    refund: "refund",
-    "refund-policy": "refund"
-  };
-
-  document.addEventListener("click", event => {
-    const trigger = event.target.closest("[data-policy]");
-
-    if (!trigger) return;
-
-    event.preventDefault();
-
-    const type =
-      trigger.dataset.policy ||
-      trigger.dataset.policyType;
-
-    if (policyMap[type]) {
-      openPolicyModal(policyMap[type]);
-    }
-  });
-
-
-  /* =======================================================
-     EDITORIAL CAROUSEL
-     ======================================================= */
-
-  function initCarousel(carousel) {
-    const track = $("[data-carousel-track]", carousel);
-    const slides = $$("[data-slide]", carousel);
-    const previous = $("[data-carousel-prev]", carousel);
-    const next = $("[data-carousel-next]", carousel);
-
-    if (!track || slides.length === 0) return;
-
-    let currentIndex = 0;
-    let autoplayTimer = null;
-    let startX = 0;
-    let currentX = 0;
-    let isDragging = false;
-
-    const interval =
-      Number(carousel.dataset.autoplay) || 5000;
-
-    function goToSlide(index, animate = true) {
-      if (!slides.length) return;
-
-      currentIndex =
-        (index + slides.length) % slides.length;
-
-      track.style.transition = animate
-        ? "transform 500ms cubic-bezier(.22,.61,.36,1)"
-        : "none";
-
-      track.style.transform =
-        `translate3d(-${currentIndex * 100}%, 0, 0)`;
-
-      slides.forEach((slide, index) => {
-        slide.classList.toggle(
-          "is-active",
-          index === currentIndex
-        );
-      });
-
-      const dots =
-        $$("[data-carousel-dot]", carousel);
-
-      dots.forEach((dot, index) => {
-        dot.classList.toggle(
-          "is-active",
-          index === currentIndex
-        );
-
-        dot.setAttribute(
-          "aria-current",
-          index === currentIndex
-            ? "true"
-            : "false"
-        );
-      });
-    }
-
-    function nextSlide() {
-      goToSlide(currentIndex + 1);
-    }
-
-    function previousSlide() {
-      goToSlide(currentIndex - 1);
-    }
-
-    function startAutoplay() {
-      stopAutoplay();
-
-      if (slides.length <= 1) return;
-
-      autoplayTimer = setInterval(
-        nextSlide,
-        interval
-      );
-    }
-
-    function stopAutoplay() {
-      if (autoplayTimer) {
-        clearInterval(autoplayTimer);
-        autoplayTimer = null;
-      }
-    }
-
-    if (next) {
-      next.addEventListener("click", () => {
-        nextSlide();
-        startAutoplay();
-      });
-    }
-
-    if (previous) {
-      previous.addEventListener("click", () => {
-        previousSlide();
-        startAutoplay();
-      });
-    }
-
-    $$("[data-carousel-dot]", carousel)
-      .forEach((dot, index) => {
-        dot.addEventListener("click", () => {
-          goToSlide(index);
-          startAutoplay();
-        });
-      });
-
-    carousel.addEventListener("mouseenter", stopAutoplay);
-    carousel.addEventListener("mouseleave", startAutoplay);
-
-    carousel.addEventListener(
-      "touchstart",
-      event => {
-        if (!event.touches.length) return;
-
-        startX = event.touches[0].clientX;
-        currentX = startX;
-        isDragging = true;
-
-        stopAutoplay();
-
-        track.style.transition = "none";
-      },
-      { passive: true }
-    );
-
-    carousel.addEventListener(
-      "touchmove",
-      event => {
-        if (!isDragging || !event.touches.length) return;
-
-        currentX = event.touches[0].clientX;
-
-        const difference = currentX - startX;
-        const percentage =
-          (difference / carousel.offsetWidth) * 100;
-
-        track.style.transform =
-          `translate3d(${
-            -currentIndex * 100 + percentage
-          }%, 0, 0)`;
-      },
-      { passive: true }
-    );
-
-    carousel.addEventListener(
-      "touchend",
-      () => {
-        if (!isDragging) return;
-
-        isDragging = false;
-
-        const difference = currentX - startX;
-        const threshold = 50;
-
-        if (Math.abs(difference) > threshold) {
-          if (difference < 0) {
-            nextSlide();
-          } else {
-            previousSlide();
-          }
-        } else {
-          goToSlide(currentIndex);
-        }
-
-        startAutoplay();
-      },
-      { passive: true }
-    );
-
-    carousel.addEventListener(
-      "keydown",
-      event => {
-        if (event.key === "ArrowRight") {
-          nextSlide();
-          startAutoplay();
-        }
-
-        if (event.key === "ArrowLeft") {
-          previousSlide();
-          startAutoplay();
-        }
-      }
-    );
-
-    goToSlide(0, false);
-    startAutoplay();
-  }
-
-  $$("[data-carousel]").forEach(initCarousel);
-
-
-  /* =======================================================
-     CATEGORY FILTER
-     ======================================================= */
-
-  function filterCatalog(category) {
-    const normalizedCategory =
-      String(category || "")
-        .trim()
-        .toLowerCase();
-
-    const products = $$(
-      "[data-product-card]"
-    );
-
-    if (!products.length) {
-      document.dispatchEvent(
-        new CustomEvent("bulkkot:category-filter", {
-          detail: {
-            category: normalizedCategory
-          }
-        })
-      );
-
+  function renderProducts(items) {
+    const grid = document.getElementById("products-grid");
+    if (!grid) return;
+
+    if (!items.length) {
+      grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">No matching pieces found.</p>`;
       return;
     }
 
-    products.forEach(product => {
-      const productCategory =
-        String(
-          product.dataset.category || "all"
-        ).toLowerCase();
+    grid.innerHTML = items.map(p => {
+      const cat = (p.category || "tees").toLowerCase();
+      const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
+      const stock = p.stock || {};
+      const sizes = ["S", "M", "L", "XL"];
+      
+      const totalStock = Object.values(stock).reduce((a, b) => Number(a) + Number(b), 0);
+      const isSoldOut = totalStock <= 0;
 
-      const show =
-        !normalizedCategory ||
-        normalizedCategory === "all" ||
-        productCategory === normalizedCategory;
+      if (!selectedSizes[p.id]) {
+        selectedSizes[p.id] = sizes.find(s => (stock[s] || 0) > 0) || "M";
+      }
 
-      product.hidden = !show;
-      product.classList.toggle(
-        "is-filtered-out",
-        !show
-      );
-    });
+      const sizePills = sizes.map(s => {
+        const qty = stock[s] || 0;
+        const isSel = selectedSizes[p.id] === s;
+        const disabled = qty <= 0;
+        return `
+          <button type="button" 
+            style="padding: 4px 10px; font-size: 11px; font-weight: 700; border: 1px solid ${isSel ? '#fff' : '#333'}; background: ${isSel ? '#fff' : 'transparent'}; color: ${isSel ? '#000' : '#fff'}; cursor: ${disabled ? 'not-allowed' : 'pointer'}; opacity: ${disabled ? 0.3 : 1}; margin-right: 4px; margin-bottom: 6px; border-radius: 2px;"
+            ${disabled ? 'disabled' : ''}
+            onclick="window.selectBulkSize('${p.id}', '${s}')">
+            ${s}
+          </button>
+        `;
+      }).join("");
 
-    $$("[data-category]").forEach(button => {
-      const buttonCategory =
-        String(
-          button.dataset.category || ""
-        ).toLowerCase();
-
-      button.classList.toggle(
-        "is-active",
-        buttonCategory === normalizedCategory
-      );
-    });
-
-    document.dispatchEvent(
-      new CustomEvent("bulkkot:category-filter", {
-        detail: {
-          category: normalizedCategory
-        }
-      })
-    );
+      return `
+        <article class="product-card" data-product-card data-category="${cat}">
+          <div class="product-image" style="position: relative;">
+            <img src="${p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}" alt="${p.name}" loading="lazy">
+            <span class="product-status">${isSoldOut ? 'SOLD OUT' : 'DROP 001'}</span>
+          </div>
+          <div class="product-information" style="padding: 16px 0; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <h3 style="font-size: 15px; font-weight: 800; text-transform: uppercase;">${p.name}</h3>
+              <span style="font-weight: 700; font-size: 14px;">₹${p.price || 0}</span>
+            </div>
+            <p style="font-size: 12px; color: #888; margin-top: -4px;">${catKorean}</p>
+            
+            <div style="display: flex; flex-wrap: wrap; margin-top: 4px;">${sizePills}</div>
+            
+            <button type="button" 
+              class="button button--primary" 
+              style="width: 100%; margin-top: 8px; padding: 10px 0; font-size: 11px; letter-spacing: 0.1em;"
+              ${isSoldOut ? 'disabled' : ''}
+              onclick="window.addBulkToBag('${p.id}')">
+              ${isSoldOut ? 'SOLD OUT' : 'ADD TO BAG'}
+            </button>
+          </div>
+        </article>
+      `;
+    }).join("");
   }
 
-  window.filterCatalog = filterCatalog;
+  window.selectBulkSize = function (id, size) {
+    selectedSizes[id] = size;
+    renderProducts(liveProducts);
+  };
 
-  $$("[data-category]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
+  window.addBulkToBag = function (id) {
+    const p = liveProducts.find(i => String(i.id) === String(id));
+    if (!p) return;
+    const size = selectedSizes[p.id] || "M";
 
-      filterCatalog(
-        button.dataset.category
-      );
-
-      const target =
-        button.dataset.categoryTarget;
-
-      if (target) {
-        const element = $(target);
-
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-        }
-      }
-    });
-  });
-
-
-  /* =======================================================
-     VIP WAITLIST
-     ======================================================= */
-
-  function initWaitlistForm(form) {
-    const emailInput =
-      $("input[type='email']", form);
-
-    const submitButton =
-      $("button[type='submit']", form);
-
-    let message =
-      $("[data-waitlist-message]", form);
-
-    if (!message) {
-      message = document.createElement("p");
-      message.className =
-        "waitlist__message";
-      message.setAttribute(
-        "data-waitlist-message",
-        ""
-      );
-
-      form.appendChild(message);
+    if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
+      window.BULKKOT_CART.addItem({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price || 0),
+        size: size,
+        image: p.image_url
+      });
     }
+  };
 
-    form.addEventListener("submit", async event => {
-      event.preventDefault();
+  // 2. VIP Waitlist Hook
+  function initWaitlist() {
+    const form = document.querySelector("[data-waitlist-form]");
+    const msg = document.querySelector("[data-waitlist-message]");
+    if (!form || !supabase) return;
 
-      if (!emailInput) return;
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const input = document.getElementById("waitlist-email");
+      const email = input ? input.value.trim() : "";
+      if (!email) return;
 
-      const email =
-        emailInput.value.trim();
-
-      if (!email) {
-        showWaitlistMessage(
-          message,
-          "Please enter your email address.",
-          "error"
-        );
-
-        emailInput.focus();
-        return;
-      }
-
-      const validEmail =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          .test(email);
-
-      if (!validEmail) {
-        showWaitlistMessage(
-          message,
-          "Please enter a valid email address.",
-          "error"
-        );
-
-        emailInput.focus();
-        return;
-      }
-
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.dataset.originalText =
-          submitButton.textContent;
-
-        submitButton.textContent =
-          "JOINING...";
+      const btn = form.querySelector("button[type='submit']");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "...";
       }
 
       try {
-        /*
-         * ===================================================
-         * SUPABASE HOOK
-         * ===================================================
-         *
-         * When Supabase is connected, replace this section
-         * with your actual Supabase insert call.
-         *
-         * Example:
-         *
-         * const { error } = await supabase
-         *   .from("waitlist")
-         *   .insert([{ email }]);
-         *
-         * if (error) throw error;
-         *
-         * ===================================================
-         */
+        const { error } = await supabase.from("waitlist").insert([{ email: email }]);
+        if (error) throw error;
 
-        if (
-          window.BULKKOT_SUPABASE &&
-          typeof window.BULKKOT_SUPABASE.addToWaitlist ===
-            "function"
-        ) {
-          await window.BULKKOT_SUPABASE
-            .addToWaitlist(email);
-        } else {
-          /*
-           * Temporary frontend-only success state.
-           * No fake backend request is made.
-           */
-
-          const waitlist =
-            JSON.parse(
-              localStorage.getItem(
-                "bulkkot_waitlist"
-              ) || "[]"
-            );
-
-          if (!waitlist.includes(email)) {
-            waitlist.push(email);
-
-            localStorage.setItem(
-              "bulkkot_waitlist",
-              JSON.stringify(waitlist)
-            );
-          }
+        if (msg) {
+          msg.textContent = "You're on the VIP list. Access code will be emailed.";
+          msg.style.color = "#31c48d";
         }
-
-        showWaitlistMessage(
-          message,
-          "You're on the list. We'll see you at DROP 001.",
-          "success"
-        );
-
-        emailInput.value = "";
-
-        document.dispatchEvent(
-          new CustomEvent(
-            "bulkkot:waitlist-success",
-            {
-              detail: { email }
-            }
-          )
-        );
-
-      } catch (error) {
-        console.error(
-          "BULKKOT Waitlist Error:",
-          error
-        );
-
-        showWaitlistMessage(
-          message,
-          "Something went wrong. Please try again.",
-          "error"
-        );
-
+        form.reset();
+      } catch (err) {
+        if (msg) {
+          msg.textContent = err.message || "Failed to join. Please try again.";
+          msg.style.color = "#e50914";
+        }
       } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-
-          submitButton.textContent =
-            submitButton.dataset.originalText ||
-            "JOIN WAITLIST";
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "JOIN";
         }
       }
     });
   }
 
-  function showWaitlistMessage(
-    element,
-    text,
-    type
-  ) {
-    element.textContent = text;
-
-    element.classList.remove(
-      "is-success",
-      "is-error"
-    );
-
-    element.classList.add(
-      type === "success"
-        ? "is-success"
-        : "is-error"
-    );
-
-    element.setAttribute(
-      "role",
-      "status"
-    );
-  }
-
-  $$("[data-waitlist-form]")
-    .forEach(initWaitlistForm);
-
-
-  /* =======================================================
-     CART INTEGRATION
-     ======================================================= */
-
-  document.addEventListener(
-    "bulkkot:cart-updated",
-    () => {
-      if (
-        window.BULKKOTCart &&
-        typeof window.BULKKOTCart.updateCartBadge ===
-          "function"
-      ) {
-        window.BULKKOTCart.updateCartBadge();
-      }
-    }
-  );
-
-
-  /* =======================================================
-     ESCAPE KEY — CLOSE ALL ACTIVE OVERLAYS
-     ======================================================= */
-
-  document.addEventListener(
-    "keydown",
-    event => {
-      if (event.key !== "Escape") return;
-
-      const cartDrawer =
-        $("[data-cart-drawer]");
-
-      if (
-        cartDrawer &&
-        cartDrawer.classList.contains("is-open")
-      ) {
-        if (
-          window.BULKKOTCart &&
-          typeof window.BULKKOTCart.toggleCartDrawer ===
-            "function"
-        ) {
-          window.BULKKOTCart.toggleCartDrawer(false);
-        }
-      }
-
-      const mobileDrawer =
-        $("[data-mobile-drawer]");
-
-      if (
-        mobileDrawer &&
-        mobileDrawer.classList.contains("is-open")
-      ) {
-        toggleMobileDrawer(false);
-      }
-
-      const searchModal =
-        $("[data-search-modal]");
-
-      if (
-        searchModal &&
-        searchModal.classList.contains("is-open")
-      ) {
-        toggleSearch(false);
-      }
-
-      const aboutModal =
-        $("[data-about-modal]");
-
-      if (
-        aboutModal &&
-        aboutModal.classList.contains("is-open")
-      ) {
-        toggleAbout(false);
-      }
-
-      closePolicyModal();
-
-      /*
-       * Only unlock body if no overlay remains open.
-       */
-      requestAnimationFrame(() => {
-        const activeOverlay =
-          $(
-            "[data-cart-drawer].is-open, " +
-            "[data-mobile-drawer].is-open, " +
-            "[data-search-modal].is-open, " +
-            "[data-about-modal].is-open, " +
-            "[data-policy-modal].is-open"
-          );
-
-        if (!activeOverlay) {
-          lockBodyScroll(false);
+  // 3. Category Filter
+  function initCategoryFilter() {
+    document.querySelectorAll("[data-category]").forEach(el => {
+      el.addEventListener("click", (e) => {
+        const cat = el.getAttribute("data-category");
+        if (!cat) return;
+        if (cat === "all") {
+          renderProducts(liveProducts);
+        } else {
+          renderProducts(liveProducts.filter(p => (p.category || "").toLowerCase() === cat.toLowerCase()));
         }
       });
-    }
-  );
-
-
-  /* =======================================================
-     PREVENT BACKGROUND SCROLL FOR OPEN MODALS
-     ======================================================= */
-
-  function syncBodyScroll() {
-    const activeOverlay =
-      $(
-        "[data-cart-drawer].is-open, " +
-        "[data-mobile-drawer].is-open, " +
-        "[data-search-modal].is-open, " +
-        "[data-about-modal].is-open, " +
-        "[data-policy-modal].is-open"
-      );
-
-    lockBodyScroll(Boolean(activeOverlay));
+    });
   }
 
-  const observer =
-    new MutationObserver(syncBodyScroll);
+  // 4. Search Filter
+  function initSearch() {
+    const form = document.querySelector("[data-search-form]");
+    const input = document.getElementById("site-search");
+    if (!form || !input) return;
 
-  observer.observe(document.body, {
-    subtree: true,
-    attributes: true,
-    attributeFilter: ["class"]
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = input.value.trim().toLowerCase();
+      const modal = document.querySelector("[data-search-modal]");
+      if (modal) {
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+      }
+      if (!q) {
+        renderProducts(liveProducts);
+      } else {
+        renderProducts(liveProducts.filter(p => (p.name || "").toLowerCase().includes(q) || (p.category || "").toLowerCase().includes(q)));
+      }
+      const shopSec = document.getElementById("shop");
+      if (shopSec) shopSec.scrollIntoView({ behavior: "smooth" });
+    });
+  }
+
+  // 5. Drawer & Modals UI
+  function initUI() {
+    const openDrawerBtn = document.querySelector("[data-open-drawer]");
+    const closeDrawerBtn = document.querySelector("[data-close-drawer]");
+    const drawer = document.getElementById("mobile-drawer");
+
+    openDrawerBtn?.addEventListener("click", () => {
+      drawer?.classList.add("is-open");
+      drawer?.setAttribute("aria-hidden", "false");
+    });
+    closeDrawerBtn?.addEventListener("click", () => {
+      drawer?.classList.remove("is-open");
+      drawer?.setAttribute("aria-hidden", "true");
+    });
+
+    const openSearchBtn = document.querySelector("[data-open-search]");
+    const closeSearchBtn = document.querySelector("[data-close-search]");
+    const searchModal = document.querySelector("[data-search-modal]");
+
+    openSearchBtn?.addEventListener("click", () => {
+      searchModal?.classList.add("is-open");
+      searchModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    });
+    closeSearchBtn?.addEventListener("click", () => {
+      searchModal?.classList.remove("is-open");
+      searchModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    });
+
+    const openAboutBtn = document.querySelector("[data-open-about]");
+    const closeAboutBtn = document.querySelector("[data-close-about]");
+    const aboutModal = document.querySelector("[data-about-modal]");
+
+    openAboutBtn?.addEventListener("click", () => {
+      aboutModal?.classList.add("is-open");
+      aboutModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    });
+    closeAboutBtn?.addEventListener("click", () => {
+      aboutModal?.classList.remove("is-open");
+      aboutModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    });
+  }
+
+  // DOM Ready
+  document.addEventListener("DOMContentLoaded", () => {
+    initCatalog();
+    initWaitlist();
+    initCategoryFilter();
+    initSearch();
+    initUI();
   });
-
-
-  /* =======================================================
-     REDUCED MOTION
-     ======================================================= */
-
-  const reducedMotion =
-    window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    );
-
-  if (reducedMotion.matches) {
-    $$("[data-carousel]").forEach(
-      carousel => {
-        carousel.dataset.autoplay = "0";
-      }
-    );
-  }
-
-
-  /* =======================================================
-     INITIALIZATION
-     ======================================================= */
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-      if (
-        window.BULKKOTCart &&
-        typeof window.BULKKOTCart.updateCartBadge ===
-          "function"
-      ) {
-        window.BULKKOTCart.updateCartBadge();
-      }
-
-      if (
-        window.BULKKOTCart &&
-        typeof window.BULKKOTCart.renderCartDrawer ===
-          "function"
-      ) {
-        window.BULKKOTCart.renderCartDrawer();
-      }
-
-      /*
-       * Mark JS as loaded.
-       * Useful for CSS progressive enhancement.
-       */
-      document.documentElement.classList.add(
-        "js-loaded"
-      );
-    }
-  );
-
 })();
