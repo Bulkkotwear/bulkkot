@@ -1,511 +1,239 @@
-/* =========================================================
-   BULKKOT — CART MANAGEMENT
-   js/cart.js
-   ========================================================= */
+/**
+ * BULKKOT — Complete Cart & Checkout Controller
+ */
+(function () {
+  'use strict';
 
-(() => {
-  "use strict";
+  const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+  const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-  const CART_KEY = "bulkkot_cart";
+  const STORAGE_KEY = 'bulkkot_cart';
+  let cart = [];
 
-  /* -------------------------------------------------------
-     CART STORAGE
-  ------------------------------------------------------- */
-
-  function getCart() {
+  function loadCart() {
     try {
-      const storedCart = localStorage.getItem(CART_KEY);
-      const cart = storedCart ? JSON.parse(storedCart) : [];
-
-      return Array.isArray(cart) ? cart : [];
-    } catch (error) {
-      console.error("BULKKOT Cart: Failed to read cart.", error);
-      return [];
+      cart = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch {
+      cart = [];
     }
+    updateUI();
   }
 
-  function saveCart(cart) {
-    try {
-      localStorage.setItem(CART_KEY, JSON.stringify(cart));
-      updateCartBadge();
-      renderCartDrawer();
-    } catch (error) {
-      console.error("BULKKOT Cart: Failed to save cart.", error);
-    }
+  function saveCart() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    updateUI();
   }
 
-  /* -------------------------------------------------------
-     ADD TO CART
-  ------------------------------------------------------- */
-
-  function addToCart(product, size) {
-    if (!product || !product.id) {
-      console.error("BULKKOT Cart: Invalid product.");
-      return;
-    }
-
-    if (!size) {
-      console.warn("BULKKOT Cart: Product size is required.");
-      return;
-    }
-
-    const cart = getCart();
-
-    const existingItem = cart.find(
-      item => String(item.id) === String(product.id) && item.size === size
-    );
-
-    if (existingItem) {
-      existingItem.quantity += 1;
-    } else {
-      cart.push({
-        id: product.id,
-        name: product.name || "BULKKOT Product",
-        price: Number(product.price) || 0,
-        image: product.image || "",
-        size,
-        quantity: 1
-      });
-    }
-
-    saveCart(cart);
-
-    // Optional UI feedback
-    document.dispatchEvent(
-      new CustomEvent("bulkkot:cart-updated", {
-        detail: { cart }
-      })
-    );
+  function formatPrice(num) {
+    return '₹' + Number(num || 0).toLocaleString('en-IN');
   }
 
-  /* -------------------------------------------------------
-     UPDATE QUANTITY
-  ------------------------------------------------------- */
-
-  function updateQuantity(id, size, delta) {
-    const cart = getCart();
-
-    const item = cart.find(
-      product =>
-        String(product.id) === String(id) &&
-        product.size === size
-    );
-
-    if (!item) return;
-
-    item.quantity += Number(delta) || 0;
-
-    if (item.quantity <= 0) {
-      removeFromCart(id, size);
-      return;
-    }
-
-    saveCart(cart);
-  }
-
-  /* -------------------------------------------------------
-     REMOVE ITEM
-  ------------------------------------------------------- */
-
-  function removeFromCart(id, size) {
-    const cart = getCart();
-
-    const updatedCart = cart.filter(
-      item =>
-        !(
-          String(item.id) === String(id) &&
-          item.size === size
-        )
-    );
-
-    saveCart(updatedCart);
-  }
-
-  /* -------------------------------------------------------
-     SUBTOTAL
-  ------------------------------------------------------- */
-
-  function calculateSubtotal() {
-    return getCart().reduce((total, item) => {
-      const price = Number(item.price) || 0;
-      const quantity = Number(item.quantity) || 0;
-
-      return total + price * quantity;
-    }, 0);
-  }
-
-  /* -------------------------------------------------------
-     FORMAT PRICE
-  ------------------------------------------------------- */
-
-  function formatPrice(price) {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0
-    }).format(price);
-  }
-
-  /* -------------------------------------------------------
-     CART COUNT
-  ------------------------------------------------------- */
-
-  function updateCartBadge() {
-    const cart = getCart();
-
-    const count = cart.reduce(
-      (total, item) => total + (Number(item.quantity) || 0),
-      0
-    );
-
-    document.querySelectorAll(
-      ".cart-count, [data-cart-count]"
-    ).forEach(element => {
-      element.textContent = count;
-
-      element.hidden = count === 0;
-      element.setAttribute("aria-label", `${count} items in cart`);
+  function updateUI() {
+    const counts = document.querySelectorAll('[data-cart-count]');
+    const totalQty = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    
+    counts.forEach(el => {
+      el.textContent = totalQty;
+      el.hidden = totalQty === 0;
     });
-  }
 
-  /* -------------------------------------------------------
-     RENDER CART DRAWER
-  ------------------------------------------------------- */
+    renderCartDrawer();
+  }
 
   function renderCartDrawer() {
-    const drawerBodies = document.querySelectorAll(
-      ".drawer__body, #cart-content"
-    );
+    const container = document.getElementById('cart-content');
+    if (!container) return;
 
-    if (!drawerBodies.length) return;
-
-    const cart = getCart();
-    const subtotal = calculateSubtotal();
-
-    drawerBodies.forEach(container => {
-      if (!cart.length) {
-        container.innerHTML = `
-          <div class="cart-empty">
-            <p class="cart-empty__korean">장바구니가 비어 있습니다</p>
-            <h3>Your cart is empty.</h3>
-            <p>
-              Discover the latest BULKKOT essentials
-              and build your collection.
-            </p>
-
-            <button
-              type="button"
-              class="btn btn--primary"
-              data-close-cart
-            >
-              CONTINUE SHOPPING
-            </button>
-          </div>
-        `;
-
-        return;
-      }
-
+    if (!cart.length) {
       container.innerHTML = `
-        <div class="cart-items">
-          ${cart.map(item => `
-            <article class="cart-item">
-
-              <div class="cart-item__image">
-                ${
-                  item.image
-                    ? `<img
-                        src="${escapeHTML(item.image)}"
-                        alt="${escapeHTML(item.name)}"
-                        loading="lazy"
-                      >`
-                    : `<div class="cart-item__image-placeholder"></div>`
-                }
-              </div>
-
-              <div class="cart-item__info">
-
-                <div class="cart-item__top">
-                  <div>
-                    <h3>${escapeHTML(item.name)}</h3>
-                    <span class="cart-item__size">
-                      SIZE ${escapeHTML(item.size)}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    class="cart-item__remove"
-                    data-remove-cart-item
-                    data-id="${escapeHTML(item.id)}"
-                    data-size="${escapeHTML(item.size)}"
-                    aria-label="Remove ${escapeHTML(item.name)}"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <div class="cart-item__bottom">
-
-                  <div class="cart-quantity">
-                    <button
-                      type="button"
-                      data-cart-minus
-                      data-id="${escapeHTML(item.id)}"
-                      data-size="${escapeHTML(item.size)}"
-                      aria-label="Decrease quantity"
-                    >
-                      −
-                    </button>
-
-                    <span>${item.quantity}</span>
-
-                    <button
-                      type="button"
-                      data-cart-plus
-                      data-id="${escapeHTML(item.id)}"
-                      data-size="${escapeHTML(item.size)}"
-                      aria-label="Increase quantity"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <strong>
-                    ${formatPrice(item.price * item.quantity)}
-                  </strong>
-
-                </div>
-
-              </div>
-
-            </article>
-          `).join("")}
-        </div>
-
-        <div class="cart-summary">
-
-          <div class="cart-summary__row">
-            <span>Subtotal</span>
-            <strong>${formatPrice(subtotal)}</strong>
-          </div>
-
-          <p class="cart-summary__note">
-            Shipping and taxes calculated at checkout.
-          </p>
-
-          <button
-            type="button"
-            class="btn btn--primary cart-checkout"
-            data-cart-checkout
-          >
-            CHECKOUT
-          </button>
-
+        <div style="padding: 40px 20px; text-align: center; color: #888;">
+          <p style="margin-bottom: 16px;">YOUR BAG IS EMPTY</p>
+          <button type="button" class="button button--outline" data-close-cart style="font-size: 11px;">CONTINUE SHOPPING</button>
         </div>
       `;
-    });
+      return;
+    }
+
+    const subtotal = cart.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+
+    const itemsHTML = cart.map((item, index) => `
+      <div style="display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid #1a1a1a;">
+        <img src="${item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}" style="width: 70px; height: 70px; object-fit: cover;">
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between;">
+            <strong style="font-size: 13px; text-transform: uppercase;">${item.name}</strong>
+            <span style="font-size: 13px;">${formatPrice(item.price * item.quantity)}</span>
+          </div>
+          <p style="font-size: 11px; color: #888; margin: 4px 0 8px;">SIZE: ${item.size}</p>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <button type="button" style="background:none; border:1px solid #333; color:#fff; width:22px; height:22px; cursor:pointer;" onclick="window.BULKKOT_CART.changeQty(${index}, -1)">-</button>
+            <span style="font-size: 12px;">${item.quantity}</span>
+            <button type="button" style="background:none; border:1px solid #333; color:#fff; width:22px; height:22px; cursor:pointer;" onclick="window.BULKKOT_CART.changeQty(${index}, 1)">+</button>
+            <button type="button" style="background:none; border:none; color:#e50914; font-size: 11px; margin-left: auto; cursor:pointer;" onclick="window.BULKKOT_CART.removeItem(${index})">REMOVE</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = `
+      <div style="padding: 10px 20px; overflow-y: auto; max-height: calc(100vh - 250px);">
+        ${itemsHTML}
+      </div>
+      <div style="padding: 20px; border-top: 1px solid #222; background: #070707;">
+        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; margin-bottom: 14px;">
+          <span>SUBTOTAL</span>
+          <span>${formatPrice(subtotal)}</span>
+        </div>
+        <button type="button" id="cart-checkout-trigger" class="button button--primary" style="width: 100%; padding: 14px 0; font-size: 12px; letter-spacing: 0.1em;">
+          CHECKOUT (${formatPrice(subtotal)})
+        </button>
+      </div>
+    `;
+
+    const checkoutBtn = document.getElementById('cart-checkout-trigger');
+    if (checkoutBtn) {
+      checkoutBtn.onclick = openCheckoutModal;
+    }
   }
 
-  /* -------------------------------------------------------
-     CART DRAWER
-  ------------------------------------------------------- */
+  // Checkout Form Modal
+  function openCheckoutModal() {
+    closeCart();
 
-  function toggleCartDrawer(open) {
-    const drawer = document.querySelector("[data-cart-drawer]");
+    let modal = document.getElementById('checkout-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'checkout-modal';
+      modal.className = 'content-modal';
+      modal.innerHTML = `
+        <div class="content-modal__panel" style="max-width: 480px;">
+          <button type="button" class="drawer-close" id="close-checkout-btn">×</button>
+          <p class="eyebrow">BULKKOT · CHECKOUT</p>
+          <h2 style="font-size: 20px; margin-bottom: 20px;">SHIPPING DETAILS</h2>
+          <form id="checkout-order-form" style="display: flex; flex-direction: column; gap: 12px;">
+            <input type="text" id="order-name" placeholder="Full Name" required style="padding: 12px; background: #111; border: 1px solid #333; color: #fff;">
+            <input type="email" id="order-email" placeholder="Email Address" required style="padding: 12px; background: #111; border: 1px solid #333; color: #fff;">
+            <input type="tel" id="order-phone" placeholder="Phone Number (10 digits)" required style="padding: 12px; background: #111; border: 1px solid #333; color: #fff;">
+            <textarea id="order-address" placeholder="Full Delivery Address with Pincode" rows="3" required style="padding: 12px; background: #111; border: 1px solid #333; color: #fff; resize: none;"></textarea>
+            <div id="checkout-err-msg" style="color: #e50914; font-size: 12px;"></div>
+            <button type="submit" id="order-submit-btn" class="button button--primary" style="width: 100%; padding: 14px 0; margin-top: 10px;">
+              CONFIRM ORDER (CASH ON DELIVERY)
+            </button>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(modal);
 
-    if (!drawer) return;
+      document.getElementById('close-checkout-btn').onclick = () => {
+        modal.classList.remove('is-open');
+        document.body.classList.remove('modal-open');
+      };
 
-    const shouldOpen =
-      typeof open === "boolean"
-        ? open
-        : !drawer.classList.contains("is-open");
+      document.getElementById('checkout-order-form').onsubmit = handleOrderSubmit;
+    }
 
-    drawer.classList.toggle("is-open", shouldOpen);
-    drawer.setAttribute("aria-hidden", String(!shouldOpen));
+    modal.classList.add('is-open');
+    document.body.classList.add('modal-open');
+  }
 
-    document.body.classList.toggle(
-      "cart-drawer-open",
-      shouldOpen
-    );
+  async function handleOrderSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('order-submit-btn');
+    const errMsg = document.getElementById('checkout-err-msg');
+    
+    if (!cart.length) return;
+    btn.disabled = true;
+    btn.textContent = 'PLACING ORDER...';
+    errMsg.textContent = '';
 
-    if (shouldOpen) {
-      renderCartDrawer();
+    const subtotal = cart.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
 
-      const firstFocusable = drawer.querySelector(
-        "button, a, input, [tabindex]:not([tabindex='-1'])"
-      );
+    const orderData = {
+      customer_name: document.getElementById('order-name').value.trim(),
+      customer_email: document.getElementById('order-email').value.trim(),
+      customer_phone: document.getElementById('order-phone').value.trim(),
+      shipping_address: document.getElementById('order-address').value.trim(),
+      items: cart,
+      total: subtotal,
+      status: 'pending'
+    };
 
-      if (firstFocusable) {
-        setTimeout(() => firstFocusable.focus(), 100);
+    try {
+      if (!supabase) throw new Error("Database not connected");
+      const { error } = await supabase.from('orders').insert([orderData]);
+      if (error) throw error;
+
+      cart = [];
+      saveCart();
+
+      const modal = document.getElementById('checkout-modal');
+      if (modal) {
+        modal.querySelector('.content-modal__panel').innerHTML = `
+          <p class="eyebrow">ORDER CONFIRMED</p>
+          <h2 style="font-size: 24px; color: #31c48d; margin-bottom: 12px;">THANK YOU</h2>
+          <p style="font-size: 14px; color: #aaa; line-height: 1.6; margin-bottom: 24px;">Your order has been recorded. Our team will verify via WhatsApp/Call before dispatch.</p>
+          <button type="button" class="button button--primary" onclick="location.reload()">BACK TO SHOP</button>
+        `;
       }
+    } catch (err) {
+      errMsg.textContent = err.message || 'Failed to place order. Try again.';
+      btn.disabled = false;
+      btn.textContent = 'CONFIRM ORDER';
     }
   }
 
-  /* -------------------------------------------------------
-     EVENT DELEGATION
-  ------------------------------------------------------- */
-
-  document.addEventListener("click", event => {
-
-    const addButton = event.target.closest("[data-add-to-cart]");
-
-    if (addButton) {
-      event.preventDefault();
-
-      let product = {};
-
-      try {
-        product = JSON.parse(
-          addButton.getAttribute("data-product") || "{}"
-        );
-      } catch {
-        console.error("BULKKOT Cart: Invalid product data.");
-      }
-
-      const size =
-        addButton.getAttribute("data-size") ||
-        document.querySelector("[data-product-size].is-selected")
-          ?.getAttribute("data-product-size") ||
-        document.querySelector("[data-product-size]:checked")
-          ?.value;
-
-      if (!size) {
-        alert("Please select a size.");
-        return;
-      }
-
-      addToCart(product, size);
-      toggleCartDrawer(true);
-
-      return;
-    }
-
-    const plusButton = event.target.closest("[data-cart-plus]");
-
-    if (plusButton) {
-      updateQuantity(
-        plusButton.dataset.id,
-        plusButton.dataset.size,
-        1
-      );
-
-      return;
-    }
-
-    const minusButton = event.target.closest("[data-cart-minus]");
-
-    if (minusButton) {
-      updateQuantity(
-        minusButton.dataset.id,
-        minusButton.dataset.size,
-        -1
-      );
-
-      return;
-    }
-
-    const removeButton = event.target.closest(
-      "[data-remove-cart-item]"
-    );
-
-    if (removeButton) {
-      removeFromCart(
-        removeButton.dataset.id,
-        removeButton.dataset.size
-      );
-
-      return;
-    }
-
-    const openCartButton = event.target.closest(
-      "[data-open-cart]"
-    );
-
-    if (openCartButton) {
-      event.preventDefault();
-      toggleCartDrawer(true);
-      return;
-    }
-
-    const closeCartButton = event.target.closest(
-      "[data-close-cart]"
-    );
-
-    if (closeCartButton) {
-      event.preventDefault();
-      toggleCartDrawer(false);
-      return;
-    }
-
-    const checkoutButton = event.target.closest(
-      "[data-cart-checkout]"
-    );
-
-    if (checkoutButton) {
-      event.preventDefault();
-
-      const cart = getCart();
-
-      if (!cart.length) return;
-
-      document.dispatchEvent(
-        new CustomEvent("bulkkot:checkout", {
-          detail: {
-            cart,
-            subtotal: calculateSubtotal()
-          }
-        })
-      );
-    }
-  });
-
-  /* -------------------------------------------------------
-     CLOSE CART WITH ESC
-  ------------------------------------------------------- */
-
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-      toggleCartDrawer(false);
-    }
-  });
-
-  /* -------------------------------------------------------
-     SAFE HTML
-  ------------------------------------------------------- */
-
-  function escapeHTML(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+  function openCart() {
+    const drawer = document.getElementById('cart-drawer');
+    const overlay = document.querySelector('[data-cart-overlay]');
+    drawer?.classList.add('is-open');
+    drawer?.setAttribute('aria-hidden', 'false');
+    overlay?.classList.add('is-open');
+    document.body.classList.add('modal-open');
   }
 
-  /* -------------------------------------------------------
-     INITIALIZE
-  ------------------------------------------------------- */
+  function closeCart() {
+    const drawer = document.getElementById('cart-drawer');
+    const overlay = document.querySelector('[data-cart-overlay]');
+    drawer?.classList.remove('is-open');
+    drawer?.setAttribute('aria-hidden', 'true');
+    overlay?.classList.remove('is-open');
+    document.body.classList.remove('modal-open');
+  }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    updateCartBadge();
-    renderCartDrawer();
-  });
-
-  /* -------------------------------------------------------
-     PUBLIC API
-  ------------------------------------------------------- */
-
-  window.BULKKOTCart = {
-    getCart,
-    saveCart,
-    addToCart,
-    updateQuantity,
-    removeFromCart,
-    calculateSubtotal,
-    updateCartBadge,
-    renderCartDrawer,
-    toggleCartDrawer
+  window.BULKKOT_CART = {
+    addItem(item) {
+      const existing = cart.find(i => i.id === item.id && i.size === item.size);
+      if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+      } else {
+        cart.push({ ...item, quantity: 1 });
+      }
+      saveCart();
+      openCart();
+    },
+    removeItem(index) {
+      cart.splice(index, 1);
+      saveCart();
+    },
+    changeQty(index, delta) {
+      if (!cart[index]) return;
+      cart[index].quantity = (cart[index].quantity || 1) + delta;
+      if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
+      }
+      saveCart();
+    },
+    openCart,
+    closeCart
   };
 
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCart();
+
+    document.querySelectorAll('[data-open-cart]').forEach(el => el.onclick = openCart);
+    document.querySelectorAll('[data-close-cart]').forEach(el => el.onclick = closeCart);
+    const overlay = document.querySelector('[data-cart-overlay]');
+    if (overlay) overlay.onclick = closeCart;
+  });
 })();
