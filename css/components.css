@@ -469,13 +469,8 @@
   text-transform: uppercase;
 }
 
-.product-stock.is-low {
-  color: var(--bk-red);
-}
-
-.product-stock.is-sold-out {
-  color: #666;
-}
+.product-stock.is-low { color: var(--bk-red); }
+.product-stock.is-sold-out { color: #666; }
 
 .product-add-button {
   width: 100%;
@@ -534,43 +529,12 @@
   min-height: 520px;
 }
 
-.product-modal-img {
-  background: #121212;
-  height: 100%;
-}
-
-.product-modal-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.product-modal-details {
-  padding: 40px 34px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.product-modal-details h2 {
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  margin: 8px 0 12px;
-}
-
-.product-modal-price {
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--bk-red);
-}
-
-.product-modal-desc {
-  color: var(--bk-muted);
-  font-size: 12px;
-  line-height: 1.8;
-  margin-top: 14px;
-}
+.product-modal-img { background: #121212; height: 100%; }
+.product-modal-img img { width: 100%; height: 100%; object-fit: cover; }
+.product-modal-details { padding: 40px 34px; display: flex; flex-direction: column; justify-content: center; }
+.product-modal-details h2 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; letter-spacing: -0.04em; margin: 8px 0 12px; }
+.product-modal-price { font-size: 15px; font-weight: 800; color: var(--bk-red); }
+.product-modal-desc { color: var(--bk-muted); font-size: 12px; line-height: 1.8; margin-top: 14px; }
 
 /* =========================================================
    07. CHECKOUT MODAL & FORMS
@@ -582,41 +546,12 @@
   padding: 34px 28px !important;
 }
 
-.checkout-panel h2 {
-  font-size: clamp(22px, 4vw, 32px);
-  margin-top: 6px;
-  margin-bottom: 20px;
-}
+.checkout-panel h2 { font-size: clamp(22px, 4vw, 32px); margin-top: 6px; margin-bottom: 20px; }
+.checkout-form { display: flex !important; flex-direction: column !important; gap: 16px !important; width: 100% !important; }
+.checkout-field { display: flex !important; flex-direction: column !important; align-items: stretch !important; width: 100% !important; gap: 6px !important; }
+.checkout-field label, .checkout-section-label { display: block !important; width: 100% !important; color: var(--bk-muted) !important; font-family: var(--bk-heading) !important; font-size: 8px !important; font-weight: 800 !important; letter-spacing: 0.14em !important; text-transform: uppercase !important; }
 
-.checkout-form {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 16px !important;
-  width: 100% !important;
-}
-
-.checkout-field {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  width: 100% !important;
-  gap: 6px !important;
-}
-
-.checkout-field label,
-.checkout-section-label {
-  display: block !important;
-  width: 100% !important;
-  color: var(--bk-muted) !important;
-  font-family: var(--bk-heading) !important;
-  font-size: 8px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-}
-
-.checkout-field input,
-.checkout-field textarea {
+.checkout-field input, .checkout-field textarea {
   display: block !important;
   width: 100% !important;
   box-sizing: border-box !important;
@@ -635,16 +570,8 @@
 .checkout-field textarea { min-height: 76px !important; resize: vertical !important; }
 .checkout-field input:focus, .checkout-field textarea:focus { border-color: var(--bk-white) !important; background: #0d0d0d !important; }
 
-.checkout-grid {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 12px !important;
-  width: 100% !important;
-}
-
-@media (max-width: 520px) {
-  .checkout-grid { grid-template-columns: 1fr !important; }
-}
+.checkout-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; width: 100% !important; }
+@media (max-width: 520px) { .checkout-grid { grid-template-columns: 1fr !important; } }
 
 /* =========================================================
    08. BULKKOT SIZE GUIDE (DARK LUXURY THEME)
@@ -660,70 +587,17 @@
 }
 
 .size-guide-modal.is-open { display: flex; }
-
-.size-guide-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.size-guide-panel {
-  position: relative;
-  z-index: 2;
-  width: min(850px, 94vw);
-  max-height: min(88vh, 760px);
-  overflow-y: auto;
-  background: #0d0d0d;
-  color: var(--bk-white);
-  border: 1px solid var(--bk-border);
-  padding: 40px;
-  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.8);
-}
-
-.size-guide-close {
-  position: absolute;
-  top: 18px;
-  right: 20px;
-  width: 36px;
-  height: 36px;
-  border: 0;
-  background: transparent;
-  color: var(--bk-muted);
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-  transition: color var(--transition-fast);
-}
-
+.size-guide-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.size-guide-panel { position: relative; z-index: 2; width: min(850px, 94vw); max-height: min(88vh, 760px); overflow-y: auto; background: #0d0d0d; color: var(--bk-white); border: 1px solid var(--bk-border); padding: 40px; box-shadow: 0 30px 100px rgba(0, 0, 0, 0.8); }
+.size-guide-close { position: absolute; top: 18px; right: 20px; width: 36px; height: 36px; border: 0; background: transparent; color: var(--bk-muted); font-size: 28px; line-height: 1; cursor: pointer; transition: color var(--transition-fast); }
 .size-guide-close:hover { color: var(--bk-white); }
 .size-guide-header { margin-bottom: 24px; }
 .size-guide-eyebrow { display: block; margin-bottom: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.16em; color: var(--bk-red); }
 .size-guide-header h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -0.04em; margin: 0 0 8px; }
 .size-guide-header p { color: var(--bk-muted); font-size: 12px; margin: 0; }
 
-.size-guide-tabs {
-  display: flex;
-  gap: 10px;
-  border-bottom: 1px solid var(--bk-border);
-  margin-bottom: 20px;
-}
-
-.size-guide-tab {
-  border: 0;
-  background: transparent;
-  padding: 12px 16px;
-  color: var(--bk-muted);
-  font-family: var(--bk-heading);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  cursor: pointer;
-  position: relative;
-  transition: color var(--transition-fast);
-}
-
+.size-guide-tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--bk-border); margin-bottom: 20px; }
+.size-guide-tab { border: 0; background: transparent; padding: 12px 16px; color: var(--bk-muted); font-family: var(--bk-heading); font-size: 10px; font-weight: 800; letter-spacing: 0.12em; cursor: pointer; position: relative; transition: color var(--transition-fast); }
 .size-guide-tab.is-active { color: var(--bk-white); }
 .size-guide-tab.is-active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--bk-red); }
 
@@ -759,9 +633,7 @@
 
 .cart-drawer {
   position: fixed !important;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; right: 0; bottom: 0;
   width: min(460px, 100vw) !important;
   height: 100vh !important;
   background: #080808 !important;
@@ -820,20 +692,8 @@
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
-.track-order-modal.is-open {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.track-order-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.86);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
+.track-order-modal.is-open { visibility: visible; opacity: 1; pointer-events: auto; }
+.track-order-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.86); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .track-order-panel {
   position: relative;
   z-index: 2;
@@ -996,20 +856,207 @@
 .mobile-nav-track span { font-family: var(--bk-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; }
 .mobile-nav-track small { color: var(--bk-muted); font-size: 9px; }
 
-@media (max-width: 760px) {
-  .header-track-order { display: none; }
-  .track-order-modal { padding: 10px; }
-  .track-order-panel { width: 100%; max-height: 94vh; padding: 26px 18px; }
-  .track-order-result-head { align-items: flex-start; flex-direction: column; }
-  .track-order-status-badge { width: 100%; }
-  .track-progress { overflow-x: auto; padding-bottom: 16px; }
-  .track-progress-line { display: none; }
-  .track-progress-steps { min-width: 600px; grid-template-columns: repeat(6, 1fr); }
-  .track-step-dot { width: 12px; height: 12px; }
-  .track-step strong { font-size: 6px; }
-  .product-modal-grid { grid-template-columns: 1fr; }
-  .product-modal-img { height: 320px; }
-  .size-guide-panel { padding: 24px 16px; }
-  .shop-toolbar { flex-direction: column; align-items: stretch; }
-  .shop-toolbar__actions { justify-content: space-between; }
+/* =========================================================
+   13. BULKKOT WHATSAPP FLOAT
+========================================================= */
+.whatsapp-float {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 54px;
+  padding: 8px 16px 8px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(12, 12, 12, 0.94);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.whatsapp-float:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(18, 18, 18, 0.98);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.36);
+}
+
+.whatsapp-float__icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+}
+
+.whatsapp-float__icon svg { width: 22px; height: 22px; display: block; }
+.whatsapp-float__text { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
+.whatsapp-float__text strong { font-size: 10px; letter-spacing: 0.14em; font-weight: 700; }
+.whatsapp-float__text small { font-size: 10px; color: rgba(255, 255, 255, 0.52); letter-spacing: 0.04em; }
+
+/* =========================================================
+   14. BULKKOT CUSTOMER ACCOUNT MODAL
+========================================================= */
+.header-account {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bk-muted);
+  padding: 8px 4px;
+  cursor: pointer;
+  font-family: var(--bk-heading);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  transition: color 0.2s ease;
+}
+
+.header-account:hover { color: var(--bk-white); }
+
+.account-modal { position: fixed; inset: 0; z-index: 12000; display: none; }
+.account-modal.is-open { display: block; }
+
+.account-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.account-panel {
+  position: absolute;
+  top: 0; right: 0;
+  width: min(520px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  padding: 42px 34px 36px;
+  background: #0c0c0c;
+  color: #fff;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: -20px 0 70px rgba(0, 0, 0, 0.4);
+  animation: bulkAccountIn 220ms ease;
+}
+
+@keyframes bulkAccountIn {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.account-close {
+  position: absolute;
+  top: 20px; right: 22px;
+  width: 38px; height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.account-header { padding-right: 48px; margin-bottom: 30px; }
+.account-header h2 { margin: 7px 0 8px; font-size: 28px; font-weight: 800; }
+.account-header p:last-child { color: rgba(255, 255, 255, 0.52); line-height: 1.6; font-size: 12px; }
+
+.account-auth-form, .account-profile-form { display: grid; gap: 16px; }
+.account-field { display: grid; gap: 7px; }
+.account-field label { font-size: 10px; letter-spacing: 0.14em; font-weight: 700; color: rgba(255, 255, 255, 0.64); }
+.account-field input, .account-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0;
+  outline: 0;
+  background: #111;
+  color: #fff;
+  padding: 13px 14px;
+  font: inherit;
+  font-size: 13px;
+}
+.account-field input:focus, .account-field textarea:focus { border-color: rgba(255, 255, 255, 0.45); }
+.account-field textarea { resize: vertical; }
+
+.account-submit { width: 100%; margin-top: 4px; }
+.account-message { min-height: 18px; margin: 0; font-size: 12px; line-height: 1.5; color: rgba(255, 255, 255, 0.55); }
+.account-message.is-error { color: #ff6b6b; }
+.account-message.is-success { color: #8fe3a8; }
+
+.account-divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: rgba(255, 255, 255, 0.3); font-size: 10px; letter-spacing: 0.15em; }
+.account-divider::before, .account-divider::after { content: ""; height: 1px; flex: 1; background: rgba(255, 255, 255, 0.1); }
+
+.account-google {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.account-google:hover { background: rgba(255, 255, 255, 0.05); }
+.account-google-icon { font-size: 16px; font-weight: 700; }
+
+.account-auth-switch { display: flex; justify-content: center; gap: 6px; margin-top: 22px; font-size: 11px; color: rgba(255, 255, 255, 0.45); }
+.account-auth-switch button { padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; font: inherit; font-weight: 700; }
+
+.account-section { padding: 22px 0; border-top: 1px solid rgba(255, 255, 255, 0.09); }
+.account-section-head { margin-bottom: 18px; }
+.account-section-head h3 { margin: 5px 0 0; font-size: 17px; }
+
+.account-profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.account-profile-grid .account-field:last-child { grid-column: 1 / -1; }
+
+.account-orders { display: grid; gap: 10px; }
+.account-orders-loading, .account-orders-empty { padding: 22px; border: 1px solid rgba(255, 255, 255, 0.09); color: rgba(255, 255, 255, 0.5); font-size: 12px; line-height: 1.5; }
+
+.account-order-card { padding: 17px; border: 1px solid rgba(255, 255, 255, 0.09); background: #111; }
+.account-order-card__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
+.account-order-number { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; }
+.account-order-date { margin-top: 5px; color: rgba(255, 255, 255, 0.42); font-size: 10px; }
+.account-order-status { white-space: nowrap; padding: 5px 8px; border: 1px solid rgba(255, 255, 255, 0.14); font-size: 9px; letter-spacing: 0.08em; }
+.account-order-total { margin-top: 14px; font-size: 14px; font-weight: 700; }
+
+.account-signout {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+.account-signout:hover { color: #fff; border-color: rgba(255, 255, 255, 0.3); }
+
+@media (max-width: 640px) {
+  .whatsapp-float { right: 16px; bottom: 16px; width: 52px; height: 52px; min-height: 52px; padding: 0; justify-content: center; gap: 0; border-radius: 50%; }
+  .whatsapp-float__icon { width: 42px; height: 42px; flex-basis: 42px; background: transparent; color: #fff; }
+  .whatsapp-float__icon svg { width: 25px; height: 25px; }
+  .whatsapp-float__text { display: none; }
+  .account-panel { width: 100%; padding: 38px 20px 30px; }
+  .account-profile-grid { grid-template-columns: 1fr; }
+  .account-profile-grid .account-field:last-child { grid-column: auto; }
+  .account-order-card__top { flex-direction: column; }
+  .header-account { display: none; }
 }
