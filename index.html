@@ -184,18 +184,39 @@
       </div>
     </section>
 
-    <!-- PRODUCTS GRID (DYNAMIC CONTAINER) -->
+    <!-- SHOP / PRODUCTS -->
     <section class="shop-section" id="shop">
       <div class="section-heading section-heading--split">
         <div>
-          <p class="eyebrow">RECENT PRODUCTS · 최근 제품</p>
+          <p class="eyebrow">SHOP · 쇼핑</p>
           <h2>LATEST</h2>
         </div>
         <span class="section-status">DROP 001 · LIVE CATALOG</span>
       </div>
 
-      <div class="product-grid" id="products-grid">
-        <p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">Loading catalog...</p>
+      <!-- SHOP TOOLBAR -->
+      <div class="shop-toolbar">
+        <div class="shop-filters" role="group" aria-label="Product categories">
+          <button type="button" class="shop-filter is-active" data-shop-category="all">ALL</button>
+          <button type="button" class="shop-filter" data-shop-category="tees">TEES</button>
+          <button type="button" class="shop-filter" data-shop-category="hoods">HOODS</button>
+          <button type="button" class="shop-filter" data-shop-category="sweats">SWEATS</button>
+        </div>
+
+        <label class="shop-sort">
+          <span class="sr-only">Sort products</span>
+          <select id="shop-sort" aria-label="Sort products">
+            <option value="featured">FEATURED</option>
+            <option value="newest">NEWEST</option>
+            <option value="price-low">PRICE: LOW TO HIGH</option>
+            <option value="price-high">PRICE: HIGH TO LOW</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- DYNAMIC PRODUCT GRID -->
+      <div class="product-grid" id="products-grid" aria-live="polite">
+        <p class="catalog-message">Loading catalog...</p>
       </div>
     </section>
 
