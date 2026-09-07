@@ -1,6 +1,5 @@
 /**
- * BULKKOT — Production Main Storefront Controller
- * Version: 2.2 (Carousel & Layout Fixed)
+ * BULKKOT — Fixed Storefront Controller
  */
 (function () {
   'use strict';
@@ -18,17 +17,16 @@
   let activeSearch = "";
   let activeSort = "featured";
 
-  function escapeHTML(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+  function escapeHTML(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
-  function formatPrice(value) {
-    return "₹" + Number(value || 0).toLocaleString("en-IN");
+  function formatPrice(val) {
+    return "₹" + Number(val || 0).toLocaleString("en-IN");
   }
 
   function getStock(product, size) {
@@ -37,25 +35,19 @@
 
   function getTotalStock(product) {
     const stock = product?.stock || {};
-    return ["S", "M", "L", "XL"].reduce((total, size) => total + Number(stock[size] || 0), 0);
+    return ["S", "M", "L", "XL"].reduce((tot, s) => tot + Number(stock[s] || 0), 0);
   }
 
   function getCategory(product) {
     return String(product?.category || "tees").toLowerCase();
   }
 
-  function getProductText(product) {
-    return [product?.name, product?.category, product?.description, product?.fabric, product?.fit, product?.drop]
-      .filter(Boolean).join(" ").toLowerCase();
-  }
-
-  /* 1. Dynamic Catalog */
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
     if (!grid) return;
 
     if (!supabase) {
-      grid.innerHTML = '<p class="catalog-message catalog-message--error">Store connection unavailable.</p>';
+      grid.innerHTML = '<p class="catalog-message">Database connection unavailable.</p>';
       return;
     }
 
@@ -67,431 +59,227 @@
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      liveProducts = data || [];
 
-      liveProducts = Array.isArray(data) ? data : [];
-      liveProducts.forEach(initializeSelectedSize);
-      renderProducts(getVisibleProducts());
-    } catch (error) {
-      console.error("BULKKOT catalog error:", error);
+      liveProducts.forEach(p => {
+        const sizes = ["S", "M", "L", "XL"];
+        selectedSizes[p.id] = sizes.find(s => getStock(p, s) > 0) || "M";
+      });
+
+      renderProducts(getFilteredProducts());
+    } catch (err) {
+      console.error(err);
       grid.innerHTML = '<p class="catalog-message catalog-message--error">Failed to load catalog.</p>';
     }
   }
 
-  function initializeSelectedSize(product) {
-    if (selectedSizes[product.id]) return;
-    const sizes = ["S", "M", "L", "XL"];
-    const available = sizes.find(size => getStock(product, size) > 0);
-    selectedSizes[product.id] = available || "M";
-  }
-
-  function getVisibleProducts() {
-    let products = [...liveProducts];
+  function getFilteredProducts() {
+    let list = [...liveProducts];
     if (activeCategory !== "all") {
-      products = products.filter(product => getCategory(product) === activeCategory);
+      list = list.filter(p => getCategory(p) === activeCategory);
     }
     if (activeSearch) {
-      products = products.filter(product => getProductText(product).includes(activeSearch));
+      list = list.filter(p => (p.name || '').toLowerCase().includes(activeSearch));
     }
-    if (activeSort === "price-low") {
-      products.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-    } else if (activeSort === "price-high") {
-      products.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-    } else if (activeSort === "newest") {
-      products.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-    }
-    return products;
+    if (activeSort === "price-low") list.sort((a, b) => Number(a.price) - Number(b.price));
+    if (activeSort === "price-high") list.sort((a, b) => Number(b.price) - Number(a.price));
+    if (activeSort === "newest") list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return list;
   }
 
-  function refreshCatalog() {
-    renderProducts(getVisibleProducts());
-  }
-
-  function renderProducts(products) {
+  function renderProducts(items) {
     const grid = document.getElementById("products-grid");
     if (!grid) return;
 
-    if (!products.length) {
-      grid.innerHTML = '<p class="catalog-message">No matching pieces found.</p>';
+    if (!items.length) {
+      grid.innerHTML = '<p class="catalog-message">No garments found in this category.</p>';
       return;
     }
 
-    grid.innerHTML = products.map(renderProductCard).join("");
-    bindProductEvents();
-  }
+    grid.innerHTML = items.map(p => {
+      const cat = getCategory(p);
+      const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
+      const isSoldOut = getTotalStock(p) <= 0;
+      const curSize = selectedSizes[p.id] || "M";
 
-  function renderProductCard(product) {
-    initializeSelectedSize(product);
-    const category = getCategory(product);
-    const categoryKorean = category === "hoods" ? "후드" : category === "sweats" ? "스웨트" : "티셔츠";
-    const totalStock = getTotalStock(product);
-    const soldOut = totalStock <= 0;
-    const selectedSize = selectedSizes[product.id];
-    const sizes = ["S", "M", "L", "XL"];
-
-    const sizePills = sizes.map(size => {
-      const stock = getStock(product, size);
-      const isSelected = selectedSize === size;
-      return `
-        <button type="button"
-          class="product-size-btn ${isSelected ? 'is-selected' : ''} ${stock <= 0 ? 'is-disabled' : ''}"
-          data-size-product="${escapeHTML(String(product.id))}"
-          data-size="${size}"
-          ${stock <= 0 ? "disabled" : ""}>
-          ${size}
-        </button>
-      `;
-    }).join("");
-
-    const image = product.image_url || "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
-
-    return `
-      <article class="product-card" data-product-card data-category="${escapeHTML(category)}">
-        <button type="button" class="product-card__image-button" data-product-view="${escapeHTML(String(product.id))}" aria-label="View ${escapeHTML(product.name)}">
-          <div class="product-image">
-            <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" loading="lazy">
-            <span class="product-status">${soldOut ? "SOLD OUT" : escapeHTML(product.drop || "DROP 001")}</span>
-          </div>
-        </button>
-        <div class="product-information">
-          <div class="product-information__header">
-            <div>
-              <h3>${escapeHTML(product.name)}</h3>
-              <p class="product-category">${categoryKorean}</p>
-            </div>
-            <span class="product-price">${formatPrice(product.price)}</span>
-          </div>
-          <div class="product-sizes">${sizePills}</div>
-          <button type="button"
-            class="button button--primary product-add-button"
-            data-add-product="${escapeHTML(String(product.id))}"
-            ${soldOut ? "disabled" : ""}>
-            ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
+      const sizePills = ["S", "M", "L", "XL"].map(s => {
+        const qty = getStock(p, s);
+        const sel = curSize === s;
+        return `
+          <button type="button" 
+            class="product-size-btn ${sel ? 'is-selected' : ''} ${qty <= 0 ? 'is-disabled' : ''}" 
+            data-action="size" data-id="${p.id}" data-size="${s}" 
+            ${qty <= 0 ? 'disabled' : ''}>
+            ${s}
           </button>
-        </div>
-      </article>
-    `;
+        `;
+      }).join('');
+
+      return `
+        <article class="product-card" data-category="${cat}">
+          <div class="product-card__thumb" data-action="view" data-id="${p.id}">
+            <img src="${escapeHTML(p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}" alt="${escapeHTML(p.name)}" loading="lazy">
+            <span class="product-status">${isSoldOut ? 'SOLD OUT' : 'DROP 001'}</span>
+            <div class="product-card__hover-overlay"><span>QUICK VIEW</span></div>
+          </div>
+          <div class="product-information">
+            <div class="product-information__header" data-action="view" data-id="${p.id}" style="cursor:pointer;">
+              <div>
+                <h3>${escapeHTML(p.name)}</h3>
+                <p class="product-category">${catKorean}</p>
+              </div>
+              <span class="product-price">${formatPrice(p.price)}</span>
+            </div>
+            <div class="product-sizes">${sizePills}</div>
+            <button type="button" class="button button--primary product-add-button" 
+              data-action="add" data-id="${p.id}" ${isSoldOut ? 'disabled' : ''}>
+              ${isSoldOut ? 'SOLD OUT' : 'ADD TO BAG'}
+            </button>
+          </div>
+        </article>
+      `;
+    }).join('');
   }
 
-  function bindProductEvents() {
-    document.querySelectorAll("[data-size-product]").forEach(button => {
-      button.addEventListener("click", () => {
-        selectedSizes[button.dataset.sizeProduct] = button.dataset.size;
-        refreshCatalog();
-      });
-    });
+  // Event Delegation (Click issues fix karne ke liye)
+  document.addEventListener("click", e => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
 
-    document.querySelectorAll("[data-add-product]").forEach(button => {
-      button.addEventListener("click", () => addProductToCart(button.dataset.addProduct));
-    });
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    const p = liveProducts.find(item => String(item.id) === String(id));
 
-    document.querySelectorAll("[data-product-view]").forEach(elem => {
-      elem.addEventListener("click", () => openProductModal(elem.dataset.productView));
-    });
-  }
-
-  function addProductToCart(id) {
-    const product = liveProducts.find(item => String(item.id) === String(id));
-    if (!product) return;
-    const size = selectedSizes[product.id] || "M";
-    if (getStock(product, size) <= 0) return;
-
-    if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
-      window.BULKKOT_CART.addItem({
-        id: product.id,
-        name: product.name,
-        price: Number(product.price || 0),
-        size,
-        image: product.image_url || ""
-      });
+    if (action === "size") {
+      selectedSizes[id] = btn.dataset.size;
+      renderProducts(getFilteredProducts());
+    } else if (action === "add" && p) {
+      const size = selectedSizes[id] || "M";
+      if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
+        window.BULKKOT_CART.addItem({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price || 0),
+          size: size,
+          image: p.image_url
+        });
+      }
+    } else if (action === "view" && p) {
+      openProductModal(p);
     }
-  }
+  });
 
-  function ensureProductModal() {
-    let modal = document.getElementById("product-modal");
-    if (modal) return modal;
+  function openProductModal(p) {
+    let modal = document.getElementById("product-detail-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "product-detail-modal";
+      modal.className = "content-modal";
+      document.body.appendChild(modal);
+    }
 
-    modal = document.createElement("div");
-    modal.id = "product-modal";
-    modal.className = "content-modal";
-    modal.setAttribute("aria-hidden", "true");
+    const curSize = selectedSizes[p.id] || "M";
+    const isSoldOut = getTotalStock(p) <= 0;
 
     modal.innerHTML = `
-      <div class="content-modal__panel product-detail-panel">
-        <button type="button" class="drawer-close" data-product-modal-close aria-label="Close product">×</button>
-        <div id="product-modal-content"></div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-    modal.querySelector("[data-product-modal-close]")?.addEventListener("click", closeProductModal);
-    modal.addEventListener("click", event => {
-      if (event.target === modal) closeProductModal();
-    });
-    return modal;
-  }
-
-  function openProductModal(id) {
-    const product = liveProducts.find(item => String(item.id) === String(id));
-    if (!product) return;
-    initializeSelectedSize(product);
-
-    const modal = ensureProductModal();
-    const content = modal.querySelector("#product-modal-content");
-    if (!content) return;
-
-    const sizes = ["S", "M", "L", "XL"];
-    const image = product.image_url || "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
-
-    content.innerHTML = `
-      <div class="product-detail">
-        <div class="product-detail__media">
-          <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}">
-        </div>
-        <div class="product-detail__info">
-          <p class="eyebrow">${escapeHTML(product.drop || "DROP 001")}</p>
-          <h2>${escapeHTML(product.name)}</h2>
-          <p class="product-detail__price">${formatPrice(product.price)}</p>
-          ${product.description ? `<p class="product-detail__description">${escapeHTML(product.description)}</p>` : ""}
-          <div class="product-detail__sizes">
-            <p>SELECT SIZE</p>
-            <div>
-              ${sizes.map(size => {
-                const stock = getStock(product, size);
-                const selected = selectedSizes[product.id] === size;
-                return `
-                  <button type="button"
-                    class="product-size-btn ${selected ? 'is-selected' : ''} ${stock <= 0 ? 'is-disabled' : ''}"
-                    data-modal-size="${size}"
-                    ${stock <= 0 ? "disabled" : ""}>
-                    ${size}
-                  </button>
-                `;
-              }).join("")}
-            </div>
+      <div class="content-modal__panel product-modal-box">
+        <button type="button" class="drawer-close" id="closeDetailModal">×</button>
+        <div class="product-modal-grid">
+          <div class="product-modal-img">
+            <img src="${escapeHTML(p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}" alt="${escapeHTML(p.name)}">
           </div>
-          <button type="button" class="button button--primary" id="product-modal-add"
-            ${getTotalStock(product) <= 0 ? "disabled" : ""}>
-            ${getTotalStock(product) <= 0 ? "SOLD OUT" : "ADD TO BAG"}
-          </button>
+          <div class="product-modal-details">
+            <p class="eyebrow">${escapeHTML(p.category || 'ESSENTIALS')}</p>
+            <h2>${escapeHTML(p.name)}</h2>
+            <div class="product-modal-price">${formatPrice(p.price)}</div>
+            <p class="product-modal-desc">${escapeHTML(p.description || 'Korean-inspired heavyweight minimalist everyday wear.')}</p>
+            
+            <div style="margin: 20px 0;">
+              <p style="font-size:11px; font-weight:700; margin-bottom:8px; letter-spacing:0.1em;">SELECT SIZE</p>
+              <div class="product-sizes">
+                ${["S", "M", "L", "XL"].map(s => {
+                  const qty = getStock(p, s);
+                  const sel = curSize === s;
+                  return `
+                    <button type="button" class="product-size-btn ${sel ? 'is-selected' : ''} ${qty <= 0 ? 'is-disabled' : ''}"
+                      data-modal-size="${s}" ${qty <= 0 ? 'disabled' : ''}>
+                      ${s}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <button type="button" class="button button--primary" id="modalAddToCart" style="width:100%; padding:14px;" ${isSoldOut ? 'disabled' : ''}>
+              ${isSoldOut ? 'SOLD OUT' : 'ADD TO BAG'}
+            </button>
+          </div>
         </div>
       </div>
     `;
-
-    content.querySelectorAll("[data-modal-size]").forEach(button => {
-      button.addEventListener("click", () => {
-        selectedSizes[product.id] = button.dataset.modalSize;
-        openProductModal(product.id);
-      });
-    });
-
-    content.querySelector("#product-modal-add")?.addEventListener("click", () => {
-      addProductToCart(product.id);
-      closeProductModal();
-    });
 
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
+
+    modal.querySelector("#closeDetailModal").onclick = () => closeModal(modal);
+    modal.onclick = (e) => { if (e.target === modal) closeModal(modal); };
+
+    modal.querySelectorAll("[data-modal-size]").forEach(b => {
+      b.onclick = () => {
+        selectedSizes[p.id] = b.dataset.modalSize;
+        openProductModal(p);
+      };
+    });
+
+    modal.querySelector("#modalAddToCart").onclick = () => {
+      if (window.BULKKOT_CART) {
+        window.BULKKOT_CART.addItem({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price || 0),
+          size: selectedSizes[p.id] || "M",
+          image: p.image_url
+        });
+      }
+      closeModal(modal);
+    };
   }
 
-  function closeProductModal() {
-    const modal = document.getElementById("product-modal");
-    if (!modal) return;
+  function closeModal(modal) {
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
-    if (!document.querySelector(".cart-drawer.is-open")) {
-      document.body.classList.remove("modal-open");
-    }
+    document.body.classList.remove("modal-open");
   }
 
-  /* 2. Editorial Carousel (Slider Stack Fix) */
-  function initEditorialCarousel() {
-    const carousel = document.querySelector("[data-carousel]");
-    if (!carousel) return;
-
-    const track = carousel.querySelector("[data-carousel-track]");
-    const slides = Array.from(carousel.querySelectorAll("[data-slide]"));
-    const prevBtn = carousel.querySelector("[data-carousel-prev]");
-    const nextBtn = carousel.querySelector("[data-carousel-next]");
-    const dots = Array.from(carousel.querySelectorAll("[data-carousel-dot], [data-slide-indicator]"));
-
-    let currentIndex = 0;
-    const total = slides.length;
-    if (total === 0) return;
-
-    function goToSlide(index) {
-      currentIndex = (index + total) % total;
-      if (track) {
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-      }
-      dots.forEach((dot, idx) => {
-        dot.classList.toggle("is-active", idx === currentIndex);
-      });
-    }
-
-    prevBtn?.addEventListener("click", () => goToSlide(currentIndex - 1));
-    nextBtn?.addEventListener("click", () => goToSlide(currentIndex + 1));
-
-    dots.forEach((dot, idx) => {
-      dot.addEventListener("click", () => goToSlide(idx));
-    });
-
-    // Autoplay slider every 5s
-    setInterval(() => {
-      goToSlide(currentIndex + 1);
-    }, 5000);
-
-    goToSlide(0);
-  }
-
-  function initWaitlist() {
-    const form = document.querySelector("[data-waitlist-form]");
-    const message = document.querySelector("[data-waitlist-message]");
-    if (!form || !supabase) return;
-
-    form.addEventListener("submit", async event => {
-      event.preventDefault();
-      const input = document.getElementById("waitlist-email");
-      const email = input?.value.trim().toLowerCase() || "";
-      const button = form.querySelector("button[type='submit']");
-
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        if (message) message.textContent = "Please enter a valid email address.";
-        return;
-      }
-
-      if (button) {
-        button.disabled = true;
-        button.textContent = "JOINING...";
-      }
-
-      try {
-        const { error } = await supabase.from("waitlist").insert([{ email }]);
-        if (error) {
-          if (String(error.code) === "23505") {
-            throw new Error("You're already on the VIP waitlist.");
-          }
-          throw error;
-        }
-        if (message) {
-          message.textContent = "You're on the VIP list. We'll keep you updated.";
-          message.style.color = "#31c48d";
-        }
-        form.reset();
-      } catch (error) {
-        if (message) {
-          message.textContent = error.message || "Could not join the waitlist. Please try again.";
-          message.style.color = "#e50914";
-        }
-      } finally {
-        if (button) {
-          button.disabled = false;
-          button.textContent = "JOIN";
-        }
-      }
-    });
-  }
-
-  function initCategoryFilter() {
-    document.querySelectorAll(".category-card[data-category]").forEach(card => {
-      card.addEventListener("click", () => {
-        activeCategory = String(card.dataset.category || "all").toLowerCase();
-        updateCategoryButtons();
-        refreshCatalog();
-        setTimeout(() => {
-          document.getElementById("shop")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 50);
-      });
-    });
-
-    document.querySelectorAll("[data-shop-category]").forEach(button => {
-      button.addEventListener("click", () => {
-        activeCategory = String(button.dataset.shopCategory || "all").toLowerCase();
-        updateCategoryButtons();
-        refreshCatalog();
-      });
-    });
-  }
-
-  function updateCategoryButtons() {
-    document.querySelectorAll("[data-shop-category]").forEach(button => {
-      const category = String(button.dataset.shopCategory || "all").toLowerCase();
-      button.classList.toggle("is-active", category === activeCategory);
-    });
-  }
-
-  function initSearch() {
-    const form = document.querySelector("[data-search-form]");
-    const input = document.getElementById("site-search");
-    if (!form || !input) return;
-
-    form.addEventListener("submit", event => {
-      event.preventDefault();
-      activeSearch = input.value.trim().toLowerCase();
-      const modal = document.querySelector("[data-search-modal]");
-      modal?.classList.remove("is-open");
-      modal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-      refreshCatalog();
-      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }
-
-  function initSort() {
-    const sort = document.getElementById("shop-sort");
-    if (!sort) return;
-    sort.addEventListener("change", () => {
-      activeSort = sort.value || "featured";
-      refreshCatalog();
-    });
-  }
-
-  function initUI() {
-    const drawer = document.getElementById("mobile-drawer");
-    document.querySelectorAll("[data-open-drawer]").forEach(btn => {
-      btn.addEventListener("click", () => drawer?.classList.add("is-open"));
-    });
-    document.querySelectorAll("[data-close-drawer]").forEach(btn => {
-      btn.addEventListener("click", () => drawer?.classList.remove("is-open"));
-    });
-
-    const searchModal = document.querySelector("[data-search-modal]");
-    document.querySelectorAll("[data-open-search]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        searchModal?.classList.add("is-open");
-        document.body.classList.add("modal-open");
-        setTimeout(() => document.getElementById("site-search")?.focus(), 50);
-      });
-    });
-    document.querySelectorAll("[data-close-search]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        searchModal?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-
-    const aboutModal = document.querySelector("[data-about-modal]");
-    document.querySelectorAll("[data-open-about]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        aboutModal?.classList.add("is-open");
-        document.body.classList.add("modal-open");
-      });
-    });
-    document.querySelectorAll("[data-close-about]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        aboutModal?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-  }
-
+  // Filter & Toolbar Controls
   document.addEventListener("DOMContentLoaded", () => {
     initCatalog();
-    initEditorialCarousel();
-    initWaitlist();
-    initCategoryFilter();
-    initSearch();
-    initSort();
-    initUI();
+
+    // Category Buttons
+    document.querySelectorAll("[data-shop-category]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-shop-category]").forEach(b => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        activeCategory = btn.dataset.shopCategory;
+        renderProducts(getFilteredProducts());
+      });
+    });
+
+    // Sort Dropdown
+    const sortSelect = document.getElementById("shop-sort");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", () => {
+        activeSort = sortSelect.value;
+        renderProducts(getFilteredProducts());
+      });
+    }
+
+    // Escape listener
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        document.querySelectorAll(".content-modal.is-open").forEach(closeModal);
+      }
+    });
   });
 })();
