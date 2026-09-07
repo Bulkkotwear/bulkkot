@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Controller
- * Version: 3.3 (Real-Time Low Stock + Size Guide Integration)
+ * Version: 3.4 (Integrated Guest Order Tracking Lookup)
  */
 (function () {
   'use strict';
@@ -322,9 +322,230 @@
     if (!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
-    if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open")) {
+    if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open") && !document.querySelector(".track-order-modal.is-open")) {
       document.body.classList.remove("modal-open");
     }
+  }
+
+  // =========================================================
+  // GUEST ORDER TRACKING LOOKUP
+  // =========================================================
+  function initOrderTracking() {
+    const modal = document.querySelector("[data-track-order-modal]");
+    const form = document.querySelector("[data-track-order-form]");
+    const result = document.querySelector("[data-track-order-result]");
+    const message = document.querySelector("[data-track-order-message]");
+
+    if (!modal || !form || !supabase) return;
+
+    const orderInput = document.getElementById("track-order-number");
+    const phoneInput = document.getElementById("track-order-phone");
+
+    const openButtons = document.querySelectorAll("[data-open-track-order]");
+    const closeButtons = modal.querySelectorAll("[data-track-order-close]");
+    const againButton = modal.querySelector("[data-track-again]");
+
+    const resultNumber = modal.querySelector("[data-track-result-number]");
+    const resultStatus = modal.querySelector("[data-track-result-status]");
+    const resultPayment = modal.querySelector("[data-track-result-payment]");
+    const resultPaymentStatus = modal.querySelector("[data-track-result-payment-status]");
+    const resultCourier = modal.querySelector("[data-track-result-courier]");
+    const resultTracking = modal.querySelector("[data-track-result-tracking]");
+
+    const courierRow = modal.querySelector("[data-track-courier-row]");
+    const trackingRow = modal.querySelector("[data-track-tracking-row]");
+    const cancelledBox = modal.querySelector("[data-track-cancelled]");
+    const progressLine = modal.querySelector("[data-track-progress-line]");
+
+    const steps = Array.from(modal.querySelectorAll("[data-track-step]"));
+
+    const STATUS_ORDER = [
+      "ORDER PLACED",
+      "PAYMENT CONFIRMED",
+      "PACKED",
+      "SHIPPED",
+      "OUT FOR DELIVERY",
+      "DELIVERED"
+    ];
+
+    function setMessage(text, type = "") {
+      if (!message) return;
+      message.textContent = text || "";
+      message.className = "track-order-message";
+      if (type) message.classList.add(`is-${type}`);
+    }
+
+    function resetResult() {
+      if (!result) return;
+      result.hidden = true;
+      cancelledBox.hidden = true;
+      courierRow.hidden = true;
+      trackingRow.hidden = true;
+      if (progressLine) progressLine.style.width = "0%";
+      steps.forEach(step => step.classList.remove("is-complete", "is-current", "is-cancelled"));
+      if (resultStatus) {
+        resultStatus.textContent = "ORDER PLACED";
+        resultStatus.className = "track-order-status-badge";
+      }
+      setMessage("");
+    }
+
+    function openTrackingModal() {
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      resetResult();
+      setTimeout(() => orderInput?.focus(), 100);
+    }
+
+    function closeTrackingModal() {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open") && !document.querySelector(".size-guide-modal.is-open")) {
+        document.body.classList.remove("modal-open");
+      }
+    }
+
+    function renderProgress(status) {
+      const normalizedStatus = String(status || "").trim().toUpperCase();
+
+      if (normalizedStatus === "CANCELLED") {
+        cancelledBox.hidden = false;
+        steps.forEach(step => {
+          step.classList.remove("is-complete", "is-current");
+          step.classList.add("is-cancelled");
+        });
+        if (progressLine) progressLine.style.width = "0%";
+        return;
+      }
+
+      cancelledBox.hidden = true;
+      const currentIndex = STATUS_ORDER.indexOf(normalizedStatus);
+      const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+
+      steps.forEach((step, index) => {
+        step.classList.remove("is-complete", "is-current", "is-cancelled");
+        if (index < safeIndex) step.classList.add("is-complete");
+        if (index === safeIndex) step.classList.add("is-current");
+      });
+
+      const percentage = STATUS_ORDER.length <= 1 ? 0 : (safeIndex / (STATUS_ORDER.length - 1)) * 100;
+      if (progressLine) progressLine.style.width = `${percentage}%`;
+    }
+
+    function renderResult(order) {
+      const status = String(order.order_status || "ORDER PLACED").trim().toUpperCase();
+      resultNumber.textContent = order.order_number || "—";
+      resultStatus.textContent = status;
+      resultStatus.className = "track-order-status-badge";
+
+      if (status === "CANCELLED") {
+        resultStatus.classList.add("is-cancelled");
+      } else if (status === "DELIVERED") {
+        resultStatus.classList.add("is-delivered");
+      } else {
+        resultStatus.classList.add("is-active");
+      }
+
+      resultPayment.textContent = String(order.payment_method || "COD").toUpperCase();
+      resultPaymentStatus.textContent = String(order.payment_status || "PENDING").toUpperCase();
+
+      if (order.courier) {
+        courierRow.hidden = false;
+        resultCourier.textContent = String(order.courier);
+      } else {
+        courierRow.hidden = true;
+      }
+
+      if (order.tracking_number) {
+        trackingRow.hidden = false;
+        resultTracking.textContent = String(order.tracking_number);
+      } else {
+        trackingRow.hidden = true;
+      }
+
+      renderProgress(status);
+      result.hidden = false;
+      setMessage("");
+    }
+
+    async function lookupOrder(orderNumber, phone) {
+      const normOrder = String(orderNumber || "").trim().toUpperCase();
+      const normPhone = String(phone || "").replace(/\D/g, "");
+
+      if (!normOrder) {
+        setMessage("Please enter your order number.", "error");
+        orderInput?.focus();
+        return;
+      }
+
+      if (!/^BK-\d{4}-\d{4}$/.test(normOrder)) {
+        setMessage("Format must be BK-YYYY-XXXX (e.g. BK-2026-0001).", "error");
+        orderInput?.focus();
+        return;
+      }
+
+      if (!normPhone) {
+        setMessage("Please enter the 10-digit phone number.", "error");
+        phoneInput?.focus();
+        return;
+      }
+
+      setMessage("Searching order...", "loading");
+      const submitBtn = form.querySelector(".track-order-submit");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "CHECKING...";
+      }
+
+      try {
+        const { data, error } = await supabase.rpc("track_order", {
+          p_order_number: normOrder,
+          p_phone: normPhone
+        });
+
+        if (error) throw error;
+
+        if (!data || data.success !== true) {
+          resetResult();
+          setMessage(data?.message || "Order not found. Please verify details.", "error");
+          return;
+        }
+
+        renderResult(data);
+      } catch (err) {
+        console.error("Tracking error:", err);
+        resetResult();
+        setMessage("Unable to check order status right now.", "error");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "TRACK ORDER";
+        }
+      }
+    }
+
+    openButtons.forEach(b => b.addEventListener("click", openTrackingModal));
+    closeButtons.forEach(b => b.addEventListener("click", closeTrackingModal));
+
+    againButton?.addEventListener("click", () => {
+      resetResult();
+      form.reset();
+      setTimeout(() => orderInput?.focus(), 50);
+    });
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      lookupOrder(orderInput?.value, phoneInput?.value);
+    });
+
+    orderInput?.addEventListener("input", () => {
+      orderInput.value = orderInput.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+    });
+
+    modal.addEventListener("click", e => {
+      if (e.target === modal) closeTrackingModal();
+    });
   }
 
   // Editorial Carousel
@@ -356,6 +577,7 @@
     initCatalog();
     initCarousel();
     initSizeGuide();
+    initOrderTracking();
 
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -391,6 +613,12 @@
       if (e.key === "Escape") {
         document.querySelectorAll(".content-modal.is-open").forEach(closeModal);
         closeSizeGuideModal();
+        const trackingModal = document.querySelector("[data-track-order-modal]");
+        if (trackingModal?.classList.contains("is-open")) {
+          trackingModal.classList.remove("is-open");
+          trackingModal.setAttribute("aria-hidden", "true");
+          document.body.classList.remove("modal-open");
+        }
       }
     });
   });
