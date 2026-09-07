@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Controller
- * Version: 3.6 (Mobile Drawer Menu & Interactivity Fixes)
+ * Version: 3.7 (Fully Wired Navigation, Search & Modals)
  */
 (function () {
   'use strict';
@@ -50,7 +50,7 @@
     return { text: "", cls: "", disabled: false };
   }
 
-  // MOBILE NAVIGATION & MODALS INIT
+  // NAVIGATION & MODALS INIT
   function initNavigation() {
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
     const openDrawerBtn = document.querySelector("[data-open-drawer]");
@@ -71,10 +71,10 @@
     openDrawerBtn?.addEventListener("click", openDrawer);
     closeDrawerBtns.forEach(btn => btn.addEventListener("click", closeDrawer));
 
-    // Search modal
+    // Search modal wiring
     const searchModal = document.querySelector("[data-search-modal]");
     const openSearchBtns = document.querySelectorAll("[data-open-search]");
-    const closeSearchBtn = document.querySelector("[data-close-search]");
+    const closeSearchBtn = searchModal?.querySelector(".drawer-close");
     const searchForm = document.querySelector("[data-search-form]");
 
     openSearchBtns.forEach(btn => btn.addEventListener("click", () => {
@@ -101,10 +101,10 @@
       document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
     });
 
-    // About story modal
+    // About story modal wiring
     const aboutModal = document.querySelector("[data-about-modal]");
     const openAboutBtns = document.querySelectorAll("[data-open-about]");
-    const closeAboutBtn = document.querySelector("[data-close-about]");
+    const closeAboutBtn = aboutModal?.querySelector(".drawer-close");
 
     openAboutBtns.forEach(btn => btn.addEventListener("click", () => {
       aboutModal?.classList.add("is-open");
@@ -118,7 +118,15 @@
       document.body.classList.remove("modal-open");
     });
 
-    // Waitlist form
+    aboutModal?.addEventListener("click", (e) => {
+      if (e.target === aboutModal) {
+        aboutModal.classList.remove("is-open");
+        aboutModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+      }
+    });
+
+    // Waitlist form wiring
     const waitlistForm = document.querySelector("[data-waitlist-form]");
     waitlistForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1021,6 +1029,18 @@
         if (accountModal?.classList.contains("is-open")) {
           accountModal.classList.remove("is-open");
           accountModal.setAttribute("aria-hidden", "true");
+          document.body.classList.remove("modal-open");
+        }
+        const searchModal = document.querySelector("[data-search-modal]");
+        if (searchModal?.classList.contains("is-open")) {
+          searchModal.classList.remove("is-open");
+          searchModal.setAttribute("aria-hidden", "true");
+          document.body.classList.remove("modal-open");
+        }
+        const aboutModal = document.querySelector("[data-about-modal]");
+        if (aboutModal?.classList.contains("is-open")) {
+          aboutModal.classList.remove("is-open");
+          aboutModal.setAttribute("aria-hidden", "true");
           document.body.classList.remove("modal-open");
         }
       }
