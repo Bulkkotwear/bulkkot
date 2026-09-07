@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Cart & Checkout Controller
- * Version: 2.0
+ * Version: 2.1
  */
 (function () {
   'use strict';
@@ -97,19 +97,19 @@
     const itemsHTML = cart.map((item, index) => {
       const quantity = getQuantity(item);
       return `
-        <article style="display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid #1a1a1a;" data-cart-index="${index}">
-          <img style="width: 70px; height: 70px; object-fit: cover;" src="${escapeHTML(item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}" alt="${escapeHTML(item.name)}" loading="lazy">
-          <div style="flex: 1;">
-            <div style="display: flex; justify-content: space-between;">
-              <strong style="font-size: 13px; text-transform: uppercase;">${escapeHTML(item.name)}</strong>
-              <span style="font-size: 13px;">${formatPrice(item.price * quantity)}</span>
+        <article class="cart-item" data-cart-index="${index}">
+          <img class="cart-item__image" src="${escapeHTML(item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}" alt="${escapeHTML(item.name)}" loading="lazy">
+          <div class="cart-item__content">
+            <div class="cart-item__top">
+              <strong class="cart-item__name">${escapeHTML(item.name)}</strong>
+              <span class="cart-item__price">${formatPrice(item.price * quantity)}</span>
             </div>
-            <p style="font-size: 11px; color: #888; margin: 4px 0 8px;">SIZE: ${escapeHTML(item.size)}</p>
-            <div style="display: flex; gap: 12px; align-items: center;">
-              <button type="button" style="background:none; border:1px solid #333; color:#fff; width:22px; height:22px; cursor:pointer;" data-cart-minus="${index}">−</button>
-              <span style="font-size: 12px;">${quantity}</span>
-              <button type="button" style="background:none; border:1px solid #333; color:#fff; width:22px; height:22px; cursor:pointer;" data-cart-plus="${index}">+</button>
-              <button type="button" style="background:none; border:none; color:#e50914; font-size: 11px; margin-left: auto; cursor:pointer;" data-cart-remove="${index}">REMOVE</button>
+            <p class="cart-item__meta">SIZE: ${escapeHTML(item.size)}</p>
+            <div class="cart-item__controls">
+              <button type="button" class="cart-qty-btn" data-cart-minus="${index}">−</button>
+              <span class="cart-item__quantity">${quantity}</span>
+              <button type="button" class="cart-qty-btn" data-cart-plus="${index}">+</button>
+              <button type="button" class="cart-remove-btn" data-cart-remove="${index}">REMOVE</button>
             </div>
           </div>
         </article>
@@ -117,13 +117,13 @@
     }).join("");
 
     container.innerHTML = `
-      <div style="padding: 10px 20px; overflow-y: auto; max-height: calc(100vh - 250px);">${itemsHTML}</div>
+      <div class="cart-items" style="padding: 10px 20px; overflow-y: auto; max-height: calc(100vh - 250px);">${itemsHTML}</div>
       <div style="padding: 20px; border-top: 1px solid #222; background: #070707;">
         <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; margin-bottom: 14px;">
           <span>SUBTOTAL</span>
           <strong>${formatPrice(subtotal)}</strong>
         </div>
-        <button type="button" id="cart-checkout-trigger" class="button button--primary" style="width: 100%; padding: 14px 0; font-size: 12px; letter-spacing: 0.1em;">
+        <button type="button" id="cart-checkout-trigger" class="button button--primary cart-checkout-btn">
           CHECKOUT · ${formatPrice(subtotal)}
         </button>
       </div>
@@ -195,30 +195,52 @@
     modal.setAttribute("aria-hidden", "true");
 
     modal.innerHTML = `
-      <div class="content-modal__panel" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+      <div class="content-modal__panel checkout-panel">
         <button type="button" class="drawer-close" id="close-checkout-btn" aria-label="Close checkout">×</button>
         <p class="eyebrow">BULKKOT · CHECKOUT</p>
-        <h2 style="font-size: 20px; margin-bottom: 16px;">SHIPPING DETAILS</h2>
-        <form id="checkout-order-form" style="display: flex; flex-direction: column; gap: 10px;" novalidate>
-          <input type="text" id="order-name" placeholder="Full Name *" style="padding: 11px; background: #111; border: 1px solid #333; color: #fff;" required>
-          <div style="display: flex; gap: 10px;">
-            <input type="email" id="order-email" placeholder="Email Address *" style="flex: 1; padding: 11px; background: #111; border: 1px solid #333; color: #fff;" required>
-            <input type="tel" id="order-phone" placeholder="Phone (10 digits) *" maxlength="10" style="flex: 1; padding: 11px; background: #111; border: 1px solid #333; color: #fff;" required>
+        <h2>SHIPPING DETAILS</h2>
+        <form id="checkout-order-form" class="checkout-form" novalidate>
+          <div class="checkout-field">
+            <label for="order-name">FULL NAME</label>
+            <input type="text" id="order-name" required>
           </div>
-          <textarea id="order-address" placeholder="Delivery Address *" rows="2" style="padding: 11px; background: #111; border: 1px solid #333; color: #fff; resize: none;" required></textarea>
-          <div style="display: flex; gap: 10px;">
-            <input type="text" id="order-city" placeholder="City *" style="flex: 1; padding: 11px; background: #111; border: 1px solid #333; color: #fff;" required>
-            <input type="text" id="order-state" placeholder="State *" style="flex: 1; padding: 11px; background: #111; border: 1px solid #333; color: #fff;" required>
-            <input type="text" id="order-pincode" placeholder="Pincode *" maxlength="6" style="flex: 1; padding: 11px; background: #111; border: 1px solid #333; color: #fff;" required>
+          <div class="checkout-grid">
+            <div class="checkout-field">
+              <label for="order-email">EMAIL ADDRESS</label>
+              <input type="email" id="order-email" required>
+            </div>
+            <div class="checkout-field">
+              <label for="order-phone">PHONE NUMBER</label>
+              <input type="tel" id="order-phone" maxlength="10" required>
+            </div>
           </div>
-          <div style="margin-top: 8px; border: 1px solid #222; padding: 12px; background: #0c0c0c;">
-            <p style="font-size: 11px; color: #888; font-weight: 700; margin-bottom: 8px;">PAYMENT METHOD</p>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
-              <input type="radio" name="payment_method" value="cod" checked> Cash on Delivery (COD)
+          <div class="checkout-field">
+            <label for="order-address">DELIVERY ADDRESS</label>
+            <textarea id="order-address" rows="2" required></textarea>
+          </div>
+          <div class="checkout-grid">
+            <div class="checkout-field">
+              <label for="order-city">CITY</label>
+              <input type="text" id="order-city" required>
+            </div>
+            <div class="checkout-field">
+              <label for="order-state">STATE</label>
+              <input type="text" id="order-state" required>
+            </div>
+          </div>
+          <div class="checkout-field">
+            <label for="order-pincode">PINCODE</label>
+            <input type="text" id="order-pincode" maxlength="6" required>
+          </div>
+          <div class="checkout-payment">
+            <p class="checkout-section-label">PAYMENT METHOD</p>
+            <label class="checkout-payment-option">
+              <input type="radio" name="payment_method" value="cod" checked>
+              <span>CASH ON DELIVERY</span>
             </label>
           </div>
-          <div id="checkout-err-msg" style="color: #e50914; font-size: 12px;" role="alert" aria-live="polite"></div>
-          <button type="submit" id="order-submit-btn" class="button button--primary" style="width: 100%; padding: 14px 0; margin-top: 6px;">PLACE ORDER</button>
+          <div id="checkout-err-msg" class="checkout-error" role="alert" aria-live="polite"></div>
+          <button type="submit" id="order-submit-btn" class="button button--primary checkout-submit">PLACE ORDER</button>
         </form>
       </div>
     `;
@@ -346,11 +368,11 @@
 
     panel.innerHTML = `
       <button type="button" class="drawer-close" id="close-success-btn" aria-label="Close">×</button>
-      <div style="text-align: center; padding: 20px 0;">
+      <div class="order-success">
         <p class="eyebrow">BULKKOT · ORDER CONFIRMED</p>
-        <h2 style="font-size: 24px; color: #31c48d; margin-bottom: 8px;">THANK YOU.</h2>
-        ${orderNumber ? `<p style="font-size: 16px; font-weight: 800; margin-bottom: 16px;">ORDER #${escapeHTML(orderNumber)}</p>` : ""}
-        <p style="color: #888; font-size: 13px; line-height: 1.6; margin-bottom: 24px;">Your order has been successfully placed. We will verify the details via phone/WhatsApp prior to dispatch.</p>
+        <h2>THANK YOU.</h2>
+        ${orderNumber ? `<p class="order-success__number">ORDER #${escapeHTML(orderNumber)}</p>` : ""}
+        <p>Your order has been successfully placed. We will verify the details via phone/WhatsApp prior to dispatch.</p>
         <button type="button" class="button button--primary" id="success-back-btn">BACK TO SHOP</button>
       </div>
     `;
