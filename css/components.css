@@ -484,7 +484,7 @@
 }
 
 /* =========================================================
-   06. PRODUCT DETAIL MODAL & QUICK VIEW
+   06. MODAL SYSTEM (GENERAL)
 ========================================================= */
 .content-modal,
 .search-modal {
@@ -522,6 +522,7 @@
   box-shadow: 0 35px 100px rgba(0, 0, 0, 0.8);
 }
 
+/* Product Detail Specific */
 .product-modal-box {
   width: min(94vw, 920px);
   padding: 0 !important;
@@ -573,7 +574,94 @@
 }
 
 /* =========================================================
-   07. BULKKOT SIZE GUIDE (DARK LUXURY THEME)
+   07. CHECKOUT MODAL & FORMS (STRICT VERTICAL STACKING)
+========================================================= */
+.checkout-panel {
+  width: min(94vw, 560px) !important;
+  max-height: min(90vh, 800px) !important;
+  overflow-y: auto !important;
+  padding: 34px 28px !important;
+}
+
+.checkout-panel h2 {
+  font-size: clamp(22px, 4vw, 32px);
+  margin-top: 6px;
+  margin-bottom: 20px;
+}
+
+.checkout-form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+.checkout-field {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  gap: 6px !important;
+}
+
+.checkout-field label,
+.checkout-section-label {
+  display: block !important;
+  width: 100% !important;
+  color: var(--bk-muted) !important;
+  font-family: var(--bk-heading) !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+.checkout-field input,
+.checkout-field textarea {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  border: 1px solid var(--bk-border) !important;
+  border-radius: 2px !important;
+  background: #050505 !important;
+  color: var(--bk-white) !important;
+  font-family: var(--bk-body, sans-serif) !important;
+  font-size: 13px !important;
+  padding: 10px 14px !important;
+  outline: none !important;
+  transition: border-color var(--transition-fast), background var(--transition-fast) !important;
+}
+
+.checkout-field input {
+  height: 42px !important;
+}
+
+.checkout-field textarea {
+  min-height: 76px !important;
+  resize: vertical !important;
+}
+
+.checkout-field input:focus,
+.checkout-field textarea:focus {
+  border-color: var(--bk-white) !important;
+  background: #0d0d0d !important;
+}
+
+.checkout-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+@media (max-width: 520px) {
+  .checkout-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================================
+   08. BULKKOT SIZE GUIDE (DARK LUXURY THEME)
 ========================================================= */
 .size-guide-modal {
   position: fixed;
@@ -774,7 +862,7 @@
 }
 
 /* =========================================================
-   08. CART DRAWER & OVERLAY
+   09. CART DRAWER & OVERLAY
 ========================================================= */
 .drawer-overlay {
   position: fixed !important;
@@ -900,6 +988,60 @@
 
 .cart-remove-btn:hover {
   color: var(--bk-red);
+}
+
+/* =========================================================
+   10. SEARCH & POLICY MODALS
+========================================================= */
+.search-modal__inner {
+  width: min(92vw, 720px);
+  background: #090909;
+  border: 1px solid var(--bk-border);
+  padding: 36px 30px;
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.search-form input {
+  height: 48px;
+  padding: 0 16px;
+  background: #000;
+  border: 1px solid var(--bk-border);
+  color: #fff;
+}
+
+.modal-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  color: var(--bk-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* =========================================================
+   11. ORDER SUCCESS
+========================================================= */
+.order-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 30px 10px;
+}
+
+.order-success__number {
+  color: var(--bk-red);
+  font-family: var(--bk-heading);
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: 12px;
 }
 
 @media (max-width: 640px) {
