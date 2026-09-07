@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Controller
- * Version: 3.5 (Auth + Account + Tracking Integration)
+ * Version: 3.6 (Mobile Drawer Menu & Interactivity Fixes)
  */
 (function () {
   'use strict';
@@ -48,6 +48,107 @@
     if (stock <= 0) return { text: "SOLD OUT", cls: "is-sold-out", disabled: true };
     if (stock <= 2) return { text: `ONLY ${stock} LEFT`, cls: "is-low", disabled: false };
     return { text: "", cls: "", disabled: false };
+  }
+
+  // MOBILE NAVIGATION & MODALS INIT
+  function initNavigation() {
+    const mobileDrawer = document.querySelector("[data-mobile-drawer]");
+    const openDrawerBtn = document.querySelector("[data-open-drawer]");
+    const closeDrawerBtns = document.querySelectorAll("[data-close-drawer]");
+
+    function openDrawer() {
+      mobileDrawer?.classList.add("is-open");
+      mobileDrawer?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeDrawer() {
+      mobileDrawer?.classList.remove("is-open");
+      mobileDrawer?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    openDrawerBtn?.addEventListener("click", openDrawer);
+    closeDrawerBtns.forEach(btn => btn.addEventListener("click", closeDrawer));
+
+    // Search modal
+    const searchModal = document.querySelector("[data-search-modal]");
+    const openSearchBtns = document.querySelectorAll("[data-open-search]");
+    const closeSearchBtn = document.querySelector("[data-close-search]");
+    const searchForm = document.querySelector("[data-search-form]");
+
+    openSearchBtns.forEach(btn => btn.addEventListener("click", () => {
+      searchModal?.classList.add("is-open");
+      searchModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      setTimeout(() => searchModal?.querySelector("input")?.focus(), 50);
+    }));
+
+    closeSearchBtn?.addEventListener("click", () => {
+      searchModal?.classList.remove("is-open");
+      searchModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    });
+
+    searchForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const query = searchForm.querySelector("input")?.value.trim().toLowerCase() || "";
+      activeSearch = query;
+      searchModal?.classList.remove("is-open");
+      searchModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      renderProducts(getFilteredProducts());
+      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    // About story modal
+    const aboutModal = document.querySelector("[data-about-modal]");
+    const openAboutBtns = document.querySelectorAll("[data-open-about]");
+    const closeAboutBtn = document.querySelector("[data-close-about]");
+
+    openAboutBtns.forEach(btn => btn.addEventListener("click", () => {
+      aboutModal?.classList.add("is-open");
+      aboutModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }));
+
+    closeAboutBtn?.addEventListener("click", () => {
+      aboutModal?.classList.remove("is-open");
+      aboutModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    });
+
+    // Waitlist form
+    const waitlistForm = document.querySelector("[data-waitlist-form]");
+    waitlistForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const emailInput = waitlistForm.querySelector("#waitlist-email");
+      const msgDiv = waitlistForm.querySelector("[data-waitlist-message]");
+      const email = emailInput?.value.trim().toLowerCase();
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (msgDiv) { msgDiv.textContent = "Please enter a valid email address."; msgDiv.style.color = "#ff6b6b"; }
+        return;
+      }
+
+      if (!supabase) return;
+
+      try {
+        const { error } = await supabase.from("waitlist").insert({ email });
+        if (error) {
+          if (error.code === "23505") {
+            if (msgDiv) { msgDiv.textContent = "You're already on the VIP waitlist."; msgDiv.style.color = "#f5c542"; }
+          } else {
+            throw error;
+          }
+        } else {
+          if (msgDiv) { msgDiv.textContent = "Successfully joined the VIP waitlist."; msgDiv.style.color = "#8fe3a8"; }
+          emailInput.value = "";
+        }
+      } catch (err) {
+        if (msgDiv) { msgDiv.textContent = "Unable to join right now. Try again later."; msgDiv.style.color = "#ff6b6b"; }
+      }
+    });
   }
 
   async function initCatalog() {
@@ -100,7 +201,7 @@
     if (!grid) return;
 
     if (!items.length) {
-      grid.innerHTML = '<p class="catalog-message" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No garments found in this category.</p>';
+      grid.innerHTML = '<p class="catalog-message" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No garments found matching your filter.</p>';
       return;
     }
 
@@ -320,14 +421,12 @@
     if (!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
-    if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open") && !document.querySelector(".track-order-modal.is-open") && !document.querySelector(".account-modal.is-open")) {
+    if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open") && !document.querySelector(".size-guide-modal.is-open") && !document.querySelector(".track-order-modal.is-open") && !document.querySelector(".account-modal.is-open")) {
       document.body.classList.remove("modal-open");
     }
   }
 
-  // =========================================================
   // GUEST ORDER TRACKING
-  // =========================================================
   function initOrderTracking() {
     const modal = document.querySelector("[data-track-order-modal]");
     const form = document.querySelector("[data-track-order-form]");
@@ -546,9 +645,7 @@
     });
   }
 
-  // =========================================================
   // CUSTOMER AUTH + ACCOUNT
-  // =========================================================
   function initCustomerAuth() {
     const modal = document.querySelector("[data-account-modal]");
     if (!modal || !supabase) return;
@@ -873,6 +970,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    initNavigation();
     initCatalog();
     initCarousel();
     initSizeGuide();
