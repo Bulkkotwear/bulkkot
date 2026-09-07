@@ -661,51 +661,5 @@
   <!-- Scripts -->
   <script src="js/cart.js" defer></script>
   <script src="js/main.js" defer></script>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const modal = document.querySelector("[data-policy-modal]");
-      const title = document.querySelector("[data-policy-title]");
-      const content = document.querySelector("[data-policy-content]");
-      const closeBtn = document.querySelector("[data-close-policy]");
-
-      const titles = {
-        faq: "FAQ",
-        shipping: "SHIPPING POLICY",
-        returns: "RETURNS & EXCHANGE",
-        privacy: "PRIVACY POLICY",
-        terms: "TERMS & CONDITIONS"
-      };
-
-      document.querySelectorAll("[data-open-policy]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const type = btn.getAttribute("data-open-policy");
-          const tpl = document.getElementById("policy-" + type);
-          if (tpl && modal && content) {
-            title.textContent = titles[type] || "INFORMATION";
-            content.innerHTML = "";
-            content.appendChild(tpl.content.cloneNode(true));
-            modal.classList.add("is-open");
-            modal.setAttribute("aria-hidden", "false");
-            document.body.classList.add("modal-open");
-          }
-        });
-      });
-
-      closeBtn?.addEventListener("click", () => {
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("modal-open");
-      });
-
-      modal?.addEventListener("click", (e) => {
-        if (e.target === modal) {
-          modal.classList.remove("is-open");
-          modal.setAttribute("aria-hidden", "true");
-          document.body.classList.remove("modal-open");
-        }
-      });
-    });
-  </script>
 </body>
 </html>
