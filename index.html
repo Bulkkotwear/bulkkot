@@ -3,478 +3,383 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BULKKOT — Heavyweight Streetwear</title>
+  <title>BULKKOT (불꽃) — Admin Control Hub</title>
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Noto+Sans+KR:wght@700&display=swap" rel="stylesheet">
+  
+  <!-- Supabase JS Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg: #070707;
-      --surface: #0f0f0f;
-      --surface-2: #161616;
-      --border: #222222;
-      --text: #f5f5f5;
-      --muted: #888888;
-      --flame: #e50914;
-      --flame-dark: #b80710;
-      --green: #31c48d;
-      --radius: 8px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow-x: hidden; }
-    a { color: inherit; text-decoration: none; }
-    button, input, select, textarea { font-family: inherit; }
-
-    /* Nav */
-    header {
-      position: fixed; top: 0; left: 0; right: 0; height: 70px;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 5%; background: rgba(7, 7, 7, 0.85); backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border); z-index: 100;
-    }
-    .logo { font-size: 22px; font-weight: 900; letter-spacing: -1px; }
-    .logo span { color: var(--flame); }
-    nav { display: flex; gap: 24px; align-items: center; }
-    nav a { font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); transition: color .2s; }
-    nav a:hover { color: #fff; }
-    .cart-trigger { background: transparent; border: 1px solid var(--border); color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; gap: 8px; align-items: center; }
-    .cart-count { background: var(--flame); color: #fff; border-radius: 50%; padding: 2px 7px; font-size: 10px; }
-
-    /* Hero */
-    .hero {
-      min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
-      text-align: center; padding: 120px 20px 60px;
-      background: radial-gradient(circle at 50% 30%, rgba(229, 9, 20, 0.12), transparent 60%);
-    }
-    .hero-tag { font-size: 12px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--flame); margin-bottom: 16px; }
-    .hero h1 { font-size: clamp(38px, 8vw, 76px); font-weight: 900; letter-spacing: -2px; line-height: 1.05; max-width: 900px; margin-bottom: 20px; }
-    .hero p { font-size: 16px; color: var(--muted); max-width: 540px; margin-bottom: 32px; line-height: 1.6; }
-    .btn-cta { background: var(--flame); color: #fff; padding: 15px 36px; border-radius: 30px; font-weight: 800; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; border: none; cursor: pointer; transition: background .2s; }
-    .btn-cta:hover { background: var(--flame-dark); }
-
-    /* Section Headers */
-    .section-head { text-align: center; margin-bottom: 40px; }
-    .section-head h2 { font-size: 32px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
-    .section-head p { color: var(--muted); font-size: 14px; margin-top: 6px; }
-
-    /* Store Grid */
-    .shop-section { max-width: 1280px; margin: 0 auto; padding: 60px 20px 100px; }
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-    .product-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
-    .product-img-wrap { aspect-ratio: 1/1; background: var(--surface-2); position: relative; overflow: hidden; }
-    .product-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
-    .product-card:hover .product-img-wrap img { transform: scale(1.04); }
-    .product-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-    .product-cat { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; color: var(--flame); text-transform: uppercase; margin-bottom: 6px; }
-    .product-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
-    .product-price { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 16px; }
-    .size-select-wrap { display: flex; gap: 8px; margin-bottom: 16px; }
-    .size-btn { flex: 1; padding: 7px 0; background: var(--surface-2); border: 1px solid var(--border); color: #fff; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
-    .size-btn.active { border-color: var(--flame); background: rgba(229, 9, 20, 0.15); color: #fff; }
-    .size-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .add-to-cart-btn { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 4px; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; margin-top: auto; transition: opacity .2s; }
-    .add-to-cart-btn:hover { opacity: 0.9; }
-
-    /* Waitlist / Newsletter */
-    .vip-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 20px; text-align: center; }
-    .vip-box { max-width: 500px; margin: 0 auto; }
-    .vip-box h2 { font-size: 32px; font-weight: 900; margin-bottom: 12px; }
-    .vip-box p { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
-    .vip-form { display: flex; gap: 8px; }
-    .vip-form input { flex: 1; padding: 14px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: #fff; font-size: 13px; outline: none; }
-    .vip-form input:focus { border-color: var(--flame); }
-    .vip-form button { padding: 14px 24px; background: var(--flame); color: #fff; border: none; border-radius: 4px; font-weight: 800; font-size: 12px; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
-
-    /* Cart Drawer */
-    .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; opacity: 0; pointer-events: none; transition: opacity .3s; }
-    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
-    .cart-drawer { position: fixed; top: 0; right: 0; width: min(420px, 100%); height: 100%; background: var(--surface); border-left: 1px solid var(--border); z-index: 201; transform: translateX(100%); transition: transform .3s ease; display: flex; flex-direction: column; }
-    .cart-drawer.open { transform: translateX(0); }
-    .drawer-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .drawer-title { font-size: 18px; font-weight: 900; }
-    .close-drawer { background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer; }
-    .cart-items { padding: 20px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 16px; }
-    .cart-item { display: flex; gap: 14px; background: var(--surface-2); padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); }
-    .cart-item-img { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; }
-    .cart-item-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-    .cart-item-title { font-size: 14px; font-weight: 800; }
-    .cart-item-meta { font-size: 12px; color: var(--muted); margin: 3px 0 6px; }
-    .cart-item-remove { color: var(--flame); font-size: 11px; cursor: pointer; background: none; border: none; width: fit-content; font-weight: 700; }
-    .drawer-footer { padding: 20px; border-top: 1px solid var(--border); background: var(--surface); }
-    .drawer-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; margin-bottom: 16px; }
-    .checkout-btn { width: 100%; padding: 14px; background: var(--flame); color: #fff; border: none; border-radius: 4px; font-weight: 800; text-transform: uppercase; cursor: pointer; font-size: 13px; }
-
-    /* Toast */
-    #toastContainer { position: fixed; bottom: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
-    .toast { background: var(--surface-2); border: 1px solid var(--border); color: #fff; padding: 12px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .toast.success { border-color: var(--green); }
-    .toast.error { border-color: var(--flame); }
-
-    /* Footer */
-    footer { padding: 40px 20px; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
-  </style>
+  
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
-  <header>
-    <div class="logo">불꽃 <span>BULKKOT</span></div>
-    <nav>
-      <a href="#shop">Shop</a>
-      <a href="#vip">VIP Access</a>
-      <button class="cart-trigger" id="cartOpenBtn">
-        CART <span class="cart-count" id="cartCount">0</span>
-      </button>
-    </nav>
-  </header>
-
-  <section class="hero">
-    <span class="hero-tag" id="dyn-hero-tag">DROP 001 // UNCOMPROMISED</span>
-    <h1 id="dyn-hero-title">ENGINEERED HEAVYWEIGHT STREETWEAR</h1>
-    <p id="dyn-hero-desc">Ultra-dense custom knit cotton. Meticulously constructed silhouettes built for lifetime wear.</p>
-    <a href="#shop" class="btn-cta">Explore Collection</a>
-  </section>
-
-  <section class="shop-section" id="shop">
-    <div class="section-head">
-      <h2>Live Collection</h2>
-      <p>Direct from our warehouse. Strictly limited availability.</p>
-    </div>
-    <div class="product-grid" id="productGrid">
-      <div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 40px;">
-        Loading catalog...
+  <!-- ==========================================
+       LOGIN OVERLAY SCREEN (AUTH GATE)
+  =========================================== -->
+  <div id="login-screen" class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <span class="brand-kr">불꽃</span>
+        <h2>BULKKOT ADMIN</h2>
+        <p>Enter administrative credentials</p>
       </div>
-    </div>
-  </section>
-
-  <section class="vip-section" id="vip">
-    <div class="vip-box">
-      <h2>JOIN THE INNER CIRCLE</h2>
-      <p>Get instant priority access to secret capsule drops, private links, and restock notifications.</p>
-      <form class="vip-form" id="waitlistForm">
-        <input type="email" id="waitlistEmail" placeholder="Enter your email" required>
-        <button type="submit" id="waitlistSubmitBtn">Get VIP Access</button>
-      </form>
-    </div>
-  </section>
-
-  <div class="drawer-overlay" id="drawerOverlay"></div>
-  <aside class="cart-drawer" id="cartDrawer">
-    <div class="drawer-header">
-      <div class="drawer-title">Shopping Bag</div>
-      <button class="close-drawer" id="cartCloseBtn">×</button>
-    </div>
-    <div class="cart-items" id="cartItemsList">
-      <div style="text-align: center; color: var(--muted); padding: 40px 0;">Your cart is empty.</div>
-    </div>
-    <div class="drawer-footer">
-      <div class="drawer-total">
-        <span>Subtotal</span>
-        <span id="cartSubtotal">₹0</span>
-      </div>
-      <button class="checkout-btn" id="checkoutBtn">Proceed To Checkout</button>
-    </div>
-  </aside>
-
-  <div class="drawer-overlay" id="checkoutModalOverlay"></div>
-  <div class="cart-drawer" id="checkoutModal" style="width: min(500px, 100%);">
-    <div class="drawer-header">
-      <div class="drawer-title">Complete Order</div>
-      <button class="close-drawer" id="checkoutCloseBtn">×</button>
-    </div>
-    <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
-      <form id="orderForm" style="display:flex; flex-direction:column; gap: 14px;">
-        <div>
-          <label style="font-size:12px; color:var(--muted); font-weight:700;">Full Name *</label>
-          <input type="text" id="custName" required style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:#fff; margin-top:4px;">
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" required placeholder="admin@bulkkot.com" autocomplete="email">
         </div>
-        <div>
-          <label style="font-size:12px; color:var(--muted); font-weight:700;">Email Address *</label>
-          <input type="email" id="custEmail" required style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:#fff; margin-top:4px;">
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
         </div>
-        <div>
-          <label style="font-size:12px; color:var(--muted); font-weight:700;">Phone Number *</label>
-          <input type="tel" id="custPhone" required style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:#fff; margin-top:4px;">
-        </div>
-        <div>
-          <label style="font-size:12px; color:var(--muted); font-weight:700;">Shipping Address *</label>
-          <textarea id="custAddress" required rows="3" style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:#fff; margin-top:4px; resize:none;"></textarea>
-        </div>
-        <button type="submit" id="placeOrderBtn" class="checkout-btn" style="margin-top:10px;">Place Order</button>
+        <div id="login-error" class="error-badge" style="display: none;"></div>
+        <button type="submit" id="login-btn" class="btn btn-primary btn-block">AUTHENTICATE</button>
       </form>
     </div>
   </div>
 
-  <div id="toastContainer"></div>
+  <!-- ==========================================
+       AUTHENTICATED ADMIN APP
+  =========================================== -->
+  <div id="admin-app" class="admin-layout" style="display: none;">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-kr">불꽃</span>
+        <span class="brand-text">BULKKOT</span>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="dashboard">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" data-tab="products">
+          <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Products Manager
+        </button>
+        <button class="nav-item" data-tab="site-content">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Site Content Editor
+        </button>
+        <button class="nav-item" data-tab="orders">
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Orders Manager
+        </button>
+        <button class="nav-item" data-tab="waitlist">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Waitlist Signups
+        </button>
+        <button class="nav-item" data-tab="media">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Media Library
+        </button>
+      </nav>
 
-  <footer>
-    <p>© 2026 BULKKOT WEAR. All rights reserved. Heavyweight Apparel Co.</p>
-  </footer>
+      <div class="sidebar-footer">
+        <div class="user-meta">
+          <span id="current-user-email">admin@bulkkot.com</span>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary btn-block">Sign Out</button>
+      </div>
+    </aside>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
-      const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <!-- Main Workspace -->
+    <main class="admin-main">
+      
+      <!-- Top Mobile / Status Bar -->
+      <header class="admin-topbar">
+        <h1 id="view-title">Dashboard Overview</h1>
+        <div class="topbar-actions">
+          <a href="/" target="_blank" class="btn btn-outline btn-sm">View Live Site ↗</a>
+        </div>
+      </header>
 
-      let products = [];
-      let cart = JSON.parse(localStorage.getItem("bulkkot_cart") || "[]");
-      let selectedSizes = {};
+      <!-- TAB 1: DASHBOARD -->
+      <section id="tab-dashboard" class="tab-pane active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">TOTAL ORDERS</span>
+            <strong id="stat-total-orders" class="stat-value">0</strong>
+            <small class="stat-sub">Lifetime completed</small>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">TOTAL REVENUE</span>
+            <strong id="stat-total-revenue" class="stat-value">₹0</strong>
+            <small class="stat-sub">Gross sales amount</small>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">ACTIVE PRODUCTS</span>
+            <strong id="stat-active-products" class="stat-value">0</strong>
+            <small class="stat-sub">Live on storefront</small>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">VIP WAITLIST</span>
+            <strong id="stat-waitlist-count" class="stat-value">0</strong>
+            <small class="stat-sub">Interested shoppers</small>
+          </div>
+        </div>
 
-      const $ = (s) => document.querySelector(s);
+        <div class="card mt-4">
+          <div class="card-header">
+            <h3>Recent Orders Overview</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-orders">
+                <tr><td colspan="6" class="text-center">Loading latest activities...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-      function toast(msg, type = "success") {
-        const c = $("#toastContainer");
-        const t = document.createElement("div");
-        t.className = `toast ${type}`;
-        t.textContent = msg;
-        c.appendChild(t);
-        setTimeout(() => t.remove(), 4000);
-      }
+      <!-- TAB 2: PRODUCTS MANAGER -->
+      <section id="tab-products" class="tab-pane">
+        <div class="action-bar">
+          <div class="search-bar">
+            <input type="text" id="product-search" placeholder="Search products by title or category...">
+          </div>
+          <button id="open-product-modal-btn" class="btn btn-primary">+ Add New Product</button>
+        </div>
 
-      function formatINR(val) {
-        return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val || 0);
-      }
+        <div class="card mt-3">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Preview</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Inventory (S / M / L / XL)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body">
+                <tr><td colspan="7" class="text-center">Loading product catalog...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-      // Sync Site Content
-      async function loadSiteContent() {
-        try {
-          const { data } = await supabase.from("site_content").select("*");
-          if (data) {
-            data.forEach(item => {
-              if (item.key === "hero_title" && $("#dyn-hero-title")) $("#dyn-hero-title").textContent = item.value;
-              if (item.key === "hero_subtitle" && $("#dyn-hero-desc")) $("#dyn-hero-desc").textContent = item.value;
-            });
-          }
-        } catch (err) {
-          console.error("Content load err:", err);
-        }
-      }
+      <!-- TAB 3: SITE CONTENT EDITOR -->
+      <section id="tab-site-content" class="tab-pane">
+        <div class="info-banner">
+          <p>Modify live texts, announcement ticker, hero titles and visual URLs instantly. Edits sync dynamically with the live site database without redeploying code.</p>
+        </div>
 
-      // Fetch & Render Live Products
-      async function loadProducts() {
-        const grid = $("#productGrid");
-        try {
-          const { data, error } = await supabase
-            .from("products")
-            .select("*")
-            .eq("active", true)
-            .order("created_at", { ascending: false });
+        <div class="tabs-subnav" id="content-sections-tabs">
+          <button class="subnav-btn active" data-content-group="announcement">Announcement</button>
+          <button class="subnav-btn" data-content-group="hero">Hero Section</button>
+          <button class="subnav-btn" data-content-group="drop">Drop 001</button>
+          <button class="subnav-btn" data-content-group="about">About Brand</button>
+          <button class="subnav-btn" data-content-group="philosophy">Philosophy</button>
+          <button class="subnav-btn" data-content-group="contact">Contact & Social</button>
+        </div>
 
-          if (error) throw error;
-          products = data || [];
+        <form id="site-content-form">
+          <div id="content-fields-container" class="card mt-3">
+            <!-- Dynamic Key-Value Inputs generated via admin.js -->
+          </div>
+          <div class="form-actions-fixed">
+            <button type="submit" id="save-content-btn" class="btn btn-primary">SAVE ALL CHANGES LIVE</button>
+          </div>
+        </form>
+      </section>
 
-          if (!products.length) {
-            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 40px;">No drops available right now. Check back soon.</div>`;
-            return;
-          }
+      <!-- TAB 4: ORDERS MANAGER -->
+      <section id="tab-orders" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Customer Orders</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Customer Name</th>
+                  <th>Contact Info</th>
+                  <th>Total</th>
+                  <th>Payment</th>
+                  <th>Fulfillment Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table-body">
+                <tr><td colspan="7" class="text-center">Fetching orders...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-          grid.innerHTML = products.map(p => {
-            const stock = p.stock || {};
-            const sizes = ["S", "M", "L", "XL"];
-            const defaultSize = sizes.find(s => (stock[s] || 0) > 0) || "M";
-            if (!selectedSizes[p.id]) selectedSizes[p.id] = defaultSize;
+      <!-- TAB 5: WAITLIST MANAGER -->
+      <section id="tab-waitlist" class="tab-pane">
+        <div class="action-bar">
+          <div>
+            <h3>VIP Signups Catalog</h3>
+            <p class="text-muted">Direct subscriber list for Drop 001 launch announcement.</p>
+          </div>
+          <button id="export-waitlist-csv" class="btn btn-secondary">↓ Export CSV</button>
+        </div>
 
-            const sizeButtons = sizes.map(s => {
-              const qty = stock[s] || 0;
-              const isSelected = selectedSizes[p.id] === s;
-              return `
-                <button type="button" 
-                  class="size-btn ${isSelected ? 'active' : ''}" 
-                  ${qty <= 0 ? 'disabled' : ''} 
-                  onclick="selectProductSize('${p.id}', '${s}')">
-                  ${s} ${qty <= 0 ? '(0)' : ''}
-                </button>
-              `;
-            }).join("");
+        <div class="card mt-3">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Email Address</th>
+                  <th>Date Joined</th>
+                </tr>
+              </thead>
+              <tbody id="waitlist-table-body">
+                <tr><td colspan="3" class="text-center">Loading subscriber list...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-            return `
-              <div class="product-card">
-                <div class="product-img-wrap">
-                  <img src="${p.image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600'}" alt="${p.name}" loading="lazy">
-                </div>
-                <div class="product-info">
-                  <span class="product-cat">${p.category || 'APPAREL'}</span>
-                  <div class="product-title">${p.name}</div>
-                  <div class="product-price">${formatINR(p.price)}</div>
-                  <div class="size-select-wrap">${sizeButtons}</div>
-                  <button type="button" class="add-to-cart-btn" onclick="addToCart('${p.id}')">Add To Bag</button>
-                </div>
-              </div>
-            `;
-          }).join("");
-        } catch (err) {
-          grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--flame); padding: 40px;">Failed to load catalog. Please refresh.</div>`;
-          console.error(err);
-        }
-      }
+      <!-- TAB 6: MEDIA LIBRARY -->
+      <section id="tab-media" class="tab-pane">
+        <div class="action-bar">
+          <p class="text-muted">All uploaded assets in Supabase Storage Bucket (<code>product-images</code>).</p>
+          <label class="btn btn-primary" style="cursor: pointer;">
+            + Upload New Media
+            <input type="file" id="media-direct-upload" accept="image/*" multiple style="display: none;">
+          </label>
+        </div>
 
-      window.selectProductSize = (productId, size) => {
-        selectedSizes[productId] = size;
-        loadProducts();
-      };
+        <div id="media-gallery" class="media-grid mt-3">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
 
-      // Cart Actions
-      window.addToCart = (productId) => {
-        const p = products.find(i => String(i.id) === String(productId));
-        if (!p) return;
-        const size = selectedSizes[productId] || "M";
+    </main>
+  </div>
 
-        const existing = cart.find(item => item.id === p.id && item.size === size);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          cart.push({
-            id: p.id,
-            name: p.name,
-            price: Number(p.price),
-            image_url: p.image_url,
-            size: size,
-            quantity: 1
-          });
-        }
-        saveCart();
-        toast(`Added ${p.name} (${size}) to Bag!`);
-        openCartDrawer();
-      };
+  <!-- ==========================================
+       MODAL: ADD / EDIT PRODUCT
+  =========================================== -->
+  <div id="product-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3 id="product-modal-title">Add New Product</h3>
+        <button type="button" class="modal-close" data-close-modal="product-modal">&times;</button>
+      </div>
+      <form id="product-form">
+        <input type="hidden" id="prod-id">
 
-      window.removeFromCart = (idx) => {
-        cart.splice(idx, 1);
-        saveCart();
-        renderCart();
-      };
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="prod-name">Product Name *</label>
+            <input type="text" id="prod-name" required placeholder="e.g. OVERSIZED TEE 001">
+          </div>
+          <div class="form-group flex-1">
+            <label for="prod-category">Category *</label>
+            <select id="prod-category" required>
+              <option value="tees">Tees (티셔츠)</option>
+              <option value="hoods">Hoods (후드)</option>
+              <option value="sweats">Sweats (스웨트)</option>
+              <option value="bottoms">Bottoms</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="prod-price">Price (₹ INR) *</label>
+            <input type="number" id="prod-price" required min="0" step="1" placeholder="2499">
+          </div>
+        </div>
 
-      function saveCart() {
-        localStorage.setItem("bulkkot_cart", JSON.stringify(cart));
-        updateCartBadge();
-      }
+        <div class="form-group">
+          <label for="prod-desc">Product Description & Specs</label>
+          <textarea id="prod-desc" rows="3" placeholder="Heavyweight 280 GSM combed cotton. Boxy drop-shoulder cut..."></textarea>
+        </div>
 
-      function updateCartBadge() {
-        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-        $("#cartCount").textContent = total;
-      }
+        <!-- Inventory matrix (JSONB format) -->
+        <label>Size Inventory Allocation</label>
+        <div class="form-row sizes-grid">
+          <div class="form-group">
+            <label class="size-label">Small (S)</label>
+            <input type="number" id="size-s" min="0" value="0">
+          </div>
+          <div class="form-group">
+            <label class="size-label">Medium (M)</label>
+            <input type="number" id="size-m" min="0" value="0">
+          </div>
+          <div class="form-group">
+            <label class="size-label">Large (L)</label>
+            <input type="number" id="size-l" min="0" value="0">
+          </div>
+          <div class="form-group">
+            <label class="size-label">X-Large (XL)</label>
+            <input type="number" id="size-xl" min="0" value="0">
+          </div>
+        </div>
 
-      function renderCart() {
-        const list = $("#cartItemsList");
-        if (!cart.length) {
-          list.innerHTML = `<div style="text-align: center; color: var(--muted); padding: 40px 0;">Your cart is empty.</div>`;
-          $("#cartSubtotal").textContent = formatINR(0);
-          return;
-        }
+        <!-- Supabase Direct Storage Image Upload -->
+        <div class="form-group">
+          <label>Product Images (Upload to Supabase Storage)</label>
+          <div class="drop-zone" id="product-drop-zone">
+            <input type="file" id="prod-images-input" multiple accept="image/*" style="display: none;">
+            <p>Click here or drag images to upload directly to <code>product-images</code> bucket</p>
+          </div>
+          <div id="product-images-preview" class="image-previews-tray"></div>
+        </div>
 
-        let total = 0;
-        list.innerHTML = cart.map((item, idx) => {
-          total += item.price * item.quantity;
-          return `
-            <div class="cart-item">
-              <img src="${item.image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=200'}" class="cart-item-img">
-              <div class="cart-item-info">
-                <div class="cart-item-title">${item.name}</div>
-                <div class="cart-item-meta">Size: ${item.size} | Qty: ${item.quantity}</div>
-                <div style="font-weight:700;">${formatINR(item.price * item.quantity)}</div>
-                <button type="button" class="cart-item-remove" onclick="removeFromCart(${idx})">Remove</button>
-              </div>
-            </div>
-          `;
-        }).join("");
-        $("#cartSubtotal").textContent = formatINR(total);
-      }
+        <div class="form-group">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="prod-is-active" checked>
+            <span>Product is Active and visible on Storefront</span>
+          </label>
+        </div>
 
-      function openCartDrawer() {
-        renderCart();
-        $("#cartDrawer").classList.add("open");
-        $("#drawerOverlay").classList.add("open");
-      }
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="product-modal">Cancel</button>
+          <button type="submit" id="save-product-btn" class="btn btn-primary">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-      function closeCartDrawer() {
-        $("#cartDrawer").classList.remove("open");
-        $("#drawerOverlay").classList.remove("open");
-      }
+  <!-- ==========================================
+       MODAL: ORDER DETAILS & FULFILLMENT
+  =========================================== -->
+  <div id="order-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="order-modal-title">Order #---</h3>
+        <button type="button" class="modal-close" data-close-modal="order-modal">&times;</button>
+      </div>
+      <div id="order-modal-body" class="order-detail-content">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
 
-      $("#cartOpenBtn").onclick = openCartDrawer;
-      $("#cartCloseBtn").onclick = closeCartDrawer;
-      $("#drawerOverlay").onclick = closeCartDrawer;
+  <!-- Notification Toast -->
+  <div id="admin-toast" class="admin-toast"></div>
 
-      // Checkout
-      $("#checkoutBtn").onclick = () => {
-        if (!cart.length) return toast("Your bag is empty!", "error");
-        closeCartDrawer();
-        $("#checkoutModal").classList.add("open");
-        $("#checkoutModalOverlay").classList.add("open");
-      };
-
-      const closeCheckout = () => {
-        $("#checkoutModal").classList.remove("open");
-        $("#checkoutModalOverlay").classList.remove("open");
-      };
-
-      $("#checkoutCloseBtn").onclick = closeCheckout;
-      $("#checkoutModalOverlay").onclick = closeCheckout;
-
-      // Submit Order
-      $("#orderForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const btn = $("#placeOrderBtn");
-        btn.disabled = true;
-        btn.textContent = "Processing Order...";
-
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const orderPayload = {
-          customer_name: $("#custName").value.trim(),
-          customer_email: $("#custEmail").value.trim(),
-          customer_phone: $("#custPhone").value.trim(),
-          shipping_address: $("#custAddress").value.trim(),
-          items: cart,
-          total: total,
-          status: "processing",
-          created_at: new Date().toISOString()
-        };
-
-        try {
-          const { error } = await supabase.from("orders").insert(orderPayload);
-          if (error) throw error;
-
-          toast("Order Placed Successfully! We will contact you soon.", "success");
-          cart = [];
-          saveCart();
-          closeCheckout();
-          $("#orderForm").reset();
-        } catch (err) {
-          console.error(err);
-          toast("Failed to place order: " + err.message, "error");
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "Place Order";
-        }
-      };
-
-      // Waitlist Submit
-      $("#waitlistForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const btn = $("#waitlistSubmitBtn");
-        const email = $("#waitlistEmail").value.trim();
-        btn.disabled = true;
-        btn.textContent = "Joining...";
-
-        try {
-          const { error } = await supabase.from("waitlist").insert({ email });
-          if (error) throw error;
-          toast("You are on the VIP Waitlist!", "success");
-          $("#waitlistEmail").value = "";
-        } catch (err) {
-          toast(err.message || "Could not join waitlist.", "error");
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "Get VIP Access";
-        }
-      };
-
-      // Init
-      updateCartBadge();
-      loadSiteContent();
-      loadProducts();
-    });
-  </script>
+  <script src="admin.js"></script>
 </body>
 </html>
