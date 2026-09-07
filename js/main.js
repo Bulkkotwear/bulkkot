@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Controller
- * Version: 3.4 (Integrated Guest Order Tracking Lookup)
+ * Version: 3.5 (Auth + Account + Tracking Integration)
  */
 (function () {
   'use strict';
@@ -153,7 +153,6 @@
     }).join('');
   }
 
-  // Unified Click Event Delegation
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -277,7 +276,6 @@
     document.body.classList.remove("modal-open");
   }
 
-  // SIZE GUIDE LOGIC
   function initSizeGuide() {
     const modal = document.querySelector("[data-size-guide-modal]");
     if (!modal) return;
@@ -322,13 +320,13 @@
     if (!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
-    if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open") && !document.querySelector(".track-order-modal.is-open")) {
+    if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open") && !document.querySelector(".track-order-modal.is-open") && !document.querySelector(".account-modal.is-open")) {
       document.body.classList.remove("modal-open");
     }
   }
 
   // =========================================================
-  // GUEST ORDER TRACKING LOOKUP
+  // GUEST ORDER TRACKING
   // =========================================================
   function initOrderTracking() {
     const modal = document.querySelector("[data-track-order-modal]");
@@ -401,7 +399,7 @@
     function closeTrackingModal() {
       modal.classList.remove("is-open");
       modal.setAttribute("aria-hidden", "true");
-      if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open") && !document.querySelector(".size-guide-modal.is-open")) {
+      if (!document.querySelector(".content-modal.is-open") && !document.querySelector(".cart-drawer.is-open") && !document.querySelector(".size-guide-modal.is-open") && !document.querySelector(".account-modal.is-open")) {
         document.body.classList.remove("modal-open");
       }
     }
@@ -548,6 +546,307 @@
     });
   }
 
+  // =========================================================
+  // CUSTOMER AUTH + ACCOUNT
+  // =========================================================
+  function initCustomerAuth() {
+    const modal = document.querySelector("[data-account-modal]");
+    if (!modal || !supabase) return;
+
+    const authView = modal.querySelector("[data-account-auth]");
+    const userView = modal.querySelector("[data-account-user]");
+    const loginForm = modal.querySelector("[data-account-login-form]");
+    const profileForm = modal.querySelector("[data-account-profile-form]");
+    const message = modal.querySelector("[data-account-message]");
+    const profileMessage = modal.querySelector("[data-profile-message]");
+
+    const emailInput = modal.querySelector("#account-email");
+    const passwordInput = modal.querySelector("#account-password");
+    const userEmail = modal.querySelector("[data-account-user-email]");
+    const ordersContainer = modal.querySelector("[data-account-orders]");
+
+    const openButtons = document.querySelectorAll("[data-open-account]");
+    const closeButtons = modal.querySelectorAll("[data-account-close]");
+    const googleButton = modal.querySelector("[data-google-login]");
+    const signOutButton = modal.querySelector("[data-account-signout]");
+    const signupToggle = modal.querySelector("[data-account-signup-toggle]");
+
+    const profileFields = {
+      full_name: modal.querySelector("#account-name"),
+      phone: modal.querySelector("#account-phone"),
+      shipping_address: modal.querySelector("#account-address"),
+      shipping_city: modal.querySelector("#account-city"),
+      shipping_state: modal.querySelector("#account-state"),
+      shipping_pincode: modal.querySelector("#account-pincode")
+    };
+
+    let isSignupMode = false;
+
+    function setMessage(element, text = "", type = "") {
+      if (!element) return;
+      element.textContent = text;
+      element.className = "account-message";
+      if (type) element.classList.add(`is-${type}`);
+    }
+
+    function openAccount() {
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeAccount() {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      if (
+        !document.querySelector(".content-modal.is-open") &&
+        !document.querySelector(".cart-drawer.is-open") &&
+        !document.querySelector(".size-guide-modal.is-open") &&
+        !document.querySelector(".track-order-modal.is-open")
+      ) {
+        document.body.classList.remove("modal-open");
+      }
+    }
+
+    function updateHeader(user) {
+      document.querySelectorAll("[data-account-label]").forEach(el => {
+        el.textContent = user ? "ACCOUNT" : "SIGN IN";
+      });
+    }
+
+    function showAuthView() {
+      authView.hidden = false;
+      userView.hidden = true;
+    }
+
+    function showUserView() {
+      authView.hidden = true;
+      userView.hidden = false;
+    }
+
+    async function loadProfile(user) {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("customer_profiles")
+        .select("full_name, phone, shipping_address, shipping_city, shipping_state, shipping_pincode")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("BULKKOT Profile Error:", error);
+        return;
+      }
+
+      const profile = data || {};
+      Object.entries(profileFields).forEach(([key, el]) => {
+        if (el) el.value = profile[key] || "";
+      });
+      userEmail.textContent = user.email || "Account";
+    }
+
+    function formatDate(date) {
+      if (!date) return "—";
+      return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(date));
+    }
+
+    function formatCurrency(val) {
+      return "₹" + Number(val || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+    }
+
+    async function loadOrders(user) {
+      if (!user || !ordersContainer) return;
+      ordersContainer.innerHTML = '<div class="account-orders-loading">Loading orders...</div>';
+
+      const { data, error } = await supabase
+        .from("orders")
+        .select("order_number, total, order_status, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error("BULKKOT Orders Error:", error);
+        ordersContainer.innerHTML = '<div class="account-orders-empty">Unable to load your orders right now.</div>';
+        return;
+      }
+
+      if (!data || !data.length) {
+        ordersContainer.innerHTML = '<div class="account-orders-empty">No orders found on this account yet.</div>';
+        return;
+      }
+
+      ordersContainer.innerHTML = data.map(order => {
+        const status = String(order.order_status || "ORDER PLACED").toUpperCase();
+        return `
+          <article class="account-order-card">
+            <div class="account-order-card__top">
+              <div>
+                <div class="account-order-number">${escapeHTML(order.order_number || "—")}</div>
+                <div class="account-order-date">${escapeHTML(formatDate(order.created_at))}</div>
+              </div>
+              <span class="account-order-status">${escapeHTML(status)}</span>
+            </div>
+            <div class="account-order-total">${escapeHTML(formatCurrency(order.total))}</div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    async function loadAccount(user) {
+      if (!user) return;
+      updateHeader(user);
+      showUserView();
+      await Promise.all([loadProfile(user), loadOrders(user)]);
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = String(emailInput?.value || "").trim();
+      const password = String(passwordInput?.value || "");
+
+      if (!email || !password) {
+        setMessage(message, "Please enter your email and password.", "error");
+        return;
+      }
+
+      const submitBtn = loginForm.querySelector(".account-submit");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = isSignupMode ? "CREATING..." : "SIGNING IN...";
+      }
+
+      setMessage(message, isSignupMode ? "Creating your account..." : "Signing you in...", "loading");
+
+      try {
+        if (isSignupMode) {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: "" } }
+          });
+          if (error) throw error;
+          setMessage(message, "Account created successfully.", "success");
+        } else {
+          const { error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          setMessage(message, "");
+        }
+      } catch (err) {
+        console.error("BULKKOT Auth Error:", err);
+        setMessage(message, err?.message || "Unable to sign in right now.", "error");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = isSignupMode ? "CREATE ACCOUNT" : "SIGN IN";
+        }
+      }
+    }
+
+    async function handleGoogleLogin() {
+      setMessage(message, "Opening Google sign in...", "loading");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin }
+      });
+      if (error) {
+        setMessage(message, error.message || "Unable to continue with Google.", "error");
+      }
+    }
+
+    async function saveProfile(e) {
+      e.preventDefault();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        showAuthView();
+        return;
+      }
+
+      setMessage(profileMessage, "Saving your details...", "loading");
+
+      const payload = {
+        id: user.id,
+        full_name: profileFields.full_name?.value.trim() || null,
+        phone: profileFields.phone?.value.trim() || null,
+        shipping_address: profileFields.shipping_address?.value.trim() || null,
+        shipping_city: profileFields.shipping_city?.value.trim() || null,
+        shipping_state: profileFields.shipping_state?.value.trim() || null,
+        shipping_pincode: profileFields.shipping_pincode?.value.trim() || null,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase.from("customer_profiles").upsert(payload, { onConflict: "id" });
+
+      if (error) {
+        setMessage(profileMessage, "Unable to save your details.", "error");
+        return;
+      }
+
+      setMessage(profileMessage, "Shipping details saved.", "success");
+    }
+
+    async function signOut() {
+      await supabase.auth.signOut();
+      closeAccount();
+    }
+
+    function toggleSignup() {
+      isSignupMode = !isSignupMode;
+      const title = modal.querySelector(".account-header h2");
+      const submitBtn = loginForm.querySelector(".account-submit");
+
+      if (isSignupMode) {
+        title.textContent = "CREATE ACCOUNT";
+        submitBtn.textContent = "CREATE ACCOUNT";
+        signupToggle.textContent = "SIGN IN";
+      } else {
+        title.textContent = "SIGN IN";
+        submitBtn.textContent = "SIGN IN";
+        signupToggle.textContent = "CREATE ACCOUNT";
+      }
+      setMessage(message, "");
+    }
+
+    openButtons.forEach(btn => {
+      btn.addEventListener("click", async () => {
+        openAccount();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await loadAccount(user);
+        } else {
+          updateHeader(null);
+          showAuthView();
+        }
+      });
+    });
+
+    closeButtons.forEach(btn => btn.addEventListener("click", closeAccount));
+    modal.addEventListener("click", e => { if (e.target === modal) closeAccount(); });
+    loginForm?.addEventListener("submit", handleLogin);
+    googleButton?.addEventListener("click", handleGoogleLogin);
+    profileForm?.addEventListener("submit", saveProfile);
+    signOutButton?.addEventListener("click", signOut);
+    signupToggle?.addEventListener("click", toggleSignup);
+
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      const user = session?.user || null;
+      updateHeader(user);
+      if (user && event === "SIGNED_IN") {
+        await loadAccount(user);
+      } else if (!user) {
+        showAuthView();
+      }
+    });
+
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      updateHeader(user);
+      if (user) {
+        await loadAccount(user);
+      } else {
+        showAuthView();
+      }
+    });
+  }
+
   // Editorial Carousel
   function initCarousel() {
     const carousel = document.querySelector('[data-carousel]');
@@ -578,6 +877,7 @@
     initCarousel();
     initSizeGuide();
     initOrderTracking();
+    initCustomerAuth();
 
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -617,6 +917,12 @@
         if (trackingModal?.classList.contains("is-open")) {
           trackingModal.classList.remove("is-open");
           trackingModal.setAttribute("aria-hidden", "true");
+          document.body.classList.remove("modal-open");
+        }
+        const accountModal = document.querySelector("[data-account-modal]");
+        if (accountModal?.classList.contains("is-open")) {
+          accountModal.classList.remove("is-open");
+          accountModal.setAttribute("aria-hidden", "true");
           document.body.classList.remove("modal-open");
         }
       }
