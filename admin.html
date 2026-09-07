@@ -3,101 +3,381 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080808">
   <title>BULKKOT — Admin</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root {
-      --bg: #080808; --panel: #101010; --border: #242424; --text: #f5f5f5;
-      --muted: #8d8d8d; --red: #e31b23; --green: #31c48d; --yellow: #f5c542; --danger: #ef4444; --radius: 14px;
+      --bg: #070707;
+      --panel: #101010;
+      --panel-2: #141414;
+      --border: #242424;
+      --border-soft: #1a1a1a;
+      --text: #f5f5f5;
+      --muted: #8b8b8b;
+      --muted-2: #666;
+      --red: #e31b23;
+      --red-dark: #b91017;
+      --green: #31c48d;
+      --yellow: #f5c542;
+      --blue: #70aaff;
+      --danger: #ef4444;
+      --radius: 14px;
+      --radius-sm: 9px;
     }
+
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
-    button, input, textarea, select { font: inherit; cursor: pointer; }
-    .hidden { display: none !important; }
-    #loginScreen { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 50% 0%, rgba(227, 27, 35, .10), transparent 40%), var(--bg); }
-    .login-card { width: min(430px, 100%); background: rgba(16, 16, 16, .96); border: 1px solid var(--border); border-radius: 20px; padding: 34px; box-shadow: 0 30px 80px rgba(0, 0, 0, .45); }
-    .brand { font-size: 30px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 5px; }
-    .brand span { color: var(--red); }
-    .login-subtitle { color: var(--muted); margin: 0 0 28px; font-size: 14px; }
-    .field { margin-bottom: 17px; }
-    .field label { display: block; margin-bottom: 7px; color: #cfcfcf; font-size: 13px; font-weight: 600; }
-    input, textarea, select { width: 100%; color: var(--text); background: #0b0b0b; border: 1px solid var(--border); border-radius: 10px; outline: none; padding: 12px 13px; }
-    input:focus, textarea:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(227, 27, 35, .10); }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body { overflow-x: hidden; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+
+    input, textarea, select {
+      width: 100%;
+      color: var(--text);
+      background: #0b0b0b;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      padding: 11px 12px;
+      transition: .15s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(227, 27, 35, .10);
+    }
+
     textarea { min-height: 110px; resize: vertical; }
-    select option { background: #111; }
-    .btn { border: 0; border-radius: 10px; padding: 11px 15px; color: var(--text); background: #202020; font-weight: 700; transition: .15s; }
+    select option { background: #111; color: #fff; }
+    .hidden { display: none !important; }
+
+    #loginScreen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: radial-gradient(circle at 50% 0%, rgba(227, 27, 35, .13), transparent 40%), var(--bg);
+    }
+
+    .login-card {
+      width: min(430px, 100%);
+      background: rgba(16, 16, 16, .96);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 34px;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
+    }
+
+    .brand { font-size: 29px; font-weight: 900; letter-spacing: -1.5px; }
+    .brand span { color: var(--red); }
+    .login-subtitle { color: var(--muted); margin: 6px 0 28px; font-size: 13px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; margin-bottom: 7px; color: #cfcfcf; font-size: 12px; font-weight: 700; }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--text);
+      background: #202020;
+      font-weight: 750;
+      transition: .15s ease;
+      white-space: nowrap;
+    }
+
     .btn:hover { background: #2a2a2a; }
-    .btn:disabled { opacity: .5; cursor: not-allowed; }
-    .btn-primary { background: var(--red); }
-    .btn-primary:hover { background: #c9141b; }
-    .btn-danger { background: rgba(239, 68, 68, .12); color: #ff7777; border: 1px solid rgba(239, 68, 68, .25); }
-    .btn-success { background: rgba(49, 196, 141, .12); color: var(--green); border: 1px solid rgba(49, 196, 141, .25); }
+    .btn-primary { background: var(--red); border-color: var(--red); }
+    .btn-primary:hover { background: var(--red-dark); border-color: var(--red-dark); }
+    .btn-danger { background: rgba(239, 68, 68, .10); border-color: rgba(239, 68, 68, .25); color: #ff7777; }
+    .btn-danger:hover { background: rgba(239, 68, 68, .18); }
+    .btn-success { background: rgba(49, 196, 141, .10); border-color: rgba(49, 196, 141, .25); color: var(--green); }
     .btn-full { width: 100%; }
-    #app { min-height: 100vh; display: grid; grid-template-columns: 250px 1fr; }
-    .sidebar { position: sticky; top: 0; height: 100vh; background: #0b0b0b; border-right: 1px solid var(--border); padding: 22px 14px; display: flex; flex-direction: column; z-index: 20; }
+    .btn-small { padding: 7px 10px; font-size: 11px; }
+
+    #app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: #0a0a0a;
+      border-right: 1px solid var(--border);
+      padding: 22px 14px;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+    }
+
     .sidebar-logo { padding: 8px 12px 25px; font-size: 24px; font-weight: 900; letter-spacing: -1px; }
     .sidebar-logo span { color: var(--red); }
     .nav { display: flex; flex-direction: column; gap: 5px; }
-    .nav-btn { width: 100%; border: 0; text-align: left; color: #999; background: transparent; padding: 12px 13px; border-radius: 9px; font-weight: 650; }
+
+    .nav-btn {
+      width: 100%;
+      border: 0;
+      text-align: left;
+      color: #999;
+      background: transparent;
+      padding: 12px 13px;
+      border-radius: 9px;
+      font-weight: 700;
+      transition: .15s ease;
+    }
+
     .nav-btn:hover, .nav-btn.active { color: #fff; background: rgba(227, 27, 35, .12); }
     .sidebar-bottom { margin-top: auto; }
-    .user-email { color: var(--muted); font-size: 11px; word-break: break-all; padding: 10px 12px; }
+    .user-email { color: var(--muted); font-size: 11px; word-break: break-all; padding: 10px 12px; line-height: 1.5; }
+
     .main { min-width: 0; }
-    .topbar { height: 70px; padding: 0 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(8, 8, 8, .85); backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 10; }
-    .page-title { font-size: 19px; font-weight: 800; }
-    .content { padding: 28px; max-width: 1600px; }
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 25px; }
-    .stat { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-    .stat-label { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
-    .stat-value { font-size: 27px; font-weight: 850; }
-    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 18px; overflow: hidden; }
-    .panel-header { padding: 17px 19px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .panel-title { font-size: 15px; font-weight: 800; }
+    .topbar {
+      height: 70px;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      background: rgba(8, 8, 8, .88);
+      backdrop-filter: blur(15px);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .page-title { font-size: 19px; font-weight: 850; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .content { padding: 28px; max-width: 1700px; margin: 0 auto; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 13px;
+      margin-bottom: 14px;
+    }
+
+    .stats-secondary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+      margin-bottom: 25px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 19px;
+      min-width: 0;
+    }
+
+    .stat-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 9px; }
+    .stat-value { font-size: 25px; font-weight: 900; letter-spacing: -.5px; overflow: hidden; text-overflow: ellipsis; }
+    .stat-sub { margin-top: 7px; color: var(--muted-2); font-size: 10px; }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 19px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title { font-size: 15px; font-weight: 850; }
+    .panel-subtitle { color: var(--muted); font-size: 11px; margin-top: 3px; }
     .panel-body { padding: 19px; }
+    .panel-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 650px; }
-    th { text-align: left; color: #777; font-size: 11px; text-transform: uppercase; padding: 12px 15px; border-bottom: 1px solid var(--border); }
-    td { padding: 14px 15px; border-bottom: 1px solid #1d1d1d; font-size: 13px; }
-    .empty { color: var(--muted); text-align: center; padding: 35px; }
-    .badge { display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-    .badge-processing { background: rgba(245, 197, 66, .12); color: var(--yellow); }
-    .badge-shipped { background: rgba(70, 150, 255, .12); color: #70aaff; }
-    .badge-delivered { background: rgba(49, 196, 141, .12); color: var(--green); }
-    .badge-cancelled { background: rgba(239, 68, 68, .12); color: #ff7777; }
-    .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    table { width: 100%; border-collapse: collapse; min-width: 780px; }
+
+    th {
+      text-align: left;
+      color: #777;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td { padding: 13px 15px; border-bottom: 1px solid #1b1b1b; font-size: 12px; vertical-align: middle; }
+    tbody tr:hover { background: rgba(255,255,255,.015); }
+    .empty { color: var(--muted); text-align: center; padding: 38px !important; }
+    .order-number { font-weight: 850; color: #fff; letter-spacing: .02em; }
+    .customer-cell strong { display: block; margin-bottom: 3px; }
+    .customer-cell span { color: var(--muted); font-size: 10px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+
+    .badge-pending, .badge-processing { background: rgba(245, 197, 66, .12); color: var(--yellow); }
+    .badge-confirmed, .badge-shipped { background: rgba(112, 170, 255, .12); color: #70aaff; }
+    .badge-delivered, .badge-paid { background: rgba(49, 196, 141, .12); color: var(--green); }
+    .badge-cancelled, .badge-failed { background: rgba(239, 68, 68, .12); color: #ff7777; }
+    .badge-unpaid { background: rgba(245, 197, 66, .12); color: var(--yellow); }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
     .product-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-    .product-image { aspect-ratio: 1 / 1; background: #151515; overflow: hidden; }
+    .product-image { aspect-ratio: 1 / 1; background: #151515; overflow: hidden; position: relative; }
     .product-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .product-image-placeholder { width: 100%; height: 100%; display: grid; place-items: center; color: #444; font-size: 30px; }
+    .product-status { position: absolute; top: 10px; right: 10px; }
     .product-info { padding: 14px; }
-    .product-name { font-weight: 800; margin-bottom: 4px; }
-    .product-meta { color: var(--muted); font-size: 12px; }
+    .product-name { font-weight: 850; margin-bottom: 5px; }
+    .product-meta { color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+    .stock-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 10px; }
+    .stock-chip { padding: 7px 4px; background: #151515; border: 1px solid var(--border-soft); border-radius: 7px; text-align: center; font-size: 10px; }
+    .stock-chip strong { display: block; font-size: 11px; margin-bottom: 2px; }
+    .stock-chip.low { border-color: rgba(245, 197, 66, .35); color: var(--yellow); }
+    .stock-chip.empty-stock { border-color: rgba(239, 68, 68, .35); color: #ff7777; }
     .product-actions { display: flex; gap: 7px; margin-top: 13px; }
+    .product-actions .btn { flex: 1; }
+
     .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
     .form-grid .full { grid-column: 1 / -1; }
     .stock-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+    .stock-grid .field { margin-bottom: 0; }
     .image-preview { width: 130px; height: 130px; margin-top: 10px; border-radius: 10px; overflow: hidden; background: #181818; border: 1px solid var(--border); }
     .image-preview img { width: 100%; height: 100%; object-fit: cover; }
-    .content-editor { display: grid; grid-template-columns: 220px 1fr; gap: 15px; }
+    .help-text { color: var(--muted-2); font-size: 10px; margin-top: 6px; line-height: 1.5; }
+    .search-input { max-width: 280px; }
+
+    .content-editor { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 18px; }
     .content-key-list { border-right: 1px solid var(--border); padding-right: 15px; }
-    .content-key { width: 100%; border: 0; text-align: left; color: #999; background: transparent; padding: 10px; border-radius: 8px; margin-bottom: 4px; }
+    .content-key { width: 100%; border: 0; text-align: left; color: #999; background: transparent; padding: 10px; border-radius: 8px; margin-bottom: 4px; font-size: 11px; font-weight: 700; }
     .content-key:hover, .content-key.active { color: #fff; background: #1a1a1a; }
-    .modal { position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, .72); display: grid; place-items: center; padding: 20px; }
-    .modal-box { width: min(700px, 100%); max-height: 90vh; overflow-y: auto; background: #111; border: 1px solid var(--border); border-radius: 16px; }
-    .modal-header { padding: 17px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .cms-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .cms-card { border: 1px solid var(--border); background: #0d0d0d; border-radius: 10px; padding: 14px; }
+    .cms-card-title { font-size: 11px; font-weight: 850; text-transform: uppercase; margin-bottom: 9px; }
+    .cms-card-key { color: var(--muted); font-size: 10px; margin-bottom: 10px; }
+
+    .order-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .summary-box { background: #0b0b0b; border: 1px solid var(--border); border-radius: 9px; padding: 12px; }
+    .summary-label { color: var(--muted); font-size: 9px; text-transform: uppercase; margin-bottom: 6px; }
+    .summary-value { font-size: 13px; font-weight: 800; word-break: break-word; }
+    .detail-section { margin-top: 20px; }
+    .detail-section-title { font-size: 12px; font-weight: 850; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; }
+    .shipping-box { background: #0b0b0b; border: 1px solid var(--border); border-radius: 9px; padding: 14px; line-height: 1.65; color: #ddd; font-size: 12px; }
+
+    .order-items { display: flex; flex-direction: column; gap: 8px; }
+    .order-item { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 9px; background: #0b0b0b; border: 1px solid var(--border); border-radius: 9px; }
+    .order-item-image { width: 52px; height: 52px; border-radius: 7px; overflow: hidden; background: #151515; }
+    .order-item-image img { width: 100%; height: 100%; object-fit: cover; }
+    .order-item-name { font-size: 12px; font-weight: 800; }
+    .order-item-meta { color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .order-item-price { text-align: right; font-size: 12px; font-weight: 800; }
+
+    .order-totals { margin-top: 13px; margin-left: auto; width: min(300px, 100%); }
+    .total-row { display: flex; justify-content: space-between; gap: 15px; padding: 7px 0; color: #bbb; font-size: 12px; }
+    .total-row.final { color: #fff; border-top: 1px solid var(--border); margin-top: 4px; padding-top: 12px; font-size: 15px; font-weight: 850; }
+    .order-update-box { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; background: #0b0b0b; border: 1px solid var(--border); border-radius: 10px; padding: 13px; }
+
+    .modal { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .78); display: grid; place-items: center; padding: 20px; }
+    .modal-box { width: min(780px, 100%); max-height: 92vh; overflow-y: auto; background: #111; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 30px 90px rgba(0,0,0,.6); }
+    .modal-box.large { width: min(980px, 100%); }
+    .modal-header { position: sticky; top: 0; z-index: 2; padding: 17px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #111; }
     .modal-body { padding: 20px; }
-    .close-btn { border: 0; background: transparent; color: #aaa; font-size: 22px; }
-    #toastContainer { position: fixed; right: 18px; bottom: 18px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
-    .toast { padding: 12px 15px; background: #171717; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; }
-    .toast.error { border-color: rgba(239, 68, 68, .4); }
+    .close-btn { border: 0; background: transparent; color: #aaa; font-size: 23px; line-height: 1; padding: 3px 7px; }
+    .close-btn:hover { color: #fff; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+    #toastContainer { position: fixed; right: 18px; bottom: 18px; z-index: 999; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 36px)); }
+    .toast { padding: 12px 15px; background: #171717; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.35); animation: toastIn .18s ease; }
+    .toast.error { border-color: rgba(239, 68, 68, .45); }
     .toast.success { border-color: rgba(49, 196, 141, .35); }
-    #loadingOverlay { position: fixed; inset: 0; z-index: 500; background: rgba(8,8,8,.85); display: grid; place-items: center; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    #loadingOverlay { position: fixed; inset: 0; z-index: 500; background: rgba(8, 8, 8, .84); display: grid; place-items: center; backdrop-filter: blur(3px); }
+    .loader-box { display: flex; flex-direction: column; align-items: center; gap: 12px; }
     .loader { width: 34px; height: 34px; border: 3px solid #333; border-top-color: var(--red); border-radius: 50%; animation: spin .7s linear infinite; }
+    .loader-text { color: var(--muted); font-size: 11px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .mobile-menu-btn { display: none; }
+    @media (max-width: 1200px) {
+      .stats { grid-template-columns: repeat(3, 1fr); }
+      .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px) {
+      #app { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; transform: translateX(-100%); transition: transform .2s ease; box-shadow: 20px 0 60px rgba(0,0,0,.45); }
+      body.sidebar-open .sidebar { transform: translateX(0); }
+      .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+      .topbar { padding: 0 16px; }
+      .content { padding: 18px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .content-editor { grid-template-columns: 1fr; }
+      .content-key-list { border-right: 0; border-bottom: 1px solid var(--border); padding-right: 0; padding-bottom: 12px; }
+      .order-summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .order-update-box { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .stats, .stats-secondary, .product-grid, .form-grid, .cms-shortcuts { grid-template-columns: 1fr; }
+      .stock-grid { grid-template-columns: repeat(2, 1fr); }
+      .panel-header { align-items: stretch; }
+      .panel-tools { width: 100%; }
+      .search-input { max-width: none; }
+      .order-summary-grid { grid-template-columns: 1fr; }
+      .topbar-actions .btn:not(.mobile-menu-btn) { padding: 9px 10px; font-size: 11px; }
+      .content { padding: 12px; }
+      .modal { padding: 10px; }
+      .modal-body { padding: 15px; }
+    }
   </style>
 </head>
+
 <body>
 
-  <div id="loadingOverlay" class="hidden"><div class="loader"></div></div>
+  <div id="loadingOverlay" class="hidden">
+    <div class="loader-box">
+      <div class="loader"></div>
+      <div id="loadingText" class="loader-text">Loading BULKKOT Admin…</div>
+    </div>
+  </div>
 
   <section id="loginScreen">
     <div class="login-card">
@@ -105,14 +385,14 @@
       <p class="login-subtitle">Secure administration panel</p>
       <form id="loginForm" novalidate>
         <div class="field">
-          <label for="loginEmail">Email</label>
+          <label for="loginEmail">ADMIN EMAIL</label>
           <input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@example.com">
         </div>
         <div class="field">
-          <label for="loginPassword">Password</label>
+          <label for="loginPassword">PASSWORD</label>
           <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
         </div>
-        <button id="loginButton" class="btn btn-primary btn-full" type="submit">Sign in</button>
+        <button id="loginButton" class="btn btn-primary btn-full" type="submit">SIGN IN</button>
       </form>
     </div>
   </section>
@@ -123,105 +403,238 @@
       <nav class="nav">
         <button class="nav-btn active" data-page="dashboard" type="button">◈ Dashboard</button>
         <button class="nav-btn" data-page="products" type="button">□ Products</button>
-        <button class="nav-btn" data-page="content" type="button">✦ Site Content</button>
         <button class="nav-btn" data-page="orders" type="button">≡ Orders</button>
-        <button class="nav-btn" data-page="waitlist" type="button">♡ Waitlist</button>
+        <button class="nav-btn" data-page="waitlist" type="button">♡ VIP Waitlist</button>
+        <button class="nav-btn" data-page="content" type="button">✦ Site Content</button>
       </nav>
       <div class="sidebar-bottom">
         <div id="userEmail" class="user-email"></div>
-        <button id="logoutButton" class="btn btn-danger btn-full" type="button">Logout</button>
+        <button id="logoutButton" class="btn btn-danger btn-full" type="button">LOGOUT</button>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
-        <div id="pageTitle" class="page-title">Dashboard</div>
-        <button id="refreshButton" class="btn" type="button">Refresh</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button id="mobileMenuButton" class="btn mobile-menu-btn" type="button" aria-label="Open menu">☰</button>
+          <div id="pageTitle" class="page-title">Dashboard</div>
+        </div>
+        <div class="topbar-actions">
+          <button id="refreshButton" class="btn" type="button">↻ Refresh</button>
+          <a href="index.html" target="_blank" rel="noopener" class="btn" style="text-decoration:none;">View Store ↗</a>
+        </div>
       </header>
 
       <div class="content">
+        <!-- DASHBOARD -->
         <section id="page-dashboard" class="page">
           <div class="stats">
-            <div class="stat"><div class="stat-label">Total Orders</div><div id="statOrders" class="stat-value">—</div></div>
-            <div class="stat"><div class="stat-label">Total Revenue</div><div id="statRevenue" class="stat-value">—</div></div>
-            <div class="stat"><div class="stat-label">VIP Waitlist</div><div id="statWaitlist" class="stat-value">—</div></div>
-            <div class="stat"><div class="stat-label">Active Products</div><div id="statProducts" class="stat-value">—</div></div>
+            <div class="stat">
+              <div class="stat-label">Today's Sales</div>
+              <div id="statTodaySales" class="stat-value">—</div>
+              <div class="stat-sub">Orders placed today</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Today's Orders</div>
+              <div id="statTodayOrders" class="stat-value">—</div>
+              <div class="stat-sub">All statuses</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Total Revenue</div>
+              <div id="statRevenue" class="stat-value">—</div>
+              <div class="stat-sub">All recorded orders</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Total Orders</div>
+              <div id="statOrders" class="stat-value">—</div>
+              <div class="stat-sub">All recorded orders</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">VIP Waitlist</div>
+              <div id="statWaitlist" class="stat-value">—</div>
+              <div class="stat-sub">Registered emails</div>
+            </div>
           </div>
+
+          <div class="stats-secondary">
+            <div class="stat">
+              <div class="stat-label">Low Stock</div>
+              <div id="statLowStock" class="stat-value">—</div>
+              <div class="stat-sub">Products with any size ≤ 2</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Active Products</div>
+              <div id="statProducts" class="stat-value">—</div>
+              <div class="stat-sub">Visible in storefront</div>
+            </div>
+          </div>
+
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">Recent Orders</div>
-              <button class="btn" data-page-link="orders" type="button">View all</button>
+              <div>
+                <div class="panel-title">Recent Orders</div>
+                <div class="panel-subtitle">Latest customer orders</div>
+              </div>
+              <button class="btn" data-page-link="orders" type="button">View All</button>
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
                 <tbody id="recentOrdersBody"></tbody>
               </table>
             </div>
           </div>
         </section>
 
+        <!-- PRODUCTS -->
         <section id="page-products" class="page hidden">
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">Products</div>
-              <button id="addProductButton" class="btn btn-primary" type="button">+ Add Product</button>
-            </div>
-            <div class="panel-body"><div id="productsGrid" class="product-grid"></div></div>
-          </div>
-        </section>
-
-        <section id="page-content" class="page hidden">
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">Site Content</div>
-              <button id="saveContentButton" class="btn btn-primary" type="button">Save Changes</button>
-            </div>
-            <div class="panel-body">
-              <div class="content-editor">
-                <div id="contentKeyList" class="content-key-list"></div>
-                <div>
-                  <div class="field"><label>Content Key</label><input id="contentKey" type="text" readonly></div>
-                  <div class="field"><label>Text / Value</label><textarea id="contentValue" placeholder="Enter site content..."></textarea></div>
-                  <div class="field"><label>Image URL</label><input id="contentImage" type="url" placeholder="https://..."></div>
-                </div>
+              <div>
+                <div class="panel-title">Products</div>
+                <div class="panel-subtitle">Manage catalogue, images, prices and stock</div>
+              </div>
+              <div class="panel-tools">
+                <input id="productSearch" class="search-input" type="search" placeholder="Search products...">
+                <button id="addProductButton" class="btn btn-primary" type="button">+ Add Product</button>
               </div>
             </div>
+            <div class="panel-body">
+              <div id="productsGrid" class="product-grid"></div>
+            </div>
           </div>
         </section>
 
+        <!-- ORDERS -->
         <section id="page-orders" class="page hidden">
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">Orders</div>
-              <select id="orderStatusFilter" style="max-width:180px">
-                <option value="">All statuses</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+              <div>
+                <div class="panel-title">Orders Management</div>
+                <div class="panel-subtitle">Orders, payments, shipping and tracking</div>
+              </div>
+              <div class="panel-tools">
+                <input id="orderSearch" class="search-input" type="search" placeholder="Search order / customer...">
+                <select id="orderStatusFilter" style="width:170px;">
+                  <option value="">All order statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <select id="paymentStatusFilter" style="width:170px;">
+                  <option value="">All payment statuses</option>
+                  <option value="unpaid">Unpaid</option>
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="failed">Failed</option>
+                  <option value="refunded">Refunded</option>
+                </select>
+              </div>
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Order</th><th>Customer</th><th>Email</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Order Status</th>
+                    <th>Tracking</th>
+                    <th>Date</th>
+                    <th></th>
+                  </tr>
+                </thead>
                 <tbody id="ordersBody"></tbody>
               </table>
             </div>
           </div>
         </section>
 
+        <!-- WAITLIST -->
         <section id="page-waitlist" class="page hidden">
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">VIP Waitlist</div>
-              <button id="exportWaitlistButton" class="btn btn-success" type="button">Export CSV</button>
+              <div>
+                <div class="panel-title">VIP Waitlist</div>
+                <div class="panel-subtitle">Launch notification subscribers</div>
+              </div>
+              <div class="panel-tools">
+                <input id="waitlistSearch" class="search-input" type="search" placeholder="Search email...">
+                <button id="exportWaitlistButton" class="btn btn-success" type="button">↓ Export CSV</button>
+              </div>
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Email</th><th>Name</th><th>Date</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Joined</th>
+                  </tr>
+                </thead>
                 <tbody id="waitlistBody"></tbody>
               </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SITE CONTENT -->
+        <section id="page-content" class="page hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Site Content CMS</div>
+                <div class="panel-subtitle">Edit announcement bar, banner text and site content</div>
+              </div>
+              <button id="saveContentButton" class="btn btn-primary" type="button">Save Changes</button>
+            </div>
+            <div class="panel-body">
+              <div class="cms-shortcuts">
+                <div class="cms-card">
+                  <div class="cms-card-title">Announcement Bar</div>
+                  <div class="cms-card-key">Key: announcement_bar</div>
+                  <input id="announcementQuick" type="text" placeholder="DROP 001 — DROPPING SOON">
+                  <button id="saveAnnouncementButton" class="btn btn-primary btn-small" type="button" style="margin-top:9px;">Save Announcement</button>
+                </div>
+                <div class="cms-card">
+                  <div class="cms-card-title">Banner Text</div>
+                  <div class="cms-card-key">Key: banner_text</div>
+                  <input id="bannerQuick" type="text" placeholder="DROPPING SOON">
+                  <button id="saveBannerButton" class="btn btn-primary btn-small" type="button" style="margin-top:9px;">Save Banner</button>
+                </div>
+              </div>
+
+              <div class="content-editor">
+                <div id="contentKeyList" class="content-key-list"></div>
+                <div>
+                  <div class="field">
+                    <label>Content Key</label>
+                    <input id="contentKey" type="text" readonly>
+                  </div>
+                  <div class="field">
+                    <label>Text / Value</label>
+                    <textarea id="contentValue" placeholder="Enter site content..."></textarea>
+                  </div>
+                  <div class="field">
+                    <label>Image URL</label>
+                    <input id="contentImage" type="url" placeholder="https://...">
+                  </div>
+                  <div class="help-text">Existing content entries are loaded directly from Supabase <strong>site_content</strong>.</div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -229,37 +642,67 @@
     </main>
   </section>
 
-  <div id="productModal" class="modal hidden">
+  <!-- PRODUCT MODAL -->
+  <div id="productModal" class="modal hidden" aria-hidden="true">
     <div class="modal-box">
       <div class="modal-header">
         <strong id="productModalTitle">Add Product</strong>
-        <button id="closeProductModal" class="close-btn" type="button">×</button>
+        <button id="closeProductModal" class="close-btn" type="button" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
-        <form id="productForm">
+        <form id="productForm" novalidate>
           <input id="productId" type="hidden">
           <div class="form-grid">
-            <div class="field"><label>Product Name *</label><input id="productName" required></div>
-            <div class="field"><label>Category *</label>
+            <div class="field">
+              <label for="productName">Product Name *</label>
+              <input id="productName" required placeholder="OVERSIZED TEE 001">
+            </div>
+            <div class="field">
+              <label for="productCategory">Category *</label>
               <select id="productCategory" required>
-                <option value="TEES">TEES</option><option value="HOODS">HOODS</option><option value="SWEATS">SWEATS</option>
+                <option value="TEES">TEES</option>
+                <option value="HOODS">HOODS</option>
+                <option value="SWEATS">SWEATS</option>
               </select>
             </div>
-            <div class="field"><label>Price (₹) *</label><input id="productPrice" type="number" min="0" step="0.01" required></div>
-            <div class="field"><label>Product Image</label><input id="productImage" type="file" accept="image/jpeg,image/png,image/webp">
-              <div id="productImagePreview" class="image-preview hidden"><img id="productImagePreviewImg" alt="Preview"></div>
+            <div class="field">
+              <label for="productPrice">Price (₹) *</label>
+              <input id="productPrice" type="number" min="0" step="0.01" required placeholder="699">
             </div>
-            <div class="field full"><label>Stock by Size</label>
-              <div class="stock-grid">
-                <div><label>S</label><input id="stockS" type="number" min="0" value="0"></div>
-                <div><label>M</label><input id="stockM" type="number" min="0" value="0"></div>
-                <div><label>L</label><input id="stockL" type="number" min="0" value="0"></div>
-                <div><label>XL</label><input id="stockXL" type="number" min="0" value="0"></div>
+            <div class="field">
+              <label for="productDrop">Drop</label>
+              <input id="productDrop" placeholder="DROP 001">
+            </div>
+            <div class="field full">
+              <label for="productDescription">Description</label>
+              <textarea id="productDescription" placeholder="Product description..."></textarea>
+            </div>
+            <div class="field">
+              <label for="productImage">Product Image</label>
+              <input id="productImage" type="file" accept="image/jpeg,image/png,image/webp">
+              <div class="help-text">Uploads directly to Supabase Storage: product-images/products/</div>
+              <div id="productImagePreview" class="image-preview hidden">
+                <img id="productImagePreviewImg" alt="Product preview">
               </div>
             </div>
-            <div class="field full"><label>Description</label><textarea id="productDescription"></textarea></div>
+            <div class="field">
+              <label>Active</label>
+              <select id="productActive">
+                <option value="true">Active — visible in store</option>
+                <option value="false">Inactive — hidden from store</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>Stock by Size</label>
+              <div class="stock-grid">
+                <div class="field"><label for="stockS">S</label><input id="stockS" type="number" min="0" value="0"></div>
+                <div class="field"><label for="stockM">M</label><input id="stockM" type="number" min="0" value="0"></div>
+                <div class="field"><label for="stockL">L</label><input id="stockL" type="number" min="0" value="0"></div>
+                <div class="field"><label for="stockXL">XL</label><input id="stockXL" type="number" min="0" value="0"></div>
+              </div>
+            </div>
           </div>
-          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
+          <div class="modal-footer">
             <button id="cancelProductButton" class="btn" type="button">Cancel</button>
             <button id="saveProductButton" class="btn btn-primary" type="submit">Save Product</button>
           </div>
@@ -268,9 +711,13 @@
     </div>
   </div>
 
-  <div id="orderModal" class="modal hidden">
-    <div class="modal-box">
-      <div class="modal-header"><strong>Order Details</strong><button id="closeOrderModal" class="close-btn" type="button">×</button></div>
+  <!-- ORDER MODAL -->
+  <div id="orderModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-box large">
+      <div class="modal-header">
+        <strong id="orderModalTitle">Order Details</strong>
+        <button id="closeOrderModal" class="close-btn" type="button" aria-label="Close">×</button>
+      </div>
       <div id="orderModalBody" class="modal-body"></div>
     </div>
   </div>
@@ -284,18 +731,35 @@
       const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
       const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
       const PRODUCT_BUCKET = "product-images";
+      const LOW_STOCK_THRESHOLD = 2;
 
       const { createClient } = window.supabase;
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
       });
 
-      const state = { user: null, session: null, products: [], orders: [], waitlist: [], siteContent: [], selectedContent: null, currentPage: "dashboard" };
+      const state = {
+        user: null,
+        session: null,
+        products: [],
+        orders: [],
+        orderItems: {},
+        waitlist: [],
+        siteContent: [],
+        selectedContent: null,
+        currentPage: "dashboard",
+        productSearch: "",
+        orderSearch: "",
+        waitlistSearch: ""
+      };
 
-      const $ = (selector) => document.querySelector(selector);
-      const $$ = (selector) => [...document.querySelectorAll(selector)];
+      const $ = selector => document.querySelector(selector);
+      const $$ = selector => [...document.querySelectorAll(selector)];
 
-      function setLoading(isLoading) { $("#loadingOverlay").classList.toggle("hidden", !isLoading); }
+      function setLoading(isLoading, text = "Loading BULKKOT Admin…") {
+        $("#loadingOverlay").classList.toggle("hidden", !isLoading);
+        $("#loadingText").textContent = text;
+      }
 
       function showToast(message, type = "success") {
         const container = $("#toastContainer");
@@ -309,39 +773,80 @@
       function getErrorMessage(error) {
         if (!error) return "Something went wrong.";
         if (typeof error === "string") return error;
-        return error.message || JSON.stringify(error);
+        return error.message || error.details || error.hint || JSON.stringify(error);
       }
 
       function escapeHTML(value) {
         if (value === null || value === undefined) return "";
-        return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+        return String(value)
+          .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
       }
 
-      function formatDate(value) {
-        if (!value) return "—";
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+      function escapeCSV(value) {
+        return `"${String(value ?? "").replaceAll('"', '""')}"`;
       }
 
       function formatCurrency(value) {
         return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(value || 0));
       }
 
+      function formatDate(value) {
+        if (!value) return "—";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "—";
+        return date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+      }
+
+      function isToday(value) {
+        if (!value) return false;
+        const date = new Date(value);
+        const now = new Date();
+        return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+      }
+
+      function getOrderTotal(order) {
+        if (order?.total !== null && order?.total !== undefined) return Number(order.total) || 0;
+        return Number(order?.subtotal) || 0;
+      }
+
+      function getStock(product) {
+        return (product?.stock && typeof product.stock === "object") ? product.stock : {};
+      }
+
+      function getTotalStock(product) {
+        const stock = getStock(product);
+        return ["S", "M", "L", "XL"].reduce((sum, size) => sum + Number(stock[size] || 0), 0);
+      }
+
+      function isLowStock(product) {
+        const stock = getStock(product);
+        return ["S", "M", "L", "XL"].some(size => Number(stock[size] || 0) <= LOW_STOCK_THRESHOLD);
+      }
+
+      function statusBadge(status, type = "order") {
+        const safe = String(status || (type === "payment" ? "unpaid" : "pending")).toLowerCase().replace(/[^a-z0-9_-]/g, "");
+        return `<span class="badge badge-${safe}">${escapeHTML(status || "pending")}</span>`;
+      }
+
       async function getCurrentSession() {
-        try {
-          const { data, error } = await supabase.auth.getSession();
-          if (error) throw error;
-          return data?.session || null;
-        } catch { return null; }
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        return data?.session || null;
       }
 
       async function handleLogin(event) {
         event.preventDefault();
         const email = $("#loginEmail").value.trim();
         const password = $("#loginPassword").value;
+        if (!email || !password) {
+          showToast("Enter email and password.", "error");
+          return;
+        }
+
         const button = $("#loginButton");
         button.disabled = true;
-        button.textContent = "Signing in…";
+        button.textContent = "SIGNING IN…";
 
         try {
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -355,13 +860,13 @@
           showToast(getErrorMessage(error), "error");
         } finally {
           button.disabled = false;
-          button.textContent = "Sign in";
+          button.textContent = "SIGN IN";
         }
       }
 
       async function handleLogout() {
         try {
-          setLoading(true);
+          setLoading(true, "Signing out…");
           await supabase.auth.signOut();
           state.user = null;
           state.session = null;
@@ -377,6 +882,7 @@
         $("#loginScreen").classList.remove("hidden");
         $("#app").classList.add("hidden");
         $("#loginPassword").value = "";
+        document.body.classList.remove("sidebar-open");
       }
 
       function showApp() {
@@ -388,39 +894,42 @@
       supabase.auth.onAuthStateChange((event, session) => {
         state.session = session || null;
         state.user = session?.user || null;
-        if (session?.user) showApp(); else showLogin();
+        if (session?.user) {
+          showApp();
+        } else {
+          showLogin();
+        }
       });
 
       async function loadInitialData() {
         if (!state.user) return;
-        setLoading(true);
+        setLoading(true, "Loading admin data…");
         try {
-          await Promise.all([loadDashboard(), loadProducts(), loadOrders(), loadWaitlist(), loadSiteContent()]);
+          await Promise.all([loadProducts(), loadOrders(), loadWaitlist(), loadSiteContent()]);
+          renderDashboard();
         } catch (error) {
-          showToast("Some admin data could not be loaded.", "error");
+          console.error("Admin load error:", error);
+          showToast(getErrorMessage(error), "error");
         } finally {
           setLoading(false);
         }
       }
 
-      async function loadDashboard() {
-        const [ordersResult, waitlistResult, productsResult] = await Promise.all([
-          supabase.from("orders").select("id,total,status,customer_name,created_at", { count: "exact" }),
-          supabase.from("waitlist").select("id", { count: "exact", head: true }),
-          supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true)
-        ]);
+      function renderDashboard() {
+        const orders = state.orders;
+        const todayOrders = orders.filter(order => isToday(order.created_at));
+        const todaySales = todayOrders.reduce((sum, order) => sum + getOrderTotal(order), 0);
+        const revenue = orders.reduce((sum, order) => sum + getOrderTotal(order), 0);
+        const activeProducts = state.products.filter(product => Boolean(product.active));
+        const lowStock = state.products.filter(product => Boolean(product.active) && isLowStock(product));
 
-        if (ordersResult.error) throw ordersResult.error;
-        if (waitlistResult.error) throw waitlistResult.error;
-        if (productsResult.error) throw productsResult.error;
-
-        const orders = ordersResult.data || [];
-        const revenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
-
-        $("#statOrders").textContent = ordersResult.count ?? orders.length;
+        $("#statTodaySales").textContent = formatCurrency(todaySales);
+        $("#statTodayOrders").textContent = todayOrders.length;
         $("#statRevenue").textContent = formatCurrency(revenue);
-        $("#statWaitlist").textContent = waitlistResult.count ?? 0;
-        $("#statProducts").textContent = productsResult.count ?? 0;
+        $("#statOrders").textContent = orders.length;
+        $("#statWaitlist").textContent = state.waitlist.length;
+        $("#statLowStock").textContent = lowStock.length;
+        $("#statProducts").textContent = activeProducts.length;
 
         renderRecentOrders(orders);
       }
@@ -428,16 +937,24 @@
       function renderRecentOrders(orders) {
         const body = $("#recentOrdersBody");
         const recent = [...orders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
-        if (!recent.length) { body.innerHTML = `<tr><td colspan="5" class="empty">No orders yet.</td></tr>`; return; }
-        body.innerHTML = recent.map(order => `
-          <tr>
-            <td><strong>#${escapeHTML(order.id)}</strong></td>
-            <td>${escapeHTML(order.customer_name || "—")}</td>
-            <td>${formatCurrency(order.total)}</td>
-            <td>${statusBadge(order.status)}</td>
-            <td>${formatDate(order.created_at)}</td>
-          </tr>
-        `).join("");
+        if (!recent.length) {
+          body.innerHTML = `<tr><td colspan="6" class="empty">No orders yet.</td></tr>`;
+          return;
+        }
+
+        body.innerHTML = recent.map(order => {
+          const orderNumber = order.order_number || order.id || "—";
+          return `
+            <tr>
+              <td><span class="order-number">${escapeHTML(orderNumber)}</span></td>
+              <td><div class="customer-cell"><strong>${escapeHTML(order.customer_name || "—")}</strong><span>${escapeHTML(order.customer_email || "")}</span></div></td>
+              <td>${formatCurrency(getOrderTotal(order))}</td>
+              <td>${statusBadge(order.payment_status || "unpaid", "payment")}</td>
+              <td>${statusBadge(order.order_status || "pending")}</td>
+              <td>${formatDate(order.created_at)}</td>
+            </tr>
+          `;
+        }).join("");
       }
 
       async function loadProducts() {
@@ -445,27 +962,57 @@
         if (error) throw error;
         state.products = data || [];
         renderProducts();
+        renderDashboard();
       }
 
       function renderProducts() {
         const grid = $("#productsGrid");
-        if (!state.products.length) { grid.innerHTML = `<div class="empty">No products found.</div>`; return; }
-        grid.innerHTML = state.products.map(product => {
-          const stock = product.stock || {};
+        const query = state.productSearch.trim().toLowerCase();
+        const products = state.products.filter(product => {
+          if (!query) return true;
+          return [product.name, product.category, product.description].filter(Boolean).join(" ").toLowerCase().includes(query);
+        });
+
+        if (!products.length) {
+          grid.innerHTML = `<div class="empty" style="grid-column:1/-1;">No products found.</div>`;
+          return;
+        }
+
+        grid.innerHTML = products.map(product => {
+          const stock = getStock(product);
           const image = product.image_url || "";
+          const active = Boolean(product.active);
+          const low = isLowStock(product);
+
           return `
             <article class="product-card">
-              <div class="product-image">${image ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" loading="lazy">` : ""}</div>
+              <div class="product-image">
+                ${image ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}" loading="lazy">` : `<div class="product-image-placeholder">◇</div>`}
+                <div class="product-status">
+                  ${active ? `<span class="badge badge-delivered">ACTIVE</span>` : `<span class="badge badge-cancelled">INACTIVE</span>`}
+                </div>
+              </div>
               <div class="product-info">
                 <div class="product-name">${escapeHTML(product.name)}</div>
                 <div class="product-meta">${escapeHTML(product.category || "")} · ${formatCurrency(product.price)}</div>
-                <div class="product-meta" style="margin-top:7px">S: ${Number(stock.S || 0)} · M: ${Number(stock.M || 0)} · L: ${Number(stock.L || 0)} · XL: ${Number(stock.XL || 0)}</div>
-                <div style="margin-top:7px">
-                  ${product.active ? `<span class="badge badge-delivered">Active</span>` : `<span class="badge badge-cancelled">Inactive</span>`}
+                ${product.drop ? `<div class="product-meta" style="margin-top:3px;">${escapeHTML(product.drop)}</div>` : ""}
+                <div class="stock-row">
+                  ${["S", "M", "L", "XL"].map(size => {
+                    const value = Number(stock[size] || 0);
+                    const cls = value === 0 ? "empty-stock" : (value <= LOW_STOCK_THRESHOLD ? "low" : "");
+                    return `<div class="stock-chip ${cls}"><strong>${size}</strong>${value}</div>`;
+                  }).join("")}
+                </div>
+                <div class="product-meta" style="margin-top:8px;">
+                  Total stock: <strong>${getTotalStock(product)}</strong>
+                  ${low ? ` · <span style="color:var(--yellow);">LOW STOCK</span>` : ""}
                 </div>
                 <div class="product-actions">
                   <button class="btn" type="button" data-edit-product="${escapeHTML(product.id)}">Edit</button>
-                  <button class="btn ${product.active ? "btn-danger" : "btn-success"}" type="button" data-toggle-product="${escapeHTML(product.id)}">${product.active ? "Deactivate" : "Activate"}</button>
+                  <button class="btn ${active ? "btn-danger" : "btn-success"}" type="button" data-toggle-product="${escapeHTML(product.id)}">
+                    ${active ? "Deactivate" : "Activate"}
+                  </button>
+                  <button class="btn btn-danger" type="button" data-delete-product="${escapeHTML(product.id)}">Delete</button>
                 </div>
               </div>
             </article>
@@ -473,40 +1020,60 @@
         }).join("");
       }
 
-      function openProductModal(product = null) {
+      function resetProductForm() {
         $("#productForm").reset();
-        $("#productId").value = product?.id || "";
-        $("#productModalTitle").textContent = product ? "Edit Product" : "Add Product";
-        $("#productName").value = product?.name || "";
-        $("#productCategory").value = product?.category || "TEES";
-        $("#productPrice").value = product?.price ?? "";
-        $("#productDescription").value = product?.description || "";
-        const stock = product?.stock || {};
-        $("#stockS").value = Number(stock.S || 0);
-        $("#stockM").value = Number(stock.M || 0);
-        $("#stockL").value = Number(stock.L || 0);
-        $("#stockXL").value = Number(stock.XL || 0);
-        $("#productImage").value = "";
-        const preview = $("#productImagePreview");
-        const previewImg = $("#productImagePreviewImg");
-        if (product?.image_url) {
-          previewImg.src = product.image_url;
-          preview.classList.remove("hidden");
-        } else {
-          preview.classList.add("hidden");
-          previewImg.removeAttribute("src");
-        }
-        $("#productModal").classList.remove("hidden");
+        $("#productId").value = "";
+        $("#productModalTitle").textContent = "Add Product";
+        $("#productCategory").value = "TEES";
+        $("#productActive").value = "true";
+        $("#stockS").value = 0; $("#stockM").value = 0; $("#stockL").value = 0; $("#stockXL").value = 0;
+        $("#productImagePreview").classList.add("hidden");
+        $("#productImagePreviewImg").removeAttribute("src");
       }
 
-      function closeProductModal() { $("#productModal").classList.add("hidden"); }
+      function openProductModal(product = null) {
+        resetProductForm();
+        if (product) {
+          $("#productModalTitle").textContent = "Edit Product";
+          $("#productId").value = product.id || "";
+          $("#productName").value = product.name || "";
+          $("#productCategory").value = product.category || "TEES";
+          $("#productPrice").value = product.price ?? "";
+          $("#productDrop").value = product.drop || "";
+          $("#productDescription").value = product.description || "";
+          $("#productActive").value = product.active ? "true" : "false";
+          const stock = getStock(product);
+          $("#stockS").value = Number(stock.S || 0);
+          $("#stockM").value = Number(stock.M || 0);
+          $("#stockL").value = Number(stock.L || 0);
+          $("#stockXL").value = Number(stock.XL || 0);
+
+          if (product.image_url) {
+            $("#productImagePreviewImg").src = product.image_url;
+            $("#productImagePreview").classList.remove("hidden");
+          }
+        }
+        $("#productModal").classList.remove("hidden");
+        $("#productModal").setAttribute("aria-hidden", "false");
+      }
+
+      function closeProductModal() {
+        $("#productModal").classList.add("hidden");
+        $("#productModal").setAttribute("aria-hidden", "true");
+      }
 
       async function uploadProductImage(file) {
         if (!file) return null;
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        if (!allowedTypes.includes(file.type)) throw new Error("Only JPG, PNG and WebP images are allowed.");
+        if (file.size > 5 * 1024 * 1024) throw new Error("Image must be smaller than 5MB.");
+
         const extension = file.name.split(".").pop().toLowerCase();
         const path = `products/${crypto.randomUUID()}.${extension}`;
+
         const { error } = await supabase.storage.from(PRODUCT_BUCKET).upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
         if (error) throw error;
+
         const { data } = supabase.storage.from(PRODUCT_BUCKET).getPublicUrl(path);
         return data?.publicUrl || null;
       }
@@ -522,7 +1089,11 @@
           const name = $("#productName").value.trim();
           const category = $("#productCategory").value;
           const price = Number($("#productPrice").value);
+          const drop = $("#productDrop").value.trim();
           const description = $("#productDescription").value.trim();
+
+          if (!name) throw new Error("Product name is required.");
+          if (!Number.isFinite(price) || price < 0) throw new Error("Enter a valid product price.");
 
           const stock = {
             S: Math.max(0, parseInt($("#stockS").value || 0, 10)),
@@ -536,7 +1107,16 @@
           const file = $("#productImage").files[0];
           if (file) imageUrl = await uploadProductImage(file);
 
-          const payload = { name, category, price, description, stock, image_url: imageUrl, active: existing?.active ?? true, updated_at: new Date().toISOString() };
+          const payload = {
+            name, category, price, description, stock,
+            image_url: imageUrl,
+            active: $("#productActive").value === "true",
+            updated_at: new Date().toISOString()
+          };
+
+          if (existing && Object.prototype.hasOwnProperty.call(existing, "drop")) {
+            payload.drop = drop || null;
+          }
 
           let result;
           if (id) {
@@ -546,10 +1126,13 @@
           }
 
           if (result.error) throw result.error;
+
           showToast(id ? "Product updated." : "Product created.");
           closeProductModal();
-          await Promise.all([loadProducts(), loadDashboard()]);
+          await loadProducts();
+          renderDashboard();
         } catch (error) {
+          console.error("Product save error:", error);
           showToast(getErrorMessage(error), "error");
         } finally {
           button.disabled = false;
@@ -561,14 +1144,37 @@
         const product = state.products.find(item => String(item.id) === String(productId));
         if (!product) return;
         const nextActive = !Boolean(product.active);
+
         try {
-          setLoading(true);
+          setLoading(true, nextActive ? "Activating product…" : "Deactivating product…");
           const { error } = await supabase.from("products").update({ active: nextActive, updated_at: new Date().toISOString() }).eq("id", productId);
           if (error) throw error;
           showToast(nextActive ? "Product activated." : "Product deactivated.");
-          await Promise.all([loadProducts(), loadDashboard()]);
+          await loadProducts();
+          renderDashboard();
         } catch (error) {
           showToast(getErrorMessage(error), "error");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function deleteProduct(productId) {
+        const product = state.products.find(item => String(item.id) === String(productId));
+        if (!product) return;
+        const confirmed = window.confirm(`Delete "${product.name}" permanently?\n\nIf this product is already referenced by an order, Supabase may block the deletion. In that case use Deactivate instead.`);
+        if (!confirmed) return;
+
+        try {
+          setLoading(true, "Deleting product…");
+          const { error } = await supabase.from("products").delete().eq("id", productId);
+          if (error) throw error;
+          showToast("Product deleted.");
+          await loadProducts();
+          renderDashboard();
+        } catch (error) {
+          console.error("Product delete error:", error);
+          showToast("Could not delete this product. If it has existing order items, deactivate it instead.", "error");
         } finally {
           setLoading(false);
         }
@@ -579,81 +1185,206 @@
         if (error) throw error;
         state.orders = data || [];
         renderOrders();
+        renderDashboard();
       }
 
-      function statusBadge(status) {
-        const safeStatus = String(status || "processing").toLowerCase();
-        return `<span class="badge badge-${safeStatus}">${escapeHTML(safeStatus)}</span>`;
+      function getFilteredOrders() {
+        const search = state.orderSearch.trim().toLowerCase();
+        const status = $("#orderStatusFilter").value;
+        const payment = $("#paymentStatusFilter").value;
+
+        return state.orders.filter(order => {
+          const matchesSearch = !search || [order.order_number, order.customer_name, order.customer_email, order.customer_phone, order.shipping_city, order.shipping_state, order.tracking_number]
+            .filter(Boolean).join(" ").toLowerCase().includes(search);
+          const matchesStatus = !status || String(order.order_status || "pending") === status;
+          const matchesPayment = !payment || String(order.payment_status || "unpaid") === payment;
+          return matchesSearch && matchesStatus && matchesPayment;
+        });
       }
 
       function renderOrders() {
         const body = $("#ordersBody");
-        const filter = $("#orderStatusFilter").value;
-        const orders = filter ? state.orders.filter(order => order.status === filter) : state.orders;
+        const orders = getFilteredOrders();
 
-        if (!orders.length) { body.innerHTML = `<tr><td colspan="7" class="empty">No orders found.</td></tr>`; return; }
+        if (!orders.length) {
+          body.innerHTML = `<tr><td colspan="8" class="empty">No orders found.</td></tr>`;
+          return;
+        }
+
         body.innerHTML = orders.map(order => {
-          const id = escapeHTML(order.id);
-          const status = String(order.status || "processing").toLowerCase();
+          const orderNumber = order.order_number || order.id || "—";
+          const tracking = order.tracking_number || "";
+
           return `
             <tr>
-              <td><strong>#${id}</strong></td>
-              <td>${escapeHTML(order.customer_name || "—")}</td>
-              <td>${escapeHTML(order.customer_email || "—")}</td>
-              <td>${formatCurrency(order.total)}</td>
-              <td>
-                <select class="order-status-select" data-order-status="${id}">
-                  <option value="processing" ${status === "processing" ? "selected" : ""}>Processing</option>
-                  <option value="shipped" ${status === "shipped" ? "selected" : ""}>Shipped</option>
-                  <option value="delivered" ${status === "delivered" ? "selected" : ""}>Delivered</option>
-                  <option value="cancelled" ${status === "cancelled" ? "selected" : ""}>Cancelled</option>
-                </select>
-              </td>
+              <td><span class="order-number">${escapeHTML(orderNumber)}</span></td>
+              <td><div class="customer-cell"><strong>${escapeHTML(order.customer_name || "—")}</strong><span>${escapeHTML(order.customer_email || "")}</span></div></td>
+              <td><strong>${formatCurrency(getOrderTotal(order))}</strong></td>
+              <td>${statusBadge(order.payment_status || "unpaid", "payment")}</td>
+              <td>${statusBadge(order.order_status || "pending")}</td>
+              <td>${tracking ? `<span style="color:#aaa;font-size:10px;word-break:break-word;">${escapeHTML(tracking)}</span>` : `<span style="color:#555;font-size:10px;">Not added</span>`}</td>
               <td>${formatDate(order.created_at)}</td>
-              <td><button class="btn" type="button" data-view-order="${id}">View</button></td>
+              <td><button class="btn btn-small" type="button" data-view-order="${escapeHTML(order.id)}">View</button></td>
             </tr>
           `;
         }).join("");
       }
 
-      async function updateOrderStatus(orderId, status) {
+      async function loadOrderItems(orderId) {
+        if (state.orderItems[orderId]) return state.orderItems[orderId];
+        const { data, error } = await supabase.from("order_items").select("*").eq("order_id", orderId).order("created_at", { ascending: true });
+        if (error) throw error;
+        const items = data || [];
+        state.orderItems[orderId] = items;
+        return items;
+      }
+
+      async function openOrderModal(order) {
+        const modal = $("#orderModal");
+        const body = $("#orderModalBody");
+        const orderNumber = order.order_number || order.id || "—";
+
+        $("#orderModalTitle").textContent = orderNumber;
+        body.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);">Loading order details…</div>`;
+        modal.classList.remove("hidden");
+        modal.setAttribute("aria-hidden", "false");
+
         try {
-          setLoading(true);
-          const { error } = await supabase.from("orders").update({ status, updated_at: new Date().toISOString() }).eq("id", orderId);
-          if (error) throw error;
-          const order = state.orders.find(item => String(item.id) === String(orderId));
-          if (order) order.status = status;
-          renderOrders();
-          showToast("Order status updated.");
-          await loadDashboard();
+          const items = await loadOrderItems(order.id);
+          const total = getOrderTotal(order);
+          const subtotal = Number(order.subtotal ?? total) || 0;
+
+          body.innerHTML = `
+            <div class="order-summary-grid">
+              <div class="summary-box"><div class="summary-label">Order Number</div><div class="summary-value">${escapeHTML(orderNumber)}</div></div>
+              <div class="summary-box"><div class="summary-label">Order Status</div><div class="summary-value">${statusBadge(order.order_status || "pending")}</div></div>
+              <div class="summary-box"><div class="summary-label">Payment</div><div class="summary-value">${statusBadge(order.payment_status || "unpaid", "payment")}</div></div>
+              <div class="summary-box"><div class="summary-label">Total</div><div class="summary-value">${formatCurrency(total)}</div></div>
+            </div>
+
+            <div class="detail-section">
+              <div class="detail-section-title">Customer</div>
+              <div class="shipping-box">
+                <strong>${escapeHTML(order.customer_name || "—")}</strong><br>
+                ${escapeHTML(order.customer_email || "—")}<br>
+                ${escapeHTML(order.customer_phone || "—")}
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <div class="detail-section-title">Shipping Address</div>
+              <div class="shipping-box">
+                ${escapeHTML(order.shipping_address || "—")}<br>
+                ${escapeHTML(order.shipping_city || "")}${order.shipping_city && order.shipping_state ? ", " : ""}${escapeHTML(order.shipping_state || "")}
+                ${order.shipping_pincode ? ` - ${escapeHTML(order.shipping_pincode)}` : ""}
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <div class="detail-section-title">Order Items</div>
+              <div class="order-items">
+                ${items.length ? items.map(item => {
+                  const product = state.products.find(p => String(p.id) === String(item.product_id));
+                  const image = product?.image_url || "";
+                  const name = item.product_name || product?.name || "Product";
+                  const quantity = Number(item.quantity || 0);
+                  const unitPrice = Number(item.unit_price || 0);
+                  const itemTotal = Number(item.total_price) || (unitPrice * quantity);
+
+                  return `
+                    <div class="order-item">
+                      <div class="order-item-image">${image ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(name)}">` : ""}</div>
+                      <div>
+                        <div class="order-item-name">${escapeHTML(name)}</div>
+                        <div class="order-item-meta">SIZE: ${escapeHTML(item.size || "—")} · QTY: ${quantity} · ${formatCurrency(unitPrice)} each</div>
+                      </div>
+                      <div class="order-item-price">${formatCurrency(itemTotal)}</div>
+                    </div>
+                  `;
+                }).join("") : `<div class="shipping-box">No order items found.</div>`}
+              </div>
+
+              <div class="order-totals">
+                <div class="total-row"><span>Subtotal</span><strong>${formatCurrency(subtotal)}</strong></div>
+                <div class="total-row"><span>Payment Method</span><strong>${escapeHTML(order.payment_method || "COD")}</strong></div>
+                <div class="total-row final"><span>Total</span><strong>${formatCurrency(total)}</strong></div>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <div class="detail-section-title">Order Management</div>
+              <div class="order-update-box">
+                <div class="field">
+                  <label>Order Status</label>
+                  <select id="modalOrderStatus">
+                    ${["pending", "processing", "confirmed", "shipped", "delivered", "cancelled"].map(status => `
+                      <option value="${status}" ${(order.order_status || "pending") === status ? "selected" : ""}>
+                        ${status.charAt(0).toUpperCase() + status.slice(1)}
+                      </option>
+                    `).join("")}
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Payment Status</label>
+                  <select id="modalPaymentStatus">
+                    ${["unpaid", "pending", "paid", "failed", "refunded"].map(status => `
+                      <option value="${status}" ${(order.payment_status || "unpaid") === status ? "selected" : ""}>
+                        ${status.charAt(0).toUpperCase() + status.slice(1)}
+                      </option>
+                    `).join("")}
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Courier / Tracking</label>
+                  <input id="modalTracking" value="${escapeHTML(order.tracking_number || "")}" placeholder="Courier + tracking number">
+                </div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                <button id="saveOrderUpdates" class="btn btn-primary" type="button">Save Order Updates</button>
+              </div>
+            </div>
+
+            <div style="color:var(--muted);font-size:10px;margin-top:18px;">
+              Created: ${formatDate(order.created_at)}
+              ${order.updated_at ? ` · Updated: ${formatDate(order.updated_at)}` : ""}
+            </div>
+          `;
+
+          $("#saveOrderUpdates").addEventListener("click", async () => {
+            const button = $("#saveOrderUpdates");
+            button.disabled = true;
+            button.textContent = "Saving…";
+
+            try {
+              const updates = {
+                order_status: $("#modalOrderStatus").value,
+                payment_status: $("#modalPaymentStatus").value,
+                tracking_number: $("#modalTracking").value.trim()
+              };
+
+              const { error } = await supabase.from("orders").update({ ...updates, updated_at: new Date().toISOString() }).eq("id", order.id);
+              if (error) throw error;
+
+              Object.assign(order, updates);
+              renderOrders();
+              renderDashboard();
+              showToast("Order updated successfully.");
+              closeOrderModal();
+            } catch (error) {
+              showToast(getErrorMessage(error), "error");
+            } finally {
+              button.disabled = false;
+              button.textContent = "Save Order Updates";
+            }
+          });
         } catch (error) {
-          showToast(getErrorMessage(error), "error");
-        } finally {
-          setLoading(false);
+          body.innerHTML = `<div style="padding:25px;color:#ff7777;">Failed to load order items: ${escapeHTML(getErrorMessage(error))}</div>`;
         }
       }
 
-      function openOrderModal(order) {
-        const body = $("#orderModalBody");
-        let itemsHTML = "<div>No item data.</div>";
-        if (Array.isArray(order.items)) {
-          itemsHTML = order.items.map(item => `
-            <div style="background:#0b0b0b;border:1px solid var(--border);padding:10px;border-radius:8px;margin-bottom:8px;">
-              <strong>${escapeHTML(item.name || item.product_name || "Product")}</strong>
-              <div style="color:var(--muted);font-size:12px;margin-top:4px;">Size: ${escapeHTML(item.size || "—")} · Qty: ${Number(item.quantity || 0)}</div>
-            </div>
-          `).join("");
-        }
-
-        body.innerHTML = `
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:15px;">
-            <div style="background:#0b0b0b;padding:10px;border-radius:8px;border:1px solid var(--border)">ID: #${escapeHTML(order.id)}</div>
-            <div style="background:#0b0b0b;padding:10px;border-radius:8px;border:1px solid var(--border)">Total: ${formatCurrency(order.total)}</div>
-          </div>
-          <div style="font-weight:800;margin-bottom:8px;">Items</div>
-          ${itemsHTML}
-        `;
-        $("#orderModal").classList.remove("hidden");
+      function closeOrderModal() {
+        $("#orderModal").classList.add("hidden");
+        $("#orderModal").setAttribute("aria-hidden", "true");
       }
 
       async function loadWaitlist() {
@@ -661,25 +1392,50 @@
         if (error) throw error;
         state.waitlist = data || [];
         renderWaitlist();
+        renderDashboard();
       }
 
       function renderWaitlist() {
         const body = $("#waitlistBody");
-        if (!state.waitlist.length) { body.innerHTML = `<tr><td colspan="3" class="empty">No waitlist entries.</td></tr>`; return; }
-        body.innerHTML = state.waitlist.map(entry => `
-          <tr><td>${escapeHTML(entry.email)}</td><td>${escapeHTML(entry.name || "—")}</td><td>${formatDate(entry.created_at)}</td></tr>
+        const query = state.waitlistSearch.trim().toLowerCase();
+        const entries = state.waitlist.filter(entry => {
+          if (!query) return true;
+          return [entry.email, entry.name].filter(Boolean).join(" ").toLowerCase().includes(query);
+        });
+
+        if (!entries.length) {
+          body.innerHTML = `<tr><td colspan="3" class="empty">No waitlist entries.</td></tr>`;
+          return;
+        }
+
+        body.innerHTML = entries.map(entry => `
+          <tr>
+            <td><strong>${escapeHTML(entry.email)}</strong></td>
+            <td>${escapeHTML(entry.name || "—")}</td>
+            <td>${formatDate(entry.created_at)}</td>
+          </tr>
         `).join("");
       }
 
       function exportWaitlistCSV() {
-        if (!state.waitlist.length) { showToast("No waitlist entries to export.", "error"); return; }
-        const csv = ["ID,Name,Email,Created At", ...state.waitlist.map(e => `"${e.id}","${e.name || ""}","${e.email}","${e.created_at}"`)].join("\r\n");
+        if (!state.waitlist.length) {
+          showToast("No waitlist entries to export.", "error");
+          return;
+        }
+
+        const rows = [["ID", "Name", "Email", "Created At"]];
+        state.waitlist.forEach(entry => rows.push([entry.id, entry.name || "", entry.email || "", entry.created_at || ""]));
+
+        const csv = rows.map(row => row.map(escapeCSV).join(",")).join("\r\n");
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `bulkkot-waitlist.csv`;
+        link.href = url;
+        link.download = `bulkkot-waitlist-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
         link.click();
         link.remove();
+        URL.revokeObjectURL(url);
         showToast("Waitlist CSV exported.");
       }
 
@@ -688,14 +1444,32 @@
         if (error) throw error;
         state.siteContent = data || [];
         renderContentKeys();
+        loadQuickCMSValues();
         if (state.siteContent.length && !state.selectedContent) selectContent(state.siteContent[0]);
+      }
+
+      function getContentByKey(key) {
+        return state.siteContent.find(item => String(item.content_key).toLowerCase() === String(key).toLowerCase()) || null;
+      }
+
+      function loadQuickCMSValues() {
+        const announcement = getContentByKey("announcement_bar");
+        const banner = getContentByKey("banner_text");
+        $("#announcementQuick").value = announcement?.content_value || "";
+        $("#bannerQuick").value = banner?.content_value || "";
       }
 
       function renderContentKeys() {
         const list = $("#contentKeyList");
-        if (!state.siteContent.length) { list.innerHTML = `<div class="empty">No site content entries.</div>`; return; }
+        if (!state.siteContent.length) {
+          list.innerHTML = `<div class="empty">No site content entries.</div>`;
+          return;
+        }
+
         list.innerHTML = state.siteContent.map(item => `
-          <button type="button" class="content-key ${state.selectedContent?.id === item.id ? "active" : ""}" data-content-id="${escapeHTML(item.id)}">${escapeHTML(item.content_key)}</button>
+          <button type="button" class="content-key ${state.selectedContent?.id === item.id ? "active" : ""}" data-content-id="${escapeHTML(item.id)}">
+            ${escapeHTML(item.content_key)}
+          </button>
         `).join("");
       }
 
@@ -707,22 +1481,83 @@
         renderContentKeys();
       }
 
+      async function upsertSiteContent(key, value, imageUrl = null) {
+        const existing = getContentByKey(key);
+        const payload = { content_key: key, content_value: value, image_url: imageUrl || null, updated_at: new Date().toISOString() };
+        let result;
+        if (existing) {
+          result = await supabase.from("site_content").update(payload).eq("id", existing.id).select().single();
+        } else {
+          result = await supabase.from("site_content").insert(payload).select().single();
+        }
+
+        if (result.error) throw result.error;
+        const saved = result.data;
+        const index = state.siteContent.findIndex(item => String(item.id) === String(saved.id));
+        if (index >= 0) {
+          state.siteContent[index] = saved;
+        } else {
+          state.siteContent.push(saved);
+        }
+        return saved;
+      }
+
+      async function saveQuickAnnouncement() {
+        const button = $("#saveAnnouncementButton");
+        button.disabled = true;
+        try {
+          const value = $("#announcementQuick").value.trim();
+          if (!value) throw new Error("Announcement cannot be empty.");
+          await upsertSiteContent("announcement_bar", value);
+          renderContentKeys();
+          showToast("Announcement bar updated.");
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      async function saveQuickBanner() {
+        const button = $("#saveBannerButton");
+        button.disabled = true;
+        try {
+          const value = $("#bannerQuick").value.trim();
+          if (!value) throw new Error("Banner text cannot be empty.");
+          await upsertSiteContent("banner_text", value);
+          renderContentKeys();
+          showToast("Banner text updated.");
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          button.disabled = false;
+        }
+      }
+
       async function saveSiteContent() {
         const item = state.selectedContent;
-        if (!item) return;
+        if (!item) {
+          showToast("Select a content entry first.", "error");
+          return;
+        }
+
         const button = $("#saveContentButton");
         button.disabled = true;
         button.textContent = "Saving…";
+
         try {
-          const { data, error } = await supabase.from("site_content").update({
-            content_value: $("#contentValue").value,
-            image_url: $("#contentImage").value.trim() || null,
-            updated_at: new Date().toISOString()
-          }).eq("id", item.id).select().single();
+          const value = $("#contentValue").value;
+          const imageUrl = $("#contentImage").value.trim();
+          const { data, error } = await supabase.from("site_content")
+            .update({ content_value: value, image_url: imageUrl || null, updated_at: new Date().toISOString() })
+            .eq("id", item.id).select().single();
+
           if (error) throw error;
           state.selectedContent = data;
-          const idx = state.siteContent.findIndex(c => c.id === item.id);
-          if (idx !== -1) state.siteContent[idx] = data;
+          const index = state.siteContent.findIndex(c => String(c.id) === String(item.id));
+          if (index !== -1) state.siteContent[index] = data;
+
+          loadQuickCMSValues();
           renderContentKeys();
           showToast("Site content updated.");
         } catch (error) {
@@ -733,79 +1568,125 @@
         }
       }
 
-      const pageTitles = { dashboard: "Dashboard", products: "Products", content: "Site Content", orders: "Orders", waitlist: "VIP Waitlist" };
+      const pageTitles = {
+        dashboard: "Dashboard",
+        products: "Products",
+        orders: "Orders",
+        waitlist: "VIP Waitlist",
+        content: "Site Content"
+      };
 
       function showPage(pageName) {
         if (!pageTitles[pageName]) pageName = "dashboard";
         state.currentPage = pageName;
-        $$(".page").forEach(p => p.classList.toggle("hidden", p.id !== `page-${pageName}`));
-        $$(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.page === pageName));
-        $("#pageTitle").textContent = pageTitles[pageName];
 
-        if (pageName === "dashboard") loadDashboard();
-        if (pageName === "products") loadProducts();
-        if (pageName === "orders") loadOrders();
-        if (pageName === "waitlist") loadWaitlist();
-        if (pageName === "content") loadSiteContent();
+        $$(".page").forEach(page => page.classList.toggle("hidden", page.id !== `page-${pageName}`));
+        $$(".nav-btn").forEach(button => button.classList.toggle("active", button.dataset.page === pageName));
+        $("#pageTitle").textContent = pageTitles[pageName];
+        document.body.classList.remove("sidebar-open");
+
+        if (pageName === "dashboard") renderDashboard();
+        if (pageName === "products") renderProducts();
+        if (pageName === "orders") renderOrders();
+        if (pageName === "waitlist") renderWaitlist();
+        if (pageName === "content") { renderContentKeys(); loadQuickCMSValues(); }
       }
 
-      document.addEventListener("click", async (e) => {
-        const nav = e.target.closest("[data-page]");
+      document.addEventListener("click", async event => {
+        const nav = event.target.closest("[data-page]");
         if (nav) { showPage(nav.dataset.page); return; }
-        const pageLink = e.target.closest("[data-page-link]");
+
+        const pageLink = event.target.closest("[data-page-link]");
         if (pageLink) { showPage(pageLink.dataset.pageLink); return; }
-        const editBtn = e.target.closest("[data-edit-product]");
-        if (editBtn) {
-          const product = state.products.find(p => String(p.id) === String(editBtn.dataset.editProduct));
+
+        const editProduct = event.target.closest("[data-edit-product]");
+        if (editProduct) {
+          const product = state.products.find(item => String(item.id) === String(editProduct.dataset.editProduct));
           if (product) openProductModal(product);
           return;
         }
-        const toggleBtn = e.target.closest("[data-toggle-product]");
-        if (toggleBtn) { await toggleProduct(toggleBtn.dataset.toggleProduct); return; }
-        const viewOrder = e.target.closest("[data-view-order]");
-        if (viewOrder) {
-          const order = state.orders.find(o => String(o.id) === String(viewOrder.dataset.viewOrder));
-          if (order) openOrderModal(order);
+
+        const toggleProductButton = event.target.closest("[data-toggle-product]");
+        if (toggleProductButton) {
+          await toggleProduct(toggleProductButton.dataset.toggleProduct);
           return;
         }
-        const contentBtn = e.target.closest("[data-content-id]");
-        if (contentBtn) {
-          const item = state.siteContent.find(c => String(c.id) === String(contentBtn.dataset.contentId));
+
+        const deleteProductButton = event.target.closest("[data-delete-product]");
+        if (deleteProductButton) {
+          await deleteProduct(deleteProductButton.dataset.deleteProduct);
+          return;
+        }
+
+        const viewOrder = event.target.closest("[data-view-order]");
+        if (viewOrder) {
+          const order = state.orders.find(item => String(item.id) === String(viewOrder.dataset.viewOrder));
+          if (order) await openOrderModal(order);
+          return;
+        }
+
+        const contentButton = event.target.closest("[data-content-id]");
+        if (contentButton) {
+          const item = state.siteContent.find(c => String(c.id) === String(contentButton.dataset.contentId));
           if (item) selectContent(item);
           return;
         }
       });
 
-      document.addEventListener("change", async (e) => {
-        const select = e.target.closest("[data-order-status]");
-        if (select) await updateOrderStatus(select.dataset.orderStatus, select.value);
-      });
+      $("#productSearch").addEventListener("input", event => { state.productSearch = event.target.value; renderProducts(); });
+      $("#orderSearch").addEventListener("input", event => { state.orderSearch = event.target.value; renderOrders(); });
+      $("#orderStatusFilter").addEventListener("change", renderOrders);
+      $("#paymentStatusFilter").addEventListener("change", renderOrders);
+      $("#waitlistSearch").addEventListener("input", event => { state.waitlistSearch = event.target.value; renderWaitlist(); });
 
-      $("#loginForm").addEventListener("submit", handleLogin);
-      $("#logoutButton").addEventListener("click", handleLogout);
-      $("#refreshButton").addEventListener("click", async () => { setLoading(true); await loadInitialData(); setLoading(false); showToast("Refreshed."); });
       $("#addProductButton").addEventListener("click", () => openProductModal());
       $("#closeProductModal").addEventListener("click", closeProductModal);
       $("#cancelProductButton").addEventListener("click", closeProductModal);
       $("#productForm").addEventListener("submit", saveProduct);
-      $("#closeOrderModal").addEventListener("click", () => $("#orderModal").classList.add("hidden"));
-      $("#saveContentButton").addEventListener("click", saveSiteContent);
-      $("#exportWaitlistButton").addEventListener("click", exportWaitlistCSV);
-      $("#orderStatusFilter").addEventListener("change", renderOrders);
 
-      $("#productImage").addEventListener("change", (e) => {
-        const file = e.target.files[0];
+      $("#productImage").addEventListener("change", event => {
+        const file = event.target.files[0];
         const preview = $("#productImagePreview");
         const image = $("#productImagePreviewImg");
         if (!file) { preview.classList.add("hidden"); return; }
-        const url = URL.createObjectURL(file);
-        image.src = url;
+        image.src = URL.createObjectURL(file);
         preview.classList.remove("hidden");
+      });
+
+      $("#closeOrderModal").addEventListener("click", closeOrderModal);
+      $("#saveContentButton").addEventListener("click", saveSiteContent);
+      $("#saveAnnouncementButton").addEventListener("click", saveQuickAnnouncement);
+      $("#saveBannerButton").addEventListener("click", saveQuickBanner);
+      $("#exportWaitlistButton").addEventListener("click", exportWaitlistCSV);
+      $("#logoutButton").addEventListener("click", handleLogout);
+
+      $("#refreshButton").addEventListener("click", async () => {
+        try {
+          setLoading(true, "Refreshing admin data…");
+          await loadInitialData();
+          showToast("Admin data refreshed.");
+        } catch (error) {
+          showToast(getErrorMessage(error), "error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      $("#mobileMenuButton").addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
+
+      $("#productModal").addEventListener("click", event => { if (event.target === $("#productModal")) closeProductModal(); });
+      $("#orderModal").addEventListener("click", event => { if (event.target === $("#orderModal")) closeOrderModal(); });
+
+      document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        closeProductModal();
+        closeOrderModal();
+        document.body.classList.remove("sidebar-open");
       });
 
       (async function init() {
         try {
-          setLoading(true);
+          setLoading(true, "Checking admin session…");
           const session = await getCurrentSession();
           if (session?.user) {
             state.session = session;
@@ -815,7 +1696,8 @@
           } else {
             showLogin();
           }
-        } catch {
+        } catch (error) {
+          console.error("Admin init error:", error);
           showLogin();
         } finally {
           setLoading(false);
