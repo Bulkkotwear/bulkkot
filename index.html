@@ -66,6 +66,8 @@
       </nav>
 
       <div class="header-actions">
+        <button type="button" class="header-track-order" data-open-track-order aria-label="Track your order">TRACK ORDER</button>
+
         <button type="button" class="header-action" aria-label="Search" data-open-search>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
         </button>
@@ -101,6 +103,7 @@
       <a href="#collections" data-close-drawer><span>COLLECTIONS</span><small>컬렉션</small></a>
       <a href="#about" data-close-drawer><span>ABOUT</span><small>브랜드 소개</small></a>
       <button type="button" data-size-guide-open data-close-drawer style="text-align:left; background:transparent; border:0; color:#fff; font-size:14px; font-weight:700; padding:12px 0; cursor:pointer;"><span>SIZE GUIDE</span><small style="display:block; color:#777; font-size:10px;">사이즈 가이드</small></button>
+      <button type="button" class="mobile-nav-track" data-open-track-order data-close-drawer><span>TRACK ORDER</span><small>주문 배송 조회</small></button>
       <a href="#contact" data-close-drawer><span>CONTACT</span><small>문의</small></a>
     </nav>
 
@@ -322,6 +325,7 @@
     </div>
     <div class="footer-column">
       <h3>HELP</h3>
+      <button type="button" data-open-track-order>Track Order</button>
       <button type="button" data-open-policy="faq">FAQ</button>
       <button type="button" data-size-guide-open>Size Guide</button>
       <button type="button" data-open-policy="shipping">Shipping Policy</button>
@@ -352,6 +356,76 @@
     </div>
     <div class="drawer__body" id="cart-content"></div>
   </aside>
+
+  <!-- BULKKOT GUEST ORDER TRACKING MODAL -->
+  <div class="track-order-modal" data-track-order-modal aria-hidden="true">
+    <div class="track-order-backdrop" data-track-order-close></div>
+    <section class="track-order-panel" role="dialog" aria-modal="true" aria-labelledby="track-order-title">
+      <button type="button" class="track-order-close" data-track-order-close aria-label="Close order tracking">×</button>
+      
+      <div class="track-order-header">
+        <p class="eyebrow">BULKKOT · ORDER SERVICE</p>
+        <h2 id="track-order-title">TRACK ORDER</h2>
+        <p>Enter your order number and the phone number used during checkout.</p>
+      </div>
+
+      <form class="track-order-form" data-track-order-form novalidate>
+        <div class="track-order-field">
+          <label for="track-order-number">ORDER NUMBER</label>
+          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="BK-2026-0001" maxlength="13" required>
+        </div>
+
+        <div class="track-order-field">
+          <label for="track-order-phone">PHONE NUMBER</label>
+          <input id="track-order-phone" name="phone" type="tel" autocomplete="tel" placeholder="10-digit phone number" maxlength="15" required>
+        </div>
+
+        <button type="submit" class="button button--primary track-order-submit">TRACK ORDER</button>
+        <p class="track-order-message" data-track-order-message aria-live="polite"></p>
+      </form>
+
+      <!-- RESULT PANEL -->
+      <div class="track-order-result" data-track-order-result hidden>
+        <div class="track-order-result-head">
+          <div>
+            <p class="eyebrow">ORDER</p>
+            <strong data-track-result-number>BK-2026-0001</strong>
+          </div>
+          <span class="track-order-status-badge" data-track-result-status>ORDER PLACED</span>
+        </div>
+
+        <div class="track-progress">
+          <div class="track-progress-line" aria-hidden="true">
+            <span data-track-progress-line></span>
+          </div>
+          <div class="track-progress-steps">
+            <div class="track-step" data-track-step="ORDER PLACED"><span class="track-step-dot"></span><strong>ORDER PLACED</strong></div>
+            <div class="track-step" data-track-step="PAYMENT CONFIRMED"><span class="track-step-dot"></span><strong>PAYMENT CONFIRMED</strong></div>
+            <div class="track-step" data-track-step="PACKED"><span class="track-step-dot"></span><strong>PACKED</strong></div>
+            <div class="track-step" data-track-step="SHIPPED"><span class="track-step-dot"></span><strong>SHIPPED</strong></div>
+            <div class="track-step" data-track-step="OUT FOR DELIVERY"><span class="track-step-dot"></span><strong>OUT FOR DELIVERY</strong></div>
+            <div class="track-step" data-track-step="DELIVERED"><span class="track-step-dot"></span><strong>DELIVERED</strong></div>
+          </div>
+        </div>
+
+        <div class="track-cancelled" data-track-cancelled hidden>
+          <strong>ORDER CANCELLED</strong>
+          <span>This order is no longer moving through the delivery pipeline.</span>
+        </div>
+
+        <div class="track-shipping-card">
+          <div class="track-info-row"><span>PAYMENT</span><strong data-track-result-payment>COD</strong></div>
+          <div class="track-info-row"><span>PAYMENT STATUS</span><strong data-track-result-payment-status>PENDING</strong></div>
+          <div class="track-info-row" data-track-courier-row hidden><span>COURIER</span><strong data-track-result-courier>—</strong></div>
+          <div class="track-info-row" data-track-tracking-row hidden><span>TRACKING NUMBER</span><strong data-track-result-tracking>—</strong></div>
+        </div>
+
+        <div class="track-order-footer">
+          <button type="button" class="button button--outline" data-track-again>TRACK ANOTHER ORDER</button>
+        </div>
+      </div>
+    </section>
+  </div>
 
   <div class="search-modal" data-search-modal aria-hidden="true">
     <div class="search-modal__inner">
