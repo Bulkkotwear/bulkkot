@@ -1,5 +1,5 @@
 /**
- * BULKKOT — Fixed Storefront Controller
+ * BULKKOT — Production Main Storefront Controller (Restored & Fixed)
  */
 (function () {
   'use strict';
@@ -39,7 +39,7 @@
   }
 
   function getCategory(product) {
-    return String(product?.category || "tees").toLowerCase();
+    return String(product?.category || "tees").trim().toLowerCase();
   }
 
   async function initCatalog() {
@@ -47,7 +47,7 @@
     if (!grid) return;
 
     if (!supabase) {
-      grid.innerHTML = '<p class="catalog-message">Database connection unavailable.</p>';
+      grid.innerHTML = '<p class="catalog-message">Database offline.</p>';
       return;
     }
 
@@ -68,7 +68,7 @@
 
       renderProducts(getFilteredProducts());
     } catch (err) {
-      console.error(err);
+      console.error("BULKKOT Catalog Error:", err);
       grid.innerHTML = '<p class="catalog-message catalog-message--error">Failed to load catalog.</p>';
     }
   }
@@ -76,7 +76,7 @@
   function getFilteredProducts() {
     let list = [...liveProducts];
     if (activeCategory !== "all") {
-      list = list.filter(p => getCategory(p) === activeCategory);
+      list = list.filter(p => getCategory(p) === activeCategory.toLowerCase());
     }
     if (activeSearch) {
       list = list.filter(p => (p.name || '').toLowerCase().includes(activeSearch));
@@ -92,7 +92,7 @@
     if (!grid) return;
 
     if (!items.length) {
-      grid.innerHTML = '<p class="catalog-message">No garments found in this category.</p>';
+      grid.innerHTML = '<p class="catalog-message" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No garments found in this category.</p>';
       return;
     }
 
@@ -117,13 +117,12 @@
 
       return `
         <article class="product-card" data-category="${cat}">
-          <div class="product-card__thumb" data-action="view" data-id="${p.id}">
+          <div class="product-card__thumb" data-action="view" data-id="${p.id}" style="cursor: pointer; position: relative;">
             <img src="${escapeHTML(p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}" alt="${escapeHTML(p.name)}" loading="lazy">
             <span class="product-status">${isSoldOut ? 'SOLD OUT' : 'DROP 001'}</span>
-            <div class="product-card__hover-overlay"><span>QUICK VIEW</span></div>
           </div>
           <div class="product-information">
-            <div class="product-information__header" data-action="view" data-id="${p.id}" style="cursor:pointer;">
+            <div class="product-information__header" data-action="view" data-id="${p.id}" style="cursor: pointer;">
               <div>
                 <h3>${escapeHTML(p.name)}</h3>
                 <p class="product-category">${catKorean}</p>
@@ -141,7 +140,7 @@
     }).join('');
   }
 
-  // Event Delegation (Click issues fix karne ke liye)
+  // Unified Event Delegation (Clicks properly catch karne ke liye)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -183,7 +182,7 @@
 
     modal.innerHTML = `
       <div class="content-modal__panel product-modal-box">
-        <button type="button" class="drawer-close" id="closeDetailModal">×</button>
+        <button type="button" class="drawer-close" id="closeDetailModal" style="position: absolute; right: 16px; top: 16px; z-index: 10;">×</button>
         <div class="product-modal-grid">
           <div class="product-modal-img">
             <img src="${escapeHTML(p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}" alt="${escapeHTML(p.name)}">
@@ -192,10 +191,10 @@
             <p class="eyebrow">${escapeHTML(p.category || 'ESSENTIALS')}</p>
             <h2>${escapeHTML(p.name)}</h2>
             <div class="product-modal-price">${formatPrice(p.price)}</div>
-            <p class="product-modal-desc">${escapeHTML(p.description || 'Korean-inspired heavyweight minimalist everyday wear.')}</p>
+            <p class="product-modal-desc">${escapeHTML(p.description || 'Korean-inspired heavyweight minimalist everyday wear. Relaxed drop-shoulder cut.')}</p>
             
             <div style="margin: 20px 0;">
-              <p style="font-size:11px; font-weight:700; margin-bottom:8px; letter-spacing:0.1em;">SELECT SIZE</p>
+              <p style="font-size:11px; font-weight:700; margin-bottom:8px; letter-spacing:0.1em; color:#aaa;">SELECT SIZE</p>
               <div class="product-sizes">
                 ${["S", "M", "L", "XL"].map(s => {
                   const qty = getStock(p, s);
@@ -252,17 +251,57 @@
     document.body.classList.remove("modal-open");
   }
 
-  // Filter & Toolbar Controls
+  // Editorial Carousel / Slider Restored
+  function initCarousel() {
+    const carousel = document.querySelector('[data-carousel]');
+    if (!carousel) return;
+    const track = carousel.querySelector('[data-carousel-track]');
+    const slides = carousel.querySelectorAll('[data-slide]');
+    const prevBtn = carousel.querySelector('[data-carousel-prev]');
+    const nextBtn = carousel.querySelector('[data-carousel-next]');
+    const dots = carousel.querySelectorAll('[data-carousel-dot]');
+    let currentIndex = 0;
+
+    function updateCarousel(index) {
+      if (index < 0) index = slides.length - 1;
+      if (index >= slides.length) index = 0;
+      currentIndex = index;
+      if (track) track.style.transform = `translateX(-${currentIndex * 100}%)`;
+      dots.forEach((dot, i) => dot.classList.toggle('is-active', i === currentIndex));
+    }
+
+    prevBtn?.addEventListener('click', () => updateCarousel(currentIndex - 1));
+    nextBtn?.addEventListener('click', () => updateCarousel(currentIndex + 1));
+    dots.forEach((dot, i) => dot.addEventListener('click', () => updateCarousel(i)));
+    updateCarousel(0);
+  }
+
+  // UI Initializations
   document.addEventListener("DOMContentLoaded", () => {
     initCatalog();
+    initCarousel();
 
-    // Category Buttons
+    // Category Filter Buttons
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll("[data-shop-category]").forEach(b => b.classList.remove("is-active"));
         btn.classList.add("is-active");
         activeCategory = btn.dataset.shopCategory;
         renderProducts(getFilteredProducts());
+      });
+    });
+
+    // Collection Cards on Homepage
+    document.querySelectorAll(".category-card[data-category]").forEach(card => {
+      card.addEventListener("click", (e) => {
+        e.preventDefault();
+        const cat = card.dataset.category;
+        document.querySelectorAll("[data-shop-category]").forEach(b => {
+          b.classList.toggle("is-active", b.dataset.shopCategory.toLowerCase() === cat.toLowerCase());
+        });
+        activeCategory = cat;
+        renderProducts(getFilteredProducts());
+        document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
       });
     });
 
@@ -278,7 +317,7 @@
     // Escape listener
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        document.querySelectorAll(".content-modal.is-open").forEach(closeModal);
+        document.querySelectorAll(".content-modal.is-open, .cart-drawer.is-open").forEach(closeModal);
       }
     });
   });
