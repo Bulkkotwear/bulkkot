@@ -1565,3 +1565,19 @@ body.bulkkot-cms-active [data-cms-key]:hover {
     gap: 12px;
   }
 }
+/* Ensure cart drawer content scrolls smoothly and order button stays accessible */
+.cart-drawer {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+}
+
+.cart-drawer .drawer__body,
+#cart-content {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding-bottom: 40px !important;
+}
