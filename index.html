@@ -106,7 +106,7 @@
       <a href="#drop-001" data-close-drawer><span>DROP 001</span><small>첫 번째 드롭</small></a>
       <a href="#collections" data-close-drawer><span>COLLECTIONS</span><small>컬렉션</small></a>
       <a href="#about" data-close-drawer><span>ABOUT</span><small>브랜드 소개</small></a>
-      <button type="button" data-size-guide-open data-close-drawer style="text-align:left; background:transparent; border:0; color:#fff; font-size:14px; font-weight:700; padding:12px 0; cursor:pointer;"><span>SIZE GUIDE</span><small style="display:block; color:#777; font-size:10px;">사이즈 가이드</small></button>
+      <button type="button" class="mobile-nav-track" data-size-guide-open data-close-drawer><span>SIZE GUIDE</span><small>사이즈 가이드</small></button>
       <button type="button" class="mobile-nav-track" data-open-track-order data-close-drawer><span>TRACK ORDER</span><small>주문 배송 조회</small></button>
       <button type="button" class="mobile-nav-track" data-open-account data-close-drawer><span>ACCOUNT</span><small>계정 및 로그인</small></button>
       <a href="#contact" data-close-drawer><span>CONTACT</span><small>문의</small></a>
@@ -122,7 +122,7 @@
     <!-- HERO -->
     <section class="hero">
       <div class="hero-media">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Black Tee Campaign" class="hero-image" data-cms-key="hero_image" data-cms-type="image">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Black Tee Campaign" class="hero-image" data-cms-key="hero_image">
       </div>
       <div class="hero-overlay"></div>
       <div class="hero-content">
@@ -135,7 +135,7 @@
       <div class="hero-scroll"><span>SCROLL</span><i></i></div>
     </section>
 
-    <!-- CATEGORIES / COLLECTIONS -->
+    <!-- COLLECTIONS -->
     <section class="category-section" id="collections">
       <div class="section-heading">
         <p class="eyebrow" data-cms-key="collections_eyebrow">COLLECTIONS · 컬렉션</p>
@@ -143,15 +143,15 @@
       </div>
       <div class="category-row">
         <a href="#shop" class="category-card" data-category="tees">
-          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" loading="lazy" data-cms-key="tees_image" data-cms-type="image"></div>
+          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" loading="lazy" data-cms-key="tees_image"></div>
           <div class="category-name"><strong data-cms-key="tees_title">TEES</strong><span data-cms-key="tees_korean">티셔츠</span></div>
         </a>
         <a href="#shop" class="category-card" data-category="hoods">
-          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy" data-cms-key="hoods_image" data-cms-type="image"></div>
+          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy" data-cms-key="hoods_image"></div>
           <div class="category-name"><strong data-cms-key="hoods_title">HOODS</strong><span data-cms-key="hoods_korean">후드</span></div>
         </a>
         <a href="#shop" class="category-card" data-category="sweats">
-          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy" data-cms-key="sweats_image" data-cms-type="image"></div>
+          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy" data-cms-key="sweats_image"></div>
           <div class="category-name"><strong data-cms-key="sweats_title">SWEATS</strong><span data-cms-key="sweats_korean">스웨트</span></div>
         </a>
       </div>
@@ -463,40 +463,39 @@
     </section>
   </div>
 
-  <!-- GUEST ORDER TRACKING MODAL -->
+  <!-- GUEST ORDER TRACKING MODAL (PRIORITY 5 TRUST ELEMENT) -->
   <div class="track-order-modal" data-track-order-modal aria-hidden="true">
     <div class="track-order-backdrop" data-track-order-close></div>
     <section class="track-order-panel" role="dialog" aria-modal="true" aria-labelledby="track-order-title">
       <button type="button" class="track-order-close" data-track-order-close aria-label="Close order tracking">×</button>
       <div class="track-order-header">
-        <p class="eyebrow">BULKKOT · ORDER SERVICE</p>
-        <h2 id="track-order-title">TRACK ORDER</h2>
-        <p>Enter your order number and the phone number used during checkout.</p>
+        <p class="eyebrow">BULKKOT · FULFILMENT TRACKING</p>
+        <h2 id="track-order-title">TRACK YOUR ORDER</h2>
+        <p>Enter your unique order number and the phone number provided at checkout.</p>
       </div>
 
       <form class="track-order-form" data-track-order-form novalidate>
         <div class="track-order-field">
           <label for="track-order-number">ORDER NUMBER</label>
-          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="BK-2026-0001" maxlength="13" required>
+          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="e.g. BK-260908-A1F2" maxlength="20" required>
         </div>
         <div class="track-order-field">
           <label for="track-order-phone">PHONE NUMBER</label>
-          <input id="track-order-phone" name="phone" type="tel" autocomplete="tel" placeholder="10-digit phone number" maxlength="15" required>
+          <input id="track-order-phone" name="phone" type="tel" autocomplete="tel" placeholder="10-digit mobile number" maxlength="15" required>
         </div>
-        <button type="submit" class="button button--primary track-order-submit">TRACK ORDER</button>
+        <button type="submit" class="button button--primary track-order-submit">LOOKUP SHIPMENT</button>
         <p class="track-order-message" data-track-order-message aria-live="polite"></p>
       </form>
 
       <div class="track-order-result" data-track-order-result hidden>
         <div class="track-order-result-head">
-          <div><p class="eyebrow">ORDER</p><strong data-track-result-number>BK-2026-0001</strong></div>
-          <span class="track-order-status-badge" data-track-result-status>ORDER PLACED</span>
+          <div><p class="eyebrow">ORDER REFERENCE</p><strong data-track-result-number>—</strong></div>
+          <span class="track-order-status-badge" data-track-result-status>PLACED</span>
         </div>
         <div class="track-progress">
           <div class="track-progress-line" aria-hidden="true"><span data-track-progress-line></span></div>
           <div class="track-progress-steps">
-            <div class="track-step" data-track-step="ORDER PLACED"><span class="track-step-dot"></span><strong>ORDER PLACED</strong></div>
-            <div class="track-step" data-track-step="PAYMENT CONFIRMED"><span class="track-step-dot"></span><strong>PAYMENT CONFIRMED</strong></div>
+            <div class="track-step" data-track-step="PLACED"><span class="track-step-dot"></span><strong>PLACED</strong></div>
             <div class="track-step" data-track-step="PACKED"><span class="track-step-dot"></span><strong>PACKED</strong></div>
             <div class="track-step" data-track-step="SHIPPED"><span class="track-step-dot"></span><strong>SHIPPED</strong></div>
             <div class="track-step" data-track-step="OUT FOR DELIVERY"><span class="track-step-dot"></span><strong>OUT FOR DELIVERY</strong></div>
@@ -504,18 +503,18 @@
           </div>
         </div>
         <div class="track-shipping-card">
-          <div class="track-info-row"><span>PAYMENT</span><strong data-track-result-payment>COD</strong></div>
-          <div class="track-info-row"><span>PAYMENT STATUS</span><strong data-track-result-payment-status>PENDING</strong></div>
-          <div class="track-info-row" data-track-courier-row hidden><span>COURIER</span><strong data-track-result-courier>—</strong></div>
-          <div class="track-info-row" data-track-tracking-row hidden><span>TRACKING NUMBER</span><strong data-track-result-tracking>—</strong></div>
+          <div class="track-info-row"><span>PAYMENT METHOD</span><strong data-track-result-payment>CASH ON DELIVERY</strong></div>
+          <div class="track-info-row" data-track-courier-row><span>COURIER PARTNER</span><strong data-track-result-courier>In Preparation</strong></div>
+          <div class="track-info-row" data-track-tracking-row><span>AWB / TRACKING NO.</span><strong data-track-result-tracking>Will update on dispatch</strong></div>
         </div>
         <div class="track-order-footer">
-          <button type="button" class="button button--outline" data-track-again>TRACK ANOTHER ORDER</button>
+          <button type="button" class="button button--outline" data-track-again>LOOKUP ANOTHER ORDER</button>
         </div>
       </div>
     </section>
   </div>
 
+  <!-- SEARCH MODAL -->
   <div class="search-modal" data-search-modal aria-hidden="true">
     <div class="search-modal__inner">
       <button type="button" class="drawer-close" data-close-search aria-label="Close search">×</button>
@@ -523,12 +522,13 @@
       <h2>SEARCH</h2>
       <form class="search-form" data-search-form>
         <label for="site-search" class="sr-only">Search</label>
-        <input id="site-search" type="search" placeholder="Search products..." autocomplete="off">
+        <input id="site-search" type="search" placeholder="Search silhouettes..." autocomplete="off">
         <button type="submit" class="button button--primary">SEARCH</button>
       </form>
     </div>
   </div>
 
+  <!-- ABOUT STORY MODAL -->
   <div class="content-modal" data-about-modal aria-hidden="true">
     <div class="content-modal__panel">
       <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
@@ -542,6 +542,7 @@
     </div>
   </div>
 
+  <!-- POLICY MODAL -->
   <div class="content-modal" data-policy-modal aria-hidden="true">
     <div class="content-modal__panel content-modal__panel--large">
       <button type="button" class="drawer-close" data-close-policy aria-label="Close information">×</button>
@@ -551,23 +552,23 @@
     </div>
   </div>
 
-  <!-- BULKKOT SIZE GUIDE MODAL -->
+  <!-- SIZE GUIDE MODAL (PRIORITY 5 TRUST ELEMENT) -->
   <div class="size-guide-modal" data-size-guide-modal aria-hidden="true">
     <div class="size-guide-backdrop" data-size-guide-close></div>
     <div class="size-guide-panel" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
       <button type="button" class="size-guide-close" data-size-guide-close aria-label="Close size guide">×</button>
       <div class="size-guide-header">
-        <span class="size-guide-eyebrow">BULKKOT / FIT GUIDE</span>
+        <span class="size-guide-eyebrow">BULKKOT / ARCHITECTURAL FIT</span>
         <h2 id="size-guide-title">SIZE GUIDE</h2>
-        <p>Exact garment measurements. All measurements are in inches.</p>
+        <p>Exact garment measurements in inches. Designed with an oversized drop-shoulder cut.</p>
       </div>
 
       <div class="size-guide-tabs" role="tablist" aria-label="Size categories">
-        <button type="button" class="size-guide-tab is-active" data-size-guide-tab="tees" role="tab" aria-selected="true">TEES</button>
-        <button type="button" class="size-guide-tab" data-size-guide-tab="hoodies" role="tab" aria-selected="false">HOODS & SWEATS</button>
+        <button type="button" class="size-guide-tab is-active" data-size-tab="tees" role="tab" aria-selected="true">TEES</button>
+        <button type="button" class="size-guide-tab" data-size-tab="hoodies" role="tab" aria-selected="false">HOODS & SWEATS</button>
       </div>
 
-      <div class="size-guide-table-wrap is-active" data-size-guide-panel="tees">
+      <div class="size-guide-table-wrap is-active" data-size-panel="tees">
         <div class="size-guide-table-scroll">
           <table class="size-guide-table">
             <thead>
@@ -583,7 +584,7 @@
         </div>
       </div>
 
-      <div class="size-guide-table-wrap" data-size-guide-panel="hoodies" hidden>
+      <div class="size-guide-table-wrap" data-size-panel="hoodies" hidden>
         <div class="size-guide-table-scroll">
           <table class="size-guide-table">
             <thead>
@@ -601,7 +602,7 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Core Scripts -->
   <script src="js/cart.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
