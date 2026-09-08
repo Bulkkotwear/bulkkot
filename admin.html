@@ -177,7 +177,7 @@
     .stock-chip.out { border-color: rgba(239, 68, 68, 0.5); color: #ff7777; }
     .product-actions-row { margin-top: auto; display: flex; gap: 6px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #1c1c1c; }
 
-    /* ANALYTICS VISUAL BARS */
+    /* ANALYTICS BARS */
     .analytics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px; }
     .analytics-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
     .analytics-card-title { font-size: 13px; font-weight: 800; margin-bottom: 14px; color: #fff; display: flex; justify-content: space-between; }
@@ -257,8 +257,8 @@
         <button class="nav-btn" data-page="products" type="button">□ Products & Catalog</button>
         <button class="nav-btn" data-page="customers" type="button">☺ Customers CRM</button>
         <button class="nav-btn" data-page="analytics" type="button">📊 Analytics & Reports</button>
+        <button class="nav-btn" data-page="waitlist" type="button">♡ VIP Waitlist & Marketing</button>
         <button class="nav-btn" data-page="coupons" type="button">% Coupons</button>
-        <button class="nav-btn" data-page="waitlist" type="button">♡ Waitlist</button>
         <button class="nav-btn" data-page="settings" type="button">⚙ Store Settings</button>
       </nav>
       <div class="sidebar-bottom">
@@ -379,7 +379,7 @@
           </div>
         </section>
 
-        <!-- 5. ANALYTICS & BUSINESS INTELLIGENCE (MODULE 5) -->
+        <!-- 5. ANALYTICS -->
         <section id="page-analytics" class="page hidden">
           <div class="panel">
             <div class="panel-header">
@@ -413,7 +413,6 @@
             </div>
 
             <div class="analytics-grid">
-              <!-- Revenue by Category -->
               <div class="analytics-card">
                 <div class="analytics-card-title">
                   <span>Revenue by Silhouette Category</span>
@@ -422,7 +421,6 @@
                 <div id="categoryBars"></div>
               </div>
 
-              <!-- Top Products -->
               <div class="analytics-card">
                 <div class="analytics-card-title">
                   <span>Top Performing Garments</span>
@@ -434,7 +432,37 @@
           </div>
         </section>
 
-        <!-- 6. COUPONS -->
+        <!-- 6. VIP WAITLIST & MARKETING (MODULE 6) -->
+        <section id="page-waitlist" class="page hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">VIP Waitlist Subscribers & Broadcast Tools</div>
+                <div class="panel-subtitle">Export lead audience lists for ad campaigns or dispatch launch announcements</div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button id="exportWaitlistBtn" class="btn btn-small" type="button">📥 Export CSV</button>
+                <button id="broadcastWaitlistBtn" class="btn btn-primary btn-small" type="button">✉ Launch Broadcast</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Subscriber Email</th>
+                    <th>Signed Up Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="waitlistBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. COUPONS -->
         <section id="page-coupons" class="page hidden">
           <div class="panel">
             <div class="panel-header"><div class="panel-title">Create Discount Code</div></div>
@@ -453,19 +481,6 @@
               <table>
                 <thead><tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Status</th><th>Action</th></tr></thead>
                 <tbody id="couponsBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <!-- 7. WAITLIST -->
-        <section id="page-waitlist" class="page hidden">
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">VIP Waitlist Subscribers</div></div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Subscriber Email</th><th>Signed Up Date</th></tr></thead>
-                <tbody id="waitlistBody"></tbody>
               </table>
             </div>
           </div>
@@ -505,7 +520,7 @@
                 </div>
 
                 <div class="field">
-                  <label>Free Shipping Threshold (₹) (Orders above this qualify for ₹0 delivery)</label>
+                  <label>Free Shipping Threshold (₹)</label>
                   <input id="setFreeShippingThreshold" type="number" min="0" placeholder="e.g. 999">
                 </div>
 
@@ -1243,16 +1258,13 @@
 
       $("#closeCustomerModal")?.addEventListener("click", () => $("#customerModal").classList.add("hidden"));
 
-      // =========================================================
-      // MODULE 5: ANALYTICS & REPORTS LOGIC
-      // =========================================================
+      // ANALYTICS MODULE
       function renderAnalytics() {
         const totalOrders = state.orders.length;
         const totalRev = state.orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
         const deliveredOrders = state.orders.filter(o => o.order_status === 'DELIVERED').length;
         const cancelledOrders = state.orders.filter(o => o.order_status === 'CANCELLED').length;
 
-        // KPI Calculations
         const aov = totalOrders > 0 ? Math.round(totalRev / totalOrders) : 0;
         const fulfilRate = totalOrders > 0 ? Math.round((deliveredOrders / totalOrders) * 100) : 0;
         const cancelRate = totalOrders > 0 ? Math.round((cancelledOrders / totalOrders) * 100) : 0;
@@ -1268,7 +1280,6 @@
             const itemRev = Number(item.price || 0) * qty;
             totalUnits += qty;
 
-            // Product Map
             const pid = item.product_id;
             if (!productStats[pid]) {
               productStats[pid] = { name: `Product ID: ${String(pid).slice(0, 6)}`, revenue: 0, units: 0 };
@@ -1278,7 +1289,6 @@
           });
         });
 
-        // Map product names & category mapping from loaded catalog
         state.products.forEach(p => {
           if (productStats[p.id]) {
             productStats[p.id].name = p.name;
@@ -1294,14 +1304,12 @@
         const repeatBuyers = state.customers.filter(c => c.totalOrders > 1).length;
         const repeatRatio = state.customers.length > 0 ? Math.round((repeatBuyers / state.customers.length) * 100) : 0;
 
-        // Populate Cards
         $("#anaAOV").textContent = "₹" + aov.toLocaleString("en-IN");
         $("#anaFulfilRate").textContent = fulfilRate + "%";
         $("#anaCancelRate").textContent = cancelRate + "%";
         $("#anaUnitsSold").textContent = totalUnits;
         $("#anaRepeatRatio").textContent = repeatRatio + "%";
 
-        // Render Category Progress Bars
         const catTotal = (categoryRev.tees + categoryRev.hoods + categoryRev.sweats + categoryRev.other) || 1;
         const catContainer = $("#categoryBars");
         const colors = { tees: 'red', hoods: 'blue', sweats: 'green', other: 'yellow' };
@@ -1321,7 +1329,6 @@
           `;
         }).join('');
 
-        // Top 5 Products
         const sortedProducts = Object.values(productStats).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
         const topListContainer = $("#topProductsList");
         topListContainer.innerHTML = sortedProducts.length ? sortedProducts.map(p => `
@@ -1334,6 +1341,79 @@
           </div>
         `).join('') : '<p style="color:var(--muted); font-size:11px;">No sales data available yet.</p>';
       }
+
+      // =========================================================
+      // MODULE 6: VIP WAITLIST & MARKETING TOOLS
+      // =========================================================
+      function renderWaitlist() {
+        const b = $("#waitlistBody");
+        if (!b) return;
+
+        b.innerHTML = state.waitlist.map((w, idx) => `
+          <tr>
+            <td><strong>${w.email}</strong></td>
+            <td>${new Date(w.created_at).toLocaleDateString("en-IN")}</td>
+            <td><span class="badge badge-live">SUBSCRIBED</span></td>
+            <td>
+              <button class="btn btn-small btn-danger" onclick="window.removeWaitlistSubscriber('${w.email}')">Remove</button>
+            </td>
+          </tr>
+        `).join('') || '<tr><td colspan="4" class="empty">No VIP waitlist leads recorded yet.</td></tr>';
+      }
+
+      // EXPORT CSV
+      $("#exportWaitlistBtn")?.addEventListener("click", () => {
+        if (!state.waitlist.length) {
+          showToast("No waitlist subscribers to export", "error");
+          return;
+        }
+
+        const csvContent = "data:text/csv;charset=utf-8,Email,Subscribed Date\n" +
+          state.waitlist.map(w => `"${w.email}","${new Date(w.created_at).toISOString()}"`).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `BULKKOT_VIP_Waitlist_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("Waitlist exported to CSV!");
+      });
+
+      // LAUNCH BROADCAST
+      $("#broadcastWaitlistBtn")?.addEventListener("click", () => {
+        if (!state.waitlist.length) {
+          showToast("No waitlist emails available", "error");
+          return;
+        }
+
+        const emails = state.waitlist.map(w => w.email).filter(Boolean);
+        const subject = encodeURIComponent("불꽃 BULKKOT — Drop 001 is Officially Live");
+        const body = encodeURIComponent(
+          "Hey,\n\nDrop 001 is now live for VIP subscribers before general access.\n\nExplore silhouettes: https://bulkkot.bulkkotwear.workers.dev\n\n— BULKKOT Studio"
+        );
+
+        // Uses BCC so customers never see each other's email addresses
+        window.location.href = `mailto:bulkkotwear@gmail.com?bcc=${emails.join(',')}&subject=${subject}&body=${body}`;
+      });
+
+      // REMOVE SUBSCRIBER
+      window.removeWaitlistSubscriber = async (email) => {
+        if (!confirm(`Remove ${email} from waitlist?`)) return;
+
+        setLoading(true, "REMOVING...");
+        try {
+          const { error } = await supabase.from("waitlist").delete().eq("email", email);
+          if (error) throw error;
+          showToast("Subscriber removed");
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed", "error");
+        } finally {
+          setLoading(false);
+        }
+      };
 
       // SETTINGS
       function populateSettings() {
@@ -1373,7 +1453,7 @@
         }
       });
 
-      // COUPONS & WAITLIST
+      // COUPONS
       function renderCoupons() {
         const b = $("#couponsBody");
         if (!b) return;
@@ -1408,14 +1488,6 @@
           loadAll();
         } finally { setLoading(false); }
       });
-
-      function renderWaitlist() {
-        const b = $("#waitlistBody");
-        if (!b) return;
-        b.innerHTML = state.waitlist.map(w => `
-          <tr><td>${w.email}</td><td>${new Date(w.created_at).toLocaleDateString("en-IN")}</td></tr>
-        `).join('');
-      }
     });
   </script>
 </body>
