@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Cart & Checkout Engine
- * Version: 4.0 (Zero Crash, Resilient Render & Instant Sync)
+ * Version: 4.1 (Full Scrollable Drawer & Visible CTA)
  */
 (function () {
   'use strict';
@@ -70,9 +70,7 @@
     try {
       const { data } = await client.from('store_settings').select('*').eq('id', 1).maybeSingle();
       if (data) storeSettings = data;
-    } catch (e) {
-      // Fallback cleanly
-    }
+    } catch (e) {}
   }
 
   function addItem(item) {
@@ -211,78 +209,80 @@
     `).join('');
 
     container.innerHTML = `
-      <div class="cart-items-wrap" style="max-height: 38vh; overflow-y: auto; padding-right: 4px;">
-        ${itemsHTML}
-      </div>
-
-      <div style="margin: 14px 0 8px; display: flex; gap: 8px;">
-        <input type="text" id="cartCouponInput" placeholder="DISCOUNT CODE" value="${appliedCoupon ? escapeHTML(appliedCoupon.code) : ''}"
-               style="flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; text-transform: uppercase; border-radius: 4px;"
-               ${appliedCoupon ? 'disabled' : ''}>
-        <button type="button" id="cartApplyCouponBtn" class="button button--small" style="padding: 8px 12px; font-size: 10px; font-weight: 700; background: #222; color: #fff; border: 1px solid #444; cursor: pointer;">
-          ${appliedCoupon ? 'REMOVE' : 'APPLY'}
-        </button>
-      </div>
-
-      <div style="padding: 10px 0; border-top: 1px solid #222; font-size: 12px; line-height: 1.8;">
-        <div style="display: flex; justify-content: space-between; color: #888;">
-          <span>Subtotal</span>
-          <span>${formatPrice(subtotal)}</span>
+      <div style="padding-bottom: 24px;">
+        <div class="cart-items-wrap" style="max-height: 28vh; overflow-y: auto; padding-right: 4px;">
+          ${itemsHTML}
         </div>
-        ${discount > 0 ? `
-          <div style="display: flex; justify-content: space-between; color: #31c48d;">
-            <span>Discount (${escapeHTML(appliedCoupon.code)})</span>
-            <span>-${formatPrice(discount)}</span>
-          </div>
-        ` : ''}
-        <div style="display: flex; justify-content: space-between; color: #888;">
-          <span>Delivery</span>
-          <span style="${shippingFee === 0 ? 'color:#31c48d; font-weight:700;' : 'color:#fff;'}">
-            ${shippingFee === 0 ? 'FREE' : formatPrice(shippingFee)}
-          </span>
-        </div>
-        <div style="display: flex; justify-content: space-between; color: #fff; font-size: 15px; font-weight: 800; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #333;">
-          <span>Total</span>
-          <span>${formatPrice(finalTotal)}</span>
-        </div>
-      </div>
 
-      <form id="storefrontCheckoutForm" novalidate style="margin-top: 8px; border-top: 1px solid #222; padding-top: 12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-          <span class="eyebrow" style="font-size: 10px; color: #aaa;">SHIPPING DETAILS</span>
-          <button type="button" id="cartAuthTrigger" style="background:none; border:none; color:var(--bk-red, #e31b23); font-size:10px; font-weight:800; cursor:pointer;">
-            SIGN IN FOR SAVED ADDRESS
+        <div style="margin: 14px 0 8px; display: flex; gap: 8px;">
+          <input type="text" id="cartCouponInput" placeholder="DISCOUNT CODE" value="${appliedCoupon ? escapeHTML(appliedCoupon.code) : ''}"
+                 style="flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; text-transform: uppercase; border-radius: 4px;"
+                 ${appliedCoupon ? 'disabled' : ''}>
+          <button type="button" id="cartApplyCouponBtn" class="button button--small" style="padding: 8px 12px; font-size: 10px; font-weight: 700; background: #222; color: #fff; border: 1px solid #444; cursor: pointer;">
+            ${appliedCoupon ? 'REMOVE' : 'APPLY'}
           </button>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <input type="text" id="chkName" placeholder="Full Name *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-          <input type="tel" id="chkPhone" placeholder="Phone Number *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-        </div>
-        <div style="margin-bottom: 8px;">
-          <input type="email" id="chkEmail" placeholder="Email Address *" required style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
-        </div>
-        <div style="margin-bottom: 8px;">
-          <input type="text" id="chkAddress" placeholder="House No / Street / Landmark *" required style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-          <input type="text" id="chkCity" placeholder="City *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-          <input type="text" id="chkState" placeholder="State *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-          <input type="text" id="chkPincode" placeholder="Pincode *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
+        <div style="padding: 10px 0; border-top: 1px solid #222; font-size: 12px; line-height: 1.8;">
+          <div style="display: flex; justify-content: space-between; color: #888;">
+            <span>Subtotal</span>
+            <span>${formatPrice(subtotal)}</span>
+          </div>
+          ${discount > 0 ? `
+            <div style="display: flex; justify-content: space-between; color: #31c48d;">
+              <span>Discount (${escapeHTML(appliedCoupon.code)})</span>
+              <span>-${formatPrice(discount)}</span>
+            </div>
+          ` : ''}
+          <div style="display: flex; justify-content: space-between; color: #888;">
+            <span>Delivery</span>
+            <span style="${shippingFee === 0 ? 'color:#31c48d; font-weight:700;' : 'color:#fff;'}">
+              ${shippingFee === 0 ? 'FREE' : formatPrice(shippingFee)}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; color: #fff; font-size: 15px; font-weight: 800; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #333;">
+            <span>Total</span>
+            <span>${formatPrice(finalTotal)}</span>
+          </div>
         </div>
 
-        <div id="checkoutInlineError" style="color: #ff7777; font-size: 11px; margin-bottom: 10px; display: none;"></div>
+        <form id="storefrontCheckoutForm" novalidate style="margin-top: 8px; border-top: 1px solid #222; padding-top: 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+            <span class="eyebrow" style="font-size: 10px; color: #aaa;">SHIPPING DETAILS</span>
+            <button type="button" id="cartAuthTrigger" style="background:none; border:none; color:var(--bk-red, #e31b23); font-size:10px; font-weight:800; cursor:pointer;">
+              SIGN IN FOR SAVED ADDRESS
+            </button>
+          </div>
 
-        <button type="submit" id="cartSubmitOrderBtn" class="button button--primary" style="width: 100%; padding: 12px; font-weight: 800; font-size: 12px; letter-spacing: 0.08em;">
-          PLACE ORDER (CASH ON DELIVERY)
-        </button>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <input type="text" id="chkName" placeholder="Full Name *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
+            <input type="tel" id="chkPhone" placeholder="Phone Number *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
+          </div>
+          <div style="margin-bottom: 8px;">
+            <input type="email" id="chkEmail" placeholder="Email Address *" required style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
+          </div>
+          <div style="margin-bottom: 8px;">
+            <input type="text" id="chkAddress" placeholder="House No / Street / Landmark *" required style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <input type="text" id="chkCity" placeholder="City *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
+            <input type="text" id="chkState" placeholder="State *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
+            <input type="text" id="chkPincode" placeholder="Pincode *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
+          </div>
 
-        <div style="margin-top: 10px; text-align: center; color: #666; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <span>🔒 Encrypted Checkout</span>
-          <span>•</span>
-          <span>7-Day Size Exchange</span>
-        </div>
-      </form>
+          <div id="checkoutInlineError" style="color: #ff7777; font-size: 11px; margin-bottom: 10px; display: none;"></div>
+
+          <button type="submit" id="cartSubmitOrderBtn" class="button button--primary" style="width: 100%; min-height: 46px; font-weight: 800; font-size: 12px; letter-spacing: 0.08em; margin-bottom: 12px;">
+            PLACE ORDER (CASH ON DELIVERY)
+          </button>
+
+          <div style="text-align: center; color: #666; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span>🔒 Encrypted Checkout</span>
+            <span>•</span>
+            <span>7-Day Size Exchange</span>
+          </div>
+        </form>
+      </div>
     `;
 
     tryAutofillAddress();
