@@ -123,17 +123,12 @@
       display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px; margin-bottom: 14px;
     }
-    .stats-secondary {
-      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px; margin-bottom: 24px;
-    }
     .stat {
       background: var(--panel); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 16px;
     }
     .stat-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
     .stat-value { font-size: 22px; font-weight: 900; }
-    .stat-sub { margin-top: 6px; color: #555; font-size: 10px; }
 
     /* PANELS & TABLES */
     .panel {
@@ -147,8 +142,6 @@
     }
     .panel-title { font-size: 15px; font-weight: 800; }
     .panel-subtitle { color: var(--muted); font-size: 11px; margin-top: 2px; }
-    .panel-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .panel-body { padding: 20px; }
 
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     table { width: 100%; border-collapse: collapse; min-width: 720px; font-size: 12px; }
@@ -183,8 +176,6 @@
     .stock-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 0; }
     .stock-chip { padding: 6px 2px; background: #151515; border: 1px solid var(--border-soft); border-radius: 6px; text-align: center; font-size: 9px; }
     .stock-chip strong { display: block; font-size: 10px; margin-bottom: 1px; }
-    .stock-chip.low { border-color: rgba(245, 197, 66, .4); color: var(--yellow); }
-    .stock-chip.empty-stock { border-color: rgba(239, 68, 68, .4); color: #ff7777; }
 
     /* CMS SECTIONS */
     .cms-section {
@@ -223,15 +214,6 @@
     .close-btn { background: transparent; border: 0; color: #888; font-size: 24px; line-height: 1; }
     .close-btn:hover { color: #fff; }
 
-    /* PIPELINE */
-    .pipeline { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; margin: 12px 0; }
-    .pipeline-step {
-      flex: 1; min-width: 90px; padding: 8px 4px; border: 1px solid var(--border);
-      border-radius: 6px; text-align: center; font-size: 7px; font-weight: 800; color: #666;
-    }
-    .pipeline-step.active { color: #fff; border-color: rgba(49, 196, 141, .4); background: rgba(49, 196, 141, .08); }
-    .pipeline-step.current { border-color: var(--red); background: rgba(227, 27, 35, .15); color: #fff; }
-
     /* TOAST */
     #toastContainer { position: fixed; right: 20px; bottom: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
     .toast { padding: 12px 16px; background: #161616; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
@@ -260,7 +242,7 @@
 <body>
   <!-- LOADING -->
   <div id="loadingOverlay" class="hidden" style="position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.85); display:grid; place-items:center;">
-    <div style="color:var(--red); font-size:12px; font-weight:800; letter-spacing:0.1em;" id="loadingText">LOADING BULKKOT ADMIN...</div>
+    <div style="color:var(--red); font-size:12px; font-weight:800; letter-spacing:0.1em;" id="loadingText">PROCESSING...</div>
   </div>
 
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -270,7 +252,7 @@
     <div class="login-card">
       <div class="brand">불꽃 <span>BULKKOT</span></div>
       <p class="login-subtitle">Admin & Content Management Portal</p>
-      <form id="loginForm" novalidate>
+      <form id="loginForm" onsubmit="return false;">
         <div class="field">
           <label for="loginEmail">Email Address</label>
           <input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@bulkkot.com">
@@ -279,7 +261,7 @@
           <label for="loginPassword">Password</label>
           <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
         </div>
-        <button id="loginButton" class="btn btn-primary btn-full" type="submit">SIGN IN</button>
+        <button id="loginButton" class="btn btn-primary btn-full" type="button">SIGN IN</button>
       </form>
     </div>
   </section>
@@ -339,9 +321,9 @@
           </div>
         </section>
 
-        <!-- 2. SITE CMS (FULL DYNAMIC CONTROL) -->
+        <!-- 2. SITE CMS -->
         <section id="page-cms" class="page hidden">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:10px; flex-wrap:wrap;">
             <div><h2 style="margin:0; font-size:20px;">Storefront Content Management</h2><p style="margin:4px 0 0; color:var(--muted); font-size:12px;">Edit texts, links and banner photos live on the site.</p></div>
             <button id="saveCmsBtn" class="btn btn-primary" type="button">SAVE ALL CMS CHANGES</button>
           </div>
@@ -434,7 +416,6 @@
           <div class="panel">
             <div class="panel-header">
               <div><div class="panel-title">Catalogue & Stock</div><div class="panel-subtitle">Manage prices and S/M/L/XL stock</div></div>
-              <button id="addProductButton" class="btn btn-primary" type="button">+ Add Product</button>
             </div>
             <div class="panel-body"><div id="productsGrid" class="product-grid"></div></div>
           </div>
@@ -460,11 +441,11 @@
           <div class="panel">
             <div class="panel-header"><div class="panel-title">Create Discount Code</div></div>
             <div class="panel-body">
-              <form id="couponForm" class="cms-grid" novalidate>
+              <form id="couponForm" class="cms-grid" onsubmit="return false;">
                 <div class="field"><label>Code *</label><input id="couponCode" placeholder="BULKKOT10" required></div>
                 <div class="field"><label>Discount (%) *</label><input id="couponValue" type="number" placeholder="10" required></div>
                 <div class="field"><label>Min Order (₹)</label><input id="couponMinOrder" type="number" value="0"></div>
-                <div class="field" style="display:flex; align-items:flex-end;"><button class="btn btn-primary btn-full" type="submit">Create Coupon</button></div>
+                <div class="field" style="display:flex; align-items:flex-end;"><button id="createCouponBtn" class="btn btn-primary btn-full" type="button">Create Coupon</button></div>
               </form>
             </div>
           </div>
@@ -526,8 +507,11 @@
         setTimeout(() => t.remove(), 4000);
       }
 
-      function setLoading(show) {
-        $("#loadingOverlay").classList.toggle("hidden", !show);
+      function setLoading(show, text = "PROCESSING...") {
+        const ov = $("#loadingOverlay");
+        const txt = $("#loadingText");
+        if (txt) txt.textContent = text;
+        ov.classList.toggle("hidden", !show);
       }
 
       // MOBILE SIDEBAR TOGGLE
@@ -549,6 +533,73 @@
         });
       });
 
+      function showApp(user) {
+        state.user = user;
+        $("#userEmail").textContent = user.email || "Admin";
+        $("#loginScreen").classList.add("hidden");
+        $("#app").classList.remove("hidden");
+        loadAll();
+      }
+
+      function showLogin() {
+        state.user = null;
+        $("#app").classList.add("hidden");
+        $("#loginScreen").classList.remove("hidden");
+      }
+
+      // LOGIN ACTION (Fixed for Mobile Reload)
+      async function handleLogin() {
+        const email = $("#loginEmail").value.trim();
+        const password = $("#loginPassword").value;
+        const btn = $("#loginButton");
+
+        if (!email || !password) {
+          showToast("Please enter email and password.", "error");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "SIGNING IN...";
+        setLoading(true, "AUTHENTICATING...");
+
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          showToast("Welcome to BULKKOT Admin!");
+          showApp(data.user);
+        } catch (err) {
+          showToast(err.message || "Invalid credentials.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "SIGN IN";
+          setLoading(false);
+        }
+      }
+
+      $("#loginButton")?.addEventListener("click", handleLogin);
+      $("#loginForm")?.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleLogin();
+        }
+      });
+
+      $("#logoutButton")?.addEventListener("click", async () => {
+        setLoading(true, "LOGGING OUT...");
+        await supabase.auth.signOut();
+        setLoading(false);
+        showLogin();
+      });
+
+      // AUTO-SESSION RESTORE
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session && session.user) {
+          showApp(session.user);
+        } else {
+          showLogin();
+        }
+      });
+
       // CMS LOGIC
       async function loadCMS() {
         const { data, error } = await supabase.from("site_content").select("*");
@@ -564,7 +615,7 @@
       }
 
       $("#saveCmsBtn")?.addEventListener("click", async () => {
-        setLoading(true);
+        setLoading(true, "SAVING CMS...");
         try {
           const updates = $$("[data-cms]").map(input => {
             const key = input.dataset.cms;
@@ -595,7 +646,7 @@
           const file = e.target.files[0];
           if (!file) return;
           const key = fileInput.dataset.cmsFile;
-          setLoading(true);
+          setLoading(true, "UPLOADING PHOTO...");
           try {
             const path = `cms/${key}-${Date.now()}.${file.name.split('.').pop()}`;
             const { error: upErr } = await supabase.storage.from("site-media").upload(path, file, { upsert: true });
@@ -614,9 +665,9 @@
         });
       });
 
-      // LOAD DATA
+      // LOAD ALL ADMIN DATA
       async function loadAll() {
-        setLoading(true);
+        setLoading(true, "FETCHING DATA...");
         try {
           await loadCMS();
           // Load Orders
@@ -652,6 +703,8 @@
         }
       }
 
+      $("#refreshButton")?.addEventListener("click", loadAll);
+
       function renderOrders() {
         const body = $("#ordersBody");
         const recentBody = $("#recentOrdersBody");
@@ -684,10 +737,10 @@
                 <div class="product-name">${p.name}</div>
                 <div class="product-meta">₹${Number(p.price||0).toLocaleString("en-IN")} · ${p.category}</div>
                 <div class="stock-row">
-                  <div class="stock-chip ${Number(stk.S||0)<=2?'low':''}"><strong>S</strong>${stk.S||0}</div>
-                  <div class="stock-chip ${Number(stk.M||0)<=2?'low':''}"><strong>M</strong>${stk.M||0}</div>
-                  <div class="stock-chip ${Number(stk.L||0)<=2?'low':''}"><strong>L</strong>${stk.L||0}</div>
-                  <div class="stock-chip ${Number(stk.XL||0)<=2?'low':''}"><strong>XL</strong>${stk.XL||0}</div>
+                  <div class="stock-chip"><strong>S</strong>${stk.S||0}</div>
+                  <div class="stock-chip"><strong>M</strong>${stk.M||0}</div>
+                  <div class="stock-chip"><strong>L</strong>${stk.L||0}</div>
+                  <div class="stock-chip"><strong>XL</strong>${stk.XL||0}</div>
                 </div>
               </div>
             </div>
@@ -722,11 +775,6 @@
         if (!o) return;
         $("#orderModalTitle").textContent = o.order_number || o.id;
         $("#orderModalBody").innerHTML = `
-          <div class="pipeline">
-            ${["ORDER PLACED","PAYMENT CONFIRMED","PACKED","SHIPPED","OUT FOR DELIVERY","DELIVERED"].map(s => `
-              <div class="pipeline-step ${s === o.order_status ? 'current' : ''}">${s}</div>
-            `).join('')}
-          </div>
           <div style="margin: 16px 0; font-size:12px; line-height:1.6;">
             <strong>Customer:</strong> ${o.customer_name} (${o.customer_phone})<br>
             <strong>Address:</strong> ${o.shipping_address}, ${o.shipping_city}, ${o.shipping_state} - ${o.shipping_pincode}<br>
@@ -748,64 +796,57 @@
         $("#orderModal").classList.remove("hidden");
       };
 
+      $("#closeOrderModal")?.addEventListener("click", () => $("#orderModal").classList.add("hidden"));
+
       window.saveOrderUpdate = async (id) => {
         const status = $("#modalStatus").value;
         const courier = $("#modalCourier").value.trim();
         const tracking = $("#modalTracking").value.trim();
-        setLoading(true);
+        setLoading(true, "SAVING UPDATE...");
         try {
           await supabase.from("orders").update({ order_status: status, courier, tracking_number: tracking }).eq("id", id);
-          showToast("Order pipeline updated!");
+          showToast("Order updated!");
           $("#orderModal").classList.add("hidden");
           await loadAll();
         } finally { setLoading(false); }
       };
+
+      $("#createCouponBtn")?.addEventListener("click", async () => {
+        const code = $("#couponCode").value.trim().toUpperCase();
+        const discount_value = Number($("#couponValue").value);
+        const min_order_value = Number($("#couponMinOrder").value || 0);
+
+        if (!code || isNaN(discount_value)) {
+          showToast("Please enter valid coupon details.", "error");
+          return;
+        }
+
+        setLoading(true, "CREATING COUPON...");
+        try {
+          const { error } = await supabase.from("coupons").insert({
+            code,
+            discount_type: "percentage",
+            discount_value,
+            min_order_value,
+            active: true
+          });
+          if (error) throw error;
+          showToast("Coupon created!");
+          $("#couponCode").value = "";
+          $("#couponValue").value = "";
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed to create coupon", "error");
+        } finally {
+          setLoading(false);
+        }
+      });
 
       window.toggleCoupon = async (id, active) => {
         await supabase.from("coupons").update({ active }).eq("id", id);
         showToast("Coupon updated");
         await loadAll();
       };
-
-      $("#closeOrderModal")?.addEventListener("click", () => $("#orderModal").classList.add("hidden"));
-      $("#refreshButton")?.addEventListener("click", loadAll);
-
-      // AUTH LOGIN
-      $("#loginForm")?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const email = $("#loginEmail").value.trim();
-        const password = $("#loginPassword").value;
-        setLoading(true);
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          state.user = data.user;
-          $("#loginScreen").classList.add("hidden");
-          $("#app").classList.remove("hidden");
-          $("#userEmail").textContent = state.user.email;
-          await loadAll();
-        } catch (err) {
-          showToast(err.message, "error");
-        } finally {
-          setLoading(false);
-        }
-      });
-
-      $("#logoutButton")?.addEventListener("click", async () => {
-        await supabase.auth.signOut();
-        location.reload();
-      });
-
-      // AUTO SESSION RECOVERY
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          state.user = session.user;
-          $("#loginScreen").classList.add("hidden");
-          $("#app").classList.remove("hidden");
-          $("#userEmail").textContent = state.user.email;
-          loadAll();
-        }
-      });
     });
   </script>
 </body>
