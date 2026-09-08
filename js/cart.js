@@ -1,22 +1,22 @@
 /**
- * BULKKOT — Cart, Checkout & Dynamic Shipping Engine
- * Version: 2.5 (Dynamic Settings & RPC create_order Integration)
+ * BULKKOT — Production Main Storefront Engine
+ * Version: 9.0 (Full Customer Auth Sync & Resilient Modals)
  */
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'bulkkot_cart';
-  let cart = [];
-  let appliedCoupon = null;
-  let storeSettings = { shipping_fee: 0, free_shipping_threshold: 0 };
+  const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
 
-  function getSupabase() {
-    return window.supabaseClient || (window.supabase ? window.supabase : null);
-  }
+  const supabase = window.supabase
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
-  function formatPrice(amount) {
-    return '₹' + Number(amount || 0).toLocaleString('en-IN');
-  }
+  let liveProducts = [];
+  const selectedSizes = {};
+  let activeCategory = "all";
+  let activeSearch = "";
+  let activeSort = "featured";
 
   function escapeHTML(str) {
     return String(str ?? '')
@@ -27,434 +27,936 @@
       .replace(/'/g, '&#039;');
   }
 
-  function loadCart() {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      cart = data ? JSON.parse(data) : [];
-    } catch (e) {
-      cart = [];
-    }
+  function formatPrice(val) {
+    return "₹" + Number(val || 0).toLocaleString("en-IN");
   }
 
-  function saveCart() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
-    } catch (e) {
-      console.error('Failed to save cart', e);
-    }
-    updateCartBadge();
+  function getStock(product, size) {
+    return Math.max(0, Number(product?.stock?.[size] || 0));
   }
 
-  function updateCartBadge() {
-    const totalCount = cart.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
-    const badges = document.querySelectorAll('[data-cart-count]');
-    badges.forEach((badge) => {
-      badge.textContent = totalCount;
-      badge.hidden = totalCount === 0;
+  function getTotalStock(product) {
+    const stock = product?.stock || {};
+    return ["S", "M", "L", "XL"].reduce((tot, s) => tot + Number(stock[s] || 0), 0);
+  }
+
+  function getCategory(product) {
+    return String(product?.category || "tees").trim().toLowerCase();
+  }
+
+  function getStockBadge(product, size) {
+    const stock = getStock(product, size);
+    if (stock <= 0) return { text: "SOLD OUT", cls: "is-sold-out", disabled: true };
+    if (stock <= 2) return { text: `ONLY ${stock} LEFT`, cls: "is-low", disabled: false };
+    return { text: "", cls: "", disabled: false };
+  }
+
+  function getProductImages(product) {
+    if (Array.isArray(product?.images) && product.images.length > 0) {
+      return product.images.filter(Boolean);
+    }
+    if (product?.image_url) {
+      return [product.image_url];
+    }
+    return ['https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
+  }
+
+  /* =========================================================
+     AUTH STATE & ACCOUNT MANAGEMENT
+     ========================================================= */
+  async function initAuth() {
+    if (!supabase) return;
+
+    async function syncUserState() {
+      const { data: { user } } = await supabase.auth.getUser();
+      const accountLabel = document.querySelector('[data-account-label]');
+      const authView = document.querySelector('[data-account-auth]');
+      const userView = document.querySelector('[data-account-user]');
+      const userEmailEl = document.querySelector('[data-account-user-email]');
+
+      if (user) {
+        if (accountLabel) accountLabel.textContent = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
+        if (authView) authView.hidden = true;
+        if (userView) userView.hidden = false;
+        if (userEmailEl) userEmailEl.textContent = user.email;
+        loadCustomerProfile(user.id);
+        loadCustomerOrders(user.id);
+      } else {
+        if (accountLabel) accountLabel.textContent = 'ACCOUNT';
+        if (authView) authView.hidden = false;
+        if (userView) userView.hidden = true;
+      }
+    }
+
+    supabase.auth.onAuthStateChange(() => {
+      syncUserState();
+      if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
+    });
+
+    syncUserState();
+
+    // Login Form
+    const loginForm = document.querySelector('[data-account-login-form]');
+    const msgEl = document.querySelector('[data-account-message]');
+
+    loginForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = loginForm.querySelector('#account-email')?.value.trim();
+      const password = loginForm.querySelector('#account-password')?.value;
+      const submitBtn = loginForm.querySelector('.account-submit');
+
+      if (!email || !password) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'VERIFYING...';
+      if (msgEl) msgEl.textContent = '';
+
+      const isSignUp = loginForm.dataset.mode === 'signup';
+
+      try {
+        let res;
+        if (isSignUp) {
+          res = await supabase.auth.signUp({ email, password });
+          if (res.error) throw res.error;
+          if (msgEl) msgEl.textContent = 'Account created! Signing you in...';
+        } else {
+          res = await supabase.auth.signInWithPassword({ email, password });
+          if (res.error) throw res.error;
+        }
+      } catch (err) {
+        if (msgEl) msgEl.textContent = err.message || 'Authentication failed.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN';
+      }
+    });
+
+    // Toggle Sign In vs Sign Up
+    const signupToggle = document.querySelector('[data-account-signup-toggle]');
+    signupToggle?.addEventListener('click', () => {
+      const isSignUp = loginForm.dataset.mode === 'signup';
+      const title = document.getElementById('account-title');
+      const submitBtn = loginForm.querySelector('.account-submit');
+
+      if (isSignUp) {
+        loginForm.dataset.mode = 'signin';
+        if (title) title.textContent = 'SIGN IN';
+        if (submitBtn) submitBtn.textContent = 'SIGN IN';
+        signupToggle.textContent = 'CREATE ACCOUNT';
+      } else {
+        loginForm.dataset.mode = 'signup';
+        if (title) title.textContent = 'CREATE ACCOUNT';
+        if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
+        signupToggle.textContent = 'HAVE AN ACCOUNT? SIGN IN';
+      }
+    });
+
+    // Google OAuth
+    document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+    });
+
+    // Sign Out
+    document.querySelector('[data-account-signout]')?.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+    });
+
+    // Profile Save
+    const profileForm = document.querySelector('[data-account-profile-form]');
+    profileForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const profileData = {
+        id: user.id,
+        full_name: profileForm.querySelector('#account-name')?.value.trim(),
+        phone: profileForm.querySelector('#account-phone')?.value.trim(),
+        shipping_address: profileForm.querySelector('#account-address')?.value.trim(),
+        shipping_city: profileForm.querySelector('#account-city')?.value.trim(),
+        shipping_state: profileForm.querySelector('#account-state')?.value.trim(),
+        shipping_pincode: profileForm.querySelector('#account-pincode')?.value.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      const profMsg = document.querySelector('[data-profile-message]');
+      try {
+        const { error } = await supabase.from('customer_profiles').upsert(profileData);
+        if (error) throw error;
+        if (profMsg) profMsg.textContent = 'Details saved successfully!';
+        setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
+      } catch (err) {
+        if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
+      }
     });
   }
 
-  async function fetchSettings() {
-    const client = getSupabase();
-    if (!client) return;
+  async function loadCustomerProfile(userId) {
+    if (!supabase) return;
     try {
-      const { data } = await client.from('store_settings').select('*').eq('id', 1).maybeSingle();
-      if (data) storeSettings = data;
-    } catch (e) {
-      console.warn('Could not fetch store settings', e);
-    }
+      const { data } = await supabase.from('customer_profiles').select('*').eq('id', userId).maybeSingle();
+      if (!data) return;
+      const f = document.querySelector('[data-account-profile-form]');
+      if (!f) return;
+      if (f.querySelector('#account-name')) f.querySelector('#account-name').value = data.full_name || '';
+      if (f.querySelector('#account-phone')) f.querySelector('#account-phone').value = data.phone || '';
+      if (f.querySelector('#account-address')) f.querySelector('#account-address').value = data.shipping_address || '';
+      if (f.querySelector('#account-city')) f.querySelector('#account-city').value = data.shipping_city || '';
+      if (f.querySelector('#account-state')) f.querySelector('#account-state').value = data.shipping_state || '';
+      if (f.querySelector('#account-pincode')) f.querySelector('#account-pincode').value = data.shipping_pincode || '';
+    } catch (e) {}
   }
 
-  function addItem(item) {
-    const existingIndex = cart.findIndex(
-      (i) => String(i.id) === String(item.id) && i.size === item.size
-    );
+  async function loadCustomerOrders(userId) {
+    const ordersBox = document.querySelector('[data-account-orders]');
+    if (!ordersBox || !supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    if (existingIndex > -1) {
-      cart[existingIndex].quantity += Number(item.quantity || 1);
-    } else {
-      cart.push({
-        id: item.id,
-        name: item.name,
-        price: Number(item.price || 0),
-        size: item.size || 'M',
-        image: item.image || '',
-        quantity: Number(item.quantity || 1)
-      });
-    }
+      if (error || !data || !data.length) {
+        ordersBox.innerHTML = '<p style="color:#777; font-size:12px; margin:10px 0;">No past orders found.</p>';
+        return;
+      }
 
-    saveCart();
-    renderCart();
-    openCart();
-  }
-
-  function removeItem(index) {
-    cart.splice(index, 1);
-    saveCart();
-    renderCart();
-  }
-
-  function updateQuantity(index, qty) {
-    if (qty <= 0) {
-      removeItem(index);
-    } else {
-      cart[index].quantity = qty;
-      saveCart();
-      renderCart();
-    }
-  }
-
-  function clearCart() {
-    cart = [];
-    appliedCoupon = null;
-    saveCart();
-    renderCart();
-  }
-
-  function openCart() {
-    const drawer = document.querySelector('[data-cart-drawer]');
-    const overlay = document.querySelector('[data-cart-overlay]');
-    drawer?.classList.add('is-open');
-    drawer?.setAttribute('aria-hidden', 'false');
-    overlay?.classList.add('is-active');
-    document.body.classList.add('modal-open');
-  }
-
-  function closeCart() {
-    const drawer = document.querySelector('[data-cart-drawer]');
-    const overlay = document.querySelector('[data-cart-overlay]');
-    drawer?.classList.remove('is-open');
-    drawer?.setAttribute('aria-hidden', 'true');
-    overlay?.classList.remove('is-active');
-    document.body.classList.remove('modal-open');
-  }
-
-  function getCartSubtotal() {
-    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  }
-
-  function calculateDiscount(subtotal) {
-    if (!appliedCoupon) return 0;
-    if (appliedCoupon.min_order_value && subtotal < appliedCoupon.min_order_value) return 0;
-
-    if (appliedCoupon.discount_type === 'percentage') {
-      return Math.round((subtotal * (appliedCoupon.discount_value / 100)));
-    }
-    return Math.min(subtotal, appliedCoupon.discount_value);
-  }
-
-  function calculateShipping(subtotalAfterDiscount) {
-    const baseFee = Number(storeSettings.shipping_fee || 0);
-    const threshold = Number(storeSettings.free_shipping_threshold || 0);
-
-    if (baseFee <= 0) return 0;
-    if (threshold > 0 && subtotalAfterDiscount >= threshold) return 0;
-    return baseFee;
-  }
-
-  async function renderCart() {
-    const container = document.getElementById('cart-content');
-    if (!container) return;
-
-    if (cart.length === 0) {
-      container.innerHTML = `
-        <div class="cart-empty" style="text-align: center; padding: 60px 20px;">
-          <p class="eyebrow" style="color: #777;">YOUR BAG IS EMPTY</p>
-          <p style="margin: 12px 0 24px; color: #bbb;">Heavyweight essentials are waiting for you.</p>
-          <button type="button" class="button button--primary" data-close-cart>START SHOPPING</button>
+      ordersBox.innerHTML = data.map(o => `
+        <div style="border: 1px solid #222; border-radius:6px; padding:10px; margin-bottom:8px; background:#0c0c0c;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
+            <span>${escapeHTML(o.order_number || o.id.slice(0, 8))}</span>
+            <span style="color:var(--bk-red, #e31b23);">${escapeHTML(o.order_status || 'PLACED')}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:4px;">
+            <span>${new Date(o.created_at).toLocaleDateString()}</span>
+            <strong>${formatPrice(o.total)}</strong>
+          </div>
         </div>
-      `;
-      container.querySelector('[data-close-cart]')?.addEventListener('click', closeCart);
+      `).join('');
+    } catch (e) {
+      ordersBox.innerHTML = '<p style="color:#777; font-size:12px;">Failed to load order history.</p>';
+    }
+  }
+
+  /* =========================================================
+     DYNAMIC SETTINGS SYNC
+     ========================================================= */
+  async function syncStoreSettings() {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
+      if (!data) return;
+
+      const rawPhone = String(data.support_phone || '').replace(/\D/g, '');
+      const whatsappBtn = document.querySelector('.whatsapp-float');
+      if (whatsappBtn && rawPhone) {
+        whatsappBtn.href = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hi BULKKOT, I have an inquiry about Drop 001.')}`;
+      }
+
+      const email = data.support_email;
+      if (email) {
+        document.querySelectorAll('a[href^="mailto:"]').forEach(a => {
+          a.href = `mailto:${email}`;
+        });
+        document.querySelectorAll('[data-cms-key="contact_email"]').forEach(el => {
+          el.textContent = email;
+        });
+      }
+    } catch (e) {}
+  }
+
+  /* =========================================================
+     READ-ONLY CMS LOADER
+     ========================================================= */
+  async function loadCMSContent() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from("site_content")
+        .select("content_key, content_value, image_url, content_type");
+
+      if (error || !data) return;
+
+      data.forEach(row => {
+        const key = row.content_key;
+        const val = row.content_value || row.image_url || "";
+        const type = row.content_type || "text";
+
+        document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
+          if (type === "image" || el.tagName === "IMG") {
+            el.src = val;
+          } else {
+            el.textContent = val;
+          }
+        });
+      });
+    } catch (e) {}
+  }
+
+  /* =========================================================
+     CATALOGUE & PRODUCTS
+     ========================================================= */
+  async function initCatalog() {
+    const grid = document.getElementById("products-grid");
+    if (!grid || !supabase) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("active", true)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      liveProducts = data || [];
+      liveProducts.forEach(p => {
+        selectedSizes[p.id] = ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
+      });
+      renderProducts(getFilteredProducts());
+    } catch (err) {
+      grid.innerHTML = '<p class="catalog-message">Unable to load catalog right now.</p>';
+    }
+  }
+
+  function getFilteredProducts() {
+    let list = [...liveProducts];
+    if (activeCategory !== "all") list = list.filter(p => getCategory(p) === activeCategory.toLowerCase());
+    if (activeSearch) list = list.filter(p => (p.name || '').toLowerCase().includes(activeSearch));
+    if (activeSort === "price-low") list.sort((a, b) => Number(a.price) - Number(b.price));
+    if (activeSort === "price-high") list.sort((a, b) => Number(b.price) - Number(a.price));
+    if (activeSort === "newest") list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return list;
+  }
+
+  function renderProducts(items) {
+    const grid = document.getElementById("products-grid");
+    if (!grid) return;
+
+    if (!items.length) {
+      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No garments found matching your filter.</p>';
       return;
     }
 
-    const subtotal = getCartSubtotal();
-    const discount = calculateDiscount(subtotal);
-    const discountedTotal = Math.max(0, subtotal - discount);
-    const shippingFee = calculateShipping(discountedTotal);
-    const finalTotal = discountedTotal + shippingFee;
+    grid.innerHTML = items.map(p => {
+      const cat = getCategory(p);
+      const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
+      const totalStock = getTotalStock(p);
+      const curSize = selectedSizes[p.id] || "M";
+      const badge = getStockBadge(p, curSize);
+      const images = getProductImages(p);
+      const coverImage = images[0];
 
-    const client = getSupabase();
-    let userProfile = null;
-    let currentUser = null;
+      const sizePills = ["S", "M", "L", "XL"].map(s => {
+        const qty = getStock(p, s);
+        const sel = curSize === s;
+        return `<button type="button" class="product-size-btn ${sel ? 'is-selected' : ''} ${qty <= 0 ? 'is-disabled' : ''}" data-action="size" data-id="${p.id}" data-size="${s}">${s}</button>`;
+      }).join('');
 
-    if (client) {
-      const { data: authData } = await client.auth.getUser();
-      currentUser = authData?.user;
-      if (currentUser) {
-        const { data: profile } = await client
-          .from('customer_profiles')
-          .select('*')
-          .eq('id', currentUser.id)
-          .maybeSingle();
-        userProfile = profile;
-      }
+      return `
+        <article class="product-card" data-product-card data-category="${cat}">
+          <div class="product-card__thumb" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
+            <img src="${escapeHTML(coverImage)}" alt="${escapeHTML(p.name)}" loading="lazy">
+            <span class="product-status">${totalStock <= 0 ? 'SOLD OUT' : 'DROP 001'}</span>
+          </div>
+          <div class="product-information">
+            <div class="product-information__header" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
+              <div>
+                <h3>${escapeHTML(p.name)}</h3>
+                <p class="product-category">${catKorean}</p>
+              </div>
+              <span class="product-price">${formatPrice(p.price)}</span>
+            </div>
+            <div class="product-sizes-row">
+              <div class="product-sizes">${sizePills}</div>
+              <span class="product-stock ${badge.cls}">${badge.text}</span>
+            </div>
+            <button type="button" class="button button--primary product-add-button" data-action="add" data-id="${p.id}" ${badge.disabled ? 'disabled' : ''}>
+              ${badge.disabled ? 'SOLD OUT' : 'ADD TO BAG'}
+            </button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  /* =========================================================
+     PRODUCT DETAIL MODAL (PDP) & RELATED PRODUCTS
+     ========================================================= */
+  let currentPdpProduct = null;
+  let currentPdpSize = 'M';
+  let currentPdpQty = 1;
+
+  function openPdpModal(productId) {
+    const p = liveProducts.find(item => String(item.id) === String(productId));
+    if (!p) return;
+
+    currentPdpProduct = p;
+    currentPdpSize = selectedSizes[p.id] || ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
+    currentPdpQty = 1;
+
+    renderPdpView();
+
+    const modal = document.getElementById('pdpModal');
+    modal?.classList.add('is-open');
+    modal?.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  }
+
+  function closePdpModal() {
+    const modal = document.getElementById('pdpModal');
+    modal?.classList.remove('is-open');
+    modal?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  }
+
+  function renderPdpView() {
+    const container = document.getElementById('pdpContent');
+    const p = currentPdpProduct;
+    if (!container || !p) return;
+
+    const images = getProductImages(p);
+    const cat = getCategory(p);
+    const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
+    const stockCurSize = getStock(p, currentPdpSize);
+
+    let related = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) === cat);
+    if (related.length < 4) {
+      const rest = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) !== cat);
+      related = [...related, ...rest].slice(0, 4);
+    } else {
+      related = related.slice(0, 4);
     }
 
-    const itemsHTML = cart
-      .map(
-        (item, idx) => `
-        <div class="cart-item" style="display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #222;">
-          <img src="${escapeHTML(item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}"
-               alt="${escapeHTML(item.name)}" style="width: 72px; height: 72px; object-fit: cover; border-radius: 6px; background: #181818;">
-          <div style="flex: 1; min-width: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #fff;">${escapeHTML(item.name)}</h4>
-              <button type="button" data-cart-remove="${idx}" style="background: none; border: none; color: #777; cursor: pointer; font-size: 14px;">×</button>
-            </div>
-            <p style="margin: 4px 0; font-size: 11px; color: #888;">SIZE: <strong>${escapeHTML(item.size)}</strong></p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-              <div style="display: flex; align-items: center; border: 1px solid #333; border-radius: 4px;">
-                <button type="button" data-cart-qty="${idx}" data-qty="${item.quantity - 1}" style="background: none; border: none; color: #fff; padding: 2px 8px; cursor: pointer;">-</button>
-                <span style="font-size: 12px; padding: 0 4px;">${item.quantity}</span>
-                <button type="button" data-cart-qty="${idx}" data-qty="${item.quantity + 1}" style="background: none; border: none; color: #fff; padding: 2px 8px; cursor: pointer;">+</button>
-              </div>
-              <strong style="font-size: 13px; color: #fff;">${formatPrice(item.price * item.quantity)}</strong>
-            </div>
+    const thumbsHtml = images.map((img, i) => `
+      <div class="pdp-thumb ${i === 0 ? 'is-active' : ''}" data-pdp-thumb="${i}">
+        <img src="${escapeHTML(img)}" alt="Thumbnail ${i + 1}">
+      </div>
+    `).join('');
+
+    const sizeButtons = ["S", "M", "L", "XL"].map(s => {
+      const st = getStock(p, s);
+      const isSelected = currentPdpSize === s;
+      const isOut = st <= 0;
+      return `
+        <button type="button" class="pdp-size-btn ${isSelected ? 'is-selected' : ''} ${isOut ? 'is-sold-out' : ''}"
+                data-pdp-size="${s}" ${isOut ? 'disabled' : ''}>
+          ${s}
+        </button>
+      `;
+    }).join('');
+
+    const relatedHtml = related.map(rel => {
+      const rImages = getProductImages(rel);
+      return `
+        <div class="pdp-related-card" data-action="quickview" data-id="${rel.id}">
+          <img src="${escapeHTML(rImages[0])}" alt="${escapeHTML(rel.name)}">
+          <div class="pdp-related-meta">
+            <strong>${escapeHTML(rel.name)}</strong>
+            <span>${formatPrice(rel.price)}</span>
           </div>
         </div>
-      `
-      )
-      .join('');
+      `;
+    }).join('');
 
     container.innerHTML = `
-      <div class="cart-items-wrap" style="max-height: 38vh; overflow-y: auto; padding-right: 4px;">
-        ${itemsHTML}
-      </div>
-
-      <div style="margin: 16px 0 10px; display: flex; gap: 8px;">
-        <input type="text" id="cartCouponInput" placeholder="DISCOUNT CODE" value="${appliedCoupon ? escapeHTML(appliedCoupon.code) : ''}"
-               style="flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 8px 12px; font-size: 11px; text-transform: uppercase; border-radius: 4px;"
-               ${appliedCoupon ? 'disabled' : ''}>
-        <button type="button" id="cartApplyCouponBtn" class="button button--small" style="padding: 8px 14px; font-size: 10px; font-weight: 700; background: #222; color: #fff; border: 1px solid #444; cursor: pointer;">
-          ${appliedCoupon ? 'REMOVE' : 'APPLY'}
-        </button>
-      </div>
-
-      <div style="padding: 12px 0; border-top: 1px solid #222; font-size: 12px; line-height: 1.8;">
-        <div style="display: flex; justify-content: space-between; color: #888;">
-          <span>Subtotal</span>
-          <span>${formatPrice(subtotal)}</span>
-        </div>
-        ${
-          discount > 0
-            ? `
-          <div style="display: flex; justify-content: space-between; color: #31c48d;">
-            <span>Discount (${escapeHTML(appliedCoupon.code)})</span>
-            <span>-${formatPrice(discount)}</span>
+      <div class="pdp-grid">
+        <div class="pdp-gallery">
+          <div class="pdp-main-image-wrap">
+            <img src="${escapeHTML(images[0])}" id="pdpMainImage" class="pdp-main-image" alt="${escapeHTML(p.name)}">
           </div>
-        `
-            : ''
-        }
-        <div style="display: flex; justify-content: space-between; color: #888;">
-          <span>Delivery</span>
-          <span style="${shippingFee === 0 ? 'color:#31c48d; font-weight:700;' : 'color:#fff;'}">
-            ${shippingFee === 0 ? 'FREE' : formatPrice(shippingFee)}
-          </span>
+          ${images.length > 1 ? `<div class="pdp-thumbnails">${thumbsHtml}</div>` : ''}
         </div>
-        <div style="display: flex; justify-content: space-between; color: #fff; font-size: 15px; font-weight: 800; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #333;">
-          <span>Total</span>
-          <span>${formatPrice(finalTotal)}</span>
+
+        <div class="pdp-info">
+          <span class="pdp-korean">${catKorean} · DROP 001</span>
+          <h2 class="pdp-title">${escapeHTML(p.name)}</h2>
+          <div class="pdp-price">${formatPrice(p.price)}</div>
+
+          <p class="pdp-desc">${escapeHTML(p.description || 'Constructed from heavyweight luxury combed cotton. Tailored with architectural restraint for an elevated, relaxed drape.')}</p>
+
+          <div class="pdp-option-title">
+            <span>SELECT SIZE</span>
+            <span style="color: ${stockCurSize <= 2 && stockCurSize > 0 ? 'var(--bk-yellow, #f5c542)' : '#777'};">
+              ${stockCurSize <= 0 ? 'SOLD OUT' : (stockCurSize <= 4 ? `ONLY ${stockCurSize} LEFT` : 'IN STOCK')}
+            </span>
+          </div>
+          <div class="pdp-sizes">${sizeButtons}</div>
+
+          <div class="pdp-option-title"><span>QUANTITY</span></div>
+          <div class="pdp-qty-row">
+            <div class="pdp-qty-box">
+              <button type="button" id="pdpQtyMinus">-</button>
+              <span id="pdpQtyVal">${currentPdpQty}</span>
+              <button type="button" id="pdpQtyPlus">+</button>
+            </div>
+            <button type="button" class="button button--primary pdp-add-btn" id="pdpAddBtn" ${stockCurSize <= 0 ? 'disabled' : ''}>
+              ${stockCurSize <= 0 ? 'SOLD OUT' : 'ADD TO BAG'}
+            </button>
+          </div>
+
+          <div style="font-size:11px; color:#777; line-height:1.6; border-top:1px solid #1a1a1a; padding-top:14px;">
+            ✓ 100% Heavyweight Cotton • Relaxed Drop-Shoulder Fit<br>
+            ✓ Complimentary Express Shipping across India<br>
+            ✓ 7-Day Easy Exchange Policy
+          </div>
         </div>
       </div>
 
-      <form id="storefrontCheckoutForm" novalidate style="margin-top: 10px; border-top: 1px solid #222; padding-top: 14px;">
-        <div style="margin-bottom: 12px;">
-          <span class="eyebrow" style="font-size: 10px; color: #aaa;">SHIPPING & CONTACT DETAILS</span>
+      ${related.length > 0 ? `
+        <div class="pdp-related">
+          <div class="pdp-related-title">SIMILAR SILHOUETTES</div>
+          <div class="pdp-related-grid">${relatedHtml}</div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <input type="text" id="chkName" placeholder="Full Name *" required value="${escapeHTML(userProfile?.full_name || '')}" style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-          <input type="tel" id="chkPhone" placeholder="Phone Number *" required value="${escapeHTML(userProfile?.phone || '')}" style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-        </div>
-        <div style="margin-bottom: 8px;">
-          <input type="email" id="chkEmail" placeholder="Email Address *" required value="${escapeHTML(currentUser?.email || userProfile?.email || '')}" style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
-        </div>
-        <div style="margin-bottom: 8px;">
-          <input type="text" id="chkAddress" placeholder="Street Address / House No *" required value="${escapeHTML(userProfile?.shipping_address || '')}" style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-          <input type="text" id="chkCity" placeholder="City *" required value="${escapeHTML(userProfile?.shipping_city || '')}" style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-          <input type="text" id="chkState" placeholder="State *" required value="${escapeHTML(userProfile?.shipping_state || '')}" style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-          <input type="text" id="chkPincode" placeholder="Pincode *" required value="${escapeHTML(userProfile?.shipping_pincode || '')}" style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-        </div>
-
-        <div id="checkoutInlineError" style="color: #ff7777; font-size: 11px; margin-bottom: 10px; display: none;"></div>
-
-        <button type="submit" id="cartSubmitOrderBtn" class="button button--primary" style="width: 100%; padding: 12px; font-weight: 800; font-size: 12px; letter-spacing: 0.08em;">
-          PLACE ORDER (CASH ON DELIVERY)
-        </button>
-
-        <div style="margin-top: 10px; text-align: center; color: #666; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <span>🔒 Encrypted & Secure Checkout</span>
-          <span>•</span>
-          <span>7-Day Easy Exchange</span>
-        </div>
-      </form>
+      ` : ''}
     `;
 
-    container.querySelectorAll('[data-cart-remove]').forEach((btn) => {
-      btn.addEventListener('click', () => removeItem(Number(btn.dataset.cartRemove)));
-    });
-
-    container.querySelectorAll('[data-cart-qty]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        updateQuantity(Number(btn.dataset.cartQty), Number(btn.dataset.qty));
+    container.querySelectorAll('[data-pdp-thumb]').forEach(tb => {
+      tb.addEventListener('click', () => {
+        container.querySelectorAll('[data-pdp-thumb]').forEach(t => t.classList.remove('is-active'));
+        tb.classList.add('is-active');
+        const idx = Number(tb.dataset.pdpThumb);
+        const mainImg = document.getElementById('pdpMainImage');
+        if (mainImg && images[idx]) mainImg.src = images[idx];
       });
     });
 
-    const couponBtn = container.querySelector('#cartApplyCouponBtn');
-    couponBtn?.addEventListener('click', async () => {
-      if (appliedCoupon) {
-        appliedCoupon = null;
-        renderCart();
-        return;
-      }
-
-      const code = container.querySelector('#cartCouponInput')?.value.trim().toUpperCase();
-      if (!code) return;
-
-      const supabase = getSupabase();
-      if (!supabase) return;
-
-      const { data, error } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('code', code)
-        .eq('active', true)
-        .maybeSingle();
-
-      if (error || !data) {
-        alert('Invalid or inactive coupon code.');
-        return;
-      }
-
-      appliedCoupon = data;
-      renderCart();
+    container.querySelectorAll('[data-pdp-size]').forEach(sb => {
+      sb.addEventListener('click', () => {
+        currentPdpSize = sb.dataset.pdpSize;
+        renderPdpView();
+      });
     });
 
-    const checkoutForm = container.querySelector('#storefrontCheckoutForm');
-    checkoutForm?.addEventListener('submit', async (e) => {
+    container.querySelector('#pdpQtyMinus')?.addEventListener('click', () => {
+      if (currentPdpQty > 1) {
+        currentPdpQty -= 1;
+        container.querySelector('#pdpQtyVal').textContent = currentPdpQty;
+      }
+    });
+
+    container.querySelector('#pdpQtyPlus')?.addEventListener('click', () => {
+      if (currentPdpQty < stockCurSize) {
+        currentPdpQty += 1;
+        container.querySelector('#pdpQtyVal').textContent = currentPdpQty;
+      }
+    });
+
+    container.querySelector('#pdpAddBtn')?.addEventListener('click', () => {
+      if (stockCurSize <= 0) return;
+      if (window.BULKKOT_CART?.addItem) {
+        window.BULKKOT_CART.addItem({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price || 0),
+          size: currentPdpSize,
+          image: images[0],
+          quantity: currentPdpQty
+        });
+      }
+      closePdpModal();
+    });
+  }
+
+  /* =========================================================
+     POLICY DATA
+     ========================================================= */
+  const POLICY_DATA = {
+    faq: {
+      title: "FREQUENTLY ASKED QUESTIONS",
+      content: `
+        <h3>HOW DOES DROP 001 WORK?</h3>
+        <p>Drop 001 consists of limited-quantity heavyweight silhouettes. Once sold out, silhouettes will not be restocked immediately.</p>
+        <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
+        <p>Standard shipping across India is calculated at checkout based on current promotions and cart value.</p>
+        <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
+        <p>We accept Cash on Delivery (COD) across all serviceable pin codes in India.</p>
+      `
+    },
+    shipping: {
+      title: "SHIPPING POLICY",
+      content: `
+        <h3>DISPATCH TIMELINE</h3>
+        <p>All orders are confirmed, packed, and handed over to logistics within 24 to 48 hours.</p>
+        <h3>DELIVERY TIMELINE</h3>
+        <p>Metros: 3–5 business days. Rest of India: 5–7 business days.</p>
+        <h3>REAL-TIME TRACKING</h3>
+        <p>Use the 'Track Order' option in our header or footer anytime using your Order Number.</p>
+      `
+    },
+    returns: {
+      title: "RETURNS & EXCHANGES",
+      content: `
+        <h3>7-DAY EXCHANGE WINDOW</h3>
+        <p>We provide a 7-day size exchange window from the day of delivery, subject to inventory availability.</p>
+        <h3>CONDITION</h3>
+        <p>Garments must be unworn, unwashed, with all original tags and packaging intact.</p>
+        <h3>HOW TO INITIATE</h3>
+        <p>Reach out through the email address or WhatsApp channel listed in our contact section with your Order Number.</p>
+      `
+    },
+    privacy: {
+      title: "PRIVACY POLICY",
+      content: `
+        <h3>DATA COLLECTION</h3>
+        <p>We only collect name, phone, email, and shipping address details to process orders and track deliveries.</p>
+        <h3>SECURITY</h3>
+        <p>All records are encrypted through Supabase Row-Level Security and are never sold or rented to third parties.</p>
+      `
+    },
+    terms: {
+      title: "TERMS & CONDITIONS",
+      content: `
+        <h3>PRODUCT AUTHENTICITY</h3>
+        <p>All products sold on bulkkot.com are authentic, heavyweight streetwear crafted under strict quality protocols.</p>
+        <h3>CANCELLATION</h3>
+        <p>Orders can be cancelled before dispatch directly by reaching our team with your Order ID.</p>
+      `
+    }
+  };
+
+  /* =========================================================
+     UNIVERSAL MODAL & NAVIGATION
+     ========================================================= */
+  function initModalsAndNavigation() {
+    const mobileDrawer = document.querySelector("[data-mobile-drawer]");
+    const openDrawerBtn = document.querySelector("[data-open-drawer]");
+    const closeDrawerBtns = document.querySelectorAll("[data-close-drawer]");
+
+    openDrawerBtn?.addEventListener("click", () => {
+      mobileDrawer?.classList.add("is-open");
+      document.body.classList.add("modal-open");
+    });
+
+    closeDrawerBtns.forEach(btn => btn.addEventListener("click", () => {
+      mobileDrawer?.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
+    }));
+
+    // Policy
+    const policyModal = document.querySelector("[data-policy-modal]");
+    const policyTitle = policyModal?.querySelector("[data-policy-title]");
+    const policyContent = policyModal?.querySelector("[data-policy-content]");
+    const closePolicyBtn = policyModal?.querySelector("[data-close-policy]");
+
+    function openPolicy(type) {
+      if (!policyModal) return;
+      const data = POLICY_DATA[type] || { title: "INFORMATION", content: "<p>Information coming soon.</p>" };
+      if (policyTitle) policyTitle.textContent = data.title;
+      if (policyContent) policyContent.innerHTML = data.content;
+      policyModal.classList.add("is-open");
+      policyModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closePolicy() {
+      if (!policyModal) return;
+      policyModal.classList.remove("is-open");
+      policyModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    document.querySelectorAll("[data-open-policy]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        openPolicy(btn.dataset.openPolicy);
+      });
+    });
+
+    closePolicyBtn?.addEventListener("click", closePolicy);
+    policyModal?.addEventListener("click", (e) => {
+      if (e.target === policyModal) closePolicy();
+    });
+
+    // About
+    const aboutModal = document.querySelector("[data-about-modal]");
+    const openAboutBtns = document.querySelectorAll("[data-open-about]");
+    const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
+
+    function openAbout() {
+      aboutModal?.classList.add("is-open");
+      aboutModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeAbout() {
+      aboutModal?.classList.remove("is-open");
+      aboutModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    openAboutBtns.forEach(btn => btn.addEventListener("click", openAbout));
+    closeAboutBtn?.addEventListener("click", closeAbout);
+    aboutModal?.addEventListener("click", (e) => {
+      if (e.target === aboutModal) closeAbout();
+    });
+
+    // Size Guide
+    const sizeModal = document.querySelector("[data-size-guide-modal]");
+    const openSizeBtns = document.querySelectorAll("[data-size-guide-open]");
+    const closeSizeBtns = sizeModal?.querySelectorAll("[data-size-guide-close]");
+    const sizeTabs = sizeModal?.querySelectorAll("[data-size-tab]");
+    const sizePanels = sizeModal?.querySelectorAll("[data-size-panel]");
+
+    function openSizeGuide() {
+      sizeModal?.classList.add("is-open");
+      sizeModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeSizeGuide() {
+      sizeModal?.classList.remove("is-open");
+      sizeModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    openSizeBtns.forEach(btn => btn.addEventListener("click", openSizeGuide));
+    closeSizeBtns?.forEach(btn => btn.addEventListener("click", closeSizeGuide));
+
+    sizeTabs?.forEach(tab => {
+      tab.addEventListener("click", () => {
+        sizeTabs.forEach(t => {
+          t.classList.remove("is-active");
+          t.setAttribute("aria-selected", "false");
+        });
+        tab.classList.add("is-active");
+        tab.setAttribute("aria-selected", "true");
+
+        const target = tab.dataset.sizeTab;
+        sizePanels?.forEach(p => {
+          if (p.dataset.sizePanel === target) {
+            p.classList.add("is-active");
+            p.hidden = false;
+          } else {
+            p.classList.remove("is-active");
+            p.hidden = true;
+          }
+        });
+      });
+    });
+
+    // Search
+    const searchModal = document.querySelector("[data-search-modal]");
+    const openSearchBtns = document.querySelectorAll("[data-open-search]");
+    const closeSearchBtn = searchModal?.querySelector("[data-close-search]");
+    const searchForm = document.querySelector("[data-search-form]");
+
+    function openSearch() {
+      searchModal?.classList.add("is-open");
+      searchModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      setTimeout(() => searchModal?.querySelector("input")?.focus(), 60);
+    }
+
+    function closeSearch() {
+      searchModal?.classList.remove("is-open");
+      searchModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    openSearchBtns.forEach(btn => btn.addEventListener("click", openSearch));
+    closeSearchBtn?.addEventListener("click", closeSearch);
+    searchModal?.addEventListener("click", (e) => {
+      if (e.target === searchModal) closeSearch();
+    });
+
+    searchForm?.addEventListener("submit", (e) => {
       e.preventDefault();
-      const submitBtn = container.querySelector('#cartSubmitOrderBtn');
-      const errBox = container.querySelector('#checkoutInlineError');
+      activeSearch = searchForm.querySelector("input")?.value.trim().toLowerCase() || "";
+      closeSearch();
+      renderProducts(getFilteredProducts());
+      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
+    });
 
-      const name = container.querySelector('#chkName').value.trim();
-      const phone = container.querySelector('#chkPhone').value.trim();
-      const email = container.querySelector('#chkEmail').value.trim();
-      const address = container.querySelector('#chkAddress').value.trim();
-      const city = container.querySelector('#chkCity').value.trim();
-      const state = container.querySelector('#chkState').value.trim();
-      const pincode = container.querySelector('#chkPincode').value.trim();
+    // Tracking
+    const trackModal = document.querySelector("[data-track-order-modal]");
+    const openTrackBtns = document.querySelectorAll("[data-open-track-order]");
+    const closeTrackBtns = trackModal?.querySelectorAll("[data-track-order-close]");
+    const trackForm = trackModal?.querySelector("[data-track-order-form]");
+    const trackMsg = trackModal?.querySelector("[data-track-order-message]");
+    const trackResult = trackModal?.querySelector("[data-track-order-result]");
+    const trackAgainBtn = trackModal?.querySelector("[data-track-again]");
 
-      if (!name || !phone || !email || !address || !city || !state || !pincode) {
-        errBox.textContent = 'Please fill in all required shipping fields.';
-        errBox.style.display = 'block';
+    function openTracking() {
+      trackModal?.classList.add("is-open");
+      trackModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeTracking() {
+      trackModal?.classList.remove("is-open");
+      trackModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    openTrackBtns.forEach(btn => btn.addEventListener("click", openTracking));
+    closeTrackBtns?.forEach(btn => btn.addEventListener("click", closeTracking));
+
+    trackAgainBtn?.addEventListener("click", () => {
+      trackResult.hidden = true;
+      trackForm.hidden = false;
+      if (trackMsg) trackMsg.textContent = "";
+    });
+
+    trackForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const orderNumber = trackModal.querySelector("#track-order-number")?.value.trim().toUpperCase();
+      const phone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
+
+      if (!orderNumber || !phone) {
+        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone.";
         return;
       }
 
-      errBox.style.display = 'none';
+      const submitBtn = trackForm.querySelector(".track-order-submit");
       submitBtn.disabled = true;
-      submitBtn.textContent = 'PROCESSING ORDER...';
+      submitBtn.textContent = "LOCATING SHIPMENT...";
+      if (trackMsg) trackMsg.textContent = "";
 
       try {
-        const client = getSupabase();
-        if (!client) throw new Error('Database client offline');
+        if (!supabase) throw new Error("Database offline");
 
-        const { data: authData } = await client.auth.getUser();
-        const userId = authData?.user?.id || null;
+        const { data, error } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("order_number", orderNumber)
+          .maybeSingle();
 
-        const rpcItems = cart.map((item) => ({
-          product_id: item.id,
-          size: item.size,
-          quantity: item.quantity,
-          price: item.price
-        }));
+        if (error || !data) {
+          throw new Error("No shipment found matching that Order Number.");
+        }
 
-        const { data, error } = await client.rpc('create_order', {
-          p_customer_name: name,
-          p_customer_email: email,
-          p_customer_phone: phone,
-          p_shipping_address: address,
-          p_shipping_city: city,
-          p_shipping_state: state,
-          p_shipping_pincode: pincode,
-          p_items: rpcItems,
-          p_coupon_code: appliedCoupon ? appliedCoupon.code : null,
-          p_user_id: userId
+        const dbPhone = String(data.customer_phone || '').replace(/\D/g, '');
+        if (!dbPhone.endsWith(phone.slice(-10))) {
+          throw new Error("Phone number does not match order records.");
+        }
+
+        trackForm.hidden = true;
+        trackResult.hidden = false;
+
+        trackResult.querySelector("[data-track-result-number]").textContent = data.order_number;
+        const statusEl = trackResult.querySelector("[data-track-result-status]");
+        statusEl.textContent = data.order_status || "PLACED";
+
+        const courierEl = trackResult.querySelector("[data-track-result-courier]");
+        const trackingNoEl = trackResult.querySelector("[data-track-result-tracking]");
+
+        courierEl.textContent = data.courier || "In Dispatch Preparation";
+        trackingNoEl.textContent = data.tracking_number || "Will be assigned on pickup";
+
+        const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
+        const curIdx = steps.indexOf((data.order_status || "PLACED").toUpperCase());
+        const fillPct = Math.max(10, Math.min(100, ((curIdx + 1) / steps.length) * 100));
+
+        const line = trackResult.querySelector("[data-track-progress-line]");
+        if (line) line.style.width = `${fillPct}%`;
+
+        trackResult.querySelectorAll(".track-step").forEach(stepEl => {
+          const sName = stepEl.dataset.trackStep;
+          const sIdx = steps.indexOf(sName);
+          stepEl.classList.toggle("is-active", sIdx <= curIdx);
+          stepEl.classList.toggle("is-current", sIdx === curIdx);
         });
 
-        if (error) throw error;
-
-        const orderNumber = data.order_number;
-        const totalAmount = data.total + shippingFee;
-
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px 16px;">
-            <div style="width: 50px; height: 50px; background: rgba(49,196,141,.15); color: #31c48d; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; font-size: 24px;">✓</div>
-            <p class="eyebrow" style="color: #31c48d; font-weight: 800;">ORDER PLACED SUCCESSFULLY</p>
-            <h2 style="font-size: 22px; margin: 8px 0; color: #fff;">${escapeHTML(orderNumber)}</h2>
-            <p style="color: #bbb; font-size: 13px; line-height: 1.6; margin: 12px 0 20px;">
-              Thank you, <strong>${escapeHTML(name)}</strong>!<br>
-              Total: <strong>${formatPrice(totalAmount)}</strong> (Cash on Delivery).<br>
-              We are preparing Drop 001 for shipping.
-            </p>
-            <div style="background: #141414; border: 1px solid #222; border-radius: 8px; padding: 14px; text-align: left; font-size: 11px; line-height: 1.6; color: #999; margin-bottom: 24px;">
-              <strong style="color: #fff; display: block; margin-bottom: 4px;">WHAT HAPPENS NEXT:</strong>
-              1. Our dispatch team will verify and pack your order.<br>
-              2. Track anytime with your Order Number & Phone.<br>
-              3. Pay when the courier arrives at your door.
-            </div>
-            <button type="button" class="button button--primary" data-close-cart style="width: 100%;">CONTINUE EXPLORING</button>
-          </div>
-        `;
-        container.querySelector('[data-close-cart]')?.addEventListener('click', closeCart);
-
-        cart = [];
-        appliedCoupon = null;
-        saveCart();
-
-        if (window.dispatchEvent) {
-          window.dispatchEvent(new CustomEvent('bulkkot:order-completed'));
-        }
       } catch (err) {
-        console.error('Order creation error:', err);
-        errBox.textContent = err.message || 'Unable to place order. Please try again.';
-        errBox.style.display = 'block';
+        if (trackMsg) trackMsg.textContent = err.message || "Failed to find order.";
+      } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'PLACE ORDER (CASH ON DELIVERY)';
+        submitBtn.textContent = "LOOKUP SHIPMENT";
+      }
+    });
+
+    // Account Modal Open/Close
+    const accountModal = document.querySelector("[data-account-modal]");
+    const openAccountBtns = document.querySelectorAll("[data-open-account]");
+    const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
+
+    function openAccount() {
+      accountModal?.classList.add("is-open");
+      accountModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeAccount() {
+      accountModal?.classList.remove("is-open");
+      accountModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    openAccountBtns.forEach(btn => btn.addEventListener("click", openAccount));
+    closeAccountBtns?.forEach(btn => btn.addEventListener("click", closeAccount));
+
+    // PDP Modal Dismissal Listeners
+    document.querySelectorAll('[data-pdp-close]').forEach(el => {
+      el.addEventListener('click', closePdpModal);
+    });
+
+    // Global ESC key dismiss
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closePolicy();
+        closeAbout();
+        closeSizeGuide();
+        closeSearch();
+        closeTracking();
+        closeAccount();
+        closePdpModal();
+        if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
+        mobileDrawer?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
       }
     });
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    loadCart();
-    await fetchSettings();
+  // Delegated Clicks
+  document.addEventListener("click", e => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    const p = liveProducts.find(item => String(item.id) === String(id));
 
-    const openCartBtns = document.querySelectorAll('[data-open-cart]');
-    const closeCartBtns = document.querySelectorAll('[data-close-cart]');
-    const overlay = document.querySelector('[data-cart-overlay]');
-
-    openCartBtns.forEach((btn) =>
-      btn.addEventListener('click', () => {
-        renderCart();
-        openCart();
-      })
-    );
-
-    closeCartBtns.forEach((btn) => btn.addEventListener('click', closeCart));
-    overlay?.addEventListener('click', closeCart);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeCart();
-    });
+    if (action === "quickview" && p) {
+      openPdpModal(p.id);
+    } else if (action === "size" && p) {
+      selectedSizes[id] = btn.dataset.size;
+      renderProducts(getFilteredProducts());
+    } else if (action === "add" && p) {
+      const size = selectedSizes[id] || "M";
+      if (getStock(p, size) <= 0) return;
+      const images = getProductImages(p);
+      if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
+        window.BULKKOT_CART.addItem({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price || 0),
+          size: size,
+          image: images[0]
+        });
+      }
+    }
   });
 
-  window.BULKKOT_CART = {
-    addItem,
-    removeItem,
-    updateQuantity,
-    clearCart,
-    openCart,
-    closeCart
-  };
+  window.addEventListener('bulkkot:order-completed', () => {
+    initCatalog();
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initModalsAndNavigation();
+    initCatalog();
+    loadCMSContent();
+    syncStoreSettings();
+    initAuth();
+
+    document.querySelectorAll("[data-shop-category]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-shop-category]").forEach(b => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        activeCategory = btn.dataset.shopCategory;
+        renderProducts(getFilteredProducts());
+      });
+    });
+  });
 })();
