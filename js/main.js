@@ -453,3 +453,8 @@
     });
   });
 })();
+window.addEventListener('bulkkot:order-completed', () => {
+  if (typeof initCatalog === 'function') {
+    initCatalog();
+  }
+});
