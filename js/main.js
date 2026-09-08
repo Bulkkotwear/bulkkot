@@ -1,6 +1,6 @@
 /**
- * BULKKOT — Production Main Storefront & Visual In-Context CMS
- * Version: 4.0 (Click-To-Edit Visual CMS Engine)
+ * BULKKOT — Production Main Storefront Engine
+ * Safe Read-Only CMS Binding & Product Catalog
  */
 (function () {
   'use strict';
@@ -52,302 +52,49 @@
   }
 
   /* =========================================================
-     BULKKOT — VISUAL IN-CONTEXT CMS (CLICK TO EDIT)
+     READ-ONLY CMS LOADER (Customer Safe)
      ========================================================= */
-  const BULKKOT_CMS = (() => {
-    let cmsEnabled = false;
-    let contentCache = {};
-    let activeEditor = null;
+  async function loadCMSContent() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from("site_content")
+        .select("content_key, content_value, image_url, content_type");
 
-    async function checkAdmin() {
-      if (!supabase) return false;
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) return true;
-        // Check if admin session exists in localStorage
-        const adminStorage = localStorage.getItem("bulkkot-admin-auth");
-        if (adminStorage && adminStorage.includes("access_token")) return true;
-        return false;
-      } catch (err) {
-        return false;
-      }
-    }
+      if (error || !data) return;
 
-    async function loadContent() {
-      if (!supabase) return;
-      try {
-        const { data, error } = await supabase.from("site_content").select("*");
-        if (error) throw error;
-        contentCache = {};
-        (data || []).forEach(row => {
-          contentCache[row.content_key] = row;
-        });
-        applyContent();
-      } catch (e) {
-        console.warn("CMS Content Load Error:", e);
-      }
-    }
-
-    function applyContent() {
-      document.querySelectorAll("[data-cms-key]").forEach(el => {
-        const key = el.dataset.cmsKey;
-        const row = contentCache[key];
-        if (!row) return;
-
+      data.forEach(row => {
+        const key = row.content_key;
         const val = row.content_value || row.image_url || "";
-        const type = el.dataset.cmsType || row.content_type || "text";
+        const type = row.content_type || "text";
 
-        if (type === "image") {
-          if (el.tagName === "IMG") el.src = val;
-          else el.style.backgroundImage = `url("${val}")`;
-        } else {
-          el.textContent = val;
-        }
+        document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
+          if (type === "image" || el.tagName === "IMG") {
+            el.src = val;
+          } else {
+            el.textContent = val;
+          }
+        });
       });
+    } catch (e) {
+      console.warn("CMS Load Notice:", e);
     }
-
-    async function saveContent(key, value, type = "text") {
-      if (!supabase) throw new Error("Database offline");
-
-      const isImg = type === "image";
-      const payload = {
-        content_key: key,
-        content_value: isImg ? null : value,
-        image_url: isImg ? value : null,
-        content_type: isImg ? "image" : "text",
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase.from("site_content").upsert(payload, { onConflict: "content_key" });
-      if (error) throw error;
-
-      contentCache[key] = payload;
-
-      document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
-        if (isImg) {
-          if (el.tagName === "IMG") el.src = value;
-          else el.style.backgroundImage = `url("${value}")`;
-        } else {
-          el.textContent = value;
-        }
-      });
-    }
-
-    function createToolbar() {
-      if (document.querySelector("[data-bulkkot-cms-toolbar]")) return;
-      const tb = document.createElement("div");
-      tb.setAttribute("data-bulkkot-cms-toolbar", "");
-      tb.innerHTML = `
-        <div class="bulkkot-cms-brand">
-          <span class="bulkkot-cms-dot"></span>
-          BULKKOT LIVE CMS
-        </div>
-        <span class="bulkkot-cms-status">CLICK TO EDIT ON</span>
-        <button type="button" data-cms-exit>EXIT</button>
-      `;
-      document.body.appendChild(tb);
-      tb.querySelector("[data-cms-exit]").addEventListener("click", () => disable());
-    }
-
-    function openEditor(element) {
-      closeEditor();
-      const key = element.dataset.cmsKey;
-      const type = element.dataset.cmsType || (contentCache[key]?.content_type) || "text";
-      const current = contentCache[key]?.content_value || contentCache[key]?.image_url || (element.tagName === "IMG" ? element.src : element.textContent.trim());
-
-      const editor = document.createElement("div");
-      editor.setAttribute("data-bulkkot-cms-editor", "");
-
-      if (type === "image") {
-        editor.innerHTML = `
-          <div class="bulkkot-cms-editor-title">EDIT PHOTO</div>
-          <div class="bulkkot-cms-editor-label">${escapeHTML(key)}</div>
-          <input type="url" class="bulkkot-cms-input" value="${escapeHTML(current)}" placeholder="Paste Image URL" data-cms-value>
-          <div class="bulkkot-cms-editor-actions">
-            <button type="button" data-cms-cancel>CANCEL</button>
-            <button type="button" class="primary" data-cms-save>SAVE LIVE</button>
-          </div>
-        `;
-      } else {
-        editor.innerHTML = `
-          <div class="bulkkot-cms-editor-title">EDIT CONTENT</div>
-          <div class="bulkkot-cms-editor-label">${escapeHTML(key)}</div>
-          <textarea class="bulkkot-cms-input bulkkot-cms-textarea" data-cms-value>${escapeHTML(current)}</textarea>
-          <div class="bulkkot-cms-editor-actions">
-            <button type="button" data-cms-cancel>CANCEL</button>
-            <button type="button" class="primary" data-cms-save>SAVE LIVE</button>
-          </div>
-        `;
-      }
-
-      document.body.appendChild(editor);
-      activeEditor = editor;
-
-      // Position editor near element
-      const rect = element.getBoundingClientRect();
-      let top = rect.bottom + 10;
-      let left = Math.max(16, Math.min(rect.left, window.innerWidth - 360));
-      if (top + 200 > window.innerHeight) top = Math.max(16, rect.top - 210);
-      editor.style.top = `${top}px`;
-      editor.style.left = `${left}px`;
-
-      editor.querySelector("[data-cms-cancel]").onclick = closeEditor;
-      editor.querySelector("[data-cms-save]").onclick = async () => {
-        const val = editor.querySelector("[data-cms-value]").value.trim();
-        const btn = editor.querySelector("[data-cms-save]");
-        btn.disabled = true;
-        btn.textContent = "SAVING...";
-        try {
-          await saveContent(key, val, type);
-          showToast("Saved live to BULKKOT!");
-          closeEditor();
-        } catch (err) {
-          btn.disabled = false;
-          btn.textContent = "SAVE LIVE";
-          alert("Error: " + err.message);
-        }
-      };
-
-      editor.querySelector("[data-cms-value]")?.focus();
-    }
-
-    function closeEditor() {
-      if (activeEditor) {
-        activeEditor.remove();
-        activeEditor = null;
-      }
-    }
-
-    function showToast(msg) {
-      let t = document.querySelector("[data-bulkkot-cms-toast]");
-      if (!t) {
-        t = document.createElement("div");
-        t.setAttribute("data-bulkkot-cms-toast", "");
-        document.body.appendChild(t);
-      }
-      t.textContent = msg;
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 3000);
-    }
-
-    function enable() {
-      cmsEnabled = true;
-      document.body.classList.add("bulkkot-cms-active");
-      createToolbar();
-      showToast("Live Visual Editing Mode Enabled! Click any text/photo.");
-    }
-
-    function disable() {
-      cmsEnabled = false;
-      closeEditor();
-      document.body.classList.remove("bulkkot-cms-active");
-      document.querySelector("[data-bulkkot-cms-toolbar]")?.remove();
-    }
-
-    function bindEvents() {
-      document.addEventListener("click", (e) => {
-        if (!cmsEnabled) return;
-        if (e.target.closest("[data-bulkkot-cms-toolbar], [data-bulkkot-cms-editor], [data-bulkkot-cms-toast]")) return;
-
-        const target = e.target.closest("[data-cms-key]");
-        if (!target) return;
-
-        e.preventDefault();
-        e.stopPropagation();
-        openEditor(target);
-      }, true);
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeEditor();
-      });
-    }
-
-    async function init() {
-      bindEvents();
-      await loadContent();
-      const isAdmin = await checkAdmin();
-      if (isAdmin) enable();
-    }
-
-    return { init, enable, disable, loadContent };
-  })();
-
-  // STOREFRONT NAVIGATION & MODALS
-  function initNavigation() {
-    const mobileDrawer = document.querySelector("[data-mobile-drawer]");
-    const openDrawerBtn = document.querySelector("[data-open-drawer]");
-    const closeDrawerBtns = document.querySelectorAll("[data-close-drawer]");
-
-    function openDrawer() {
-      mobileDrawer?.classList.add("is-open");
-      mobileDrawer?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-    }
-
-    function closeDrawer() {
-      mobileDrawer?.classList.remove("is-open");
-      mobileDrawer?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-    }
-
-    openDrawerBtn?.addEventListener("click", openDrawer);
-    closeDrawerBtns.forEach(btn => btn.addEventListener("click", closeDrawer));
-
-    // Search modal
-    const searchModal = document.querySelector("[data-search-modal]");
-    const openSearchBtns = document.querySelectorAll("[data-open-search]");
-    const closeSearchBtn = searchModal?.querySelector(".drawer-close");
-    const searchForm = document.querySelector("[data-search-form]");
-
-    openSearchBtns.forEach(btn => btn.addEventListener("click", () => {
-      searchModal?.classList.add("is-open");
-      searchModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-      setTimeout(() => searchModal?.querySelector("input")?.focus(), 50);
-    }));
-
-    closeSearchBtn?.addEventListener("click", () => {
-      searchModal?.classList.remove("is-open");
-      searchModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-    });
-
-    searchForm?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const query = searchForm.querySelector("input")?.value.trim().toLowerCase() || "";
-      activeSearch = query;
-      searchModal?.classList.remove("is-open");
-      searchModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-      renderProducts(getFilteredProducts());
-      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
-    });
-
-    // About story modal
-    const aboutModal = document.querySelector("[data-about-modal]");
-    const openAboutBtns = document.querySelectorAll("[data-open-about]");
-    const closeAboutBtn = aboutModal?.querySelector(".drawer-close");
-
-    openAboutBtns.forEach(btn => btn.addEventListener("click", () => {
-      aboutModal?.classList.add("is-open");
-      aboutModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-    }));
-
-    closeAboutBtn?.addEventListener("click", () => {
-      aboutModal?.classList.remove("is-open");
-      aboutModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-    });
   }
 
-  // CATALOGUE
+  /* =========================================================
+     CATALOGUE & PRODUCTS
+     ========================================================= */
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
     if (!grid || !supabase) return;
 
     try {
-      const { data, error } = await supabase.from("products").select("*").eq("active", true).order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("active", true)
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
       liveProducts = data || [];
       liveProducts.forEach(p => {
@@ -355,7 +102,7 @@
       });
       renderProducts(getFilteredProducts());
     } catch (err) {
-      grid.innerHTML = '<p class="catalog-message">Failed to load catalog.</p>';
+      grid.innerHTML = '<p class="catalog-message">Unable to load catalog right now.</p>';
     }
   }
 
@@ -418,6 +165,92 @@
     }).join('');
   }
 
+  /* =========================================================
+     NAVIGATION, SEARCH & MODAL CONTROLS
+     ========================================================= */
+  function initNavigation() {
+    const mobileDrawer = document.querySelector("[data-mobile-drawer]");
+    const openDrawerBtn = document.querySelector("[data-open-drawer]");
+    const closeDrawerBtns = document.querySelectorAll("[data-close-drawer]");
+
+    openDrawerBtn?.addEventListener("click", () => {
+      mobileDrawer?.classList.add("is-open");
+      document.body.classList.add("modal-open");
+    });
+
+    closeDrawerBtns.forEach(btn => btn.addEventListener("click", () => {
+      mobileDrawer?.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
+    }));
+
+    // Search Modal
+    const searchModal = document.querySelector("[data-search-modal]");
+    const openSearchBtns = document.querySelectorAll("[data-open-search]");
+    const closeSearchBtn = searchModal?.querySelector(".drawer-close");
+    const searchForm = document.querySelector("[data-search-form]");
+
+    openSearchBtns.forEach(btn => btn.addEventListener("click", () => {
+      searchModal?.classList.add("is-open");
+      document.body.classList.add("modal-open");
+      setTimeout(() => searchModal?.querySelector("input")?.focus(), 50);
+    }));
+
+    closeSearchBtn?.addEventListener("click", () => {
+      searchModal?.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
+    });
+
+    searchForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      activeSearch = searchForm.querySelector("input")?.value.trim().toLowerCase() || "";
+      searchModal?.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
+      renderProducts(getFilteredProducts());
+      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    // Policy Modals Wiring (Fix for Priority 4)
+    const policyModal = document.querySelector("[data-policy-modal]");
+    const policyTitle = document.querySelector("[data-policy-title]");
+    const policyContent = document.querySelector("[data-policy-content]");
+    const closePolicyBtn = policyModal?.querySelector(".drawer-close");
+
+    document.querySelectorAll("[data-open-policy]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const type = btn.dataset.openPolicy;
+        const template = document.getElementById(`policy-${type}`);
+        if (!template || !policyModal) return;
+
+        if (policyTitle) policyTitle.textContent = btn.textContent.trim().toUpperCase();
+        if (policyContent) policyContent.innerHTML = template.innerHTML;
+
+        policyModal.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      });
+    });
+
+    closePolicyBtn?.addEventListener("click", () => {
+      policyModal?.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
+    });
+
+    // Size Guide Modal
+    const sizeModal = document.querySelector("[data-size-guide-modal]");
+    const openSizeBtns = document.querySelectorAll("[data-size-guide-open]");
+    const closeSizeBtn = sizeModal?.querySelector("[data-size-guide-close]");
+
+    openSizeBtns.forEach(btn => btn.addEventListener("click", () => {
+      sizeModal?.classList.add("is-open");
+      document.body.classList.add("modal-open");
+    }));
+
+    closeSizeBtn?.addEventListener("click", () => {
+      sizeModal?.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
+    });
+  }
+
+  // Event Delegation for Sizes & Add to Cart
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -431,17 +264,28 @@
     } else if (action === "add" && p) {
       const size = selectedSizes[id] || "M";
       if (getStock(p, size) <= 0) return;
-      if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
-        window.BULKKOT_CART.addItem({ id: p.id, name: p.name, price: Number(p.price || 0), size: size, image: p.image_url });
+      if (window.BULKKOT_CART?.addItem) {
+        window.BULKKOT_CART.addItem({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price || 0),
+          size: size,
+          image: p.image_url
+        });
       }
     }
   });
 
-  // INITIALIZATION
+  // Re-fetch catalog when order completes
+  window.addEventListener('bulkkot:order-completed', () => {
+    initCatalog();
+  });
+
+  // Init Storefront
   document.addEventListener("DOMContentLoaded", () => {
     initNavigation();
     initCatalog();
-    BULKKOT_CMS.init();
+    loadCMSContent();
 
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -453,8 +297,3 @@
     });
   });
 })();
-window.addEventListener('bulkkot:order-completed', () => {
-  if (typeof initCatalog === 'function') {
-    initCatalog();
-  }
-});
