@@ -1060,3 +1060,176 @@
   .account-order-card__top { flex-direction: column; }
   .header-account { display: none; }
 }
+/* =========================================================
+   BULKKOT — VISUAL IN-CONTEXT CMS STYLES
+   ========================================================= */
+body.bulkkot-cms-active [data-cms-key] {
+  cursor: pointer !important;
+  position: relative;
+  outline: 1px dashed transparent;
+  outline-offset: 4px;
+  transition: outline-color 0.2s ease, background-color 0.2s ease;
+}
+
+body.bulkkot-cms-active [data-cms-key]:hover {
+  outline-color: var(--bk-red, #e31b23) !important;
+  background-color: rgba(227, 27, 35, 0.08) !important;
+}
+
+/* FLOATING ADMIN TOOLBAR */
+[data-bulkkot-cms-toolbar] {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 18px;
+  background: rgba(10, 10, 10, 0.96);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(16px);
+}
+
+.bulkkot-cms-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.bulkkot-cms-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e31b23;
+  box-shadow: 0 0 10px #e31b23;
+}
+
+.bulkkot-cms-status {
+  color: #888;
+  font-size: 10px;
+}
+
+[data-cms-exit] {
+  border: 0;
+  background: #fff;
+  color: #000;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* POPUP FLOATING EDITOR */
+[data-bulkkot-cms-editor] {
+  position: fixed;
+  width: min(340px, calc(100vw - 32px));
+  z-index: 1000000;
+  padding: 18px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  font-family: Inter, sans-serif;
+}
+
+.bulkkot-cms-editor-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #e31b23;
+  margin-bottom: 4px;
+}
+
+.bulkkot-cms-editor-label {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 12px;
+  word-break: break-all;
+}
+
+.bulkkot-cms-input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.bulkkot-cms-input:focus {
+  border-color: #e31b23;
+}
+
+.bulkkot-cms-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.bulkkot-cms-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.bulkkot-cms-editor-actions button {
+  padding: 8px 14px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bulkkot-cms-editor-actions button.primary {
+  background: #e31b23;
+  border-color: #e31b23;
+}
+
+.bulkkot-cms-editor-actions button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* CMS TOAST ALERT */
+[data-bulkkot-cms-toast] {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000001;
+  padding: 12px 18px;
+  background: #181818;
+  color: #31c48d;
+  border: 1px solid rgba(49, 196, 141, 0.4);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transform: translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+[data-bulkkot-cms-toast].show {
+  opacity: 1;
+  transform: translateY(0);
+}
