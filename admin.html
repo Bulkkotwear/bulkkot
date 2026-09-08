@@ -2,12 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#070707">
-  <meta name="color-scheme" content="dark">
   <title>BULKKOT — Admin & Store Control</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,9 +12,7 @@
     :root {
       --bg: #070707;
       --panel: #101010;
-      --panel-2: #141414;
       --border: #242424;
-      --border-soft: #1a1a1a;
       --text: #f5f5f5;
       --muted: #8b8b8b;
       --red: #e31b23;
@@ -30,4817 +24,679 @@
       --radius-sm: 8px;
     }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-      background: var(--bg);
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0; min-height: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
       overflow-x: hidden;
     }
 
-    body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system,
-        BlinkMacSystemFont, "Segoe UI", sans-serif;
-      overflow-x: hidden;
-      -webkit-text-size-adjust: 100%;
-    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; -webkit-appearance: none; appearance: none; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
 
-    body.sidebar-open {
-      overflow: hidden;
-      touch-action: none;
+    input, textarea, select {
+      width: 100%; color: var(--text); background: #0b0b0b;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      outline: none; padding: 11px 12px; min-height: 42px;
     }
-
-    button,
-    input,
-    textarea,
-    select {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: .55;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      min-width: 0;
-      color: var(--text);
-      background: #0b0b0b;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      outline: none;
-      padding: 11px 12px;
-      transition: border-color .15s ease, box-shadow .15s ease;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    input,
-    select {
-      min-height: 42px;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
+    input:focus, textarea:focus, select:focus {
       border-color: var(--red);
       box-shadow: 0 0 0 3px rgba(227, 27, 35, .15);
     }
+    select option { background: #111; color: #fff; }
+    .hidden { display: none !important; }
 
-    select option {
-      background: #111;
-      color: #fff;
-    }
-
-    input::placeholder,
-    textarea::placeholder {
-      color: #555;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* =========================================================
-       LOADING
-       ========================================================= */
-
+    /* LOADING */
     #loadingOverlay {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      background: rgba(0, 0, 0, .88);
-      display: grid;
-      place-items: center;
-      padding: 20px;
-      backdrop-filter: blur(8px);
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0, 0, 0, .88); display: grid; place-items: center; padding: 20px;
     }
-
-    .loading-box {
-      text-align: center;
-    }
-
     .loading-spinner {
-      width: 30px;
-      height: 30px;
-      margin: 0 auto 12px;
-      border: 2px solid #2a2a2a;
-      border-top-color: var(--red);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
+      width: 30px; height: 30px; margin: 0 auto 12px;
+      border: 2px solid #2a2a2a; border-top-color: var(--red);
+      border-radius: 50%; animation: spin .7s linear infinite;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loadingText { color: var(--red); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-align: center; }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    #loadingText {
-      color: var(--red);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .1em;
-    }
-
-    /* =========================================================
-       LOGIN
-       ========================================================= */
-
+    /* LOGIN */
     #loginScreen {
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-      background:
-        radial-gradient(
-          circle at 50% 0%,
-          rgba(227, 27, 35, .15),
-          transparent 45%
-        ),
-        var(--bg);
+      min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 20px;
+      background: radial-gradient(circle at 50% 0%, rgba(227, 27, 35, .15), transparent 45%), var(--bg);
     }
-
     .login-card {
-      width: min(420px, 100%);
-      background: rgba(16, 16, 16, .98);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px 24px;
-      box-shadow: 0 25px 80px rgba(0, 0, 0, .6);
+      width: min(420px, 100%); background: rgba(16, 16, 16, .98);
+      border: 1px solid var(--border); border-radius: 16px; padding: 32px 24px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.6);
     }
+    .brand { font-size: 26px; font-weight: 900; letter-spacing: -1px; }
+    .brand span { color: var(--red); }
+    .login-subtitle { color: var(--muted); margin: 6px 0 24px; font-size: 13px; }
+    .login-error { color: #ff7777; font-size: 11px; margin-bottom: 14px; min-height: 15px; }
 
-    .brand {
-      font-size: 26px;
-      font-weight: 900;
-      letter-spacing: -1px;
-    }
-
-    .brand span {
-      color: var(--red);
-    }
-
-    .login-subtitle {
-      color: var(--muted);
-      margin: 6px 0 24px;
-      font-size: 13px;
-    }
-
-    .login-error {
-      min-height: 0;
-      margin: 0 0 14px;
-      padding: 0;
-      color: #ff7777;
-      font-size: 11px;
-      line-height: 1.5;
-    }
-
-    .field {
-      margin-bottom: 15px;
-    }
-
-    .field label {
-      display: block;
-      margin-bottom: 6px;
-      color: #ccc;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    /* =========================================================
-       BUTTONS
-       ========================================================= */
+    .field { margin-bottom: 15px; }
+    .field label { display: block; margin-bottom: 6px; color: #ccc; font-size: 11px; font-weight: 700; text-transform: uppercase; }
 
     .btn {
-      border: 1px solid transparent;
-      border-radius: var(--radius-sm);
-      padding: 10px 15px;
-      min-height: 40px;
-      color: var(--text);
-      background: #202020;
-      font-weight: 700;
-      font-size: 12px;
-      transition:
-        background .15s ease,
-        border-color .15s ease,
-        transform .1s ease;
-      text-align: center;
+      border: 1px solid transparent; border-radius: var(--radius-sm);
+      padding: 10px 15px; min-height: 40px; color: var(--text); background: #202020;
+      font-weight: 700; font-size: 12px; text-align: center; transition: .15s ease;
     }
+    .btn:hover { background: #2a2a2a; }
+    .btn-primary { background: var(--red); border-color: var(--red); }
+    .btn-primary:hover { background: var(--red-dark); }
+    .btn-danger { background: rgba(239, 68, 68, .12); border-color: rgba(239, 68, 68, .25); color: #ff7777; }
+    .btn-full { width: 100%; }
+    .btn-small { min-height: 34px; padding: 6px 10px; font-size: 10px; }
 
-    .btn:hover {
-      background: #2a2a2a;
-    }
-
-    .btn:active {
-      transform: translateY(1px);
-    }
-
-    .btn-primary {
-      background: var(--red);
-      border-color: var(--red);
-    }
-
-    .btn-primary:hover {
-      background: var(--red-dark);
-      border-color: var(--red-dark);
-    }
-
-    .btn-danger {
-      background: rgba(239, 68, 68, .12);
-      border-color: rgba(239, 68, 68, .25);
-      color: #ff7777;
-    }
-
-    .btn-success {
-      background: rgba(49, 196, 141, .12);
-      border-color: rgba(49, 196, 141, .25);
-      color: var(--green);
-    }
-
-    .btn-full {
-      width: 100%;
-    }
-
-    .btn-small {
-      min-height: 34px;
-      padding: 6px 10px;
-      font-size: 10px;
-    }
-
-    /* =========================================================
-       MAIN LAYOUT
-       ========================================================= */
-
-    #app {
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: grid;
-      grid-template-columns: 240px minmax(0, 1fr);
-    }
-
+    /* LAYOUT */
+    #app { min-height: 100vh; display: grid; grid-template-columns: 240px minmax(0, 1fr); }
     .sidebar {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      height: 100dvh;
-      background: #0a0a0a;
-      border-right: 1px solid var(--border);
-      padding: 20px 12px;
-      display: flex;
-      flex-direction: column;
-      z-index: 200;
-      overflow-y: auto;
-      overscroll-behavior: contain;
+      position: sticky; top: 0; height: 100vh; background: #0a0a0a;
+      border-right: 1px solid var(--border); padding: 20px 12px;
+      display: flex; flex-direction: column; z-index: 200; overflow-y: auto;
     }
-
-    .sidebar-logo {
-      padding: 4px 10px 20px;
-      font-size: 20px;
-      font-weight: 900;
-    }
-
-    .sidebar-logo span {
-      color: var(--red);
-    }
-
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
+    .sidebar-logo { padding: 4px 10px 20px; font-size: 20px; font-weight: 900; }
+    .sidebar-logo span { color: var(--red); }
+    .nav { display: flex; flex-direction: column; gap: 4px; }
     .nav-btn {
-      width: 100%;
-      border: 0;
-      text-align: left;
-      color: #888;
-      background: transparent;
-      padding: 11px 12px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 12px;
-      transition: .15s ease;
+      width: 100%; border: 0; text-align: left; color: #888; background: transparent;
+      padding: 11px 12px; border-radius: 8px; font-weight: 700; font-size: 12px;
     }
+    .nav-btn:hover, .nav-btn.active { color: #fff; background: rgba(227, 27, 35, .15); }
+    .sidebar-bottom { margin-top: auto; padding-top: 20px; }
+    .user-email { color: var(--muted); font-size: 10px; padding: 10px; word-break: break-all; }
 
-    .nav-btn:hover,
-    .nav-btn.active {
-      color: #fff;
-      background: rgba(227, 27, 35, .15);
-    }
-
-    .sidebar-bottom {
-      margin-top: auto;
-      padding-top: 20px;
-    }
-
-    .user-email {
-      color: var(--muted);
-      font-size: 10px;
-      padding: 10px;
-      word-break: break-all;
-    }
-
-    .main {
-      min-width: 0;
-      width: 100%;
-    }
-
+    .main { min-width: 0; width: 100%; }
     .topbar {
-      min-height: 64px;
-      padding: 10px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: rgba(8, 8, 8, .92);
-      backdrop-filter: blur(15px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      height: 64px; padding: 0 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: rgba(8, 8, 8, .92); position: sticky; top: 0; z-index: 100;
     }
+    .page-title { font-size: 18px; font-weight: 800; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .content { padding: 24px; max-width: 1500px; margin: 0 auto; }
 
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .page-title {
-      font-size: 18px;
-      font-weight: 800;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .topbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .content {
-      width: 100%;
-      padding: 24px;
-      max-width: 1500px;
-      margin: 0 auto;
-    }
-
-    .mobile-menu-btn {
-      display: none;
-      font-size: 18px;
-      padding: 7px 11px;
-    }
-
+    .mobile-menu-btn { display: none; font-size: 18px; padding: 7px 11px; }
     .sidebar-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .78);
-      z-index: 150;
-      backdrop-filter: blur(4px);
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.78); z-index: 150;
     }
 
-    /* =========================================================
-       STATS
-       ========================================================= */
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .stat {
-      min-width: 0;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-size: 22px;
-      font-weight: 900;
-      overflow-wrap: anywhere;
-    }
-
-    /* =========================================================
-       PANELS / TABLES
-       ========================================================= */
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .panel-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .panel-body {
-      padding: 20px;
-    }
-
-    .panel-title {
-      font-size: 15px;
-      font-weight: 800;
-    }
-
-    .panel-subtitle {
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 2px;
-    }
-
-    .table-wrap {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-x: contain;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 720px;
-      font-size: 12px;
-    }
-
-    th {
-      text-align: left;
-      color: #666;
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    td {
-      padding: 12px 14px;
-      border-bottom: 1px solid #161616;
-      vertical-align: middle;
-    }
-
-    tbody tr:hover {
-      background: rgba(255, 255, 255, .015);
-    }
-
-    .empty {
-      color: var(--muted);
-      text-align: center;
-      padding: 36px !important;
-    }
-
-    /* =========================================================
-       BADGES
-       ========================================================= */
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 8px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      white-space: nowrap;
-    }
-
-    .badge-order-placed,
-    .badge-pending {
-      background: rgba(245, 197, 66, .12);
-      color: var(--yellow);
-    }
-
-    .badge-payment-confirmed,
-    .badge-paid,
-    .badge-delivered,
-    .badge-active {
-      background: rgba(49, 196, 141, .12);
-      color: var(--green);
-    }
-
-    .badge-packed,
-    .badge-shipped,
-    .badge-upi {
-      background: rgba(112, 170, 255, .12);
-      color: var(--blue);
-    }
-
-    .badge-cancelled,
-    .badge-failed,
-    .badge-inactive {
-      background: rgba(239, 68, 68, .12);
-      color: #ff7777;
-    }
-
-    .badge-cod {
-      background: rgba(245, 197, 66, .10);
-      color: var(--yellow);
-    }
-
-    /* =========================================================
-       PRODUCTS
-       ========================================================= */
-
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      padding: 20px;
-    }
-
-    .product-card {
-      min-width: 0;
-      background: #0c0c0c;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .product-image {
-      aspect-ratio: 1 / 1;
-      background: #151515;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .product-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .product-info {
-      padding: 14px;
-    }
-
-    .product-name {
-      font-weight: 800;
-      font-size: 13px;
-      margin-bottom: 4px;
-      overflow-wrap: anywhere;
-    }
-
-    .product-meta {
-      color: var(--muted);
-      font-size: 11px;
-      overflow-wrap: anywhere;
-    }
-
-    .stock-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
-      margin: 10px 0;
-    }
-
-    .stock-chip {
-      padding: 6px 2px;
-      background: #151515;
-      border: 1px solid var(--border-soft);
-      border-radius: 6px;
-      text-align: center;
-      font-size: 9px;
-    }
-
-    .stock-chip strong {
-      display: block;
-      font-size: 10px;
-      margin-bottom: 1px;
-    }
-
-    /* =========================================================
-       CMS
-       ========================================================= */
-
-    .cms-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .cms-toolbar h2 {
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .cms-toolbar p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .cms-section {
-      background: rgba(255, 255, 255, .02);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-      margin-bottom: 20px;
-    }
-
-    .cms-section-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 10px;
-      border-bottom: 1px solid var(--border-soft);
-      padding-bottom: 12px;
-      margin-bottom: 18px;
-    }
-
-    .cms-section-heading h2 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 800;
-      color: #fff;
-    }
-
-    .cms-section-heading span {
-      color: #555;
-      font-size: 9px;
-    }
-
-    .cms-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .cms-field {
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .cms-field--full {
-      grid-column: 1 / -1;
-    }
-
-    .cms-field > span {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-
-    .cms-image-row {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      min-width: 0;
-    }
-
-    .cms-image-row img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: #151515;
-      flex-shrink: 0;
-    }
-
-    .cms-image-controls {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .cms-image-controls input + input {
-      margin-top: 7px;
-    }
-
-    .cms-save-bar {
-      position: sticky;
-      bottom: 15px;
-      z-index: 20;
-      display: flex;
-      justify-content: flex-end;
-      padding-top: 5px;
-      pointer-events: none;
-    }
-
-    .cms-save-bar .btn {
-      pointer-events: auto;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, .5);
-    }
-
-    /* =========================================================
-       MODALS
-       ========================================================= */
-
-    .modal {
-      position: fixed;
-      inset: 0;
-      z-index: 400;
-      background: rgba(0, 0, 0, .85);
-      display: grid;
-      place-items: center;
-      padding: 20px;
-      backdrop-filter: blur(8px);
-    }
-
-    .modal-box {
-      width: min(720px, 100%);
-      max-height: 90vh;
-      max-height: 90dvh;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      background: #101010;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-      box-shadow: 0 30px 90px rgba(0, 0, 0, .7);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .close-btn {
-      background: transparent;
-      border: 0;
-      color: #888;
-      font-size: 24px;
-      line-height: 1;
-      min-width: 36px;
-      min-height: 36px;
-    }
-
-    .close-btn:hover {
-      color: #fff;
-    }
-
-    /* =========================================================
-       TOAST
-       ========================================================= */
-
-    #toastContainer {
-      position: fixed;
-      right: 20px;
-      bottom: 20px;
-      z-index: 2000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: min(360px, calc(100vw - 40px));
-    }
-
-    .toast {
-      padding: 12px 16px;
-      background: #161616;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 12px;
-      line-height: 1.4;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
-    }
-
-    .toast.success {
-      border-color: rgba(49, 196, 141, .4);
-      color: var(--green);
-    }
-
-    .toast.error {
-      border-color: rgba(239, 68, 68, .4);
-      color: #ff7777;
-    }
-
-    /* =========================================================
-       TABLET
-       ========================================================= */
-
-    @media (max-width: 1100px) {
-      .stats {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .product-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    /* =========================================================
-       MOBILE DRAWER
-       ========================================================= */
-
+    /* STATS & TABLES */
+    .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .stat { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .stat-label { color: var(--muted); font-size: 10px; text-transform: uppercase; margin-bottom: 6px; }
+    .stat-value { font-size: 22px; font-weight: 900; }
+
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .panel-title { font-size: 15px; font-weight: 800; }
+    .panel-subtitle { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+    .table-wrap { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; font-size: 12px; }
+    th { text-align: left; color: #666; font-size: 9px; text-transform: uppercase; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px 14px; border-bottom: 1px solid #161616; vertical-align: middle; }
+    .empty { color: var(--muted); text-align: center; padding: 36px !important; }
+
+    /* BADGES */
+    .badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 999px; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+    .badge-order-placed, .badge-pending { background: rgba(245, 197, 66, .12); color: var(--yellow); }
+    .badge-payment-confirmed, .badge-delivered, .badge-active { background: rgba(49, 196, 141, .12); color: var(--green); }
+    .badge-packed, .badge-shipped, .badge-upi { background: rgba(112, 170, 255, .12); color: var(--blue); }
+    .badge-cancelled, .badge-inactive { background: rgba(239, 68, 68, .12); color: #ff7777; }
+
+    /* CMS & PRODUCTS */
+    .cms-section { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; }
+    .cms-section-heading { border-bottom: 1px solid #1a1a1a; padding-bottom: 12px; margin-bottom: 18px; }
+    .cms-section-heading h2 { margin: 0; font-size: 16px; font-weight: 800; }
+    .cms-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .cms-field { display: flex; flex-direction: column; gap: 6px; }
+    .cms-field--full { grid-column: 1 / -1; }
+    .cms-field span { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+    .cms-image-row { display: flex; gap: 14px; align-items: center; }
+    .cms-image-row img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); background: #151515; }
+
+    .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 20px; }
+    .product-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .product-image { aspect-ratio: 1/1; background: #151515; }
+    .product-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .product-info { padding: 14px; }
+    .product-name { font-weight: 800; font-size: 13px; margin-bottom: 4px; }
+    .product-meta { color: var(--muted); font-size: 11px; }
+    .stock-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 0; }
+    .stock-chip { padding: 6px 2px; background: #151515; border: 1px solid #1a1a1a; border-radius: 6px; text-align: center; font-size: 9px; }
+    .stock-chip strong { display: block; font-size: 10px; }
+
+    /* MODAL & TOAST */
+    .modal { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 20px; }
+    .modal-box { width: min(720px, 100%); max-height: 90vh; overflow-y: auto; background: #101010; border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .close-btn { background: transparent; border: 0; color: #888; font-size: 24px; cursor: pointer; }
+
+    #toastContainer { position: fixed; right: 20px; bottom: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; width: min(360px, calc(100vw - 40px)); }
+    .toast { padding: 12px 16px; background: #161616; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--green); }
+    .toast.error { border-color: rgba(239, 68, 68, .4); color: #ff7777; }
+
+    /* RESPONSIVE */
     @media (max-width: 900px) {
-      #app {
-        display: block;
-        width: 100%;
-      }
-
+      #app { display: block; width: 100%; }
       .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: min(285px, 86vw);
-        height: 100dvh;
-        height: 100vh;
-        transform: translate3d(-105%, 0, 0);
-        transition: transform .25s ease;
-        box-shadow: 20px 0 60px rgba(0, 0, 0, .6);
-        z-index: 300;
+        position: fixed; left: 0; top: 0; bottom: 0; width: min(285px, 86vw); height: 100dvh;
+        transform: translate3d(-105%, 0, 0); transition: transform .25s ease; z-index: 300;
       }
-
-      body.sidebar-open .sidebar {
-        transform: translate3d(0, 0, 0);
-      }
-
-      body.sidebar-open .sidebar-backdrop {
-        display: block;
-      }
-
-      .mobile-menu-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-
-      .topbar {
-        min-height: 60px;
-        padding: 8px 14px;
-      }
-
-      .page-title {
-        font-size: 16px;
-      }
-
-      .topbar-actions .btn {
-        min-height: 34px;
-      }
-
-      .content {
-        padding: 16px;
-      }
-
-      .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .cms-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .cms-field--full {
-        grid-column: auto;
-      }
-
-      .product-grid {
-        grid-template-columns: 1fr 1fr;
-        padding: 14px;
-      }
-    }
-
-    /* =========================================================
-       SMALL PHONES
-       ========================================================= */
-
-    @media (max-width: 640px) {
-      #loginScreen {
-        padding:
-          max(16px, env(safe-area-inset-left))
-          max(16px, env(safe-area-inset-right));
-      }
-
-      .login-card {
-        padding: 26px 18px;
-        border-radius: 14px;
-      }
-
-      .brand {
-        font-size: 23px;
-      }
-
-      .login-subtitle {
-        margin-bottom: 20px;
-      }
-
-      .topbar {
-        gap: 8px;
-      }
-
-      .topbar-actions {
-        gap: 5px;
-      }
-
-      .topbar-actions .btn {
-        padding: 6px 8px;
-        font-size: 9px;
-      }
-
-      .topbar-actions .btn:last-child {
-        display: none;
-      }
-
-      .content {
-        padding: 12px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-
-      .stat {
-        padding: 12px;
-      }
-
-      .stat-label {
-        font-size: 8px;
-      }
-
-      .stat-value {
-        font-size: 18px;
-      }
-
-      .panel {
-        margin-bottom: 14px;
-        border-radius: 10px;
-      }
-
-      .panel-header {
-        padding: 14px;
-      }
-
-      .panel-body {
-        padding: 14px;
-      }
-
-      .panel-title {
-        font-size: 13px;
-      }
-
-      .panel-subtitle {
-        font-size: 10px;
-      }
-
-      .product-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        padding: 10px;
-      }
-
-      .product-info {
-        padding: 10px;
-      }
-
-      .product-name {
-        font-size: 11px;
-      }
-
-      .product-meta {
-        font-size: 9px;
-      }
-
-      .stock-row {
-        gap: 3px;
-      }
-
-      .stock-chip {
-        padding: 5px 1px;
-        font-size: 8px;
-      }
-
-      .stock-chip strong {
-        font-size: 9px;
-      }
-
-      .cms-section {
-        padding: 14px;
-        margin-bottom: 14px;
-        border-radius: 10px;
-      }
-
-      .cms-section-heading {
-        margin-bottom: 14px;
-      }
-
-      .cms-section-heading h2 {
-        font-size: 13px;
-      }
-
-      .cms-toolbar {
-        align-items: stretch;
-        margin-bottom: 14px;
-      }
-
-      .cms-toolbar h2 {
-        font-size: 17px;
-      }
-
-      .cms-toolbar .btn {
-        width: 100%;
-      }
-
-      .cms-image-row {
-        align-items: flex-start;
-      }
-
-      .cms-image-row img {
-        width: 64px;
-        height: 64px;
-      }
-
-      .modal {
-        padding: 10px;
-        align-items: end;
-      }
-
-      .modal-box {
-        width: 100%;
-        max-height: 92dvh;
-        border-radius: 14px 14px 8px 8px;
-        padding: 17px;
-      }
-
-      #toastContainer {
-        right: 12px;
-        bottom: max(12px, env(safe-area-inset-bottom));
-        width: calc(100vw - 24px);
-      }
-
-      .cms-save-bar {
-        bottom: 10px;
-      }
-
-      .cms-save-bar .btn {
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .topbar-actions #refreshButton {
-        display: none;
-      }
-
-      .product-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
+      body.sidebar-open .sidebar { transform: translate3d(0, 0, 0); }
+      body.sidebar-open .sidebar-backdrop { display: block; }
+      .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .product-grid { grid-template-columns: 1fr 1fr; padding: 14px; }
+      .cms-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- =======================================================
-       LOADING
-       ======================================================= -->
-
   <div id="loadingOverlay" class="hidden">
-    <div class="loading-box">
+    <div style="text-align:center;">
       <div class="loading-spinner"></div>
       <div id="loadingText">PROCESSING...</div>
     </div>
   </div>
 
-  <!-- MOBILE DRAWER BACKDROP -->
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-  <!-- =======================================================
-       LOGIN
-       ======================================================= -->
-
+  <!-- LOGIN SCREEN -->
   <section id="loginScreen">
     <div class="login-card">
-
-      <div class="brand">
-        불꽃 <span>BULKKOT</span>
-      </div>
-
-      <p class="login-subtitle">
-        Admin & Content Management Portal
-      </p>
-
-      <form
-        id="loginForm"
-        novalidate
-        autocomplete="on"
-      >
-
+      <div class="brand">불꽃 <span>BULKKOT</span></div>
+      <p class="login-subtitle">Admin & Content Management Portal</p>
+      
+      <form id="loginForm" novalidate>
         <div class="field">
-          <label for="loginEmail">
-            Email Address
-          </label>
-
-          <input
-            id="loginEmail"
-            name="email"
-            type="email"
-            inputmode="email"
-            autocomplete="username"
-            autocapitalize="none"
-            autocorrect="off"
-            spellcheck="false"
-            required
-            placeholder="admin@bulkkot.com"
-          >
+          <label for="loginEmail">Email Address</label>
+          <input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@bulkkot.com">
         </div>
-
         <div class="field">
-          <label for="loginPassword">
-            Password
-          </label>
-
-          <input
-            id="loginPassword"
-            name="password"
-            type="password"
-            autocomplete="current-password"
-            required
-            placeholder="••••••••"
-          >
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
         </div>
-
-        <div
-          id="loginError"
-          class="login-error"
-          aria-live="polite"
-        ></div>
-
-        <!-- IMPORTANT: submit, NOT button -->
-        <button
-          id="loginButton"
-          class="btn btn-primary btn-full"
-          type="submit"
-        >
-          SIGN IN
-        </button>
-
+        <div id="loginError" class="login-error" aria-live="polite"></div>
+        <button id="loginButton" class="btn btn-primary btn-full" type="submit">AUTHENTICATE</button>
       </form>
     </div>
   </section>
 
-  <!-- =======================================================
-       DASHBOARD APP
-       ======================================================= -->
-
+  <!-- DASHBOARD APP -->
   <section id="app" class="hidden">
-
-    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
-
-      <div class="sidebar-logo">
-        불꽃 <span>BULKKOT</span>
-      </div>
-
+      <div class="sidebar-logo">불꽃 <span>BULKKOT</span></div>
       <nav class="nav">
-
-        <button
-          class="nav-btn active"
-          data-page="dashboard"
-          type="button"
-        >
-          ◈ Dashboard
-        </button>
-
-        <button
-          class="nav-btn"
-          data-page="cms"
-          type="button"
-        >
-          ✦ Site CMS
-        </button>
-
-        <button
-          class="nav-btn"
-          data-page="products"
-          type="button"
-        >
-          □ Products
-        </button>
-
-        <button
-          class="nav-btn"
-          data-page="orders"
-          type="button"
-        >
-          ≡ Orders
-        </button>
-
-        <button
-          class="nav-btn"
-          data-page="coupons"
-          type="button"
-        >
-          % Coupons
-        </button>
-
-        <button
-          class="nav-btn"
-          data-page="waitlist"
-          type="button"
-        >
-          ♡ VIP Waitlist
-        </button>
-
+        <button class="nav-btn active" data-page="dashboard" type="button">◈ Dashboard</button>
+        <button class="nav-btn" data-page="cms" type="button">✦ Site CMS</button>
+        <button class="nav-btn" data-page="products" type="button">□ Products</button>
+        <button class="nav-btn" data-page="orders" type="button">≡ Orders</button>
+        <button class="nav-btn" data-page="coupons" type="button">% Coupons</button>
+        <button class="nav-btn" data-page="waitlist" type="button">♡ VIP Waitlist</button>
       </nav>
-
       <div class="sidebar-bottom">
-
-        <div
-          id="userEmail"
-          class="user-email"
-        ></div>
-
-        <button
-          id="logoutButton"
-          class="btn btn-danger btn-full"
-          type="button"
-        >
-          LOGOUT
-        </button>
-
+        <div id="userEmail" class="user-email"></div>
+        <button id="logoutButton" class="btn btn-danger btn-full" type="button">LOGOUT</button>
       </div>
-
     </aside>
 
-    <!-- MAIN -->
     <main class="main">
-
       <header class="topbar">
-
-        <div class="topbar-left">
-
-          <button
-            id="mobileMenuButton"
-            class="btn mobile-menu-btn"
-            type="button"
-            aria-label="Open menu"
-            aria-expanded="false"
-          >
-            ☰
-          </button>
-
-          <div
-            id="pageTitle"
-            class="page-title"
-          >
-            Dashboard
-          </div>
-
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button id="mobileMenuButton" class="btn mobile-menu-btn" type="button">☰</button>
+          <div id="pageTitle" class="page-title">Dashboard</div>
         </div>
-
         <div class="topbar-actions">
-
-          <button
-            id="refreshButton"
-            class="btn btn-small"
-            type="button"
-          >
-            ↻ Refresh
-          </button>
-
-          <a
-            href="index.html"
-            target="_blank"
-            rel="noopener"
-            class="btn btn-small"
-            style="text-decoration:none;"
-          >
-            Storefront ↗
-          </a>
-
+          <button id="refreshButton" class="btn btn-small" type="button">↻ Refresh</button>
+          <a href="index.html" target="_blank" rel="noopener" class="btn btn-small" style="text-decoration:none;">Storefront ↗</a>
         </div>
-
       </header>
 
       <div class="content">
-
-        <!-- ===================================================
-             DASHBOARD
-             =================================================== -->
-
-        <section
-          id="page-dashboard"
-          class="page"
-        >
-
+        <!-- 1. DASHBOARD -->
+        <section id="page-dashboard" class="page">
           <div class="stats">
-
-            <div class="stat">
-              <div class="stat-label">
-                Today's Sales
-              </div>
-              <div
-                id="statTodaySales"
-                class="stat-value"
-              >
-                —
-              </div>
-            </div>
-
-            <div class="stat">
-              <div class="stat-label">
-                Today's Orders
-              </div>
-              <div
-                id="statTodayOrders"
-                class="stat-value"
-              >
-                —
-              </div>
-            </div>
-
-            <div class="stat">
-              <div class="stat-label">
-                Total Revenue
-              </div>
-              <div
-                id="statRevenue"
-                class="stat-value"
-              >
-                —
-              </div>
-            </div>
-
-            <div class="stat">
-              <div class="stat-label">
-                Total Orders
-              </div>
-              <div
-                id="statOrders"
-                class="stat-value"
-              >
-                —
-              </div>
-            </div>
-
-            <div class="stat">
-              <div class="stat-label">
-                VIP Waitlist
-              </div>
-              <div
-                id="statWaitlist"
-                class="stat-value"
-              >
-                —
-              </div>
-            </div>
-
+            <div class="stat"><div class="stat-label">Today's Sales</div><div id="statTodaySales" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">Today's Orders</div><div id="statTodayOrders" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">Total Revenue</div><div id="statRevenue" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">Total Orders</div><div id="statOrders" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">VIP Waitlist</div><div id="statWaitlist" class="stat-value">—</div></div>
           </div>
-
           <div class="panel">
-
             <div class="panel-header">
-
-              <div>
-                <div class="panel-title">
-                  Recent Orders
-                </div>
-
-                <div class="panel-subtitle">
-                  Latest customer purchases
-                </div>
-              </div>
-
+              <div><div class="panel-title">Recent Orders</div><div class="panel-subtitle">Latest customer purchases</div></div>
             </div>
-
             <div class="table-wrap">
-
               <table>
-
-                <thead>
-                  <tr>
-                    <th>Order</th>
-                    <th>Customer</th>
-                    <th>Total</th>
-                    <th>Method</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-
+                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody id="recentOrdersBody"></tbody>
-
               </table>
-
             </div>
-
           </div>
-
         </section>
 
-        <!-- ===================================================
-             SITE CMS
-             =================================================== -->
-
-        <section
-          id="page-cms"
-          class="page hidden"
-        >
-
-          <div class="cms-toolbar">
-
-            <div>
-              <h2>
-                Storefront Content Management
-              </h2>
-
-              <p>
-                Edit website text, images and links directly from the admin panel.
-              </p>
-            </div>
-
-            <button
-              id="saveCmsBtn"
-              class="btn btn-primary"
-              type="button"
-            >
-              SAVE ALL CMS CHANGES
-            </button>
-
+        <!-- 2. SITE CMS -->
+        <section id="page-cms" class="page hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+            <div><h2 style="margin:0; font-size:20px;">Storefront Content Management</h2><p style="margin:4px 0 0; color:var(--muted); font-size:12px;">Edit texts, links and banner photos live on the site.</p></div>
+            <button id="saveCmsBtn" class="btn btn-primary" type="button">SAVE ALL CMS CHANGES</button>
           </div>
 
-          <!-- HERO -->
           <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>01. HERO CAMPAIGN</h2>
-              <span>HOMEPAGE</span>
-            </div>
-
+            <div class="cms-section-heading"><h2>HERO CAMPAIGN</h2></div>
             <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>Hero Korean Text</span>
-                <input
-                  type="text"
-                  data-cms="hero_korean"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Hero Main Title</span>
-                <input
-                  type="text"
-                  data-cms="hero_title"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Hero Subtitle</span>
-                <input
-                  type="text"
-                  data-cms="hero_subtitle"
-                >
-              </label>
-
-              <label class="cms-field cms-field--full">
-                <span>Hero Description</span>
-                <textarea
-                  data-cms="hero_description"
-                  rows="3"
-                ></textarea>
-              </label>
-
-              <label class="cms-field">
-                <span>Button Text</span>
-                <input
-                  type="text"
-                  data-cms="hero_button_text"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Button Link</span>
-                <input
-                  type="text"
-                  data-cms="hero_button_link"
-                  placeholder="#shop"
-                >
-              </label>
-
-              <div class="cms-field cms-field--full">
-
-                <span>Hero Banner Photo</span>
-
-                <div class="cms-image-row">
-
-                  <img
-                    id="prev_hero_image"
-                    src=""
-                    alt="Hero preview"
-                  >
-
-                  <div class="cms-image-controls">
-
-                    <input
-                      type="url"
-                      data-cms="hero_image"
-                      placeholder="Image URL"
-                    >
-
-                    <input
-                      type="file"
-                      accept="image/*"
-                      data-cms-file="hero_image"
-                      style="font-size:11px;"
-                    >
-
-                  </div>
-
-                </div>
-
-              </div>
-
+              <label class="cms-field"><span>Hero Korean Text</span><input type="text" data-cms="hero_korean"></label>
+              <label class="cms-field"><span>Hero Main Title</span><input type="text" data-cms="hero_title"></label>
+              <label class="cms-field"><span>Hero Subtitle</span><input type="text" data-cms="hero_subtitle"></label>
+              <label class="cms-field cms-field--full"><span>Hero Description</span><textarea data-cms="hero_description" rows="2"></textarea></label>
+              <label class="cms-field"><span>Button Text</span><input type="text" data-cms="hero_button_text"></label>
+              <label class="cms-field"><span>Button Link</span><input type="text" data-cms="hero_button_link"></label>
             </div>
-
           </div>
 
-          <!-- ANNOUNCEMENT -->
           <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>02. RED ANNOUNCEMENT TICKER</h2>
-              <span>ANNOUNCEMENT BAR</span>
-            </div>
-
+            <div class="cms-section-heading"><h2>ANNOUNCEMENT TICKER</h2></div>
             <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>Ticker Message 1</span>
-                <input
-                  type="text"
-                  data-cms="announcement_1"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Ticker Message 2</span>
-                <input
-                  type="text"
-                  data-cms="announcement_2"
-                >
-              </label>
-
-              <label class="cms-field cms-field--full">
-                <span>Ticker Message 3</span>
-                <input
-                  type="text"
-                  data-cms="announcement_3"
-                >
-              </label>
-
+              <label class="cms-field"><span>Ticker Message 1</span><input type="text" data-cms="announcement_1"></label>
+              <label class="cms-field"><span>Ticker Message 2</span><input type="text" data-cms="announcement_2"></label>
             </div>
-
           </div>
-
-          <!-- COLLECTIONS -->
-          <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>03. COLLECTIONS</h2>
-              <span>TEES / HOODS / SWEATS</span>
-            </div>
-
-            <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>Tees Card Name</span>
-                <input
-                  type="text"
-                  data-cms="tees_title"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Tees Korean</span>
-                <input
-                  type="text"
-                  data-cms="tees_korean"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Hoods Card Name</span>
-                <input
-                  type="text"
-                  data-cms="hoods_title"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Hoods Korean</span>
-                <input
-                  type="text"
-                  data-cms="hoods_korean"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Sweats Card Name</span>
-                <input
-                  type="text"
-                  data-cms="sweats_title"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Sweats Korean</span>
-                <input
-                  type="text"
-                  data-cms="sweats_korean"
-                >
-              </label>
-
-            </div>
-
-          </div>
-
-          <!-- DROP 001 -->
-          <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>04. DROP 001</h2>
-              <span>CAMPAIGN</span>
-            </div>
-
-            <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>Drop Eyebrow</span>
-                <input
-                  type="text"
-                  data-cms="drop_eyebrow"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Drop Title</span>
-                <input
-                  type="text"
-                  data-cms="drop_title"
-                >
-              </label>
-
-              <label class="cms-field cms-field--full">
-                <span>Drop Description</span>
-                <textarea
-                  data-cms="drop_description"
-                  rows="3"
-                ></textarea>
-              </label>
-
-              <label class="cms-field">
-                <span>Drop Button Text</span>
-                <input
-                  type="text"
-                  data-cms="drop_button_text"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Drop Button Link</span>
-                <input
-                  type="text"
-                  data-cms="drop_button_link"
-                >
-              </label>
-
-              <div class="cms-field cms-field--full">
-
-                <span>Drop Banner Image</span>
-
-                <div class="cms-image-row">
-
-                  <img
-                    id="prev_drop_image"
-                    src=""
-                    alt="Drop preview"
-                  >
-
-                  <div class="cms-image-controls">
-
-                    <input
-                      type="url"
-                      data-cms="drop_image"
-                      placeholder="Image URL"
-                    >
-
-                    <input
-                      type="file"
-                      accept="image/*"
-                      data-cms-file="drop_image"
-                      style="font-size:11px;"
-                    >
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- ABOUT -->
-          <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>05. ABOUT STORY</h2>
-              <span>BRAND STORY</span>
-            </div>
-
-            <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>About Eyebrow</span>
-                <input
-                  type="text"
-                  data-cms="about_eyebrow"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>About Lead Text</span>
-                <input
-                  type="text"
-                  data-cms="about_lead"
-                >
-              </label>
-
-              <label class="cms-field cms-field--full">
-                <span>Story Paragraph 1</span>
-                <textarea
-                  data-cms="about_text_1"
-                  rows="4"
-                ></textarea>
-              </label>
-
-              <label class="cms-field cms-field--full">
-                <span>Story Paragraph 2</span>
-                <textarea
-                  data-cms="about_text_2"
-                  rows="4"
-                ></textarea>
-              </label>
-
-              <label class="cms-field">
-                <span>About Signature</span>
-                <input
-                  type="text"
-                  data-cms="about_signature"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Read Story Button</span>
-                <input
-                  type="text"
-                  data-cms="about_button_text"
-                >
-              </label>
-
-              <label class="cms-field cms-field--full">
-                <span>Read Story Button Link</span>
-                <input
-                  type="text"
-                  data-cms="about_button_link"
-                >
-              </label>
-
-            </div>
-
-          </div>
-
-          <!-- PHILOSOPHY -->
-          <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>06. BRAND PHILOSOPHY</h2>
-              <span>ABOUT / EDITORIAL</span>
-            </div>
-
-            <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>Philosophy Eyebrow</span>
-                <input
-                  type="text"
-                  data-cms="philosophy_eyebrow"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Philosophy Title</span>
-                <input
-                  type="text"
-                  data-cms="philosophy_title"
-                >
-              </label>
-
-              <label class="cms-field cms-field--full">
-                <span>Philosophy Description</span>
-                <textarea
-                  data-cms="philosophy_description"
-                  rows="4"
-                ></textarea>
-              </label>
-
-            </div>
-
-          </div>
-
-          <!-- WAITLIST -->
-          <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>07. VIP WAITLIST</h2>
-              <span>DROP 001</span>
-            </div>
-
-            <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>Waitlist Eyebrow</span>
-                <input
-                  type="text"
-                  data-cms="waitlist_eyebrow"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Waitlist Title</span>
-                <input
-                  type="text"
-                  data-cms="waitlist_title"
-                >
-              </label>
-
-              <label class="cms-field cms-field--full">
-                <span>Waitlist Description</span>
-                <textarea
-                  data-cms="waitlist_description"
-                  rows="3"
-                ></textarea>
-              </label>
-
-              <label class="cms-field">
-                <span>Waitlist Button Text</span>
-                <input
-                  type="text"
-                  data-cms="waitlist_button_text"
-                >
-              </label>
-
-            </div>
-
-          </div>
-
-          <!-- HEADER -->
-          <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>08. HEADER NAVIGATION</h2>
-              <span>TEXT + LINKS</span>
-            </div>
-
-            <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>Home Text</span>
-                <input
-                  type="text"
-                  data-cms="header_home_text"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Home Link</span>
-                <input
-                  type="text"
-                  data-cms="header_home_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Shop Text</span>
-                <input
-                  type="text"
-                  data-cms="header_shop_text"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Shop Link</span>
-                <input
-                  type="text"
-                  data-cms="header_shop_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Drop Text</span>
-                <input
-                  type="text"
-                  data-cms="header_drop_text"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Drop Link</span>
-                <input
-                  type="text"
-                  data-cms="header_drop_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Collections Text</span>
-                <input
-                  type="text"
-                  data-cms="header_collections_text"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Collections Link</span>
-                <input
-                  type="text"
-                  data-cms="header_collections_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>About Text</span>
-                <input
-                  type="text"
-                  data-cms="header_about_text"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>About Link</span>
-                <input
-                  type="text"
-                  data-cms="header_about_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Track Order Text</span>
-                <input
-                  type="text"
-                  data-cms="header_track_text"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Account Text</span>
-                <input
-                  type="text"
-                  data-cms="header_account_text"
-                >
-              </label>
-
-            </div>
-
-          </div>
-
-          <!-- FOOTER -->
-          <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>09. FOOTER CONTROL</h2>
-              <span>TEXT + LINKS</span>
-            </div>
-
-            <div class="cms-grid">
-
-              <label class="cms-field cms-field--full">
-                <span>Footer Brand Description</span>
-                <textarea
-                  data-cms="footer_description"
-                  rows="3"
-                ></textarea>
-              </label>
-
-              <label class="cms-field">
-                <span>Shop All Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_shop_all_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Tees Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_shop_tees_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Hoods Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_shop_hoods_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Sweats Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_shop_sweats_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>FAQ Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_faq_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Shipping Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_shipping_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Returns Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_returns_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Privacy Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_privacy_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Terms Link</span>
-                <input
-                  type="text"
-                  data-cms="footer_terms_link"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Footer Copyright</span>
-                <input
-                  type="text"
-                  data-cms="footer_copyright"
-                >
-              </label>
-
-            </div>
-
-          </div>
-
-          <!-- CONTACT -->
-          <div class="cms-section">
-
-            <div class="cms-section-heading">
-              <h2>10. CONTACT & SOCIAL</h2>
-              <span>CONNECT</span>
-            </div>
-
-            <div class="cms-grid">
-
-              <label class="cms-field">
-                <span>Official Email</span>
-                <input
-                  type="email"
-                  data-cms="contact_email"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Instagram URL</span>
-                <input
-                  type="url"
-                  data-cms="instagram_url"
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>WhatsApp URL</span>
-                <input
-                  type="url"
-                  data-cms="whatsapp_url"
-                  placeholder="https://wa.me/..."
-                >
-              </label>
-
-              <label class="cms-field">
-                <span>Contact Button Text</span>
-                <input
-                  type="text"
-                  data-cms="contact_button_text"
-                >
-              </label>
-
-            </div>
-
-          </div>
-
-          <div class="cms-save-bar">
-
-            <button
-              id="saveCmsBtnBottom"
-              class="btn btn-primary"
-              type="button"
-            >
-              SAVE ALL CMS CHANGES
-            </button>
-
-          </div>
-
         </section>
 
-        <!-- ===================================================
-             PRODUCTS
-             =================================================== -->
-
-        <section
-          id="page-products"
-          class="page hidden"
-        >
-
+        <!-- 3. PRODUCTS -->
+        <section id="page-products" class="page hidden">
           <div class="panel">
-
-            <div class="panel-header">
-
-              <div>
-                <div class="panel-title">
-                  Catalogue & Stock
-                </div>
-
-                <div class="panel-subtitle">
-                  Manage prices and S/M/L/XL stock
-                </div>
-              </div>
-
-            </div>
-
-            <div
-              id="productsGrid"
-              class="product-grid"
-            ></div>
-
+            <div class="panel-header"><div><div class="panel-title">Catalogue & Stock</div><div class="panel-subtitle">Manage prices and S/M/L/XL stock</div></div></div>
+            <div id="productsGrid" class="product-grid"></div>
           </div>
-
         </section>
 
-        <!-- ===================================================
-             ORDERS
-             =================================================== -->
-
-        <section
-          id="page-orders"
-          class="page hidden"
-        >
-
+        <!-- 4. ORDERS -->
+        <section id="page-orders" class="page hidden">
           <div class="panel">
-
-            <div class="panel-header">
-
-              <div>
-                <div class="panel-title">
-                  Order Fulfilment
-                </div>
-
-                <div class="panel-subtitle">
-                  Update status and couriers
-                </div>
-              </div>
-
-            </div>
-
+            <div class="panel-header"><div><div class="panel-title">Order Fulfilment</div><div class="panel-subtitle">Update status and couriers</div></div></div>
             <div class="table-wrap">
-
               <table>
-
-                <thead>
-                  <tr>
-                    <th>Order</th>
-                    <th>Customer</th>
-                    <th>Total</th>
-                    <th>Method</th>
-                    <th>Payment</th>
-                    <th>Status</th>
-                    <th>Courier / Tracking</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-
+                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Method</th><th>Payment</th><th>Status</th><th>Courier / Tracking</th><th>Action</th></tr></thead>
                 <tbody id="ordersBody"></tbody>
-
               </table>
-
             </div>
-
           </div>
-
         </section>
 
-        <!-- ===================================================
-             COUPONS
-             =================================================== -->
-
-        <section
-          id="page-coupons"
-          class="page hidden"
-        >
-
+        <!-- 5. COUPONS -->
+        <section id="page-coupons" class="page hidden">
           <div class="panel">
-
-            <div class="panel-header">
-              <div class="panel-title">
-                Create Discount Code
-              </div>
-            </div>
-
+            <div class="panel-header"><div class="panel-title">Create Discount Code</div></div>
             <div class="panel-body">
-
-              <form
-                id="couponForm"
-                class="cms-grid"
-                novalidate
-              >
-
-                <div class="field">
-                  <label for="couponCode">
-                    Code *
-                  </label>
-
-                  <input
-                    id="couponCode"
-                    placeholder="BULKKOT10"
-                    required
-                  >
-                </div>
-
-                <div class="field">
-                  <label for="couponValue">
-                    Discount (%) *
-                  </label>
-
-                  <input
-                    id="couponValue"
-                    type="number"
-                    min="0"
-                    max="100"
-                    placeholder="10"
-                    required
-                  >
-                </div>
-
-                <div class="field">
-                  <label for="couponMinOrder">
-                    Min Order (₹)
-                  </label>
-
-                  <input
-                    id="couponMinOrder"
-                    type="number"
-                    min="0"
-                    value="0"
-                  >
-                </div>
-
-                <div
-                  class="field"
-                  style="display:flex; align-items:flex-end;"
-                >
-                  <button
-                    id="createCouponBtn"
-                    class="btn btn-primary btn-full"
-                    type="submit"
-                  >
-                    CREATE COUPON
-                  </button>
-                </div>
-
+              <form id="couponForm" class="cms-grid" novalidate>
+                <div class="field"><label>Code *</label><input id="couponCode" placeholder="BULKKOT10" required></div>
+                <div class="field"><label>Discount (%) *</label><input id="couponValue" type="number" min="0" max="100" placeholder="10" required></div>
+                <div class="field"><label>Min Order (₹)</label><input id="couponMinOrder" type="number" min="0" value="0"></div>
+                <div class="field" style="display:flex; align-items:flex-end;"><button id="createCouponBtn" class="btn btn-primary btn-full" type="button">Create Coupon</button></div>
               </form>
-
             </div>
-
           </div>
-
           <div class="panel">
-
-            <div class="panel-header">
-
-              <div class="panel-title">
-                Active Coupons
-              </div>
-
-            </div>
-
+            <div class="panel-header"><div class="panel-title">Active Coupons</div></div>
             <div class="table-wrap">
-
               <table>
-
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Discount</th>
-                    <th>Min Order</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-
+                <thead><tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Status</th><th>Action</th></tr></thead>
                 <tbody id="couponsBody"></tbody>
-
               </table>
-
             </div>
-
           </div>
-
         </section>
 
-        <!-- ===================================================
-             WAITLIST
-             =================================================== -->
-
-        <section
-          id="page-waitlist"
-          class="page hidden"
-        >
-
+        <!-- 6. WAITLIST -->
+        <section id="page-waitlist" class="page hidden">
           <div class="panel">
-
-            <div class="panel-header">
-
-              <div class="panel-title">
-                VIP Waitlist Subscribers
-              </div>
-
-            </div>
-
+            <div class="panel-header"><div class="panel-title">VIP Waitlist Subscribers</div></div>
             <div class="table-wrap">
-
               <table>
-
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>Subscribed At</th>
-                  </tr>
-                </thead>
-
+                <thead><tr><th>Email</th><th>Subscribed At</th></tr></thead>
                 <tbody id="waitlistBody"></tbody>
-
               </table>
-
             </div>
-
           </div>
-
         </section>
-
       </div>
     </main>
-
   </section>
 
-  <!-- =======================================================
-       ORDER DETAILS MODAL
-       ======================================================= -->
-
-  <div
-    id="orderModal"
-    class="modal hidden"
-    role="dialog"
-    aria-modal="true"
-  >
-
+  <!-- ORDER MODAL -->
+  <div id="orderModal" class="modal hidden">
     <div class="modal-box">
-
       <div class="modal-header">
-
-        <strong id="orderModalTitle">
-          Order Details
-        </strong>
-
-        <button
-          id="closeOrderModal"
-          class="close-btn"
-          type="button"
-          aria-label="Close"
-        >
-          &times;
-        </button>
-
+        <strong id="orderModalTitle">Order Details</strong>
+        <button id="closeOrderModal" class="close-btn" type="button">&times;</button>
       </div>
-
       <div id="orderModalBody"></div>
-
     </div>
-
   </div>
 
   <div id="toastContainer"></div>
 
-  <!-- =======================================================
-       JAVASCRIPT
-       ======================================================= -->
-
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-
       "use strict";
 
-      /* =====================================================
-         SUPABASE
-         ===================================================== */
+      const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
 
-      const SUPABASE_URL =
-        "https://pgubjluqgqvrybvehzeh.supabase.co";
-
-      const SUPABASE_ANON_KEY =
-        "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-
-      if (!window.supabase) {
-        alert("Supabase failed to load. Please refresh the page.");
-        return;
-      }
-
-      /*
-       * IMPORTANT:
-       *
-       * persistSession: true
-       * autoRefreshToken: true
-       * detectSessionInUrl: false
-       *
-       * This explicitly tells Supabase to keep the admin
-       * session in browser storage.
-       */
-
-      const supabase = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY,
-        {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: false,
-            storage: window.localStorage,
-            storageKey: "bulkkot-admin-auth"
-          }
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: false,
+          storage: window.localStorage,
+          storageKey: "bulkkot-admin-auth"
         }
-      );
-
-      /* =====================================================
-         STATE
-         ===================================================== */
-
-      const state = {
-        user: null,
-        session: null,
-        products: [],
-        orders: [],
-        coupons: [],
-        waitlist: [],
-        cms: {},
-        appReady: false,
-        loadingAll: false,
-        loginInProgress: false
-      };
-
-      const $ = selector =>
-        document.querySelector(selector);
-
-      const $$ = selector =>
-        [...document.querySelectorAll(selector)];
-
-      /* =====================================================
-         HELPERS
-         ===================================================== */
-
-      function escapeHTML(value) {
-        return String(value ?? "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
-      }
-
-      function safeImageUrl(value) {
-        const url = String(value || "").trim();
-
-        if (
-          url.startsWith("https://") ||
-          url.startsWith("http://") ||
-          url.startsWith("data:image/")
-        ) {
-          return url;
-        }
-
-        return "";
-      }
-
-      function formatMoney(value) {
-        return "₹" +
-          Number(value || 0).toLocaleString("en-IN");
-      }
-
-      /* =====================================================
-         TOAST
-         ===================================================== */
-
-      function showToast(
-        message,
-        type = "success"
-      ) {
-        const container =
-          $("#toastContainer");
-
-        if (!container) return;
-
-        const toast =
-          document.createElement("div");
-
-        toast.className =
-          `toast ${type}`;
-
-        toast.textContent =
-          message;
-
-        container.appendChild(toast);
-
-        setTimeout(() => {
-          toast.remove();
-        }, 4000);
-      }
-
-      /* =====================================================
-         LOADING
-         ===================================================== */
-
-      function setLoading(
-        show,
-        text = "PROCESSING..."
-      ) {
-        const overlay =
-          $("#loadingOverlay");
-
-        const loadingText =
-          $("#loadingText");
-
-        if (!overlay) return;
-
-        if (loadingText) {
-          loadingText.textContent =
-            text;
-        }
-
-        overlay.classList.toggle(
-          "hidden",
-          !show
-        );
-      }
-
-      /* =====================================================
-         LOGIN ERROR
-         ===================================================== */
-
-      function setLoginError(message = "") {
-        const errorBox =
-          $("#loginError");
-
-        if (!errorBox) return;
-
-        errorBox.textContent =
-          message;
-      }
-
-      /* =====================================================
-         MOBILE DRAWER
-         ===================================================== */
-
-      const mobileMenuButton =
-        $("#mobileMenuButton");
-
-      const sidebarBackdrop =
-        $("#sidebarBackdrop");
-
-      function openSidebar() {
-        document.body.classList.add(
-          "sidebar-open"
-        );
-
-        mobileMenuButton?.setAttribute(
-          "aria-expanded",
-          "true"
-        );
-      }
-
-      function closeSidebar() {
-        document.body.classList.remove(
-          "sidebar-open"
-        );
-
-        mobileMenuButton?.setAttribute(
-          "aria-expanded",
-          "false"
-        );
-      }
-
-      function toggleSidebar() {
-        if (
-          document.body.classList.contains(
-            "sidebar-open"
-          )
-        ) {
-          closeSidebar();
-        } else {
-          openSidebar();
-        }
-      }
-
-      mobileMenuButton?.addEventListener(
-        "click",
-        event => {
-          event.preventDefault();
-          event.stopPropagation();
-          toggleSidebar();
-        }
-      );
-
-      sidebarBackdrop?.addEventListener(
-        "click",
-        event => {
-          event.preventDefault();
-          closeSidebar();
-        }
-      );
-
-      /* =====================================================
-         NAVIGATION
-         ===================================================== */
-
-      function openPage(pageName) {
-
-        $$(".nav-btn").forEach(button => {
-          button.classList.toggle(
-            "active",
-            button.dataset.page === pageName
-          );
-        });
-
-        $$(".page").forEach(page => {
-          page.classList.add("hidden");
-        });
-
-        const target =
-          $(`#page-${pageName}`);
-
-        if (target) {
-          target.classList.remove(
-            "hidden"
-          );
-        }
-
-        const activeButton =
-          $(
-            `.nav-btn[data-page="${pageName}"]`
-          );
-
-        if (activeButton) {
-          $("#pageTitle").textContent =
-            activeButton.textContent
-              .replace(/[^a-zA-Z ]/g, "")
-              .trim();
-        }
-
-        closeSidebar();
-
-        /*
-         * When CMS opens, make sure latest CMS
-         * data is visible.
-         */
-        if (
-          pageName === "cms" &&
-          state.user
-        ) {
-          loadCMS();
-        }
-      }
-
-      $$(".nav-btn").forEach(button => {
-
-        button.addEventListener(
-          "click",
-          event => {
-
-            event.preventDefault();
-
-            openPage(
-              button.dataset.page
-            );
-
-          }
-        );
-
       });
 
-      /* =====================================================
-         SHOW APP / LOGIN
-         ===================================================== */
+      const state = { user: null, products: [], orders: [], coupons: [], waitlist: [], cms: {} };
+      const $ = s => document.querySelector(s);
+      const $$ = s => [...document.querySelectorAll(s)];
 
-      async function showApp(
-        user,
-        session = null
-      ) {
+      function showToast(msg, type = "success") {
+        const c = $("#toastContainer");
+        if (!c) return;
+        const t = document.createElement("div");
+        t.className = `toast ${type}`;
+        t.textContent = msg;
+        c.appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+      }
 
-        if (!user) {
-          showLogin();
-          return;
-        }
+      function setLoading(show, text = "PROCESSING...") {
+        const ov = $("#loadingOverlay");
+        const txt = $("#loadingText");
+        if (txt) txt.textContent = text;
+        ov?.classList.toggle("hidden", !show);
+      }
 
+      function setLoginError(msg = "") {
+        const err = $("#loginError");
+        if (err) err.textContent = msg;
+      }
+
+      // MOBILE MENU
+      const mobileBtn = $("#mobileMenuButton");
+      const backdrop = $("#sidebarBackdrop");
+      mobileBtn?.addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
+      backdrop?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
+
+      // NAV TABS
+      $$(".nav-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          $$(".nav-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          const page = btn.dataset.page;
+          $$(".page").forEach(p => p.classList.add("hidden"));
+          $(`#page-${page}`)?.classList.remove("hidden");
+          $("#pageTitle").textContent = btn.textContent.replace(/[^a-zA-Z ]/g, '').trim();
+          document.body.classList.remove("sidebar-open");
+        });
+      });
+
+      function showApp(user) {
         state.user = user;
-        state.session =
-          session || state.session;
-        state.appReady = true;
-
-        $("#userEmail").textContent =
-          user.email || "Admin";
-
-        $("#loginScreen")
-          .classList.add("hidden");
-
-        $("#app")
-          .classList.remove("hidden");
-
-        closeSidebar();
-
-        /*
-         * Dashboard should appear instantly.
-         */
-        openPage("dashboard");
-
-        /*
-         * Do not repeatedly fetch everything
-         * because auth listener + getSession can
-         * both fire.
-         */
-        if (!state.loadingAll) {
-          await loadAll();
-        }
+        $("#userEmail").textContent = user.email || "Admin";
+        $("#loginScreen").classList.add("hidden");
+        $("#app").classList.remove("hidden");
+        loadAll();
       }
 
       function showLogin() {
-
         state.user = null;
-        state.session = null;
-        state.appReady = false;
-
-        closeSidebar();
-
-        $("#app")
-          .classList.add("hidden");
-
-        $("#loginScreen")
-          .classList.remove("hidden");
-
-        $("#loginButton").disabled = false;
-
-        $("#loginButton").textContent =
-          "SIGN IN";
-
+        $("#app").classList.add("hidden");
+        $("#loginScreen").classList.remove("hidden");
         setLoginError("");
-
-        setTimeout(() => {
-          $("#loginEmail")?.focus();
-        }, 50);
       }
 
-      /* =====================================================
-         LOGIN
-         ===================================================== */
-
-      async function handleLogin(event) {
-
-        /*
-         * THIS IS THE IMPORTANT MOBILE FIX.
-         *
-         * The function itself also prevents default so
-         * it remains safe if called manually.
-         */
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
+      // FIXED LOGIN HANDLER (NO RELOAD)
+      async function handleLogin(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
         }
 
-        if (state.loginInProgress) {
-          return;
-        }
-
-        const emailInput =
-          $("#loginEmail");
-
-        const passwordInput =
-          $("#loginPassword");
-
-        const button =
-          $("#loginButton");
-
-        const email =
-          emailInput?.value
-            .trim()
-            .toLowerCase();
-
-        const password =
-          passwordInput?.value || "";
-
-        setLoginError("");
+        const email = $("#loginEmail").value.trim().toLowerCase();
+        const password = $("#loginPassword").value;
+        const btn = $("#loginButton");
 
         if (!email || !password) {
-
-          setLoginError(
-            "Please enter email and password."
-          );
-
+          setLoginError("Please enter email and password.");
           return;
         }
 
-        if (
-          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            .test(email)
-        ) {
-
-          setLoginError(
-            "Please enter a valid email address."
-          );
-
-          return;
-        }
-
-        state.loginInProgress = true;
-
-        if (button) {
-          button.disabled = true;
-          button.textContent =
-            "SIGNING IN...";
-        }
-
-        setLoading(
-          true,
-          "AUTHENTICATING..."
-        );
+        btn.disabled = true;
+        btn.textContent = "SIGNING IN...";
+        setLoading(true, "AUTHENTICATING...");
 
         try {
-
-          const {
-            data,
-            error
-          } =
-            await supabase.auth
-              .signInWithPassword({
-                email,
-                password
-              });
-
-          if (error) {
-            throw error;
-          }
-
-          if (!data?.user) {
-            throw new Error(
-              "Login succeeded but no user session was returned."
-            );
-          }
-
-          /*
-           * signInWithPassword normally persists the session
-           * automatically because persistSession=true.
-           *
-           * We explicitly set the returned session as an
-           * additional safety measure for mobile browsers.
-           */
-          if (data.session) {
-
-            const {
-              error: sessionError
-            } =
-              await supabase.auth.setSession(
-                data.session
-              );
-
-            if (sessionError) {
-              throw sessionError;
-            }
-
-            state.session =
-              data.session;
-          }
-
-          /*
-           * Immediately switch UI.
-           *
-           * NO reload.
-           * NO location.href.
-           * NO window.location.
-           */
-          await showApp(
-            data.user,
-            data.session
-          );
-
-          showToast(
-            "Welcome to BULKKOT Admin!"
-          );
-
-        } catch (error) {
-
-          console.error(
-            "BULKKOT ADMIN LOGIN ERROR:",
-            error
-          );
-
-          setLoginError(
-            error?.message ||
-            "Invalid credentials. Please try again."
-          );
-
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          if (data.session) await supabase.auth.setSession(data.session);
+          showToast("Welcome to BULKKOT Admin!");
+          showApp(data.user);
+        } catch (err) {
+          setLoginError(err.message || "Invalid credentials.");
         } finally {
-
-          state.loginInProgress = false;
-
-          if (button) {
-            button.disabled = false;
-            button.textContent =
-              "SIGN IN";
-          }
-
+          btn.disabled = false;
+          btn.textContent = "AUTHENTICATE";
           setLoading(false);
         }
       }
 
-      /*
-       * IMPORTANT:
-       *
-       * Listen to the FORM submit event.
-       *
-       * This catches:
-       * - Login button tap
-       * - Enter key
-       * - Mobile keyboard submit
-       * - Desktop submit
-       *
-       * There is NO inline onsubmit and NO keypress hack.
-       */
+      $("#loginForm")?.addEventListener("submit", handleLogin);
 
-      $("#loginForm")?.addEventListener(
-        "submit",
-        handleLogin,
-        false
-      );
+      $("#logoutButton")?.addEventListener("click", async () => {
+        setLoading(true, "LOGGING OUT...");
+        await supabase.auth.signOut();
+        setLoading(false);
+        showLogin();
+        showToast("Logged out successfully.");
+      });
 
-      /* =====================================================
-         LOGOUT
-         ===================================================== */
-
-      $("#logoutButton")?.addEventListener(
-        "click",
-        async event => {
-
-          event.preventDefault();
-
-          setLoading(
-            true,
-            "LOGGING OUT..."
-          );
-
-          try {
-
-            await supabase.auth.signOut();
-
-            state.user = null;
-            state.session = null;
-            state.appReady = false;
-
-            showLogin();
-
-            showToast(
-              "Logged out successfully."
-            );
-
-          } catch (error) {
-
-            showToast(
-              error?.message ||
-              "Logout failed.",
-              "error"
-            );
-
-          } finally {
-
-            setLoading(false);
-
-          }
-        }
-      );
-
-      /* =====================================================
-         AUTH STATE
-         ===================================================== */
-
-      let initialAuthResolved = false;
-
-      supabase.auth.onAuthStateChange(
-        (event, session) => {
-
-          console.log(
-            "BULKKOT AUTH:",
-            event
-          );
-
-          /*
-           * Auth events happen after login too.
-           *
-           * If user is already visible in the app,
-           * do not unnecessarily reload everything.
-           */
-          if (
-            session?.user &&
-            !state.user
-          ) {
-
-            state.session =
-              session;
-
-            /*
-             * setTimeout prevents Supabase's internal
-             * auth callback from blocking its own event
-             * processing.
-             */
-            setTimeout(() => {
-              showApp(
-                session.user,
-                session
-              );
-            }, 0);
-
-            return;
-          }
-
-          if (
-            !session?.user &&
-            event === "SIGNED_OUT"
-          ) {
-
-            showLogin();
-
-          }
-
-        }
-      );
-
-      /* =====================================================
-         INITIAL SESSION RESTORE
-         ===================================================== */
-
-      async function restoreSession() {
-
-        try {
-
-          const {
-            data,
-            error
-          } =
-            await supabase.auth.getSession();
-
-          if (error) {
-            throw error;
-          }
-
-          initialAuthResolved = true;
-
-          const session =
-            data?.session;
-
-          if (
-            session &&
-            session.user
-          ) {
-
-            state.session =
-              session;
-
-            await showApp(
-              session.user,
-              session
-            );
-
-          } else {
-
-            showLogin();
-
-          }
-
-        } catch (error) {
-
-          console.error(
-            "SESSION RESTORE ERROR:",
-            error
-          );
-
+      // RESTORE SESSION
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          showApp(session.user);
+        } else {
           showLogin();
-
         }
-      }
+      });
 
-      /*
-       * Start auth restoration.
-       */
-      restoreSession();
-
-      /* =====================================================
-         CMS
-         ===================================================== */
-
-      async function loadCMS() {
-
-        try {
-
-          const {
-            data,
-            error
-          } =
-            await supabase
-              .from("site_content")
-              .select("*")
-              .order("content_key");
-
-          if (error) {
-            console.error(
-              "CMS LOAD ERROR:",
-              error
-            );
-
-            showToast(
-              "Failed to load CMS content.",
-              "error"
-            );
-
-            return;
-          }
-
-          state.cms = {};
-
-          (data || []).forEach(item => {
-
-            const key =
-              item.content_key;
-
-            const value =
-              item.content_type === "image"
-                ? (
-                    item.image_url ||
-                    item.content_value ||
-                    ""
-                  )
-                : (
-                    item.content_value ||
-                    item.image_url ||
-                    ""
-                  );
-
-            state.cms[key] =
-              value;
-
-            const input =
-              document.querySelector(
-                `[data-cms="${CSS.escape(key)}"]`
-              );
-
-            if (input) {
-              input.value =
-                value;
-            }
-
-            const preview =
-              document.getElementById(
-                `prev_${key}`
-              );
-
-            if (preview) {
-
-              const image =
-                safeImageUrl(
-                  item.image_url ||
-                  item.content_value
-                );
-
-              preview.src =
-                image || "";
-
-              preview.style.opacity =
-                image ? "1" : ".25";
-            }
-
-          });
-
-        } catch (error) {
-
-          console.error(
-            "CMS LOAD EXCEPTION:",
-            error
-          );
-
-        }
-      }
-
-      /* =====================================================
-         CMS SAVE
-         ===================================================== */
-
-      async function saveCMS() {
-
-        if (!state.user) {
-
-          showToast(
-            "Please login first.",
-            "error"
-          );
-
-          return;
-        }
-
-        const inputs =
-          $$("[data-cms]");
-
-        if (!inputs.length) {
-          return;
-        }
-
-        setLoading(
-          true,
-          "SAVING CMS..."
-        );
-
-        try {
-
-          const updates =
-            inputs.map(input => {
-
-              const key =
-                input.dataset.cms;
-
-              const value =
-                input.value.trim();
-
-              const isImage =
-                key.endsWith("_image") ||
-                key.includes("image");
-
-              const isLink =
-                key.includes("_link") ||
-                key.endsWith("_url");
-
-              return {
-                content_key: key,
-                content_value:
-                  isImage
-                    ? null
-                    : value,
-                image_url:
-                  isImage
-                    ? value
-                    : null,
-                content_type:
-                  isImage
-                    ? "image"
-                    : isLink
-                      ? "link"
-                      : "text"
-              };
-
-            });
-
-          /*
-           * Upsert in chunks instead of making dozens
-           * of independent requests.
-           */
-          const chunkSize = 25;
-
-          for (
-            let i = 0;
-            i < updates.length;
-            i += chunkSize
-          ) {
-
-            const chunk =
-              updates.slice(
-                i,
-                i + chunkSize
-              );
-
-            const {
-              error
-            } =
-              await supabase
-                .from("site_content")
-                .upsert(
-                  chunk,
-                  {
-                    onConflict:
-                      "content_key"
-                  }
-                );
-
-            if (error) {
-              throw error;
-            }
-          }
-
-          await loadCMS();
-
-          showToast(
-            "Storefront CMS updated successfully!"
-          );
-
-        } catch (error) {
-
-          console.error(
-            "CMS SAVE ERROR:",
-            error
-          );
-
-          showToast(
-            error?.message ||
-            "Failed to save CMS.",
-            "error"
-          );
-
-        } finally {
-
-          setLoading(false);
-
-        }
-      }
-
-      $("#saveCmsBtn")?.addEventListener(
-        "click",
-        saveCMS
-      );
-
-      $("#saveCmsBtnBottom")?.addEventListener(
-        "click",
-        saveCMS
-      );
-
-      /* =====================================================
-         CMS IMAGE UPLOAD
-         ===================================================== */
-
-      $$("[data-cms-file]")
-        .forEach(fileInput => {
-
-          fileInput.addEventListener(
-            "change",
-            async event => {
-
-              const file =
-                event.target.files?.[0];
-
-              if (!file) {
-                return;
-              }
-
-              const key =
-                fileInput.dataset.cmsFile;
-
-              if (!file.type.startsWith("image/")) {
-
-                showToast(
-                  "Please select an image file.",
-                  "error"
-                );
-
-                fileInput.value = "";
-                return;
-              }
-
-              /*
-               * 10 MB client-side safety limit.
-               */
-              if (
-                file.size >
-                10 * 1024 * 1024
-              ) {
-
-                showToast(
-                  "Image must be smaller than 10MB.",
-                  "error"
-                );
-
-                fileInput.value = "";
-                return;
-              }
-
-              setLoading(
-                true,
-                "UPLOADING PHOTO..."
-              );
-
-              try {
-
-                const extension =
-                  (
-                    file.name.split(".").pop() ||
-                    "jpg"
-                  )
-                    .toLowerCase()
-                    .replace(
-                      /[^a-z0-9]/g,
-                      ""
-                    );
-
-                const path =
-                  `cms/${key}-${Date.now()}.${extension}`;
-
-                const {
-                  error: uploadError
-                } =
-                  await supabase.storage
-                    .from("site-media")
-                    .upload(
-                      path,
-                      file,
-                      {
-                        upsert: true,
-                        contentType:
-                          file.type,
-                        cacheControl:
-                          "3600"
-                      }
-                    );
-
-                if (uploadError) {
-                  throw uploadError;
-                }
-
-                const {
-                  data
-                } =
-                  supabase.storage
-                    .from("site-media")
-                    .getPublicUrl(path);
-
-                const publicUrl =
-                  data?.publicUrl || "";
-
-                if (!publicUrl) {
-                  throw new Error(
-                    "Could not generate public image URL."
-                  );
-                }
-
-                const input =
-                  document.querySelector(
-                    `[data-cms="${CSS.escape(key)}"]`
-                  );
-
-                if (input) {
-                  input.value =
-                    publicUrl;
-                }
-
-                const preview =
-                  document.getElementById(
-                    `prev_${key}`
-                  );
-
-                if (preview) {
-
-                  preview.src =
-                    publicUrl;
-
-                  preview.style.opacity =
-                    "1";
-                }
-
-                showToast(
-                  "Photo uploaded. Click Save to publish."
-                );
-
-              } catch (error) {
-
-                console.error(
-                  "CMS UPLOAD ERROR:",
-                  error
-                );
-
-                showToast(
-                  error?.message ||
-                  "Image upload failed.",
-                  "error"
-                );
-
-              } finally {
-
-                fileInput.value = "";
-                setLoading(false);
-
-              }
-            }
-          );
-
-        });
-
-      /* =====================================================
-         LOAD ALL ADMIN DATA
-         ===================================================== */
-
+      // LOAD DATA
       async function loadAll() {
-
-        if (!state.user) {
-          return;
-        }
-
-        if (state.loadingAll) {
-          return;
-        }
-
-        state.loadingAll = true;
-
-        setLoading(
-          true,
-          "FETCHING DATA..."
-        );
-
+        if (!state.user) return;
+        setLoading(true, "FETCHING DATA...");
         try {
+          const { data: ords } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+          state.orders = ords || [];
+          
+          const { data: prods } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+          state.products = prods || [];
 
-          /*
-           * CMS
-           */
-          await loadCMS();
+          const { data: coups } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
+          state.coupons = coups || [];
 
-          /*
-           * Orders
-           */
-          const {
-            data: orders,
-            error: ordersError
-          } =
-            await supabase
-              .from("orders")
-              .select("*")
-              .order(
-                "created_at",
-                {
-                  ascending: false
-                }
-              );
-
-          if (ordersError) {
-            console.error(
-              "ORDERS ERROR:",
-              ordersError
-            );
-          }
-
-          state.orders =
-            orders || [];
+          const { data: wait } = await supabase.from("waitlist").select("*").order("created_at", { ascending: false });
+          state.waitlist = wait || [];
 
           renderOrders();
-
-          /*
-           * Products
-           */
-          const {
-            data: products,
-            error: productsError
-          } =
-            await supabase
-              .from("products")
-              .select("*")
-              .order(
-                "created_at",
-                {
-                  ascending: false
-                }
-              );
-
-          if (productsError) {
-            console.error(
-              "PRODUCTS ERROR:",
-              productsError
-            );
-          }
-
-          state.products =
-            products || [];
-
           renderProducts();
-
-          /*
-           * Coupons
-           */
-          const {
-            data: coupons,
-            error: couponsError
-          } =
-            await supabase
-              .from("coupons")
-              .select("*")
-              .order(
-                "created_at",
-                {
-                  ascending: false
-                }
-              );
-
-          if (couponsError) {
-            console.error(
-              "COUPONS ERROR:",
-              couponsError
-            );
-          }
-
-          state.coupons =
-            coupons || [];
-
           renderCoupons();
-
-          /*
-           * Waitlist
-           */
-          const {
-            data: waitlist,
-            error: waitlistError
-          } =
-            await supabase
-              .from("waitlist")
-              .select("*")
-              .order(
-                "created_at",
-                {
-                  ascending: false
-                }
-              );
-
-          if (waitlistError) {
-            console.error(
-              "WAITLIST ERROR:",
-              waitlistError
-            );
-          }
-
-          state.waitlist =
-            waitlist || [];
-
           renderWaitlist();
 
-          /*
-           * Stats
-           */
-          updateStats();
-
-        } catch (error) {
-
-          console.error(
-            "LOAD ALL ERROR:",
-            error
-          );
-
-          showToast(
-            "Some dashboard data could not be loaded.",
-            "error"
-          );
-
+          $("#statOrders").textContent = state.orders.length;
+          $("#statWaitlist").textContent = state.waitlist.length;
+          const rev = state.orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+          $("#statRevenue").textContent = "₹" + rev.toLocaleString("en-IN");
+          const today = state.orders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString());
+          $("#statTodayOrders").textContent = today.length;
+          $("#statTodaySales").textContent = "₹" + today.reduce((s, o) => s + Number(o.total || 0), 0).toLocaleString("en-IN");
         } finally {
-
-          state.loadingAll = false;
           setLoading(false);
-
         }
       }
 
-      function updateStats() {
-
-        $("#statOrders").textContent =
-          state.orders.length;
-
-        $("#statWaitlist").textContent =
-          state.waitlist.length;
-
-        const revenue =
-          state.orders.reduce(
-            (sum, order) =>
-              sum +
-              Number(order.total || 0),
-            0
-          );
-
-        $("#statRevenue").textContent =
-          formatMoney(revenue);
-
-        const todayString =
-          new Date().toDateString();
-
-        const todayOrders =
-          state.orders.filter(
-            order =>
-              new Date(
-                order.created_at
-              ).toDateString() ===
-              todayString
-          );
-
-        $("#statTodayOrders")
-          .textContent =
-          todayOrders.length;
-
-        const todaySales =
-          todayOrders.reduce(
-            (sum, order) =>
-              sum +
-              Number(order.total || 0),
-            0
-          );
-
-        $("#statTodaySales")
-          .textContent =
-          formatMoney(todaySales);
-      }
-
-      $("#refreshButton")
-        ?.addEventListener(
-          "click",
-          async event => {
-
-            event.preventDefault();
-
-            await loadAll();
-
-            showToast(
-              "Dashboard refreshed."
-            );
-          }
-        );
-
-      /* =====================================================
-         ORDERS
-         ===================================================== */
+      $("#refreshButton")?.addEventListener("click", loadAll);
 
       function renderOrders() {
+        const body = $("#ordersBody");
+        const recentBody = $("#recentOrdersBody");
+        if (!body) return;
+        body.innerHTML = state.orders.map(o => `
+          <tr>
+            <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
+            <td>${o.customer_name || 'Guest'}<br><small style="color:#666;">${o.customer_phone || ''}</small></td>
+            <td>₹${Number(o.total || 0).toLocaleString("en-IN")}</td>
+            <td><span class="badge badge-${(o.payment_method||'cod').toLowerCase()}">${(o.payment_method||'cod').toUpperCase()}</span></td>
+            <td><span class="badge badge-${(o.payment_status||'pending').toLowerCase()}">${o.payment_status||'PENDING'}</span></td>
+            <td><span class="badge badge-order-placed">${o.order_status||'ORDER PLACED'}</span></td>
+            <td>${o.courier || '—'}<br><small style="color:#666;">${o.tracking_number || ''}</small></td>
+            <td><button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">View</button></td>
+          </tr>
+        `).join("") || '<tr><td colspan="8" class="empty">No orders recorded.</td></tr>';
 
-        const body =
-          $("#ordersBody");
-
-        const recentBody =
-          $("#recentOrdersBody");
-
-        /*
-         * FULL ORDER TABLE
-         */
-        if (body) {
-
-          const rows =
-            state.orders.map(
-              order => {
-
-                const id =
-                  String(
-                    order.id || ""
-                  );
-
-                const method =
-                  String(
-                    order.payment_method ||
-                    "cod"
-                  ).toLowerCase();
-
-                const paymentStatus =
-                  String(
-                    order.payment_status ||
-                    "pending"
-                  ).toLowerCase();
-
-                return `
-                  <tr>
-                    <td>
-                      <strong>
-                        ${escapeHTML(
-                          order.order_number ||
-                          id.slice(0, 8)
-                        )}
-                      </strong>
-                    </td>
-
-                    <td>
-                      ${escapeHTML(
-                        order.customer_name ||
-                        "Guest"
-                      )}
-                      <br>
-                      <small style="color:#666;">
-                        ${escapeHTML(
-                          order.customer_phone ||
-                          ""
-                        )}
-                      </small>
-                    </td>
-
-                    <td>
-                      ${formatMoney(
-                        order.total
-                      )}
-                    </td>
-
-                    <td>
-                      <span class="badge badge-${escapeHTML(method)}">
-                        ${escapeHTML(
-                          method.toUpperCase()
-                        )}
-                      </span>
-                    </td>
-
-                    <td>
-                      <span class="badge badge-${escapeHTML(paymentStatus)}">
-                        ${escapeHTML(
-                          String(
-                            order.payment_status ||
-                            "PENDING"
-                          ).toUpperCase()
-                        )}
-                      </span>
-                    </td>
-
-                    <td>
-                      <span class="badge badge-order-placed">
-                        ${escapeHTML(
-                          order.order_status ||
-                          "ORDER PLACED"
-                        )}
-                      </span>
-                    </td>
-
-                    <td>
-                      ${escapeHTML(
-                        order.courier ||
-                        "—"
-                      )}
-                      <br>
-                      <small style="color:#666;">
-                        ${escapeHTML(
-                          order.tracking_number ||
-                          ""
-                        )}
-                      </small>
-                    </td>
-
-                    <td>
-                      <button
-                        class="btn btn-small"
-                        type="button"
-                        onclick="window.viewOrder('${escapeHTML(id)}')"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                `;
-              }
-            )
-            .join("");
-
-          body.innerHTML =
-            rows ||
-            `
-              <tr>
-                <td
-                  colspan="8"
-                  class="empty"
-                >
-                  No orders recorded.
-                </td>
-              </tr>
-            `;
-        }
-
-        /*
-         * RECENT ORDERS TABLE
-         */
         if (recentBody) {
-
-          const recent =
-            state.orders.slice(0, 5);
-
-          recentBody.innerHTML =
-            recent.length
-              ? recent
-                  .map(order => `
-                    <tr>
-
-                      <td>
-                        <strong>
-                          ${escapeHTML(
-                            order.order_number ||
-                            order.id?.slice(0, 8) ||
-                            "—"
-                          )}
-                        </strong>
-                      </td>
-
-                      <td>
-                        ${escapeHTML(
-                          order.customer_name ||
-                          "Guest"
-                        )}
-                      </td>
-
-                      <td>
-                        ${formatMoney(
-                          order.total
-                        )}
-                      </td>
-
-                      <td>
-                        ${escapeHTML(
-                          String(
-                            order.payment_method ||
-                            "COD"
-                          ).toUpperCase()
-                        )}
-                      </td>
-
-                      <td>
-                        <span class="badge badge-order-placed">
-                          ${escapeHTML(
-                            order.order_status ||
-                            "ORDER PLACED"
-                          )}
-                        </span>
-                      </td>
-
-                      <td>
-                        ${order.created_at
-                          ? new Date(
-                              order.created_at
-                            ).toLocaleDateString(
-                              "en-IN"
-                            )
-                          : "—"}
-                      </td>
-
-                    </tr>
-                  `)
-                  .join("")
-              : `
-                <tr>
-                  <td
-                    colspan="6"
-                    class="empty"
-                  >
-                    No orders yet.
-                  </td>
-                </tr>
-              `;
+          recentBody.innerHTML = state.orders.slice(0, 5).map(o => `
+            <tr>
+              <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
+              <td>${o.customer_name || 'Guest'}</td>
+              <td>₹${Number(o.total || 0).toLocaleString("en-IN")}</td>
+              <td>${String(o.payment_method||'cod').toUpperCase()}</td>
+              <td><span class="badge badge-order-placed">${o.order_status||'ORDER PLACED'}</span></td>
+              <td>${new Date(o.created_at).toLocaleDateString("en-IN")}</td>
+            </tr>
+          `).join("") || '<tr><td colspan="6" class="empty">No orders yet.</td></tr>';
         }
       }
-
-      /* =====================================================
-         PRODUCTS
-         ===================================================== */
 
       function renderProducts() {
-
-        const grid =
-          $("#productsGrid");
-
-        if (!grid) {
-          return;
-        }
-
-        const fallbackImage =
-          "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
-
-        grid.innerHTML =
-          state.products.length
-            ? state.products
-                .map(product => {
-
-                  const stock =
-                    product.stock || {};
-
-                  const image =
-                    safeImageUrl(
-                      product.image_url
-                    ) ||
-                    fallbackImage;
-
-                  return `
-                    <div class="product-card">
-
-                      <div class="product-image">
-                        <img
-                          src="${escapeHTML(image)}"
-                          alt="${escapeHTML(
-                            product.name ||
-                            "Product"
-                          )}"
-                          loading="lazy"
-                          onerror="this.src='${fallbackImage}'"
-                        >
-                      </div>
-
-                      <div class="product-info">
-
-                        <div class="product-name">
-                          ${escapeHTML(
-                            product.name ||
-                            "Unnamed Product"
-                          )}
-                        </div>
-
-                        <div class="product-meta">
-                          ${formatMoney(
-                            product.price
-                          )}
-                          ·
-                          ${escapeHTML(
-                            product.category ||
-                            "—"
-                          )}
-                        </div>
-
-                        <div class="stock-row">
-
-                          <div class="stock-chip">
-                            <strong>S</strong>
-                            ${Number(
-                              stock.S || 0
-                            )}
-                          </div>
-
-                          <div class="stock-chip">
-                            <strong>M</strong>
-                            ${Number(
-                              stock.M || 0
-                            )}
-                          </div>
-
-                          <div class="stock-chip">
-                            <strong>L</strong>
-                            ${Number(
-                              stock.L || 0
-                            )}
-                          </div>
-
-                          <div class="stock-chip">
-                            <strong>XL</strong>
-                            ${Number(
-                              stock.XL || 0
-                            )}
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-                  `;
-                })
-                .join("")
-            : `
-              <div
-                class="empty"
-                style="grid-column:1/-1;"
-              >
-                No products found.
+        const grid = $("#productsGrid");
+        if (!grid) return;
+        grid.innerHTML = state.products.map(p => {
+          const stk = p.stock || {};
+          return `
+            <div class="product-card">
+              <div class="product-image"><img src="${p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}"></div>
+              <div class="product-info">
+                <div class="product-name">${p.name}</div>
+                <div class="product-meta">₹${Number(p.price||0).toLocaleString("en-IN")} · ${p.category}</div>
+                <div class="stock-row">
+                  <div class="stock-chip"><strong>S</strong>${stk.S||0}</div>
+                  <div class="stock-chip"><strong>M</strong>${stk.M||0}</div>
+                  <div class="stock-chip"><strong>L</strong>${stk.L||0}</div>
+                  <div class="stock-chip"><strong>XL</strong>${stk.XL||0}</div>
+                </div>
               </div>
-            `;
-      }
-
-      /* =====================================================
-         ORDER MODAL
-         ===================================================== */
-
-      window.viewOrder =
-        function(id) {
-
-          const order =
-            state.orders.find(
-              item =>
-                String(item.id) ===
-                String(id)
-            );
-
-          if (!order) {
-            return;
-          }
-
-          $("#orderModalTitle")
-            .textContent =
-              order.order_number ||
-              order.id;
-
-          const statusOptions = [
-            "ORDER PLACED",
-            "PAYMENT CONFIRMED",
-            "PACKED",
-            "SHIPPED",
-            "OUT FOR DELIVERY",
-            "DELIVERED",
-            "CANCELLED"
-          ];
-
-          $("#orderModalBody").innerHTML = `
-
-            <div
-              style="
-                margin:16px 0;
-                font-size:12px;
-                line-height:1.7;
-              "
-            >
-
-              <strong>Customer:</strong>
-              ${escapeHTML(
-                order.customer_name ||
-                "Guest"
-              )}
-              (${escapeHTML(
-                order.customer_phone ||
-                "—"
-              )})
-              <br>
-
-              <strong>Address:</strong>
-              ${escapeHTML(
-                order.shipping_address ||
-                ""
-              )},
-              ${escapeHTML(
-                order.shipping_city ||
-                ""
-              )},
-              ${escapeHTML(
-                order.shipping_state ||
-                ""
-              )}
-              -
-              ${escapeHTML(
-                order.shipping_pincode ||
-                ""
-              )}
-              <br>
-
-              <strong>Total:</strong>
-              ${formatMoney(
-                order.total
-              )}
-              (
-              ${escapeHTML(
-                String(
-                  order.payment_method ||
-                  "COD"
-                ).toUpperCase()
-              )}
-              )
-
             </div>
-
-            <div class="cms-grid">
-
-              <div class="field">
-
-                <label for="modalStatus">
-                  Update Status
-                </label>
-
-                <select id="modalStatus">
-
-                  ${statusOptions
-                    .map(status => `
-                      <option
-                        value="${escapeHTML(status)}"
-                        ${
-                          status ===
-                          order.order_status
-                            ? "selected"
-                            : ""
-                        }
-                      >
-                        ${escapeHTML(status)}
-                      </option>
-                    `)
-                    .join("")}
-
-                </select>
-
-              </div>
-
-              <div class="field">
-
-                <label for="modalCourier">
-                  Courier Name
-                </label>
-
-                <input
-                  id="modalCourier"
-                  value="${escapeHTML(
-                    order.courier || ""
-                  )}"
-                >
-
-              </div>
-
-              <div
-                class="field"
-                style="grid-column:1/-1;"
-              >
-
-                <label for="modalTracking">
-                  Tracking Number
-                </label>
-
-                <input
-                  id="modalTracking"
-                  value="${escapeHTML(
-                    order.tracking_number ||
-                    ""
-                  )}"
-                >
-
-              </div>
-
-            </div>
-
-            <button
-              class="btn btn-primary btn-full"
-              style="margin-top:14px;"
-              type="button"
-              onclick="window.saveOrderUpdate('${escapeHTML(
-                String(order.id)
-              )}')"
-            >
-              SAVE ORDER FULFILMENT
-            </button>
           `;
-
-          $("#orderModal")
-            .classList.remove(
-              "hidden"
-            );
-        };
-
-      function closeOrderModal() {
-
-        $("#orderModal")
-          ?.classList.add(
-            "hidden"
-          );
+        }).join("") || '<div class="empty" style="grid-column:1/-1;">No products found.</div>';
       }
-
-      $("#closeOrderModal")
-        ?.addEventListener(
-          "click",
-          closeOrderModal
-        );
-
-      $("#orderModal")
-        ?.addEventListener(
-          "click",
-          event => {
-
-            if (
-              event.target ===
-              $("#orderModal")
-            ) {
-              closeOrderModal();
-            }
-
-          }
-        );
-
-      window.saveOrderUpdate =
-        async function(id) {
-
-          const status =
-            $("#modalStatus")
-              ?.value || "";
-
-          const courier =
-            $("#modalCourier")
-              ?.value
-              .trim() || "";
-
-          const tracking =
-            $("#modalTracking")
-              ?.value
-              .trim() || "";
-
-          setLoading(
-            true,
-            "SAVING UPDATE..."
-          );
-
-          try {
-
-            const {
-              error
-            } =
-              await supabase
-                .from("orders")
-                .update({
-                  order_status:
-                    status,
-                  courier:
-                    courier,
-                  tracking_number:
-                    tracking
-                })
-                .eq(
-                  "id",
-                  id
-                );
-
-            if (error) {
-              throw error;
-            }
-
-            showToast(
-              "Order updated!"
-            );
-
-            closeOrderModal();
-
-            await loadAll();
-
-          } catch (error) {
-
-            console.error(
-              "ORDER UPDATE ERROR:",
-              error
-            );
-
-            showToast(
-              error?.message ||
-              "Failed to update order.",
-              "error"
-            );
-
-          } finally {
-
-            setLoading(false);
-
-          }
-        };
-
-      /* =====================================================
-         COUPONS
-         ===================================================== */
-
-      $("#couponForm")
-        ?.addEventListener(
-          "submit",
-          async event => {
-
-            /*
-             * Prevent coupon form from refreshing
-             * the page on mobile too.
-             */
-            event.preventDefault();
-            event.stopPropagation();
-
-            const code =
-              $("#couponCode")
-                .value
-                .trim()
-                .toUpperCase();
-
-            const discountValue =
-              Number(
-                $("#couponValue")
-                  .value
-              );
-
-            const minOrderValue =
-              Number(
-                $("#couponMinOrder")
-                  .value || 0
-              );
-
-            if (!code) {
-
-              showToast(
-                "Please enter a coupon code.",
-                "error"
-              );
-
-              return;
-            }
-
-            if (
-              Number.isNaN(
-                discountValue
-              ) ||
-              discountValue <= 0 ||
-              discountValue > 100
-            ) {
-
-              showToast(
-                "Discount must be between 1% and 100%.",
-                "error"
-              );
-
-              return;
-            }
-
-            setLoading(
-              true,
-              "CREATING COUPON..."
-            );
-
-            try {
-
-              const {
-                error
-              } =
-                await supabase
-                  .from("coupons")
-                  .insert({
-                    code,
-                    discount_type:
-                      "percentage",
-                    discount_value:
-                      discountValue,
-                    min_order_value:
-                      minOrderValue,
-                    active:
-                      true
-                  });
-
-              if (error) {
-                throw error;
-              }
-
-              showToast(
-                "Coupon created!"
-              );
-
-              $("#couponCode")
-                .value = "";
-
-              $("#couponValue")
-                .value = "";
-
-              $("#couponMinOrder")
-                .value = "0";
-
-              await loadAll();
-
-            } catch (error) {
-
-              console.error(
-                "COUPON CREATE ERROR:",
-                error
-              );
-
-              showToast(
-                error?.message ||
-                "Failed to create coupon.",
-                "error"
-              );
-
-            } finally {
-
-              setLoading(false);
-
-            }
-
-          }
-        );
 
       function renderCoupons() {
-
-        const body =
-          $("#couponsBody");
-
-        if (!body) {
-          return;
-        }
-
-        body.innerHTML =
-          state.coupons.length
-            ? state.coupons
-                .map(coupon => {
-
-                  const active =
-                    Boolean(
-                      coupon.active
-                    );
-
-                  return `
-                    <tr>
-
-                      <td>
-                        <strong>
-                          ${escapeHTML(
-                            coupon.code ||
-                            ""
-                          )}
-                        </strong>
-                      </td>
-
-                      <td>
-                        ${Number(
-                          coupon.discount_value ||
-                          0
-                        )}%
-                      </td>
-
-                      <td>
-                        ${formatMoney(
-                          coupon.min_order_value ||
-                          0
-                        )}
-                      </td>
-
-                      <td>
-                        <span
-                          class="badge ${
-                            active
-                              ? "badge-active"
-                              : "badge-inactive"
-                          }"
-                        >
-                          ${
-                            active
-                              ? "ACTIVE"
-                              : "DISABLED"
-                          }
-                        </span>
-                      </td>
-
-                      <td>
-
-                        <button
-                          class="btn btn-small btn-danger"
-                          type="button"
-                          onclick="window.toggleCoupon('${escapeHTML(
-                            String(
-                              coupon.id
-                            )
-                          )}', ${
-                            !active
-                          })"
-                        >
-                          ${
-                            active
-                              ? "Disable"
-                              : "Enable"
-                          }
-                        </button>
-
-                      </td>
-
-                    </tr>
-                  `;
-                })
-                .join("")
-            : `
-              <tr>
-                <td
-                  colspan="5"
-                  class="empty"
-                >
-                  No coupons created yet.
-                </td>
-              </tr>
-            `;
+        const body = $("#couponsBody");
+        if (!body) return;
+        body.innerHTML = state.coupons.map(c => `
+          <tr>
+            <td><strong>${c.code}</strong></td>
+            <td>${c.discount_value}%</td>
+            <td>₹${c.min_order_value || 0}</td>
+            <td><span class="badge ${c.active?'badge-active':'badge-inactive'}">${c.active?'ACTIVE':'DISABLED'}</span></td>
+            <td><button class="btn btn-small btn-danger" type="button" onclick="window.toggleCoupon('${c.id}', ${!c.active})">${c.active?'Disable':'Enable'}</button></td>
+          </tr>
+        `).join("") || '<tr><td colspan="5" class="empty">No coupons created.</td></tr>';
       }
-
-      window.toggleCoupon =
-        async function(
-          id,
-          active
-        ) {
-
-          setLoading(
-            true,
-            "UPDATING COUPON..."
-          );
-
-          try {
-
-            const {
-              error
-            } =
-              await supabase
-                .from("coupons")
-                .update({
-                  active:
-                    Boolean(active)
-                })
-                .eq(
-                  "id",
-                  id
-                );
-
-            if (error) {
-              throw error;
-            }
-
-            showToast(
-              "Coupon updated."
-            );
-
-            await loadAll();
-
-          } catch (error) {
-
-            console.error(
-              "COUPON UPDATE ERROR:",
-              error
-            );
-
-            showToast(
-              error?.message ||
-              "Failed to update coupon.",
-              "error"
-            );
-
-          } finally {
-
-            setLoading(false);
-
-          }
-        };
-
-      /* =====================================================
-         WAITLIST
-         ===================================================== */
 
       function renderWaitlist() {
+        const body = $("#waitlistBody");
+        if (!body) return;
+        body.innerHTML = state.waitlist.map(w => `
+          <tr><td>${w.email}</td><td>${new Date(w.created_at).toLocaleDateString()}</td></tr>
+        `).join("") || '<tr><td colspan="2" class="empty">No subscribers yet.</td></tr>';
+      }
 
-        const body =
-          $("#waitlistBody");
+      window.viewOrder = (id) => {
+        const o = state.orders.find(item => item.id === id);
+        if (!o) return;
+        $("#orderModalTitle").textContent = o.order_number || o.id;
+        $("#orderModalBody").innerHTML = `
+          <div style="margin:16px 0; font-size:12px; line-height:1.7;">
+            <strong>Customer:</strong> ${o.customer_name} (${o.customer_phone})<br>
+            <strong>Address:</strong> ${o.shipping_address}, ${o.shipping_city}, ${o.shipping_state} - ${o.shipping_pincode}<br>
+            <strong>Total:</strong> ₹${Number(o.total||0).toLocaleString("en-IN")} (${o.payment_method.toUpperCase()})
+          </div>
+          <div class="cms-grid">
+            <div class="field"><label>Update Status</label>
+              <select id="modalStatus">
+                ${["ORDER PLACED","PAYMENT CONFIRMED","PACKED","SHIPPED","OUT FOR DELIVERY","DELIVERED","CANCELLED"].map(s => `
+                  <option value="${s}" ${s === o.order_status ? 'selected' : ''}>${s}</option>
+                `).join('')}
+              </select>
+            </div>
+            <div class="field"><label>Courier Name</label><input id="modalCourier" value="${o.courier||''}"></div>
+            <div class="field cms-field--full"><label>Tracking Number</label><input id="modalTracking" value="${o.tracking_number||''}"></div>
+          </div>
+          <button class="btn btn-primary btn-full" style="margin-top:14px;" type="button" onclick="window.saveOrderUpdate('${o.id}')">SAVE FULFILMENT</button>
+        `;
+        $("#orderModal").classList.remove("hidden");
+      };
 
-        if (!body) {
+      $("#closeOrderModal")?.addEventListener("click", () => $("#orderModal").classList.add("hidden"));
+
+      window.saveOrderUpdate = async (id) => {
+        const status = $("#modalStatus").value;
+        const courier = $("#modalCourier").value.trim();
+        const tracking = $("#modalTracking").value.trim();
+        setLoading(true, "SAVING...");
+        try {
+          await supabase.from("orders").update({ order_status: status, courier, tracking_number: tracking }).eq("id", id);
+          showToast("Order updated!");
+          $("#orderModal").classList.add("hidden");
+          await loadAll();
+        } finally { setLoading(false); }
+      };
+
+      $("#createCouponBtn")?.addEventListener("click", async () => {
+        const code = $("#couponCode").value.trim().toUpperCase();
+        const discount_value = Number($("#couponValue").value);
+        const min_order_value = Number($("#couponMinOrder").value || 0);
+
+        if (!code || isNaN(discount_value)) {
+          showToast("Enter valid coupon details.", "error");
           return;
         }
 
-        body.innerHTML =
-          state.waitlist.length
-            ? state.waitlist
-                .map(item => `
-                  <tr>
+        setLoading(true, "CREATING...");
+        try {
+          const { error } = await supabase.from("coupons").insert({ code, discount_type: "percentage", discount_value, min_order_value, active: true });
+          if (error) throw error;
+          showToast("Coupon created!");
+          $("#couponCode").value = "";
+          $("#couponValue").value = "";
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed", "error");
+        } finally { setLoading(false); }
+      });
 
-                    <td>
-                      ${escapeHTML(
-                        item.email ||
-                        ""
-                      )}
-                    </td>
-
-                    <td>
-                      ${
-                        item.created_at
-                          ? new Date(
-                              item.created_at
-                            ).toLocaleString(
-                              "en-IN"
-                            )
-                          : "—"
-                      }
-                    </td>
-
-                  </tr>
-                `)
-                .join("")
-            : `
-              <tr>
-                <td
-                  colspan="2"
-                  class="empty"
-                >
-                  No VIP waitlist subscribers yet.
-                </td>
-              </tr>
-            `;
-      }
-
-      /* =====================================================
-         ESC KEY
-         ===================================================== */
-
-      document.addEventListener(
-        "keydown",
-        event => {
-
-          if (
-            event.key !== "Escape"
-          ) {
-            return;
-          }
-
-          if (
-            document.body.classList
-              .contains(
-                "sidebar-open"
-              )
-          ) {
-            closeSidebar();
-          }
-
-          if (
-            !$("#orderModal")
-              ?.classList
-              .contains("hidden")
-          ) {
-            closeOrderModal();
-          }
-
-        }
-      );
-
+      window.toggleCoupon = async (id, active) => {
+        await supabase.from("coupons").update({ active }).eq("id", id);
+        showToast("Coupon updated");
+        await loadAll();
+      };
     });
   </script>
-
 </body>
 </html>
