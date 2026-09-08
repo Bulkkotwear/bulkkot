@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 8.0 (Multi-Image Array, Product Detail Modal & Related Products Engine)
+ * Version: 9.0 (Full Customer Auth Sync & Resilient Modals)
  */
 (function () {
   'use strict';
@@ -62,6 +62,186 @@
   }
 
   /* =========================================================
+     AUTH STATE & ACCOUNT MANAGEMENT
+     ========================================================= */
+  async function initAuth() {
+    if (!supabase) return;
+
+    async function syncUserState() {
+      const { data: { user } } = await supabase.auth.getUser();
+      const accountLabel = document.querySelector('[data-account-label]');
+      const authView = document.querySelector('[data-account-auth]');
+      const userView = document.querySelector('[data-account-user]');
+      const userEmailEl = document.querySelector('[data-account-user-email]');
+
+      if (user) {
+        if (accountLabel) accountLabel.textContent = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
+        if (authView) authView.hidden = true;
+        if (userView) userView.hidden = false;
+        if (userEmailEl) userEmailEl.textContent = user.email;
+        loadCustomerProfile(user.id);
+        loadCustomerOrders(user.id);
+      } else {
+        if (accountLabel) accountLabel.textContent = 'ACCOUNT';
+        if (authView) authView.hidden = false;
+        if (userView) userView.hidden = true;
+      }
+    }
+
+    supabase.auth.onAuthStateChange(() => {
+      syncUserState();
+      if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
+    });
+
+    syncUserState();
+
+    // Login Form
+    const loginForm = document.querySelector('[data-account-login-form]');
+    const msgEl = document.querySelector('[data-account-message]');
+
+    loginForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = loginForm.querySelector('#account-email')?.value.trim();
+      const password = loginForm.querySelector('#account-password')?.value;
+      const submitBtn = loginForm.querySelector('.account-submit');
+
+      if (!email || !password) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'VERIFYING...';
+      if (msgEl) msgEl.textContent = '';
+
+      const isSignUp = loginForm.dataset.mode === 'signup';
+
+      try {
+        let res;
+        if (isSignUp) {
+          res = await supabase.auth.signUp({ email, password });
+          if (res.error) throw res.error;
+          if (msgEl) msgEl.textContent = 'Account created! Signing you in...';
+        } else {
+          res = await supabase.auth.signInWithPassword({ email, password });
+          if (res.error) throw res.error;
+        }
+      } catch (err) {
+        if (msgEl) msgEl.textContent = err.message || 'Authentication failed.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN';
+      }
+    });
+
+    // Toggle Sign In vs Sign Up
+    const signupToggle = document.querySelector('[data-account-signup-toggle]');
+    signupToggle?.addEventListener('click', () => {
+      const isSignUp = loginForm.dataset.mode === 'signup';
+      const title = document.getElementById('account-title');
+      const submitBtn = loginForm.querySelector('.account-submit');
+
+      if (isSignUp) {
+        loginForm.dataset.mode = 'signin';
+        if (title) title.textContent = 'SIGN IN';
+        if (submitBtn) submitBtn.textContent = 'SIGN IN';
+        signupToggle.textContent = 'CREATE ACCOUNT';
+      } else {
+        loginForm.dataset.mode = 'signup';
+        if (title) title.textContent = 'CREATE ACCOUNT';
+        if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
+        signupToggle.textContent = 'HAVE AN ACCOUNT? SIGN IN';
+      }
+    });
+
+    // Google OAuth
+    document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+    });
+
+    // Sign Out
+    document.querySelector('[data-account-signout]')?.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+    });
+
+    // Profile Save
+    const profileForm = document.querySelector('[data-account-profile-form]');
+    profileForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const profileData = {
+        id: user.id,
+        full_name: profileForm.querySelector('#account-name')?.value.trim(),
+        phone: profileForm.querySelector('#account-phone')?.value.trim(),
+        shipping_address: profileForm.querySelector('#account-address')?.value.trim(),
+        shipping_city: profileForm.querySelector('#account-city')?.value.trim(),
+        shipping_state: profileForm.querySelector('#account-state')?.value.trim(),
+        shipping_pincode: profileForm.querySelector('#account-pincode')?.value.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      const profMsg = document.querySelector('[data-profile-message]');
+      try {
+        const { error } = await supabase.from('customer_profiles').upsert(profileData);
+        if (error) throw error;
+        if (profMsg) profMsg.textContent = 'Details saved successfully!';
+        setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
+      } catch (err) {
+        if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
+      }
+    });
+  }
+
+  async function loadCustomerProfile(userId) {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('customer_profiles').select('*').eq('id', userId).maybeSingle();
+      if (!data) return;
+      const f = document.querySelector('[data-account-profile-form]');
+      if (!f) return;
+      if (f.querySelector('#account-name')) f.querySelector('#account-name').value = data.full_name || '';
+      if (f.querySelector('#account-phone')) f.querySelector('#account-phone').value = data.phone || '';
+      if (f.querySelector('#account-address')) f.querySelector('#account-address').value = data.shipping_address || '';
+      if (f.querySelector('#account-city')) f.querySelector('#account-city').value = data.shipping_city || '';
+      if (f.querySelector('#account-state')) f.querySelector('#account-state').value = data.shipping_state || '';
+      if (f.querySelector('#account-pincode')) f.querySelector('#account-pincode').value = data.shipping_pincode || '';
+    } catch (e) {}
+  }
+
+  async function loadCustomerOrders(userId) {
+    const ordersBox = document.querySelector('[data-account-orders]');
+    if (!ordersBox || !supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error || !data || !data.length) {
+        ordersBox.innerHTML = '<p style="color:#777; font-size:12px; margin:10px 0;">No past orders found.</p>';
+        return;
+      }
+
+      ordersBox.innerHTML = data.map(o => `
+        <div style="border: 1px solid #222; border-radius:6px; padding:10px; margin-bottom:8px; background:#0c0c0c;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
+            <span>${escapeHTML(o.order_number || o.id.slice(0, 8))}</span>
+            <span style="color:var(--bk-red, #e31b23);">${escapeHTML(o.order_status || 'PLACED')}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:4px;">
+            <span>${new Date(o.created_at).toLocaleDateString()}</span>
+            <strong>${formatPrice(o.total)}</strong>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      ordersBox.innerHTML = '<p style="color:#777; font-size:12px;">Failed to load order history.</p>';
+    }
+  }
+
+  /* =========================================================
      DYNAMIC SETTINGS SYNC
      ========================================================= */
   async function syncStoreSettings() {
@@ -85,9 +265,7 @@
           el.textContent = email;
         });
       }
-    } catch (e) {
-      console.warn("Settings sync notice:", e);
-    }
+    } catch (e) {}
   }
 
   /* =========================================================
@@ -115,9 +293,7 @@
           }
         });
       });
-    } catch (e) {
-      console.warn("CMS Load Notice:", e);
-    }
+    } catch (e) {}
   }
 
   /* =========================================================
@@ -207,7 +383,7 @@
   }
 
   /* =========================================================
-     FIX 2 & 3: PRODUCT DETAIL MODAL (PDP) & RELATED PRODUCTS
+     PRODUCT DETAIL MODAL (PDP) & RELATED PRODUCTS
      ========================================================= */
   let currentPdpProduct = null;
   let currentPdpSize = 'M';
@@ -246,7 +422,6 @@
     const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
     const stockCurSize = getStock(p, currentPdpSize);
 
-    // Similar / Related Products (Fix 3)
     let related = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) === cat);
     if (related.length < 4) {
       const rest = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) !== cat);
@@ -288,7 +463,6 @@
 
     container.innerHTML = `
       <div class="pdp-grid">
-        <!-- Gallery -->
         <div class="pdp-gallery">
           <div class="pdp-main-image-wrap">
             <img src="${escapeHTML(images[0])}" id="pdpMainImage" class="pdp-main-image" alt="${escapeHTML(p.name)}">
@@ -296,7 +470,6 @@
           ${images.length > 1 ? `<div class="pdp-thumbnails">${thumbsHtml}</div>` : ''}
         </div>
 
-        <!-- Info -->
         <div class="pdp-info">
           <span class="pdp-korean">${catKorean} · DROP 001</span>
           <h2 class="pdp-title">${escapeHTML(p.name)}</h2>
@@ -332,7 +505,6 @@
         </div>
       </div>
 
-      <!-- Related Items -->
       ${related.length > 0 ? `
         <div class="pdp-related">
           <div class="pdp-related-title">SIMILAR SILHOUETTES</div>
@@ -341,7 +513,6 @@
       ` : ''}
     `;
 
-    // Thumbnails switch
     container.querySelectorAll('[data-pdp-thumb]').forEach(tb => {
       tb.addEventListener('click', () => {
         container.querySelectorAll('[data-pdp-thumb]').forEach(t => t.classList.remove('is-active'));
@@ -352,7 +523,6 @@
       });
     });
 
-    // Size Switch
     container.querySelectorAll('[data-pdp-size]').forEach(sb => {
       sb.addEventListener('click', () => {
         currentPdpSize = sb.dataset.pdpSize;
@@ -360,7 +530,6 @@
       });
     });
 
-    // Qty controls
     container.querySelector('#pdpQtyMinus')?.addEventListener('click', () => {
       if (currentPdpQty > 1) {
         currentPdpQty -= 1;
@@ -375,7 +544,6 @@
       }
     });
 
-    // Add to Cart from PDP
     container.querySelector('#pdpAddBtn')?.addEventListener('click', () => {
       if (stockCurSize <= 0) return;
       if (window.BULKKOT_CART?.addItem) {
@@ -450,7 +618,7 @@
   };
 
   /* =========================================================
-     UNIVERSAL MODAL & TRUST ENGINE
+     UNIVERSAL MODAL & NAVIGATION
      ========================================================= */
   function initModalsAndNavigation() {
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
@@ -467,7 +635,7 @@
       document.body.classList.remove("modal-open");
     }));
 
-    // Policy Modal
+    // Policy
     const policyModal = document.querySelector("[data-policy-modal]");
     const policyTitle = policyModal?.querySelector("[data-policy-title]");
     const policyContent = policyModal?.querySelector("[data-policy-content]");
@@ -502,7 +670,7 @@
       if (e.target === policyModal) closePolicy();
     });
 
-    // About Story
+    // About
     const aboutModal = document.querySelector("[data-about-modal]");
     const openAboutBtns = document.querySelectorAll("[data-open-about]");
     const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
@@ -700,7 +868,7 @@
       }
     });
 
-    // Account Modal
+    // Account Modal Open/Close
     const accountModal = document.querySelector("[data-account-modal]");
     const openAccountBtns = document.querySelectorAll("[data-open-account]");
     const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
@@ -742,7 +910,7 @@
     });
   }
 
-  // Delegated Clicks (Quick View, Size & Add to Bag)
+  // Delegated Clicks
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -780,6 +948,7 @@
     initCatalog();
     loadCMSContent();
     syncStoreSettings();
+    initAuth();
 
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
