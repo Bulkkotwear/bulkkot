@@ -1233,3 +1233,335 @@ body.bulkkot-cms-active [data-cms-key]:hover {
   opacity: 1;
   transform: translateY(0);
 }
+/* =========================================================
+   BULKKOT — PRODUCT DETAIL MODAL & RELATED PRODUCTS (FIX 2 & 3)
+   ========================================================= */
+.pdp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.pdp-modal.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pdp-backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.pdp-container {
+  position: relative;
+  width: min(1060px, 100%);
+  max-height: min(92vh, 92dvh);
+  background: #0d0d0d;
+  border: 1px solid #242424;
+  border-radius: 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.9);
+  padding: 32px;
+  z-index: 2;
+}
+
+.pdp-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.pdp-close-btn:hover {
+  background: var(--bk-red, #e31b23);
+  transform: scale(1.05);
+}
+
+.pdp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+/* Gallery */
+.pdp-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pdp-main-image-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1/1;
+  background: #151515;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #202020;
+}
+
+.pdp-main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.2s ease;
+}
+
+.pdp-thumbnails {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+
+.pdp-thumb {
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: #181818;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.pdp-thumb.is-active, .pdp-thumb:hover {
+  opacity: 1;
+  border-color: var(--bk-red, #e31b23);
+}
+
+.pdp-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Info */
+.pdp-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdp-korean {
+  color: var(--bk-red, #e31b23);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+}
+
+.pdp-title {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+  color: #fff;
+  line-height: 1.15;
+}
+
+.pdp-price {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 18px;
+}
+
+.pdp-desc {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #a0a0a0;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #1c1c1c;
+  padding-bottom: 20px;
+}
+
+.pdp-option-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ccc;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.pdp-sizes {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.pdp-size-btn {
+  flex: 1;
+  min-height: 44px;
+  background: #141414;
+  border: 1px solid #292929;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pdp-size-btn.is-selected {
+  border-color: var(--bk-red, #e31b23);
+  background: rgba(227, 27, 35, 0.15);
+  color: #fff;
+}
+
+.pdp-size-btn:disabled, .pdp-size-btn.is-sold-out {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.pdp-qty-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.pdp-qty-box {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: #111;
+  min-height: 46px;
+}
+
+.pdp-qty-box button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  padding: 0 16px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.pdp-qty-box span {
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.pdp-add-btn {
+  flex: 1;
+  min-height: 48px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+/* Related Products */
+.pdp-related {
+  margin-top: 44px;
+  padding-top: 32px;
+  border-top: 1px solid #1f1f1f;
+}
+
+.pdp-related-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #888;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+}
+
+.pdp-related-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.pdp-related-card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.pdp-related-card:hover {
+  transform: translateY(-3px);
+  border-color: #444;
+}
+
+.pdp-related-card img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  display: block;
+}
+
+.pdp-related-meta {
+  padding: 10px;
+}
+
+.pdp-related-meta strong {
+  display: block;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff;
+}
+
+.pdp-related-meta span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Responsiveness Pass (Fix 5) */
+@media (max-width: 820px) {
+  .pdp-container {
+    padding: 20px 16px;
+    max-height: 94dvh;
+  }
+  .pdp-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .pdp-title {
+    font-size: 20px;
+  }
+  .pdp-related-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
