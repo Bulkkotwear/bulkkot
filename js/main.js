@@ -1047,3 +1047,176 @@
     });
   });
 })();
+/* =========================================================
+   BULKKOT — SITE CMS ENGINE
+========================================================= */
+const BULKKOT_CMS = (() => {
+  let content = {};
+  let realtimeChannel = null;
+
+  async function load() {
+    if (!supabase) return {};
+    const { data, error } = await supabase
+      .from("site_content")
+      .select("content_key, content_value, image_url, content_type, section, updated_at");
+
+    if (error) {
+      console.error("BULKKOT CMS load error:", error);
+      return {};
+    }
+
+    content = {};
+    (data || []).forEach(item => {
+      content[item.content_key] = {
+        value: item.content_value || "",
+        image: item.image_url || "",
+        type: item.content_type || "text",
+        section: item.section || "general"
+      };
+    });
+    return content;
+  }
+
+  function get(key, fallback = "") {
+    const item = content[key];
+    if (!item) return fallback;
+    if (item.type === "image") return item.image || fallback;
+    return item.value || fallback;
+  }
+
+  function setText(selector, key) {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    const val = get(key);
+    if (val !== "") el.textContent = val;
+  }
+
+  function setLink(selector, key) {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    const val = get(key);
+    if (val !== "") el.setAttribute("href", val);
+  }
+
+  function setImage(selector, key) {
+    const img = document.querySelector(selector);
+    if (!img) return;
+    const val = get(key);
+    if (val) img.src = val;
+  }
+
+  function bindAll() {
+    // Ticker
+    const track = document.querySelector(".announcement-track");
+    if (track) {
+      const items = [get("announcement_1"), get("announcement_2"), get("announcement_3")].filter(Boolean);
+      if (items.length) {
+        const doubleList = [...items, ...items];
+        track.innerHTML = doubleList.map(t => `<span>${typeof escapeHTML === 'function' ? escapeHTML(t) : t}</span>`).join("");
+      }
+    }
+
+    // Hero
+    setText(".hero-korean", "hero_korean");
+    setText(".hero-content h1", "hero_title");
+    setText(".hero-label", "hero_subtitle");
+    setText(".hero-description", "hero_description");
+    setText(".hero-content .button--primary", "hero_button_text");
+    setLink(".hero-content .button--primary", "hero_button_link");
+    setImage(".hero-image", "hero_image");
+
+    // Collections
+    setText(".category-section .eyebrow", "collections_eyebrow");
+    setText(".category-section h2", "collections_title");
+    
+    const cardTees = document.querySelector('.category-card[data-category="tees"]');
+    if (cardTees) {
+      const t = cardTees.querySelector(".category-name strong"); if (t) t.textContent = get("tees_title", t.textContent);
+      const k = cardTees.querySelector(".category-name span"); if (k) k.textContent = get("tees_korean", k.textContent);
+      const img = cardTees.querySelector(".category-image img"); if (img && get("tees_image")) img.src = get("tees_image");
+    }
+
+    const cardHoods = document.querySelector('.category-card[data-category="hoods"]');
+    if (cardHoods) {
+      const t = cardHoods.querySelector(".category-name strong"); if (t) t.textContent = get("hoods_title", t.textContent);
+      const k = cardHoods.querySelector(".category-name span"); if (k) k.textContent = get("hoods_korean", k.textContent);
+      const img = cardHoods.querySelector(".category-image img"); if (img && get("hoods_image")) img.src = get("hoods_image");
+    }
+
+    const cardSweats = document.querySelector('.category-card[data-category="sweats"]');
+    if (cardSweats) {
+      const t = cardSweats.querySelector(".category-name strong"); if (t) t.textContent = get("sweats_title", t.textContent);
+      const k = cardSweats.querySelector(".category-name span"); if (k) k.textContent = get("sweats_korean", k.textContent);
+      const img = cardSweats.querySelector(".category-image img"); if (img && get("sweats_image")) img.src = get("sweats_image");
+    }
+
+    // Drop
+    setText("#drop-001 .eyebrow", "drop_eyebrow");
+    setText("#drop-001 h2", "drop_title");
+    setText("#drop-001 p:not(.eyebrow)", "drop_description");
+    setText("#drop-001 a", "drop_button_text");
+    setLink("#drop-001 a", "drop_button_link");
+
+    // About
+    setText(".about-intro .eyebrow", "about_eyebrow");
+    setText(".about-intro h2", "about_korean");
+    setText(".about-intro span", "about_title");
+    setText(".about-lead", "about_lead");
+    const aboutParas = document.querySelectorAll(".about-copy p");
+    if (aboutParas[1]) aboutParas[1].textContent = get("about_text_1", aboutParas[1].textContent);
+    if (aboutParas[2]) aboutParas[2].textContent = get("about_text_2", aboutParas[2].textContent);
+    setText(".about-signature", "about_signature");
+    setText("[data-open-about]", "about_button_text");
+
+    // Philosophy
+    setText(".philosophy-korean", "philosophy_korean");
+    const philHeadings = document.querySelectorAll(".philosophy-section h2, .philosophy-section h3");
+    if (philHeadings[0]) philHeadings[0].textContent = get("philosophy_title", philHeadings[0].textContent);
+    if (philHeadings[1]) philHeadings[1].textContent = get("philosophy_subtitle", philHeadings[1].textContent);
+    setText(".philosophy-section p:last-child", "philosophy_description");
+
+    // Social & Contact
+    const igLinks = document.querySelectorAll('a[href*="instagram.com"]');
+    const igURL = get("instagram_url");
+    if (igURL) igLinks.forEach(l => l.href = igURL);
+
+    const email = get("contact_email");
+    if (email) {
+      document.querySelectorAll('a[href^="mailto:"]').forEach(l => {
+        l.href = `mailto:${email}`;
+        if (l.textContent.includes("@")) l.textContent = email;
+      });
+    }
+
+    // Footer
+    setText(".footer-brand p:first-of-type", "footer_description");
+    setText(".footer-bottom span:first-child", "footer_copyright");
+  }
+
+  function subscribe() {
+    if (!supabase) return;
+    if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+    realtimeChannel = supabase
+      .channel("bulkkot-site-cms")
+      .on("postgres_changes", { event: "*", schema: "public", table: "site_content" }, async () => {
+        await load();
+        bindAll();
+      })
+      .subscribe();
+  }
+
+  async function init() {
+    await load();
+    bindAll();
+    subscribe();
+  }
+
+  return { init, load, bindAll, get };
+})();
+
+// Document Ready listener
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => BULKKOT_CMS.init());
+} else {
+  BULKKOT_CMS.init();
+}
