@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#070707">
-  <title>BULKKOT — Admin Control Center</title>
+  <title>BULKKOT — Enterprise Store Admin</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -12,6 +12,7 @@
     :root {
       --bg: #070707;
       --panel: #101010;
+      --panel-2: #141414;
       --border: #242424;
       --border-soft: #1a1a1a;
       --text: #f5f5f5;
@@ -21,8 +22,8 @@
       --green: #31c48d;
       --yellow: #f5c542;
       --blue: #70aaff;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --radius: 10px;
+      --radius-sm: 6px;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -40,7 +41,7 @@
     input, textarea, select {
       width: 100%; color: var(--text); background: #0b0b0b;
       border: 1px solid var(--border); border-radius: var(--radius-sm);
-      outline: none; padding: 11px 12px; min-height: 42px;
+      outline: none; padding: 10px 12px; min-height: 40px;
     }
     input:focus, textarea:focus, select:focus {
       border-color: var(--red);
@@ -49,7 +50,7 @@
     select option { background: #111; color: #fff; }
     .hidden { display: none !important; }
 
-    /* LOADING SPINNER */
+    /* LOADING OVERLAY */
     #loadingOverlay {
       position: fixed; inset: 0; z-index: 1000;
       background: rgba(0, 0, 0, .88); display: grid; place-items: center; padding: 20px;
@@ -82,15 +83,16 @@
 
     .btn {
       border: 1px solid transparent; border-radius: var(--radius-sm);
-      padding: 10px 15px; min-height: 40px; color: var(--text); background: #202020;
+      padding: 9px 14px; min-height: 38px; color: var(--text); background: #202020;
       font-weight: 700; font-size: 12px; text-align: center; transition: .15s ease;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     }
     .btn:hover { background: #2a2a2a; }
     .btn-primary { background: var(--red); border-color: var(--red); }
     .btn-primary:hover { background: var(--red-dark); }
     .btn-danger { background: rgba(239, 68, 68, .12); border-color: rgba(239, 68, 68, .25); color: #ff7777; }
     .btn-full { width: 100%; }
-    .btn-small { min-height: 32px; padding: 4px 10px; font-size: 10px; }
+    .btn-small { min-height: 30px; padding: 4px 8px; font-size: 10px; }
 
     /* LAYOUT */
     #app { min-height: 100vh; display: grid; grid-template-columns: 240px minmax(0, 1fr); }
@@ -105,8 +107,10 @@
     .nav-btn {
       width: 100%; border: 0; text-align: left; color: #888; background: transparent;
       padding: 11px 12px; border-radius: 8px; font-weight: 700; font-size: 12px;
+      display: flex; justify-content: space-between; align-items: center;
     }
     .nav-btn:hover, .nav-btn.active { color: #fff; background: rgba(227, 27, 35, .15); }
+    .nav-badge { background: var(--red); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 999px; }
     .sidebar-bottom { margin-top: auto; padding-top: 20px; }
     .user-email { color: var(--muted); font-size: 10px; padding: 10px; word-break: break-all; }
 
@@ -132,13 +136,18 @@
     .stat-value { font-size: 22px; font-weight: 900; }
 
     .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; }
-    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .panel-title { font-size: 15px; font-weight: 800; }
     .panel-subtitle { color: var(--muted); font-size: 11px; margin-top: 2px; }
 
+    /* FILTERS & SEARCH TOOLBAR */
+    .table-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--border-soft); background: #0c0c0c; }
+    .table-toolbar input { max-width: 280px; min-height: 36px; font-size: 11px; }
+    .table-toolbar select { max-width: 180px; min-height: 36px; font-size: 11px; }
+
     /* TABLES */
     .table-wrap { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 780px; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 820px; font-size: 12px; }
     th { text-align: left; color: #666; font-size: 9px; text-transform: uppercase; padding: 12px 14px; border-bottom: 1px solid var(--border); }
     td { padding: 12px 14px; border-bottom: 1px solid #161616; vertical-align: middle; }
     .empty { color: var(--muted); text-align: center; padding: 36px !important; }
@@ -152,33 +161,6 @@
     .badge-delivered { background: rgba(49, 196, 141, .15); color: var(--green); }
     .badge-cancelled { background: rgba(239, 68, 68, .12); color: #ff7777; }
 
-    /* STOCK CHIPS & INDICATORS */
-    .stock-chip-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
-    .stock-chip {
-      padding: 4px 8px; background: #161616; border: 1px solid var(--border);
-      border-radius: 4px; font-size: 10px; font-weight: 700;
-    }
-    .stock-chip.low { border-color: rgba(245, 197, 66, 0.5); color: var(--yellow); background: rgba(245, 197, 66, 0.08); }
-    .stock-chip.out { border-color: rgba(239, 68, 68, 0.5); color: #ff7777; background: rgba(239, 68, 68, 0.08); }
-
-    /* CMS CONTROLS */
-    .cms-section { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; }
-    .cms-section-heading { border-bottom: 1px solid #1a1a1a; padding-bottom: 12px; margin-bottom: 18px; }
-    .cms-section-heading h2 { margin: 0; font-size: 16px; font-weight: 800; }
-    .cms-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .cms-field { display: flex; flex-direction: column; gap: 6px; }
-    .cms-field--full { grid-column: 1 / -1; }
-    .cms-field span { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-
-    /* PRODUCTS GRID */
-    .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 20px; }
-    .product-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-    .product-image { aspect-ratio: 1/1; background: #151515; }
-    .product-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .product-info { padding: 14px; }
-    .product-name { font-weight: 800; font-size: 13px; margin-bottom: 4px; }
-    .product-meta { color: var(--muted); font-size: 11px; }
-
     /* MODAL */
     .modal { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 20px; }
     .modal-box { width: min(720px, 100%); max-height: 90vh; overflow-y: auto; background: #101010; border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
@@ -189,19 +171,11 @@
     .toast { padding: 12px 16px; background: #161616; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--green); }
     .toast.error { border-color: rgba(239, 68, 68, .4); color: #ff7777; }
 
-    /* RESPONSIVE */
-    @media (max-width: 900px) {
-      #app { display: block; width: 100%; }
-      .sidebar {
-        position: fixed; left: 0; top: 0; bottom: 0; width: min(285px, 86vw); height: 100dvh;
-        transform: translate3d(-105%, 0, 0); transition: transform .25s ease; z-index: 300;
-      }
-      body.sidebar-open .sidebar { transform: translate3d(0, 0, 0); }
-      body.sidebar-open .sidebar-backdrop { display: block; }
-      .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
-      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .product-grid { grid-template-columns: 1fr 1fr; padding: 14px; }
-      .cms-grid { grid-template-columns: 1fr; }
+    /* PRINT INVOICE STYLING */
+    @media print {
+      body * { visibility: hidden; }
+      #printableSlip, #printableSlip * { visibility: visible; }
+      #printableSlip { position: absolute; left: 0; top: 0; width: 100%; color: #000; background: #fff; padding: 20px; font-size: 12pt; }
     }
   </style>
 </head>
@@ -221,11 +195,11 @@
   <section id="loginScreen">
     <div class="login-card">
       <div class="brand">불꽃 <span>BULKKOT</span></div>
-      <p class="login-subtitle">Admin Control Center</p>
+      <p class="login-subtitle">Enterprise Store Operations</p>
       
       <form id="loginForm" novalidate>
         <div class="field">
-          <label for="loginEmail">Email Address</label>
+          <label for="loginEmail">Admin Email</label>
           <input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@bulkkot.com">
         </div>
         <div class="field">
@@ -233,7 +207,7 @@
           <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
         </div>
         <div id="loginError" class="login-error" aria-live="polite"></div>
-        <button id="loginButton" class="btn btn-primary btn-full" type="submit">SIGN IN</button>
+        <button id="loginButton" class="btn btn-primary btn-full" type="submit">SIGN IN TO PORTAL</button>
       </form>
     </div>
   </section>
@@ -244,11 +218,13 @@
       <div class="sidebar-logo">불꽃 <span>BULKKOT</span></div>
       <nav class="nav">
         <button class="nav-btn active" data-page="dashboard" type="button">◈ Dashboard</button>
-        <button class="nav-btn" data-page="orders" type="button">≡ Orders & Fulfilment</button>
-        <button class="nav-btn" data-page="products" type="button">□ Products & Stock</button>
-        <button class="nav-btn" data-page="cms" type="button">✦ Site CMS</button>
+        <button class="nav-btn" data-page="orders" type="button">
+          ≡ Orders
+          <span id="newOrdersBadge" class="nav-badge hidden">0</span>
+        </button>
+        <button class="nav-btn" data-page="products" type="button">□ Products</button>
         <button class="nav-btn" data-page="coupons" type="button">% Coupons</button>
-        <button class="nav-btn" data-page="waitlist" type="button">♡ VIP Waitlist</button>
+        <button class="nav-btn" data-page="waitlist" type="button">♡ Waitlist</button>
       </nav>
       <div class="sidebar-bottom">
         <div id="userEmail" class="user-email"></div>
@@ -273,105 +249,78 @@
         <section id="page-dashboard" class="page">
           <div class="stats">
             <div class="stat"><div class="stat-label">Today's Sales</div><div id="statTodaySales" class="stat-value">—</div></div>
-            <div class="stat"><div class="stat-label">Today's Orders</div><div id="statTodayOrders" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">Pending Fulfilment</div><div id="statPendingOrders" class="stat-value">—</div></div>
             <div class="stat"><div class="stat-label">Total Revenue</div><div id="statRevenue" class="stat-value">—</div></div>
             <div class="stat"><div class="stat-label">Total Orders</div><div id="statOrders" class="stat-value">—</div></div>
             <div class="stat"><div class="stat-label">VIP Waitlist</div><div id="statWaitlist" class="stat-value">—</div></div>
           </div>
 
-          <!-- PRIORITY 3b: LOW STOCK SUMMARY WIDGET -->
-          <div class="panel" id="lowStockWidget">
-            <div class="panel-header">
-              <div>
-                <div class="panel-title" style="color: var(--yellow);">⚠ Low Stock Alert (< 5 Units)</div>
-                <div class="panel-subtitle">Silhouettes requiring inventory replenishment</div>
-              </div>
-            </div>
-            <div class="panel-body" style="padding: 16px 20px;">
-              <div id="lowStockList" style="display: flex; flex-direction: column; gap: 8px;"></div>
-            </div>
-          </div>
-
           <div class="panel">
             <div class="panel-header">
-              <div><div class="panel-title">Recent Orders</div><div class="panel-subtitle">Latest purchases awaiting dispatch</div></div>
+              <div><div class="panel-title">Recent Customer Orders</div><div class="panel-subtitle">Latest store transactions</div></div>
+              <button class="btn btn-small" type="button" onclick="document.querySelector('[data-page=orders]').click()">View All Orders →</button>
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead>
+                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
                 <tbody id="recentOrdersBody"></tbody>
               </table>
             </div>
           </div>
         </section>
 
-        <!-- 2. ORDERS & FULFILMENT (PRIORITY 3a) -->
+        <!-- 2. ORDERS SECTION (ADVANCED SEARCH, FILTER, FULFIL, CANCEL, INVOICE) -->
         <section id="page-orders" class="page hidden">
           <div class="panel">
             <div class="panel-header">
-              <div><div class="panel-title">Order Fulfilment Pipeline</div><div class="panel-subtitle">Manage dispatch stages, couriers and tracking numbers</div></div>
+              <div><div class="panel-title">Order Management & Operations</div><div class="panel-subtitle">Track, fulfil, print slips, and manage cancellations</div></div>
             </div>
+
+            <div class="table-toolbar">
+              <input type="text" id="orderSearchInput" placeholder="Search Order # or Customer...">
+              <select id="orderStatusFilter">
+                <option value="ALL">All Statuses</option>
+                <option value="PLACED">Placed (Pending)</option>
+                <option value="PACKED">Packed</option>
+                <option value="SHIPPED">Shipped</option>
+                <option value="OUT FOR DELIVERY">Out For Delivery</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+            </div>
+
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Courier / Tracking</th><th>Action</th></tr></thead>
+                <thead><tr><th>Order #</th><th>Customer Details</th><th>Items Count</th><th>Total</th><th>Status</th><th>Courier / Tracking</th><th>Actions</th></tr></thead>
                 <tbody id="ordersBody"></tbody>
               </table>
             </div>
           </div>
         </section>
 
-        <!-- 3. PRODUCTS & STOCK (PRIORITY 3b) -->
+        <!-- 3. PRODUCTS -->
         <section id="page-products" class="page hidden">
           <div class="panel">
-            <div class="panel-header"><div><div class="panel-title">Garment Stock & Availability</div><div class="panel-subtitle">Monitor live S/M/L/XL stock counts</div></div></div>
-            <div id="productsGrid" class="product-grid"></div>
+            <div class="panel-header"><div><div class="panel-title">Garment Stock & Availability</div><div class="panel-subtitle">Monitor live inventory counts</div></div></div>
+            <div id="productsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; padding: 20px;"></div>
           </div>
         </section>
 
-        <!-- 4. SITE CMS -->
-        <section id="page-cms" class="page hidden">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-            <div><h2 style="margin:0; font-size:20px;">Storefront Content Management</h2><p style="margin:4px 0 0; color:var(--muted); font-size:12px;">Live text and photo overrides.</p></div>
-            <button id="saveCmsBtn" class="btn btn-primary" type="button">SAVE ALL CMS CHANGES</button>
-          </div>
-
-          <div class="cms-section">
-            <div class="cms-section-heading"><h2>HERO CAMPAIGN</h2></div>
-            <div class="cms-grid">
-              <label class="cms-field"><span>Hero Korean Text</span><input type="text" data-cms="hero_korean"></label>
-              <label class="cms-field"><span>Hero Main Title</span><input type="text" data-cms="hero_title"></label>
-              <label class="cms-field"><span>Hero Subtitle</span><input type="text" data-cms="hero_subtitle"></label>
-              <label class="cms-field cms-field--full"><span>Hero Description</span><textarea data-cms="hero_description" rows="2"></textarea></label>
-              <label class="cms-field"><span>Button Text</span><input type="text" data-cms="hero_button_text"></label>
-              <label class="cms-field"><span>Button Link</span><input type="text" data-cms="hero_button_link"></label>
-            </div>
-          </div>
-
-          <div class="cms-section">
-            <div class="cms-section-heading"><h2>ANNOUNCEMENT TICKER</h2></div>
-            <div class="cms-grid">
-              <label class="cms-field"><span>Ticker Message 1</span><input type="text" data-cms="announcement_1"></label>
-              <label class="cms-field"><span>Ticker Message 2</span><input type="text" data-cms="announcement_2"></label>
-              <label class="cms-field cms-field--full"><span>Ticker Message 3</span><input type="text" data-cms="announcement_3"></label>
-            </div>
-          </div>
-        </section>
-
-        <!-- 5. COUPONS -->
+        <!-- 4. COUPONS -->
         <section id="page-coupons" class="page hidden">
           <div class="panel">
             <div class="panel-header"><div class="panel-title">Create Discount Code</div></div>
-            <div class="panel-body">
-              <form id="couponForm" class="cms-grid" novalidate>
-                <div class="field"><label>Code *</label><input id="couponCode" placeholder="BULKKOT10" required></div>
-                <div class="field"><label>Discount (%) *</label><input id="couponValue" type="number" min="0" max="100" placeholder="10" required></div>
-                <div class="field"><label>Min Order (₹)</label><input id="couponMinOrder" type="number" min="0" value="0"></div>
-                <div class="field" style="display:flex; align-items:flex-end;"><button id="createCouponBtn" class="btn btn-primary btn-full" type="button">Create Coupon</button></div>
+            <div class="panel-body" style="padding:20px;">
+              <form id="couponForm" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;" novalidate>
+                <input id="couponCode" placeholder="BULKKOT10" required>
+                <input id="couponValue" type="number" min="1" max="100" placeholder="Discount %" required>
+                <input id="couponMinOrder" type="number" min="0" placeholder="Min Order (₹)">
+                <button class="btn btn-primary" type="submit">Create Coupon</button>
               </form>
             </div>
           </div>
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">Active Coupons</div></div>
+            <div class="panel-header"><div class="panel-title">Active Store Coupons</div></div>
             <div class="table-wrap">
               <table>
                 <thead><tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Status</th><th>Action</th></tr></thead>
@@ -381,13 +330,13 @@
           </div>
         </section>
 
-        <!-- 6. WAITLIST -->
+        <!-- 5. WAITLIST -->
         <section id="page-waitlist" class="page hidden">
           <div class="panel">
             <div class="panel-header"><div class="panel-title">VIP Waitlist Subscribers</div></div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Email</th><th>Subscribed At</th></tr></thead>
+                <thead><tr><th>Subscriber Email</th><th>Signed Up Date</th></tr></thead>
                 <tbody id="waitlistBody"></tbody>
               </table>
             </div>
@@ -397,17 +346,19 @@
     </main>
   </section>
 
-  <!-- FULFILMENT MODAL (PRIORITY 3a) -->
+  <!-- FULFILMENT & ORDER MODAL -->
   <div id="orderModal" class="modal hidden">
     <div class="modal-box">
       <div class="modal-header">
-        <strong id="orderModalTitle">Fulfilment Dispatch</strong>
+        <strong id="orderModalTitle">Order Dispatch Details</strong>
         <button id="closeOrderModal" class="close-btn" type="button">&times;</button>
       </div>
       <div id="orderModalBody"></div>
     </div>
   </div>
 
+  <!-- PRINTABLE PACKING SLIP WRAPPER -->
+  <div id="printableSlip" class="hidden"></div>
   <div id="toastContainer"></div>
 
   <script>
@@ -427,7 +378,7 @@
         }
       });
 
-      const state = { user: null, products: [], orders: [], coupons: [], waitlist: [], cms: {} };
+      const state = { user: null, products: [], orders: [], coupons: [], waitlist: [] };
       const $ = s => document.querySelector(s);
       const $$ = s => [...document.querySelectorAll(s)];
 
@@ -448,18 +399,11 @@
         ov?.classList.toggle("hidden", !show);
       }
 
-      function setLoginError(msg = "") {
-        const err = $("#loginError");
-        if (err) err.textContent = msg;
-      }
+      // MOBILE DRAWER
+      $("#mobileMenuButton")?.addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
+      $("#sidebarBackdrop")?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
 
-      // MOBILE MENU
-      const mobileBtn = $("#mobileMenuButton");
-      const backdrop = $("#sidebarBackdrop");
-      mobileBtn?.addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
-      backdrop?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
-
-      // NAV TABS
+      // TABS
       $$(".nav-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           $$(".nav-btn").forEach(b => b.classList.remove("active"));
@@ -484,105 +428,51 @@
         state.user = null;
         $("#app").classList.add("hidden");
         $("#loginScreen").classList.remove("hidden");
-        setLoginError("");
       }
 
-      // LOGIN HANDLER
-      async function handleLogin(e) {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-
+      // AUTH LOGIN
+      $("#loginForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
         const email = $("#loginEmail").value.trim().toLowerCase();
         const password = $("#loginPassword").value;
         const btn = $("#loginButton");
 
-        if (!email || !password) {
-          setLoginError("Please enter email and password.");
-          return;
-        }
-
         btn.disabled = true;
-        btn.textContent = "SIGNING IN...";
+        btn.textContent = "VERIFYING...";
         setLoading(true, "AUTHENTICATING...");
 
         try {
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
           if (data.session) await supabase.auth.setSession(data.session);
-          showToast("Welcome to BULKKOT Admin!");
           showApp(data.user);
         } catch (err) {
-          setLoginError(err.message || "Invalid credentials.");
+          $("#loginError").textContent = err.message || "Invalid credentials.";
         } finally {
           btn.disabled = false;
-          btn.textContent = "SIGN IN";
+          btn.textContent = "SIGN IN TO PORTAL";
           setLoading(false);
         }
-      }
-
-      $("#loginForm")?.addEventListener("submit", handleLogin);
+      });
 
       $("#logoutButton")?.addEventListener("click", async () => {
-        setLoading(true, "LOGGING OUT...");
         await supabase.auth.signOut();
-        setLoading(false);
         showLogin();
-        showToast("Logged out successfully.");
       });
 
-      // RESTORE SESSION
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          showApp(session.user);
-        } else {
-          showLogin();
-        }
+        if (session?.user) showApp(session.user);
+        else showLogin();
       });
 
-      // CMS LOGIC
-      async function loadCMS() {
-        const { data } = await supabase.from("site_content").select("*");
-        state.cms = {};
-        (data || []).forEach(item => {
-          state.cms[item.content_key] = item.content_value || item.image_url || "";
-          const input = $(`[data-cms="${item.content_key}"]`);
-          if (input) input.value = item.content_value || item.image_url || "";
-        });
-      }
-
-      $("#saveCmsBtn")?.addEventListener("click", async () => {
-        setLoading(true, "SAVING CMS...");
-        try {
-          const updates = $$("[data-cms]").map(input => ({
-            content_key: input.dataset.cms,
-            content_value: input.value.trim(),
-            content_type: "text",
-            updated_at: new Date().toISOString()
-          }));
-
-          for (const u of updates) {
-            await supabase.from("site_content").upsert(u, { onConflict: "content_key" });
-          }
-          showToast("CMS updated live on storefront!");
-        } catch (e) {
-          showToast("Failed to save CMS", "error");
-        } finally {
-          setLoading(false);
-        }
-      });
-
-      // LOAD ALL DATA
+      // LOAD DATA
       async function loadAll() {
         if (!state.user) return;
-        setLoading(true, "SYNCING DATA...");
+        setLoading(true, "SYNCING DATABASE...");
         try {
-          await loadCMS();
-
           const { data: ords } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
           state.orders = ords || [];
-          
+
           const { data: prods } = await supabase.from("products").select("*").order("created_at", { ascending: false });
           state.products = prods || [];
 
@@ -596,14 +486,22 @@
           renderProducts();
           renderCoupons();
           renderWaitlist();
-          renderLowStockWidget();
 
+          // Metrics
           $("#statOrders").textContent = state.orders.length;
           $("#statWaitlist").textContent = state.waitlist.length;
+          const placedCount = state.orders.filter(o => o.order_status === 'PLACED').length;
+          $("#statPendingOrders").textContent = placedCount;
+
+          const badge = $("#newOrdersBadge");
+          if (badge) {
+            badge.textContent = placedCount;
+            badge.classList.toggle("hidden", placedCount === 0);
+          }
+
           const rev = state.orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
           $("#statRevenue").textContent = "₹" + rev.toLocaleString("en-IN");
           const today = state.orders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString());
-          $("#statTodayOrders").textContent = today.length;
           $("#statTodaySales").textContent = "₹" + today.reduce((s, o) => s + Number(o.total || 0), 0).toLocaleString("en-IN");
         } finally {
           setLoading(false);
@@ -612,7 +510,7 @@
 
       $("#refreshButton")?.addEventListener("click", loadAll);
 
-      // STATUS BADGE MAPPER (PRIORITY 3a)
+      // ORDERS RENDERING (WITH SEARCH & FILTER)
       function getStatusBadge(status) {
         const s = String(status || 'PLACED').toUpperCase();
         let cls = 'badge-placed';
@@ -625,219 +523,230 @@
       }
 
       function renderOrders() {
+        const query = $("#orderSearchInput")?.value.trim().toLowerCase() || "";
+        const filterStatus = $("#orderStatusFilter")?.value || "ALL";
+
+        const filtered = state.orders.filter(o => {
+          const matchQuery = (o.order_number || "").toLowerCase().includes(query) ||
+                             (o.customer_name || "").toLowerCase().includes(query) ||
+                             (o.customer_phone || "").includes(query);
+          const matchStatus = filterStatus === "ALL" || o.order_status === filterStatus;
+          return matchQuery && matchStatus;
+        });
+
         const body = $("#ordersBody");
-        const recentBody = $("#recentOrdersBody");
-        if (!body) return;
+        if (body) {
+          body.innerHTML = filtered.map(o => {
+            const itemCount = Array.isArray(o.items) ? o.items.reduce((s, i) => s + (i.quantity || 1), 0) : 1;
+            return `
+              <tr>
+                <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
+                <td>${o.customer_name || 'Guest'}<br><small style="color:#777;">${o.customer_phone || ''}</small></td>
+                <td>${itemCount} units</td>
+                <td>₹${Number(o.total||0).toLocaleString("en-IN")}</td>
+                <td>${getStatusBadge(o.order_status)}</td>
+                <td>${o.courier || '—'}<br><small style="color:#777;">${o.tracking_number || ''}</small></td>
+                <td>
+                  <button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">View / Fulfil</button>
+                  <button class="btn btn-small" type="button" onclick="window.printSlip('${o.id}')">Print Slip</button>
+                </td>
+              </tr>
+            `;
+          }).join("") || '<tr><td colspan="7" class="empty">No matching orders found.</td></tr>';
+        }
 
-        body.innerHTML = state.orders.map(o => `
-          <tr>
-            <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
-            <td>${o.customer_name || 'Guest'}<br><small style="color:#666;">${o.customer_phone || ''}</small></td>
-            <td>₹${Number(o.total || 0).toLocaleString("en-IN")}</td>
-            <td><span class="badge" style="background:#222; color:#bbb;">${String(o.payment_method||'cod').toUpperCase()}</span></td>
-            <td>${getStatusBadge(o.order_status)}</td>
-            <td>${o.courier || '—'}<br><small style="color:#666;">${o.tracking_number || ''}</small></td>
-            <td><button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">Fulfil</button></td>
-          </tr>
-        `).join("") || '<tr><td colspan="7" class="empty">No orders recorded.</td></tr>';
-
-        if (recentBody) {
-          recentBody.innerHTML = state.orders.slice(0, 5).map(o => `
+        const recent = $("#recentOrdersBody");
+        if (recent) {
+          recent.innerHTML = state.orders.slice(0, 5).map(o => `
             <tr>
               <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
               <td>${o.customer_name || 'Guest'}</td>
-              <td>₹${Number(o.total || 0).toLocaleString("en-IN")}</td>
-              <td>${String(o.payment_method||'COD').toUpperCase()}</td>
+              <td>₹${Number(o.total||0).toLocaleString("en-IN")}</td>
               <td>${getStatusBadge(o.order_status)}</td>
               <td>${new Date(o.created_at).toLocaleDateString("en-IN")}</td>
+              <td><button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">Manage</button></td>
             </tr>
-          `).join("") || '<tr><td colspan="6" class="empty">No recent orders.</td></tr>';
+          `).join("") || '<tr><td colspan="6" class="empty">No orders logged.</td></tr>';
         }
       }
 
-      // PRIORITY 3b: PRODUCTS & STOCK RENDERING
-      function renderProducts() {
-        const grid = $("#productsGrid");
-        if (!grid) return;
+      $("#orderSearchInput")?.addEventListener("input", renderOrders);
+      $("#orderStatusFilter")?.addEventListener("change", renderOrders);
 
-        grid.innerHTML = state.products.map(p => {
-          const stk = p.stock || {};
-          const sizes = ['S', 'M', 'L', 'XL'];
-          const chips = sizes.map(sz => {
-            const count = Number(stk[sz] || 0);
-            let badgeClass = '';
-            if (count === 0) badgeClass = 'out';
-            else if (count < 5) badgeClass = 'low';
-            return `<div class="stock-chip ${badgeClass}">${sz}: <strong>${count}</strong></div>`;
-          }).join('');
-
-          return `
-            <div class="product-card">
-              <div class="product-image"><img src="${p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}"></div>
-              <div class="product-info">
-                <div class="product-name">${p.name}</div>
-                <div class="product-meta">₹${Number(p.price||0).toLocaleString("en-IN")} · ${p.category}</div>
-                <div class="stock-chip-row">${chips}</div>
-              </div>
-            </div>
-          `;
-        }).join("") || '<div class="empty" style="grid-column:1/-1;">No products cataloged.</div>';
-      }
-
-      // PRIORITY 3b: LOW STOCK SUMMARY WIDGET
-      function renderLowStockWidget() {
-        const container = $("#lowStockList");
-        if (!container) return;
-
-        const lowStockItems = [];
-        state.products.forEach(p => {
-          const stk = p.stock || {};
-          ['S', 'M', 'L', 'XL'].forEach(sz => {
-            const count = Number(stk[sz] || 0);
-            if (count < 5) {
-              lowStockItems.push({
-                name: p.name,
-                category: p.category,
-                size: sz,
-                count: count
-              });
-            }
-          });
-        });
-
-        if (lowStockItems.length === 0) {
-          container.innerHTML = `<div style="color: var(--green); font-size: 11px; font-weight: 700;">✓ All garment sizes are healthy (5+ units in stock).</div>`;
-          return;
-        }
-
-        container.innerHTML = lowStockItems.map(item => `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #141414; border: 1px solid #222; border-radius: 6px; font-size: 11px;">
-            <span><strong>${item.name}</strong> (${item.category})</span>
-            <span class="stock-chip ${item.count === 0 ? 'out' : 'low'}">Size ${item.size}: ${item.count === 0 ? 'SOLD OUT' : item.count + ' left'}</span>
-          </div>
-        `).join('');
-      }
-
-      function renderCoupons() {
-        const body = $("#couponsBody");
-        if (!body) return;
-        body.innerHTML = state.coupons.map(c => `
-          <tr>
-            <td><strong>${c.code}</strong></td>
-            <td>${c.discount_value}%</td>
-            <td>₹${c.min_order_value || 0}</td>
-            <td><span class="badge ${c.active?'badge-delivered':'badge-cancelled'}">${c.active?'ACTIVE':'DISABLED'}</span></td>
-            <td><button class="btn btn-small btn-danger" type="button" onclick="window.toggleCoupon('${c.id}', ${!c.active})">${c.active?'Disable':'Enable'}</button></td>
-          </tr>
-        `).join("") || '<tr><td colspan="5" class="empty">No coupons created.</td></tr>';
-      }
-
-      function renderWaitlist() {
-        const body = $("#waitlistBody");
-        if (!body) return;
-        body.innerHTML = state.waitlist.map(w => `
-          <tr><td>${w.email}</td><td>${new Date(w.created_at).toLocaleDateString()}</td></tr>
-        `).join("") || '<tr><td colspan="2" class="empty">No subscribers yet.</td></tr>';
-      }
-
-      // PRIORITY 3a: FULFILMENT PIPELINE MODAL
+      // ORDER DETAIL & FULFILMENT MODAL
       window.viewOrder = (id) => {
         const o = state.orders.find(item => item.id === id);
         if (!o) return;
 
-        const pipelineSteps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED", "CANCELLED"];
+        const itemsList = (o.items || []).map(i => `
+          <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed #222;">
+            <span>${i.size ? `[${i.size}]` : ''} Product ID: ${i.product_id} × ${i.quantity || 1}</span>
+            <strong>₹${((i.price || 0) * (i.quantity || 1)).toLocaleString("en-IN")}</strong>
+          </div>
+        `).join('');
 
-        $("#orderModalTitle").textContent = "Fulfilment: " + (o.order_number || o.id.slice(0,8));
+        $("#orderModalTitle").textContent = "Order: " + (o.order_number || o.id);
         $("#orderModalBody").innerHTML = `
-          <div style="margin-bottom:16px; font-size:12px; line-height:1.7; background: #151515; padding: 12px; border-radius: 8px;">
+          <div style="margin-bottom:16px; font-size:12px; line-height:1.7; background:#141414; padding:14px; border-radius:8px;">
             <strong>Customer:</strong> ${o.customer_name} (${o.customer_phone})<br>
+            <strong>Email:</strong> ${o.customer_email || '—'}<br>
             <strong>Address:</strong> ${o.shipping_address}<br>
-            <strong>Total:</strong> ₹${Number(o.total||0).toLocaleString("en-IN")} (${String(o.payment_method||'COD').toUpperCase()})
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid #222;">${itemsList}</div>
+            <div style="margin-top:8px; font-size:14px; font-weight:800; display:flex; justify-content:space-between;">
+              <span>Total:</span><span>₹${Number(o.total||0).toLocaleString("en-IN")} (COD)</span>
+            </div>
           </div>
 
-          <div class="cms-grid">
-            <div class="field">
-              <label for="modalStatus">Update Order Status</label>
-              <select id="modalStatus">
-                ${pipelineSteps.map(s => `
-                  <option value="${s}" ${s === (o.order_status || 'PLACED') ? 'selected' : ''}>${s}</option>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="font-size:10px; color:#888; font-weight:700;">UPDATE STATUS</label>
+              <select id="modalStatus" style="margin-top:4px;">
+                ${["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"].map(s => `
+                  <option value="${s}" ${s === o.order_status ? 'selected' : ''}>${s}</option>
                 `).join('')}
               </select>
             </div>
-            <div class="field">
-              <label for="modalCourier">Courier Partner</label>
-              <input id="modalCourier" placeholder="e.g. Bluedart, Delhivery" value="${o.courier || ''}">
+            <div>
+              <label style="font-size:10px; color:#888; font-weight:700;">COURIER NAME</label>
+              <input id="modalCourier" value="${o.courier || ''}" placeholder="Delhivery, Bluedart" style="margin-top:4px;">
             </div>
-            <div class="field cms-field--full">
-              <label for="modalTracking">Airway Bill / Tracking Number</label>
-              <input id="modalTracking" placeholder="e.g. AWB12398471" value="${o.tracking_number || ''}">
+            <div style="grid-column:1/-1;">
+              <label style="font-size:10px; color:#888; font-weight:700;">TRACKING NUMBER (AWB)</label>
+              <input id="modalTracking" value="${o.tracking_number || ''}" placeholder="AWB948194819" style="margin-top:4px;">
             </div>
           </div>
 
-          <button class="btn btn-primary btn-full" style="margin-top:14px;" type="button" onclick="window.saveOrderUpdate('${o.id}')">
-            SAVE & SYNC TO CUSTOMER TRACKING
-          </button>
+          <div style="display:flex; gap:10px; margin-top:16px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="window.saveOrder('${o.id}')">SAVE FULFILMENT</button>
+            <button class="btn btn-danger" onclick="window.cancelOrder('${o.id}')">CANCEL ORDER (RESTORE STOCK)</button>
+          </div>
         `;
         $("#orderModal").classList.remove("hidden");
       };
 
       $("#closeOrderModal")?.addEventListener("click", () => $("#orderModal").classList.add("hidden"));
 
-      window.saveOrderUpdate = async (id) => {
+      window.saveOrder = async (id) => {
         const status = $("#modalStatus").value;
         const courier = $("#modalCourier").value.trim();
         const tracking = $("#modalTracking").value.trim();
-        setLoading(true, "UPDATING FULFILMENT...");
 
+        setLoading(true, "SAVING...");
         try {
-          const { error } = await supabase
-            .from("orders")
-            .update({
-              order_status: status,
-              courier: courier || null,
-              tracking_number: tracking || null
-            })
-            .eq("id", id);
-
+          const { error } = await supabase.from("orders").update({ order_status: status, courier, tracking_number: tracking }).eq("id", id);
           if (error) throw error;
-          showToast("Order status & tracking updated!");
+          showToast("Order fulfilment updated!");
+          $("#orderModal").classList.add("hidden");
+          await loadAll();
+        } finally { setLoading(false); }
+      };
+
+      // CANCEL ORDER WITH AUTO STOCK RESTORE
+      window.cancelOrder = async (id) => {
+        if (!confirm("Are you sure you want to cancel this order? Deducted inventory will automatically be restored to the catalog.")) return;
+
+        setLoading(true, "RESTORING STOCK & CANCELLING...");
+        try {
+          const { data, error } = await supabase.rpc("cancel_order_restore_stock", { p_order_id: id });
+          if (error) throw error;
+          showToast("Order cancelled and stock restored!");
           $("#orderModal").classList.add("hidden");
           await loadAll();
         } catch (err) {
-          showToast("Failed: " + err.message, "error");
+          showToast(err.message || "Failed to cancel", "error");
         } finally {
           setLoading(false);
         }
       };
 
-      $("#createCouponBtn")?.addEventListener("click", async () => {
+      // PRINT PACKING SLIP
+      window.printSlip = (id) => {
+        const o = state.orders.find(item => item.id === id);
+        if (!o) return;
+
+        const slip = $("#printableSlip");
+        slip.innerHTML = `
+          <div style="font-family: monospace; padding: 20px;">
+            <h2>BULKKOT (불꽃) — PACKING SLIP</h2>
+            <p><strong>ORDER:</strong> ${o.order_number || o.id} | <strong>DATE:</strong> ${new Date(o.created_at).toLocaleDateString()}</p>
+            <hr>
+            <p><strong>SHIP TO:</strong><br>${o.customer_name}<br>${o.customer_phone}<br>${o.shipping_address}</p>
+            <hr>
+            <h3>ITEMS:</h3>
+            ${(o.items || []).map(i => `<p>• Size: ${i.size || 'M'} | Qty: ${i.quantity || 1} | ₹${i.price || 0}</p>`).join('')}
+            <hr>
+            <h3>TOTAL COLLECTIBLE (COD): ₹${Number(o.total || 0).toLocaleString("en-IN")}</h3>
+          </div>
+        `;
+        window.print();
+      };
+
+      // PRODUCTS
+      function renderProducts() {
+        const grid = $("#productsGrid");
+        if (!grid) return;
+
+        grid.innerHTML = state.products.map(p => {
+          const stk = p.stock || {};
+          return `
+            <div style="background:#0e0e0e; border:1px solid var(--border); border-radius:8px; padding:14px;">
+              <img src="${p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}" style="width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:6px;">
+              <h4 style="margin:10px 0 4px; font-size:14px;">${p.name}</h4>
+              <div style="color:var(--muted); font-size:11px;">₹${Number(p.price||0).toLocaleString("en-IN")} · ${p.category}</div>
+              <div style="display:flex; gap:6px; margin-top:10px;">
+                <span style="font-size:10px; background:#161616; padding:3px 6px; border-radius:4px;">S: ${stk.S||0}</span>
+                <span style="font-size:10px; background:#161616; padding:3px 6px; border-radius:4px;">M: ${stk.M||0}</span>
+                <span style="font-size:10px; background:#161616; padding:3px 6px; border-radius:4px;">L: ${stk.L||0}</span>
+                <span style="font-size:10px; background:#161616; padding:3px 6px; border-radius:4px;">XL: ${stk.XL||0}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // COUPONS & WAITLIST
+      function renderCoupons() {
+        const b = $("#couponsBody");
+        if (!b) return;
+        b.innerHTML = state.coupons.map(c => `
+          <tr>
+            <td><strong>${c.code}</strong></td>
+            <td>${c.discount_value}%</td>
+            <td>₹${c.min_order_value || 0}</td>
+            <td><span class="badge ${c.active?'badge-delivered':'badge-cancelled'}">${c.active?'ACTIVE':'DISABLED'}</span></td>
+            <td><button class="btn btn-small btn-danger" onclick="window.toggleCoupon('${c.id}', ${!c.active})">${c.active?'Disable':'Enable'}</button></td>
+          </tr>
+        `).join('');
+      }
+
+      window.toggleCoupon = async (id, active) => {
+        await supabase.from("coupons").update({ active }).eq("id", id);
+        loadAll();
+      };
+
+      $("#couponForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
         const code = $("#couponCode").value.trim().toUpperCase();
         const discount_value = Number($("#couponValue").value);
         const min_order_value = Number($("#couponMinOrder").value || 0);
 
-        if (!code || isNaN(discount_value)) {
-          showToast("Enter valid coupon details.", "error");
-          return;
-        }
-
-        setLoading(true, "CREATING...");
+        setLoading(true);
         try {
-          const { error } = await supabase.from("coupons").insert({ code, discount_type: "percentage", discount_value, min_order_value, active: true });
-          if (error) throw error;
-          showToast("Coupon created!");
+          await supabase.from("coupons").insert({ code, discount_type: "percentage", discount_value, min_order_value, active: true });
           $("#couponCode").value = "";
           $("#couponValue").value = "";
-          await loadAll();
-        } catch (err) {
-          showToast(err.message || "Failed", "error");
+          showToast("Coupon active!");
+          loadAll();
         } finally { setLoading(false); }
       });
 
-      window.toggleCoupon = async (id, active) => {
-        await supabase.from("coupons").update({ active }).eq("id", id);
-        showToast("Coupon updated");
-        await loadAll();
-      };
+      function renderWaitlist() {
+        const b = $("#waitlistBody");
+        if (!b) return;
+        b.innerHTML = state.waitlist.map(w => `
+          <tr><td>${w.email}</td><td>${new Date(w.created_at).toLocaleDateString("en-IN")}</td></tr>
+        `).join('');
+      }
     });
   </script>
 </body>
