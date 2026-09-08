@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#070707">
-  <title>BULKKOT — Admin & Store Control</title>
+  <title>BULKKOT — Admin Control Center</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -13,6 +13,7 @@
       --bg: #070707;
       --panel: #101010;
       --border: #242424;
+      --border-soft: #1a1a1a;
       --text: #f5f5f5;
       --muted: #8b8b8b;
       --red: #e31b23;
@@ -48,20 +49,20 @@
     select option { background: #111; color: #fff; }
     .hidden { display: none !important; }
 
-    /* LOADING */
+    /* LOADING SPINNER */
     #loadingOverlay {
       position: fixed; inset: 0; z-index: 1000;
       background: rgba(0, 0, 0, .88); display: grid; place-items: center; padding: 20px;
     }
     .loading-spinner {
-      width: 30px; height: 30px; margin: 0 auto 12px;
+      width: 32px; height: 32px; margin: 0 auto 12px;
       border: 2px solid #2a2a2a; border-top-color: var(--red);
       border-radius: 50%; animation: spin .7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loadingText { color: var(--red); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-align: center; }
 
-    /* LOGIN */
+    /* LOGIN SCREEN */
     #loginScreen {
       min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 20px;
       background: radial-gradient(circle at 50% 0%, rgba(227, 27, 35, .15), transparent 45%), var(--bg);
@@ -89,7 +90,7 @@
     .btn-primary:hover { background: var(--red-dark); }
     .btn-danger { background: rgba(239, 68, 68, .12); border-color: rgba(239, 68, 68, .25); color: #ff7777; }
     .btn-full { width: 100%; }
-    .btn-small { min-height: 34px; padding: 6px 10px; font-size: 10px; }
+    .btn-small { min-height: 32px; padding: 4px 10px; font-size: 10px; }
 
     /* LAYOUT */
     #app { min-height: 100vh; display: grid; grid-template-columns: 240px minmax(0, 1fr); }
@@ -124,8 +125,8 @@
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,.78); z-index: 150;
     }
 
-    /* STATS & TABLES */
-    .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    /* STATS & WIDGETS */
+    .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
     .stat { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
     .stat-label { color: var(--muted); font-size: 10px; text-transform: uppercase; margin-bottom: 6px; }
     .stat-value { font-size: 22px; font-weight: 900; }
@@ -135,20 +136,32 @@
     .panel-title { font-size: 15px; font-weight: 800; }
     .panel-subtitle { color: var(--muted); font-size: 11px; margin-top: 2px; }
 
+    /* TABLES */
     .table-wrap { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 720px; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 780px; font-size: 12px; }
     th { text-align: left; color: #666; font-size: 9px; text-transform: uppercase; padding: 12px 14px; border-bottom: 1px solid var(--border); }
     td { padding: 12px 14px; border-bottom: 1px solid #161616; vertical-align: middle; }
     .empty { color: var(--muted); text-align: center; padding: 36px !important; }
 
-    /* BADGES */
+    /* STATUS BADGES */
     .badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 999px; font-size: 8px; font-weight: 800; text-transform: uppercase; }
-    .badge-order-placed, .badge-pending { background: rgba(245, 197, 66, .12); color: var(--yellow); }
-    .badge-payment-confirmed, .badge-delivered, .badge-active { background: rgba(49, 196, 141, .12); color: var(--green); }
-    .badge-packed, .badge-shipped, .badge-upi { background: rgba(112, 170, 255, .12); color: var(--blue); }
-    .badge-cancelled, .badge-inactive { background: rgba(239, 68, 68, .12); color: #ff7777; }
+    .badge-placed { background: rgba(245, 197, 66, .12); color: var(--yellow); }
+    .badge-packed { background: rgba(112, 170, 255, .12); color: var(--blue); }
+    .badge-shipped { background: rgba(112, 170, 255, .2); color: #9cc2ff; }
+    .badge-out-for-delivery { background: rgba(245, 197, 66, .2); color: #ffd666; }
+    .badge-delivered { background: rgba(49, 196, 141, .15); color: var(--green); }
+    .badge-cancelled { background: rgba(239, 68, 68, .12); color: #ff7777; }
 
-    /* CMS & PRODUCTS */
+    /* STOCK CHIPS & INDICATORS */
+    .stock-chip-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+    .stock-chip {
+      padding: 4px 8px; background: #161616; border: 1px solid var(--border);
+      border-radius: 4px; font-size: 10px; font-weight: 700;
+    }
+    .stock-chip.low { border-color: rgba(245, 197, 66, 0.5); color: var(--yellow); background: rgba(245, 197, 66, 0.08); }
+    .stock-chip.out { border-color: rgba(239, 68, 68, 0.5); color: #ff7777; background: rgba(239, 68, 68, 0.08); }
+
+    /* CMS CONTROLS */
     .cms-section { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; }
     .cms-section-heading { border-bottom: 1px solid #1a1a1a; padding-bottom: 12px; margin-bottom: 18px; }
     .cms-section-heading h2 { margin: 0; font-size: 16px; font-weight: 800; }
@@ -156,9 +169,8 @@
     .cms-field { display: flex; flex-direction: column; gap: 6px; }
     .cms-field--full { grid-column: 1 / -1; }
     .cms-field span { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-    .cms-image-row { display: flex; gap: 14px; align-items: center; }
-    .cms-image-row img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); background: #151515; }
 
+    /* PRODUCTS GRID */
     .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 20px; }
     .product-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
     .product-image { aspect-ratio: 1/1; background: #151515; }
@@ -166,11 +178,8 @@
     .product-info { padding: 14px; }
     .product-name { font-weight: 800; font-size: 13px; margin-bottom: 4px; }
     .product-meta { color: var(--muted); font-size: 11px; }
-    .stock-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 0; }
-    .stock-chip { padding: 6px 2px; background: #151515; border: 1px solid #1a1a1a; border-radius: 6px; text-align: center; font-size: 9px; }
-    .stock-chip strong { display: block; font-size: 10px; }
 
-    /* MODAL & TOAST */
+    /* MODAL */
     .modal { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 20px; }
     .modal-box { width: min(720px, 100%); max-height: 90vh; overflow-y: auto; background: #101010; border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
@@ -212,7 +221,7 @@
   <section id="loginScreen">
     <div class="login-card">
       <div class="brand">불꽃 <span>BULKKOT</span></div>
-      <p class="login-subtitle">Admin & Content Management Portal</p>
+      <p class="login-subtitle">Admin Control Center</p>
       
       <form id="loginForm" novalidate>
         <div class="field">
@@ -224,7 +233,7 @@
           <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
         </div>
         <div id="loginError" class="login-error" aria-live="polite"></div>
-        <button id="loginButton" class="btn btn-primary btn-full" type="submit">AUTHENTICATE</button>
+        <button id="loginButton" class="btn btn-primary btn-full" type="submit">SIGN IN</button>
       </form>
     </div>
   </section>
@@ -235,9 +244,9 @@
       <div class="sidebar-logo">불꽃 <span>BULKKOT</span></div>
       <nav class="nav">
         <button class="nav-btn active" data-page="dashboard" type="button">◈ Dashboard</button>
+        <button class="nav-btn" data-page="orders" type="button">≡ Orders & Fulfilment</button>
+        <button class="nav-btn" data-page="products" type="button">□ Products & Stock</button>
         <button class="nav-btn" data-page="cms" type="button">✦ Site CMS</button>
-        <button class="nav-btn" data-page="products" type="button">□ Products</button>
-        <button class="nav-btn" data-page="orders" type="button">≡ Orders</button>
         <button class="nav-btn" data-page="coupons" type="button">% Coupons</button>
         <button class="nav-btn" data-page="waitlist" type="button">♡ VIP Waitlist</button>
       </nav>
@@ -269,23 +278,60 @@
             <div class="stat"><div class="stat-label">Total Orders</div><div id="statOrders" class="stat-value">—</div></div>
             <div class="stat"><div class="stat-label">VIP Waitlist</div><div id="statWaitlist" class="stat-value">—</div></div>
           </div>
+
+          <!-- PRIORITY 3b: LOW STOCK SUMMARY WIDGET -->
+          <div class="panel" id="lowStockWidget">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title" style="color: var(--yellow);">⚠ Low Stock Alert (< 5 Units)</div>
+                <div class="panel-subtitle">Silhouettes requiring inventory replenishment</div>
+              </div>
+            </div>
+            <div class="panel-body" style="padding: 16px 20px;">
+              <div id="lowStockList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+          </div>
+
           <div class="panel">
             <div class="panel-header">
-              <div><div class="panel-title">Recent Orders</div><div class="panel-subtitle">Latest customer purchases</div></div>
+              <div><div class="panel-title">Recent Orders</div><div class="panel-subtitle">Latest purchases awaiting dispatch</div></div>
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
+                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody id="recentOrdersBody"></tbody>
               </table>
             </div>
           </div>
         </section>
 
-        <!-- 2. SITE CMS -->
+        <!-- 2. ORDERS & FULFILMENT (PRIORITY 3a) -->
+        <section id="page-orders" class="page hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <div><div class="panel-title">Order Fulfilment Pipeline</div><div class="panel-subtitle">Manage dispatch stages, couriers and tracking numbers</div></div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Courier / Tracking</th><th>Action</th></tr></thead>
+                <tbody id="ordersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. PRODUCTS & STOCK (PRIORITY 3b) -->
+        <section id="page-products" class="page hidden">
+          <div class="panel">
+            <div class="panel-header"><div><div class="panel-title">Garment Stock & Availability</div><div class="panel-subtitle">Monitor live S/M/L/XL stock counts</div></div></div>
+            <div id="productsGrid" class="product-grid"></div>
+          </div>
+        </section>
+
+        <!-- 4. SITE CMS -->
         <section id="page-cms" class="page hidden">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-            <div><h2 style="margin:0; font-size:20px;">Storefront Content Management</h2><p style="margin:4px 0 0; color:var(--muted); font-size:12px;">Edit texts, links and banner photos live on the site.</p></div>
+            <div><h2 style="margin:0; font-size:20px;">Storefront Content Management</h2><p style="margin:4px 0 0; color:var(--muted); font-size:12px;">Live text and photo overrides.</p></div>
             <button id="saveCmsBtn" class="btn btn-primary" type="button">SAVE ALL CMS CHANGES</button>
           </div>
 
@@ -306,27 +352,7 @@
             <div class="cms-grid">
               <label class="cms-field"><span>Ticker Message 1</span><input type="text" data-cms="announcement_1"></label>
               <label class="cms-field"><span>Ticker Message 2</span><input type="text" data-cms="announcement_2"></label>
-            </div>
-          </div>
-        </section>
-
-        <!-- 3. PRODUCTS -->
-        <section id="page-products" class="page hidden">
-          <div class="panel">
-            <div class="panel-header"><div><div class="panel-title">Catalogue & Stock</div><div class="panel-subtitle">Manage prices and S/M/L/XL stock</div></div></div>
-            <div id="productsGrid" class="product-grid"></div>
-          </div>
-        </section>
-
-        <!-- 4. ORDERS -->
-        <section id="page-orders" class="page hidden">
-          <div class="panel">
-            <div class="panel-header"><div><div class="panel-title">Order Fulfilment</div><div class="panel-subtitle">Update status and couriers</div></div></div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Method</th><th>Payment</th><th>Status</th><th>Courier / Tracking</th><th>Action</th></tr></thead>
-                <tbody id="ordersBody"></tbody>
-              </table>
+              <label class="cms-field cms-field--full"><span>Ticker Message 3</span><input type="text" data-cms="announcement_3"></label>
             </div>
           </div>
         </section>
@@ -371,11 +397,11 @@
     </main>
   </section>
 
-  <!-- ORDER MODAL -->
+  <!-- FULFILMENT MODAL (PRIORITY 3a) -->
   <div id="orderModal" class="modal hidden">
     <div class="modal-box">
       <div class="modal-header">
-        <strong id="orderModalTitle">Order Details</strong>
+        <strong id="orderModalTitle">Fulfilment Dispatch</strong>
         <button id="closeOrderModal" class="close-btn" type="button">&times;</button>
       </div>
       <div id="orderModalBody"></div>
@@ -441,7 +467,7 @@
           const page = btn.dataset.page;
           $$(".page").forEach(p => p.classList.add("hidden"));
           $(`#page-${page}`)?.classList.remove("hidden");
-          $("#pageTitle").textContent = btn.textContent.replace(/[^a-zA-Z ]/g, '').trim();
+          $("#pageTitle").textContent = btn.textContent.replace(/[^a-zA-Z &]/g, '').trim();
           document.body.classList.remove("sidebar-open");
         });
       });
@@ -461,7 +487,7 @@
         setLoginError("");
       }
 
-      // FIXED LOGIN HANDLER (NO RELOAD)
+      // LOGIN HANDLER
       async function handleLogin(e) {
         if (e) {
           e.preventDefault();
@@ -491,7 +517,7 @@
           setLoginError(err.message || "Invalid credentials.");
         } finally {
           btn.disabled = false;
-          btn.textContent = "AUTHENTICATE";
+          btn.textContent = "SIGN IN";
           setLoading(false);
         }
       }
@@ -515,11 +541,45 @@
         }
       });
 
-      // LOAD DATA
+      // CMS LOGIC
+      async function loadCMS() {
+        const { data } = await supabase.from("site_content").select("*");
+        state.cms = {};
+        (data || []).forEach(item => {
+          state.cms[item.content_key] = item.content_value || item.image_url || "";
+          const input = $(`[data-cms="${item.content_key}"]`);
+          if (input) input.value = item.content_value || item.image_url || "";
+        });
+      }
+
+      $("#saveCmsBtn")?.addEventListener("click", async () => {
+        setLoading(true, "SAVING CMS...");
+        try {
+          const updates = $$("[data-cms]").map(input => ({
+            content_key: input.dataset.cms,
+            content_value: input.value.trim(),
+            content_type: "text",
+            updated_at: new Date().toISOString()
+          }));
+
+          for (const u of updates) {
+            await supabase.from("site_content").upsert(u, { onConflict: "content_key" });
+          }
+          showToast("CMS updated live on storefront!");
+        } catch (e) {
+          showToast("Failed to save CMS", "error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      // LOAD ALL DATA
       async function loadAll() {
         if (!state.user) return;
-        setLoading(true, "FETCHING DATA...");
+        setLoading(true, "SYNCING DATA...");
         try {
+          await loadCMS();
+
           const { data: ords } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
           state.orders = ords || [];
           
@@ -536,6 +596,7 @@
           renderProducts();
           renderCoupons();
           renderWaitlist();
+          renderLowStockWidget();
 
           $("#statOrders").textContent = state.orders.length;
           $("#statWaitlist").textContent = state.waitlist.length;
@@ -551,22 +612,34 @@
 
       $("#refreshButton")?.addEventListener("click", loadAll);
 
+      // STATUS BADGE MAPPER (PRIORITY 3a)
+      function getStatusBadge(status) {
+        const s = String(status || 'PLACED').toUpperCase();
+        let cls = 'badge-placed';
+        if (s === 'PACKED') cls = 'badge-packed';
+        if (s === 'SHIPPED') cls = 'badge-shipped';
+        if (s === 'OUT FOR DELIVERY') cls = 'badge-out-for-delivery';
+        if (s === 'DELIVERED') cls = 'badge-delivered';
+        if (s === 'CANCELLED') cls = 'badge-cancelled';
+        return `<span class="badge ${cls}">${s}</span>`;
+      }
+
       function renderOrders() {
         const body = $("#ordersBody");
         const recentBody = $("#recentOrdersBody");
         if (!body) return;
+
         body.innerHTML = state.orders.map(o => `
           <tr>
             <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
             <td>${o.customer_name || 'Guest'}<br><small style="color:#666;">${o.customer_phone || ''}</small></td>
             <td>₹${Number(o.total || 0).toLocaleString("en-IN")}</td>
-            <td><span class="badge badge-${(o.payment_method||'cod').toLowerCase()}">${(o.payment_method||'cod').toUpperCase()}</span></td>
-            <td><span class="badge badge-${(o.payment_status||'pending').toLowerCase()}">${o.payment_status||'PENDING'}</span></td>
-            <td><span class="badge badge-order-placed">${o.order_status||'ORDER PLACED'}</span></td>
+            <td><span class="badge" style="background:#222; color:#bbb;">${String(o.payment_method||'cod').toUpperCase()}</span></td>
+            <td>${getStatusBadge(o.order_status)}</td>
             <td>${o.courier || '—'}<br><small style="color:#666;">${o.tracking_number || ''}</small></td>
-            <td><button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">View</button></td>
+            <td><button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">Fulfil</button></td>
           </tr>
-        `).join("") || '<tr><td colspan="8" class="empty">No orders recorded.</td></tr>';
+        `).join("") || '<tr><td colspan="7" class="empty">No orders recorded.</td></tr>';
 
         if (recentBody) {
           recentBody.innerHTML = state.orders.slice(0, 5).map(o => `
@@ -574,35 +647,75 @@
               <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
               <td>${o.customer_name || 'Guest'}</td>
               <td>₹${Number(o.total || 0).toLocaleString("en-IN")}</td>
-              <td>${String(o.payment_method||'cod').toUpperCase()}</td>
-              <td><span class="badge badge-order-placed">${o.order_status||'ORDER PLACED'}</span></td>
+              <td>${String(o.payment_method||'COD').toUpperCase()}</td>
+              <td>${getStatusBadge(o.order_status)}</td>
               <td>${new Date(o.created_at).toLocaleDateString("en-IN")}</td>
             </tr>
-          `).join("") || '<tr><td colspan="6" class="empty">No orders yet.</td></tr>';
+          `).join("") || '<tr><td colspan="6" class="empty">No recent orders.</td></tr>';
         }
       }
 
+      // PRIORITY 3b: PRODUCTS & STOCK RENDERING
       function renderProducts() {
         const grid = $("#productsGrid");
         if (!grid) return;
+
         grid.innerHTML = state.products.map(p => {
           const stk = p.stock || {};
+          const sizes = ['S', 'M', 'L', 'XL'];
+          const chips = sizes.map(sz => {
+            const count = Number(stk[sz] || 0);
+            let badgeClass = '';
+            if (count === 0) badgeClass = 'out';
+            else if (count < 5) badgeClass = 'low';
+            return `<div class="stock-chip ${badgeClass}">${sz}: <strong>${count}</strong></div>`;
+          }).join('');
+
           return `
             <div class="product-card">
               <div class="product-image"><img src="${p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}"></div>
               <div class="product-info">
                 <div class="product-name">${p.name}</div>
                 <div class="product-meta">₹${Number(p.price||0).toLocaleString("en-IN")} · ${p.category}</div>
-                <div class="stock-row">
-                  <div class="stock-chip"><strong>S</strong>${stk.S||0}</div>
-                  <div class="stock-chip"><strong>M</strong>${stk.M||0}</div>
-                  <div class="stock-chip"><strong>L</strong>${stk.L||0}</div>
-                  <div class="stock-chip"><strong>XL</strong>${stk.XL||0}</div>
-                </div>
+                <div class="stock-chip-row">${chips}</div>
               </div>
             </div>
           `;
-        }).join("") || '<div class="empty" style="grid-column:1/-1;">No products found.</div>';
+        }).join("") || '<div class="empty" style="grid-column:1/-1;">No products cataloged.</div>';
+      }
+
+      // PRIORITY 3b: LOW STOCK SUMMARY WIDGET
+      function renderLowStockWidget() {
+        const container = $("#lowStockList");
+        if (!container) return;
+
+        const lowStockItems = [];
+        state.products.forEach(p => {
+          const stk = p.stock || {};
+          ['S', 'M', 'L', 'XL'].forEach(sz => {
+            const count = Number(stk[sz] || 0);
+            if (count < 5) {
+              lowStockItems.push({
+                name: p.name,
+                category: p.category,
+                size: sz,
+                count: count
+              });
+            }
+          });
+        });
+
+        if (lowStockItems.length === 0) {
+          container.innerHTML = `<div style="color: var(--green); font-size: 11px; font-weight: 700;">✓ All garment sizes are healthy (5+ units in stock).</div>`;
+          return;
+        }
+
+        container.innerHTML = lowStockItems.map(item => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #141414; border: 1px solid #222; border-radius: 6px; font-size: 11px;">
+            <span><strong>${item.name}</strong> (${item.category})</span>
+            <span class="stock-chip ${item.count === 0 ? 'out' : 'low'}">Size ${item.size}: ${item.count === 0 ? 'SOLD OUT' : item.count + ' left'}</span>
+          </div>
+        `).join('');
       }
 
       function renderCoupons() {
@@ -613,7 +726,7 @@
             <td><strong>${c.code}</strong></td>
             <td>${c.discount_value}%</td>
             <td>₹${c.min_order_value || 0}</td>
-            <td><span class="badge ${c.active?'badge-active':'badge-inactive'}">${c.active?'ACTIVE':'DISABLED'}</span></td>
+            <td><span class="badge ${c.active?'badge-delivered':'badge-cancelled'}">${c.active?'ACTIVE':'DISABLED'}</span></td>
             <td><button class="btn btn-small btn-danger" type="button" onclick="window.toggleCoupon('${c.id}', ${!c.active})">${c.active?'Disable':'Enable'}</button></td>
           </tr>
         `).join("") || '<tr><td colspan="5" class="empty">No coupons created.</td></tr>';
@@ -627,28 +740,43 @@
         `).join("") || '<tr><td colspan="2" class="empty">No subscribers yet.</td></tr>';
       }
 
+      // PRIORITY 3a: FULFILMENT PIPELINE MODAL
       window.viewOrder = (id) => {
         const o = state.orders.find(item => item.id === id);
         if (!o) return;
-        $("#orderModalTitle").textContent = o.order_number || o.id;
+
+        const pipelineSteps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED", "CANCELLED"];
+
+        $("#orderModalTitle").textContent = "Fulfilment: " + (o.order_number || o.id.slice(0,8));
         $("#orderModalBody").innerHTML = `
-          <div style="margin:16px 0; font-size:12px; line-height:1.7;">
+          <div style="margin-bottom:16px; font-size:12px; line-height:1.7; background: #151515; padding: 12px; border-radius: 8px;">
             <strong>Customer:</strong> ${o.customer_name} (${o.customer_phone})<br>
-            <strong>Address:</strong> ${o.shipping_address}, ${o.shipping_city}, ${o.shipping_state} - ${o.shipping_pincode}<br>
-            <strong>Total:</strong> ₹${Number(o.total||0).toLocaleString("en-IN")} (${o.payment_method.toUpperCase()})
+            <strong>Address:</strong> ${o.shipping_address}<br>
+            <strong>Total:</strong> ₹${Number(o.total||0).toLocaleString("en-IN")} (${String(o.payment_method||'COD').toUpperCase()})
           </div>
+
           <div class="cms-grid">
-            <div class="field"><label>Update Status</label>
+            <div class="field">
+              <label for="modalStatus">Update Order Status</label>
               <select id="modalStatus">
-                ${["ORDER PLACED","PAYMENT CONFIRMED","PACKED","SHIPPED","OUT FOR DELIVERY","DELIVERED","CANCELLED"].map(s => `
-                  <option value="${s}" ${s === o.order_status ? 'selected' : ''}>${s}</option>
+                ${pipelineSteps.map(s => `
+                  <option value="${s}" ${s === (o.order_status || 'PLACED') ? 'selected' : ''}>${s}</option>
                 `).join('')}
               </select>
             </div>
-            <div class="field"><label>Courier Name</label><input id="modalCourier" value="${o.courier||''}"></div>
-            <div class="field cms-field--full"><label>Tracking Number</label><input id="modalTracking" value="${o.tracking_number||''}"></div>
+            <div class="field">
+              <label for="modalCourier">Courier Partner</label>
+              <input id="modalCourier" placeholder="e.g. Bluedart, Delhivery" value="${o.courier || ''}">
+            </div>
+            <div class="field cms-field--full">
+              <label for="modalTracking">Airway Bill / Tracking Number</label>
+              <input id="modalTracking" placeholder="e.g. AWB12398471" value="${o.tracking_number || ''}">
+            </div>
           </div>
-          <button class="btn btn-primary btn-full" style="margin-top:14px;" type="button" onclick="window.saveOrderUpdate('${o.id}')">SAVE FULFILMENT</button>
+
+          <button class="btn btn-primary btn-full" style="margin-top:14px;" type="button" onclick="window.saveOrderUpdate('${o.id}')">
+            SAVE & SYNC TO CUSTOMER TRACKING
+          </button>
         `;
         $("#orderModal").classList.remove("hidden");
       };
@@ -659,13 +787,27 @@
         const status = $("#modalStatus").value;
         const courier = $("#modalCourier").value.trim();
         const tracking = $("#modalTracking").value.trim();
-        setLoading(true, "SAVING...");
+        setLoading(true, "UPDATING FULFILMENT...");
+
         try {
-          await supabase.from("orders").update({ order_status: status, courier, tracking_number: tracking }).eq("id", id);
-          showToast("Order updated!");
+          const { error } = await supabase
+            .from("orders")
+            .update({
+              order_status: status,
+              courier: courier || null,
+              tracking_number: tracking || null
+            })
+            .eq("id", id);
+
+          if (error) throw error;
+          showToast("Order status & tracking updated!");
           $("#orderModal").classList.add("hidden");
           await loadAll();
-        } finally { setLoading(false); }
+        } catch (err) {
+          showToast("Failed: " + err.message, "error");
+        } finally {
+          setLoading(false);
+        }
       };
 
       $("#createCouponBtn")?.addEventListener("click", async () => {
