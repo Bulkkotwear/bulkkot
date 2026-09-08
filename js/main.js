@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 7.0 (Dynamic Store Settings Sync & Unified Modals)
+ * Version: 8.0 (Multi-Image Array, Product Detail Modal & Related Products Engine)
  */
 (function () {
   'use strict';
@@ -49,6 +49,16 @@
     if (stock <= 0) return { text: "SOLD OUT", cls: "is-sold-out", disabled: true };
     if (stock <= 2) return { text: `ONLY ${stock} LEFT`, cls: "is-low", disabled: false };
     return { text: "", cls: "", disabled: false };
+  }
+
+  function getProductImages(product) {
+    if (Array.isArray(product?.images) && product.images.length > 0) {
+      return product.images.filter(Boolean);
+    }
+    if (product?.image_url) {
+      return [product.image_url];
+    }
+    return ['https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
   }
 
   /* =========================================================
@@ -160,6 +170,8 @@
       const totalStock = getTotalStock(p);
       const curSize = selectedSizes[p.id] || "M";
       const badge = getStockBadge(p, curSize);
+      const images = getProductImages(p);
+      const coverImage = images[0];
 
       const sizePills = ["S", "M", "L", "XL"].map(s => {
         const qty = getStock(p, s);
@@ -169,12 +181,12 @@
 
       return `
         <article class="product-card" data-product-card data-category="${cat}">
-          <div class="product-card__thumb" data-action="view" data-id="${p.id}" style="cursor: pointer;">
-            <img src="${escapeHTML(p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}" alt="${escapeHTML(p.name)}" loading="lazy">
+          <div class="product-card__thumb" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
+            <img src="${escapeHTML(coverImage)}" alt="${escapeHTML(p.name)}" loading="lazy">
             <span class="product-status">${totalStock <= 0 ? 'SOLD OUT' : 'DROP 001'}</span>
           </div>
           <div class="product-information">
-            <div class="product-information__header" data-action="view" data-id="${p.id}" style="cursor: pointer;">
+            <div class="product-information__header" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
               <div>
                 <h3>${escapeHTML(p.name)}</h3>
                 <p class="product-category">${catKorean}</p>
@@ -192,6 +204,192 @@
         </article>
       `;
     }).join('');
+  }
+
+  /* =========================================================
+     FIX 2 & 3: PRODUCT DETAIL MODAL (PDP) & RELATED PRODUCTS
+     ========================================================= */
+  let currentPdpProduct = null;
+  let currentPdpSize = 'M';
+  let currentPdpQty = 1;
+
+  function openPdpModal(productId) {
+    const p = liveProducts.find(item => String(item.id) === String(productId));
+    if (!p) return;
+
+    currentPdpProduct = p;
+    currentPdpSize = selectedSizes[p.id] || ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
+    currentPdpQty = 1;
+
+    renderPdpView();
+
+    const modal = document.getElementById('pdpModal');
+    modal?.classList.add('is-open');
+    modal?.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  }
+
+  function closePdpModal() {
+    const modal = document.getElementById('pdpModal');
+    modal?.classList.remove('is-open');
+    modal?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  }
+
+  function renderPdpView() {
+    const container = document.getElementById('pdpContent');
+    const p = currentPdpProduct;
+    if (!container || !p) return;
+
+    const images = getProductImages(p);
+    const cat = getCategory(p);
+    const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
+    const stockCurSize = getStock(p, currentPdpSize);
+
+    // Similar / Related Products (Fix 3)
+    let related = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) === cat);
+    if (related.length < 4) {
+      const rest = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) !== cat);
+      related = [...related, ...rest].slice(0, 4);
+    } else {
+      related = related.slice(0, 4);
+    }
+
+    const thumbsHtml = images.map((img, i) => `
+      <div class="pdp-thumb ${i === 0 ? 'is-active' : ''}" data-pdp-thumb="${i}">
+        <img src="${escapeHTML(img)}" alt="Thumbnail ${i + 1}">
+      </div>
+    `).join('');
+
+    const sizeButtons = ["S", "M", "L", "XL"].map(s => {
+      const st = getStock(p, s);
+      const isSelected = currentPdpSize === s;
+      const isOut = st <= 0;
+      return `
+        <button type="button" class="pdp-size-btn ${isSelected ? 'is-selected' : ''} ${isOut ? 'is-sold-out' : ''}"
+                data-pdp-size="${s}" ${isOut ? 'disabled' : ''}>
+          ${s}
+        </button>
+      `;
+    }).join('');
+
+    const relatedHtml = related.map(rel => {
+      const rImages = getProductImages(rel);
+      return `
+        <div class="pdp-related-card" data-action="quickview" data-id="${rel.id}">
+          <img src="${escapeHTML(rImages[0])}" alt="${escapeHTML(rel.name)}">
+          <div class="pdp-related-meta">
+            <strong>${escapeHTML(rel.name)}</strong>
+            <span>${formatPrice(rel.price)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="pdp-grid">
+        <!-- Gallery -->
+        <div class="pdp-gallery">
+          <div class="pdp-main-image-wrap">
+            <img src="${escapeHTML(images[0])}" id="pdpMainImage" class="pdp-main-image" alt="${escapeHTML(p.name)}">
+          </div>
+          ${images.length > 1 ? `<div class="pdp-thumbnails">${thumbsHtml}</div>` : ''}
+        </div>
+
+        <!-- Info -->
+        <div class="pdp-info">
+          <span class="pdp-korean">${catKorean} · DROP 001</span>
+          <h2 class="pdp-title">${escapeHTML(p.name)}</h2>
+          <div class="pdp-price">${formatPrice(p.price)}</div>
+
+          <p class="pdp-desc">${escapeHTML(p.description || 'Constructed from heavyweight luxury combed cotton. Tailored with architectural restraint for an elevated, relaxed drape.')}</p>
+
+          <div class="pdp-option-title">
+            <span>SELECT SIZE</span>
+            <span style="color: ${stockCurSize <= 2 && stockCurSize > 0 ? 'var(--bk-yellow, #f5c542)' : '#777'};">
+              ${stockCurSize <= 0 ? 'SOLD OUT' : (stockCurSize <= 4 ? `ONLY ${stockCurSize} LEFT` : 'IN STOCK')}
+            </span>
+          </div>
+          <div class="pdp-sizes">${sizeButtons}</div>
+
+          <div class="pdp-option-title"><span>QUANTITY</span></div>
+          <div class="pdp-qty-row">
+            <div class="pdp-qty-box">
+              <button type="button" id="pdpQtyMinus">-</button>
+              <span id="pdpQtyVal">${currentPdpQty}</span>
+              <button type="button" id="pdpQtyPlus">+</button>
+            </div>
+            <button type="button" class="button button--primary pdp-add-btn" id="pdpAddBtn" ${stockCurSize <= 0 ? 'disabled' : ''}>
+              ${stockCurSize <= 0 ? 'SOLD OUT' : 'ADD TO BAG'}
+            </button>
+          </div>
+
+          <div style="font-size:11px; color:#777; line-height:1.6; border-top:1px solid #1a1a1a; padding-top:14px;">
+            ✓ 100% Heavyweight Cotton • Relaxed Drop-Shoulder Fit<br>
+            ✓ Complimentary Express Shipping across India<br>
+            ✓ 7-Day Easy Exchange Policy
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Items -->
+      ${related.length > 0 ? `
+        <div class="pdp-related">
+          <div class="pdp-related-title">SIMILAR SILHOUETTES</div>
+          <div class="pdp-related-grid">${relatedHtml}</div>
+        </div>
+      ` : ''}
+    `;
+
+    // Thumbnails switch
+    container.querySelectorAll('[data-pdp-thumb]').forEach(tb => {
+      tb.addEventListener('click', () => {
+        container.querySelectorAll('[data-pdp-thumb]').forEach(t => t.classList.remove('is-active'));
+        tb.classList.add('is-active');
+        const idx = Number(tb.dataset.pdpThumb);
+        const mainImg = document.getElementById('pdpMainImage');
+        if (mainImg && images[idx]) mainImg.src = images[idx];
+      });
+    });
+
+    // Size Switch
+    container.querySelectorAll('[data-pdp-size]').forEach(sb => {
+      sb.addEventListener('click', () => {
+        currentPdpSize = sb.dataset.pdpSize;
+        renderPdpView();
+      });
+    });
+
+    // Qty controls
+    container.querySelector('#pdpQtyMinus')?.addEventListener('click', () => {
+      if (currentPdpQty > 1) {
+        currentPdpQty -= 1;
+        container.querySelector('#pdpQtyVal').textContent = currentPdpQty;
+      }
+    });
+
+    container.querySelector('#pdpQtyPlus')?.addEventListener('click', () => {
+      if (currentPdpQty < stockCurSize) {
+        currentPdpQty += 1;
+        container.querySelector('#pdpQtyVal').textContent = currentPdpQty;
+      }
+    });
+
+    // Add to Cart from PDP
+    container.querySelector('#pdpAddBtn')?.addEventListener('click', () => {
+      if (stockCurSize <= 0) return;
+      if (window.BULKKOT_CART?.addItem) {
+        window.BULKKOT_CART.addItem({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price || 0),
+          size: currentPdpSize,
+          image: images[0],
+          quantity: currentPdpQty
+        });
+      }
+      closePdpModal();
+    });
   }
 
   /* =========================================================
@@ -269,7 +467,7 @@
       document.body.classList.remove("modal-open");
     }));
 
-    // Policy
+    // Policy Modal
     const policyModal = document.querySelector("[data-policy-modal]");
     const policyTitle = policyModal?.querySelector("[data-policy-title]");
     const policyContent = policyModal?.querySelector("[data-policy-content]");
@@ -304,7 +502,7 @@
       if (e.target === policyModal) closePolicy();
     });
 
-    // About
+    // About Story
     const aboutModal = document.querySelector("[data-about-modal]");
     const openAboutBtns = document.querySelectorAll("[data-open-about]");
     const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
@@ -502,7 +700,7 @@
       }
     });
 
-    // Account
+    // Account Modal
     const accountModal = document.querySelector("[data-account-modal]");
     const openAccountBtns = document.querySelectorAll("[data-open-account]");
     const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
@@ -522,7 +720,12 @@
     openAccountBtns.forEach(btn => btn.addEventListener("click", openAccount));
     closeAccountBtns?.forEach(btn => btn.addEventListener("click", closeAccount));
 
-    // ESC handler
+    // PDP Modal Dismissal Listeners
+    document.querySelectorAll('[data-pdp-close]').forEach(el => {
+      el.addEventListener('click', closePdpModal);
+    });
+
+    // Global ESC key dismiss
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closePolicy();
@@ -531,6 +734,7 @@
         closeSearch();
         closeTracking();
         closeAccount();
+        closePdpModal();
         if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
         mobileDrawer?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
@@ -538,6 +742,7 @@
     });
   }
 
+  // Delegated Clicks (Quick View, Size & Add to Bag)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -545,19 +750,22 @@
     const id = btn.dataset.id;
     const p = liveProducts.find(item => String(item.id) === String(id));
 
-    if (action === "size" && p) {
+    if (action === "quickview" && p) {
+      openPdpModal(p.id);
+    } else if (action === "size" && p) {
       selectedSizes[id] = btn.dataset.size;
       renderProducts(getFilteredProducts());
     } else if (action === "add" && p) {
       const size = selectedSizes[id] || "M";
       if (getStock(p, size) <= 0) return;
+      const images = getProductImages(p);
       if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
         window.BULKKOT_CART.addItem({
           id: p.id,
           name: p.name,
           price: Number(p.price || 0),
           size: size,
-          image: p.image_url
+          image: images[0]
         });
       }
     }
