@@ -91,6 +91,7 @@
     .btn-primary { background: var(--red); border-color: var(--red); }
     .btn-primary:hover { background: var(--red-dark); }
     .btn-danger { background: rgba(239, 68, 68, .12); border-color: rgba(239, 68, 68, .25); color: #ff7777; }
+    .btn-success { background: rgba(49, 196, 141, .12); border-color: rgba(49, 196, 141, .25); color: var(--green); }
     .btn-full { width: 100%; }
     .btn-small { min-height: 30px; padding: 4px 8px; font-size: 10px; }
 
@@ -160,6 +161,80 @@
     .badge-out-for-delivery { background: rgba(245, 197, 66, .2); color: #ffd666; }
     .badge-delivered { background: rgba(49, 196, 141, .15); color: var(--green); }
     .badge-cancelled { background: rgba(239, 68, 68, .12); color: #ff7777; }
+    .badge-live { background: rgba(49, 196, 141, .15); color: var(--green); }
+    .badge-hidden { background: rgba(139, 139, 139, .2); color: #aaa; }
+
+    /* PRODUCT CARD STYLING */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 16px;
+      padding: 20px;
+    }
+    .product-card {
+      background: #0e0e0e;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .product-card.is-hidden {
+      opacity: 0.6;
+      border-style: dashed;
+    }
+    .product-image-wrap {
+      position: relative;
+      aspect-ratio: 1/1;
+      background: #151515;
+    }
+    .product-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .product-card-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .product-card-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 4px;
+    }
+    .product-card-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .stock-chip-row {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .stock-chip {
+      padding: 3px 6px;
+      background: #161616;
+      border: 1px solid var(--border-soft);
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .stock-chip.low { border-color: rgba(245, 197, 66, 0.5); color: var(--yellow); }
+    .stock-chip.out { border-color: rgba(239, 68, 68, 0.5); color: #ff7777; }
+    .product-actions-row {
+      margin-top: auto;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-top: 10px;
+      border-top: 1px solid #1c1c1c;
+    }
 
     /* MODAL */
     .modal { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 20px; }
@@ -222,7 +297,7 @@
           ≡ Orders
           <span id="newOrdersBadge" class="nav-badge hidden">0</span>
         </button>
-        <button class="nav-btn" data-page="products" type="button">□ Products</button>
+        <button class="nav-btn" data-page="products" type="button">□ Products & Catalog</button>
         <button class="nav-btn" data-page="coupons" type="button">% Coupons</button>
         <button class="nav-btn" data-page="waitlist" type="button">♡ Waitlist</button>
       </nav>
@@ -249,15 +324,15 @@
         <section id="page-dashboard" class="page">
           <div class="stats">
             <div class="stat"><div class="stat-label">Today's Sales</div><div id="statTodaySales" class="stat-value">—</div></div>
-            <div class="stat"><div class="stat-label">Pending Fulfilment</div><div id="statPendingOrders" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">Pending Orders</div><div id="statPendingOrders" class="stat-value">—</div></div>
             <div class="stat"><div class="stat-label">Total Revenue</div><div id="statRevenue" class="stat-value">—</div></div>
-            <div class="stat"><div class="stat-label">Total Orders</div><div id="statOrders" class="stat-value">—</div></div>
+            <div class="stat"><div class="stat-label">Total Catalog</div><div id="statProductsCount" class="stat-value">—</div></div>
             <div class="stat"><div class="stat-label">VIP Waitlist</div><div id="statWaitlist" class="stat-value">—</div></div>
           </div>
 
           <div class="panel">
             <div class="panel-header">
-              <div><div class="panel-title">Recent Customer Orders</div><div class="panel-subtitle">Latest store transactions</div></div>
+              <div><div class="panel-title">Recent Customer Orders</div><div class="panel-subtitle">Latest purchases awaiting processing</div></div>
               <button class="btn btn-small" type="button" onclick="document.querySelector('[data-page=orders]').click()">View All Orders →</button>
             </div>
             <div class="table-wrap">
@@ -269,11 +344,11 @@
           </div>
         </section>
 
-        <!-- 2. ORDERS SECTION (ADVANCED SEARCH, FILTER, FULFIL, CANCEL, INVOICE) -->
+        <!-- 2. ORDERS SECTION -->
         <section id="page-orders" class="page hidden">
           <div class="panel">
             <div class="panel-header">
-              <div><div class="panel-title">Order Management & Operations</div><div class="panel-subtitle">Track, fulfil, print slips, and manage cancellations</div></div>
+              <div><div class="panel-title">Order Management & Operations</div><div class="panel-subtitle">Search, fulfil, print packing slips, or cancel with automatic stock restoration</div></div>
             </div>
 
             <div class="table-toolbar">
@@ -298,11 +373,17 @@
           </div>
         </section>
 
-        <!-- 3. PRODUCTS -->
+        <!-- 3. PRODUCTS & CATALOG (MODULE 2) -->
         <section id="page-products" class="page hidden">
           <div class="panel">
-            <div class="panel-header"><div><div class="panel-title">Garment Stock & Availability</div><div class="panel-subtitle">Monitor live inventory counts</div></div></div>
-            <div id="productsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; padding: 20px;"></div>
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Garment Catalog & Inventory Management</div>
+                <div class="panel-subtitle">Add silhouettes, manage per-size stock, duplicate, or hide from live store</div>
+              </div>
+              <button id="openAddProductBtn" class="btn btn-primary" type="button">+ Add New Product</button>
+            </div>
+            <div id="productsGrid" class="product-grid"></div>
           </div>
         </section>
 
@@ -346,7 +427,72 @@
     </main>
   </section>
 
-  <!-- FULFILMENT & ORDER MODAL -->
+  <!-- PRODUCT CREATE / EDIT MODAL (MODULE 2) -->
+  <div id="productModal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong id="productModalTitle">Add Garment to Catalog</strong>
+        <button id="closeProductModal" class="close-btn" type="button">&times;</button>
+      </div>
+      <form id="productForm" novalidate>
+        <input type="hidden" id="prodEditId">
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div class="field">
+            <label>Garment Name *</label>
+            <input id="prodName" required placeholder="e.g. OVERSIZED HEAVYWEIGHT TEE">
+          </div>
+          <div class="field">
+            <label>Category *</label>
+            <select id="prodCategory">
+              <option value="tees">Tees (티셔츠)</option>
+              <option value="hoods">Hoods (후드)</option>
+              <option value="sweats">Sweats (스웨트)</option>
+              <option value="jackets">Jackets</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div class="field">
+            <label>Retail Price (₹) *</label>
+            <input id="prodPrice" type="number" required placeholder="1499">
+          </div>
+          <div class="field">
+            <label>Storefront Status</label>
+            <select id="prodActive">
+              <option value="true">Live on Store</option>
+              <option value="false">Hidden (Draft / Archive)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Primary Image URL *</label>
+          <input id="prodImage" type="url" required placeholder="https://raw.githubusercontent.com/...">
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <textarea id="prodDesc" rows="3" placeholder="Fabric composition, weight, architectural fit details..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Inventory per Size (S / M / L / XL)</label>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div><small style="color:#777;">Size S</small><input id="stockS" type="number" min="0" value="0"></div>
+            <div><small style="color:#777;">Size M</small><input id="stockM" type="number" min="0" value="0"></div>
+            <div><small style="color:#777;">Size L</small><input id="stockL" type="number" min="0" value="0"></div>
+            <div><small style="color:#777;">Size XL</small><input id="stockXL" type="number" min="0" value="0"></div>
+          </div>
+        </div>
+
+        <button id="saveProductBtn" class="btn btn-primary btn-full" style="margin-top: 14px;" type="submit">SAVE GARMENT</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ORDER MODAL -->
   <div id="orderModal" class="modal hidden">
     <div class="modal-box">
       <div class="modal-header">
@@ -357,7 +503,7 @@
     </div>
   </div>
 
-  <!-- PRINTABLE PACKING SLIP WRAPPER -->
+  <!-- PRINTABLE PACKING SLIP -->
   <div id="printableSlip" class="hidden"></div>
   <div id="toastContainer"></div>
 
@@ -399,11 +545,10 @@
         ov?.classList.toggle("hidden", !show);
       }
 
-      // MOBILE DRAWER
+      // NAVIGATION TABS
       $("#mobileMenuButton")?.addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
       $("#sidebarBackdrop")?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
 
-      // TABS
       $$(".nav-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           $$(".nav-btn").forEach(b => b.classList.remove("active"));
@@ -430,7 +575,7 @@
         $("#loginScreen").classList.remove("hidden");
       }
 
-      // AUTH LOGIN
+      // AUTH
       $("#loginForm")?.addEventListener("submit", async (e) => {
         e.preventDefault();
         const email = $("#loginEmail").value.trim().toLowerCase();
@@ -489,6 +634,7 @@
 
           // Metrics
           $("#statOrders").textContent = state.orders.length;
+          $("#statProductsCount").textContent = state.products.length;
           $("#statWaitlist").textContent = state.waitlist.length;
           const placedCount = state.orders.filter(o => o.order_status === 'PLACED').length;
           $("#statPendingOrders").textContent = placedCount;
@@ -510,7 +656,7 @@
 
       $("#refreshButton")?.addEventListener("click", loadAll);
 
-      // ORDERS RENDERING (WITH SEARCH & FILTER)
+      // ORDERS MODULE
       function getStatusBadge(status) {
         const s = String(status || 'PLACED').toUpperCase();
         let cls = 'badge-placed';
@@ -573,7 +719,6 @@
       $("#orderSearchInput")?.addEventListener("input", renderOrders);
       $("#orderStatusFilter")?.addEventListener("change", renderOrders);
 
-      // ORDER DETAIL & FULFILMENT MODAL
       window.viewOrder = (id) => {
         const o = state.orders.find(item => item.id === id);
         if (!o) return;
@@ -641,13 +786,12 @@
         } finally { setLoading(false); }
       };
 
-      // CANCEL ORDER WITH AUTO STOCK RESTORE
       window.cancelOrder = async (id) => {
         if (!confirm("Are you sure you want to cancel this order? Deducted inventory will automatically be restored to the catalog.")) return;
 
         setLoading(true, "RESTORING STOCK & CANCELLING...");
         try {
-          const { data, error } = await supabase.rpc("cancel_order_restore_stock", { p_order_id: id });
+          const { error } = await supabase.rpc("cancel_order_restore_stock", { p_order_id: id });
           if (error) throw error;
           showToast("Order cancelled and stock restored!");
           $("#orderModal").classList.add("hidden");
@@ -659,7 +803,6 @@
         }
       };
 
-      // PRINT PACKING SLIP
       window.printSlip = (id) => {
         const o = state.orders.find(item => item.id === id);
         if (!o) return;
@@ -681,28 +824,204 @@
         window.print();
       };
 
-      // PRODUCTS
+      // =========================================================
+      // MODULE 2: PRODUCTS & CATALOG MANAGEMENT
+      // =========================================================
       function renderProducts() {
         const grid = $("#productsGrid");
         if (!grid) return;
 
         grid.innerHTML = state.products.map(p => {
           const stk = p.stock || {};
+          const isLive = p.active !== false;
+
           return `
-            <div style="background:#0e0e0e; border:1px solid var(--border); border-radius:8px; padding:14px;">
-              <img src="${p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}" style="width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:6px;">
-              <h4 style="margin:10px 0 4px; font-size:14px;">${p.name}</h4>
-              <div style="color:var(--muted); font-size:11px;">₹${Number(p.price||0).toLocaleString("en-IN")} · ${p.category}</div>
-              <div style="display:flex; gap:6px; margin-top:10px;">
-                <span style="font-size:10px; background:#161616; padding:3px 6px; border-radius:4px;">S: ${stk.S||0}</span>
-                <span style="font-size:10px; background:#161616; padding:3px 6px; border-radius:4px;">M: ${stk.M||0}</span>
-                <span style="font-size:10px; background:#161616; padding:3px 6px; border-radius:4px;">L: ${stk.L||0}</span>
-                <span style="font-size:10px; background:#161616; padding:3px 6px; border-radius:4px;">XL: ${stk.XL||0}</span>
+            <div class="product-card ${isLive ? '' : 'is-hidden'}">
+              <div class="product-image-wrap">
+                <img src="${p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}" loading="lazy">
+                <span class="badge ${isLive ? 'badge-live' : 'badge-hidden'}" style="position:absolute; top:8px; right:8px;">
+                  ${isLive ? 'LIVE' : 'HIDDEN'}
+                </span>
+              </div>
+              <div class="product-card-body">
+                <div class="product-card-title">${p.name}</div>
+                <div class="product-card-meta">₹${Number(p.price||0).toLocaleString("en-IN")} · ${p.category}</div>
+                <div class="stock-chip-row">
+                  <span class="stock-chip ${Number(stk.S||0) === 0 ? 'out' : (Number(stk.S||0)<5?'low':'')}">S: ${stk.S||0}</span>
+                  <span class="stock-chip ${Number(stk.M||0) === 0 ? 'out' : (Number(stk.M||0)<5?'low':'')}">M: ${stk.M||0}</span>
+                  <span class="stock-chip ${Number(stk.L||0) === 0 ? 'out' : (Number(stk.L||0)<5?'low':'')}">L: ${stk.L||0}</span>
+                  <span class="stock-chip ${Number(stk.XL||0) === 0 ? 'out' : (Number(stk.XL||0)<5?'low':'')}">XL: ${stk.XL||0}</span>
+                </div>
+                <div class="product-actions-row">
+                  <button class="btn btn-small" type="button" onclick="window.editProduct('${p.id}')">Edit</button>
+                  <button class="btn btn-small" type="button" onclick="window.duplicateProduct('${p.id}')">Duplicate</button>
+                  <button class="btn btn-small" type="button" onclick="window.toggleProductVisibility('${p.id}', ${!isLive})">${isLive ? 'Hide' : 'Unhide'}</button>
+                  <button class="btn btn-small btn-danger" type="button" onclick="window.deleteProduct('${p.id}')">Delete</button>
+                </div>
               </div>
             </div>
           `;
-        }).join('');
+        }).join("") || '<div class="empty" style="grid-column:1/-1;">No garments found. Click "+ Add New Product" to populate your catalog.</div>';
       }
+
+      // Add Product Modal Opener
+      $("#openAddProductBtn")?.addEventListener("click", () => {
+        $("#productModalTitle").textContent = "Add Garment to Catalog";
+        $("#prodEditId").value = "";
+        $("#prodName").value = "";
+        $("#prodCategory").value = "tees";
+        $("#prodPrice").value = "";
+        $("#prodActive").value = "true";
+        $("#prodImage").value = "";
+        $("#prodDesc").value = "";
+        $("#stockS").value = "10";
+        $("#stockM").value = "10";
+        $("#stockL").value = "10";
+        $("#stockXL").value = "10";
+        $("#productModal").classList.remove("hidden");
+      });
+
+      $("#closeProductModal")?.addEventListener("click", () => $("#productModal").classList.add("hidden"));
+
+      // Edit Product
+      window.editProduct = (id) => {
+        const p = state.products.find(item => item.id === id);
+        if (!p) return;
+
+        $("#productModalTitle").textContent = "Edit Garment: " + p.name;
+        $("#prodEditId").value = p.id;
+        $("#prodName").value = p.name || "";
+        $("#prodCategory").value = (p.category || "tees").toLowerCase();
+        $("#prodPrice").value = p.price || "";
+        $("#prodActive").value = p.active !== false ? "true" : "false";
+        $("#prodImage").value = p.image_url || "";
+        $("#prodDesc").value = p.description || "";
+
+        const stk = p.stock || {};
+        $("#stockS").value = stk.S || 0;
+        $("#stockM").value = stk.M || 0;
+        $("#stockL").value = stk.L || 0;
+        $("#stockXL").value = stk.XL || 0;
+
+        $("#productModal").classList.remove("hidden");
+      };
+
+      // Save Product (Insert or Update)
+      $("#productForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = $("#prodEditId").value.trim();
+        const name = $("#prodName").value.trim();
+        const category = $("#prodCategory").value.trim();
+        const price = Number($("#prodPrice").value);
+        const active = $("#prodActive").value === "true";
+        const image_url = $("#prodImage").value.trim();
+        const description = $("#prodDesc").value.trim();
+
+        const stock = {
+          S: Math.max(0, parseInt($("#stockS").value) || 0),
+          M: Math.max(0, parseInt($("#stockM").value) || 0),
+          L: Math.max(0, parseInt($("#stockL").value) || 0),
+          XL: Math.max(0, parseInt($("#stockXL").value) || 0)
+        };
+
+        if (!name || isNaN(price) || !image_url) {
+          showToast("Please fill all required fields", "error");
+          return;
+        }
+
+        setLoading(true, "SAVING GARMENT...");
+        try {
+          const payload = {
+            name,
+            category,
+            price,
+            active,
+            image_url,
+            description,
+            stock,
+            updated_at: new Date().toISOString()
+          };
+
+          if (id) {
+            // Update
+            const { error } = await supabase.from("products").update(payload).eq("id", id);
+            if (error) throw error;
+            showToast("Product updated successfully!");
+          } else {
+            // Insert
+            const { error } = await supabase.from("products").insert(payload);
+            if (error) throw error;
+            showToast("New product added to catalog!");
+          }
+
+          $("#productModal").classList.add("hidden");
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed to save product", "error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      // Duplicate Product
+      window.duplicateProduct = async (id) => {
+        const p = state.products.find(item => item.id === id);
+        if (!p) return;
+
+        setLoading(true, "DUPLICATING...");
+        try {
+          const newProduct = {
+            name: `${p.name} (Copy)`,
+            category: p.category,
+            price: p.price,
+            active: false, // Start hidden
+            image_url: p.image_url,
+            description: p.description,
+            stock: p.stock || { S: 5, M: 5, L: 5, XL: 5 }
+          };
+
+          const { error } = await supabase.from("products").insert(newProduct);
+          if (error) throw error;
+          showToast("Product duplicated! (Marked as Hidden)");
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed to duplicate", "error");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      // Toggle Visibility (Hide/Unhide)
+      window.toggleProductVisibility = async (id, newActive) => {
+        setLoading(true, "UPDATING VISIBILITY...");
+        try {
+          const { error } = await supabase.from("products").update({ active: newActive }).eq("id", id);
+          if (error) throw error;
+          showToast(newActive ? "Product is now live on storefront!" : "Product hidden from storefront.");
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed to update", "error");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      // Delete Product
+      window.deleteProduct = async (id) => {
+        if (!confirm("Are you sure you want to permanently delete this product? This action cannot be undone.")) return;
+
+        setLoading(true, "DELETING PRODUCT...");
+        try {
+          const { error } = await supabase.from("products").delete().eq("id", id);
+          if (error) throw error;
+          showToast("Product deleted from catalog.");
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed to delete", "error");
+        } finally {
+          setLoading(false);
+        }
+      };
 
       // COUPONS & WAITLIST
       function renderCoupons() {
