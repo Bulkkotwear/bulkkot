@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Safe Read-Only CMS Binding & Product Catalog
+ * Version: 5.0 (Policy Modals, Catalog & Secure CMS Read)
  */
 (function () {
   'use strict';
@@ -52,7 +52,7 @@
   }
 
   /* =========================================================
-     READ-ONLY CMS LOADER (Customer Safe)
+     READ-ONLY CMS LOADER (Secure, Read-Only)
      ========================================================= */
   async function loadCMSContent() {
     if (!supabase) return;
@@ -166,9 +166,64 @@
   }
 
   /* =========================================================
-     NAVIGATION, SEARCH & MODAL CONTROLS
+     MODAL & POLICY WIRING (PRIORITY 4 FIX)
      ========================================================= */
-  function initNavigation() {
+  const POLICY_DATA = {
+    faq: {
+      title: "FREQUENTLY ASKED QUESTIONS",
+      content: `
+        <h3>HOW DOES DROP 001 WORK?</h3>
+        <p>Drop 001 consists of limited-quantity heavyweight silhouettes. Once sold out, silhouettes will not be restocked immediately.</p>
+        <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
+        <p>Standard shipping across India is completely complimentary for Drop 001.</p>
+        <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
+        <p>We currently offer Cash on Delivery (COD) as well as prepaid verification upon request.</p>
+      `
+    },
+    shipping: {
+      title: "SHIPPING POLICY",
+      content: `
+        <h3>DISPATCH TIMELINE</h3>
+        <p>All orders are processed and packed within 24 to 48 hours of confirmation.</p>
+        <h3>DELIVERY TIMELINE</h3>
+        <p>Metros: 3–5 business days. Rest of India: 5–7 business days.</p>
+        <h3>TRACKING YOUR SHIPMENT</h3>
+        <p>Once dispatched, you can track the status live through the 'Track Order' modal on our storefront using your order number.</p>
+      `
+    },
+    returns: {
+      title: "RETURNS & EXCHANGES",
+      content: `
+        <h3>7-DAY EXCHANGE WINDOW</h3>
+        <p>We offer a 7-day size exchange window from the date of delivery, subject to stock availability.</p>
+        <h3>CONDITION</h3>
+        <p>Items must be unworn, unwashed, and returned in their original packaging with all brand tags intact.</p>
+        <h3>HOW TO INITIATE</h3>
+        <p>Email us at bulkkotwear@gmail.com with your order number and desired replacement size.</p>
+      `
+    },
+    privacy: {
+      title: "PRIVACY POLICY",
+      content: `
+        <h3>DATA COLLECTION</h3>
+        <p>We only collect contact and shipping information necessary to deliver your orders and send tracking updates.</p>
+        <h3>SECURITY</h3>
+        <p>Your personal data is encrypted and securely stored via Supabase Auth and will never be sold or shared with third-party advertisers.</p>
+      `
+    },
+    terms: {
+      title: "TERMS & CONDITIONS",
+      content: `
+        <h3>PRODUCT AUTHENTICITY</h3>
+        <p>All garments sold on bulkkot.com are original creations constructed under architectural garment standards.</p>
+        <h3>ORDER CANCELLATION</h3>
+        <p>Orders can be cancelled prior to dispatch by contacting support with your Order ID.</p>
+      `
+    }
+  };
+
+  function initModalsAndNavigation() {
+    // Mobile Drawer
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
     const openDrawerBtn = document.querySelector("[data-open-drawer]");
     const closeDrawerBtns = document.querySelectorAll("[data-close-drawer]");
@@ -183,74 +238,103 @@
       document.body.classList.remove("modal-open");
     }));
 
-    // Search Modal
-    const searchModal = document.querySelector("[data-search-modal]");
-    const openSearchBtns = document.querySelectorAll("[data-open-search]");
-    const closeSearchBtn = searchModal?.querySelector(".drawer-close");
-    const searchForm = document.querySelector("[data-search-form]");
-
-    openSearchBtns.forEach(btn => btn.addEventListener("click", () => {
-      searchModal?.classList.add("is-open");
-      document.body.classList.add("modal-open");
-      setTimeout(() => searchModal?.querySelector("input")?.focus(), 50);
-    }));
-
-    closeSearchBtn?.addEventListener("click", () => {
-      searchModal?.classList.remove("is-open");
-      document.body.classList.remove("modal-open");
-    });
-
-    searchForm?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      activeSearch = searchForm.querySelector("input")?.value.trim().toLowerCase() || "";
-      searchModal?.classList.remove("is-open");
-      document.body.classList.remove("modal-open");
-      renderProducts(getFilteredProducts());
-      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
-    });
-
-    // Policy Modals Wiring (Fix for Priority 4)
+    // Policy Modal Wiring
     const policyModal = document.querySelector("[data-policy-modal]");
-    const policyTitle = document.querySelector("[data-policy-title]");
-    const policyContent = document.querySelector("[data-policy-content]");
-    const closePolicyBtn = policyModal?.querySelector(".drawer-close");
+    const policyTitle = policyModal?.querySelector("[data-policy-title]");
+    const policyContent = policyModal?.querySelector("[data-policy-content]");
+    const closePolicyBtn = policyModal?.querySelector("[data-close-policy]");
+
+    function openPolicy(type) {
+      if (!policyModal) return;
+      const data = POLICY_DATA[type] || { title: "INFORMATION", content: "<p>Information coming soon.</p>" };
+      if (policyTitle) policyTitle.textContent = data.title;
+      if (policyContent) policyContent.innerHTML = data.content;
+
+      policyModal.classList.add("is-open");
+      policyModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closePolicy() {
+      if (!policyModal) return;
+      policyModal.classList.remove("is-open");
+      policyModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
 
     document.querySelectorAll("[data-open-policy]").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
         const type = btn.dataset.openPolicy;
-        const template = document.getElementById(`policy-${type}`);
-        if (!template || !policyModal) return;
-
-        if (policyTitle) policyTitle.textContent = btn.textContent.trim().toUpperCase();
-        if (policyContent) policyContent.innerHTML = template.innerHTML;
-
-        policyModal.classList.add("is-open");
-        document.body.classList.add("modal-open");
+        openPolicy(type);
       });
     });
 
-    closePolicyBtn?.addEventListener("click", () => {
-      policyModal?.classList.remove("is-open");
+    closePolicyBtn?.addEventListener("click", closePolicy);
+    policyModal?.addEventListener("click", (e) => {
+      if (e.target === policyModal) closePolicy();
+    });
+
+    // About Modal
+    const aboutModal = document.querySelector("[data-about-modal]");
+    const openAboutBtns = document.querySelectorAll("[data-open-about]");
+    const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
+
+    openAboutBtns.forEach(btn => btn.addEventListener("click", () => {
+      aboutModal?.classList.add("is-open");
+      aboutModal?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }));
+
+    closeAboutBtn?.addEventListener("click", () => {
+      aboutModal?.classList.remove("is-open");
+      aboutModal?.setAttribute("aria-hidden", "true");
       document.body.classList.remove("modal-open");
+    });
+
+    aboutModal?.addEventListener("click", (e) => {
+      if (e.target === aboutModal) {
+        aboutModal.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      }
     });
 
     // Size Guide Modal
     const sizeModal = document.querySelector("[data-size-guide-modal]");
     const openSizeBtns = document.querySelectorAll("[data-size-guide-open]");
     const closeSizeBtn = sizeModal?.querySelector("[data-size-guide-close]");
+    const sizeBackdrop = sizeModal?.querySelector("[data-size-guide-backdrop]");
 
-    openSizeBtns.forEach(btn => btn.addEventListener("click", () => {
+    function openSizeGuide() {
       sizeModal?.classList.add("is-open");
+      sizeModal?.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
-    }));
+    }
 
-    closeSizeBtn?.addEventListener("click", () => {
+    function closeSizeGuide() {
       sizeModal?.classList.remove("is-open");
+      sizeModal?.setAttribute("aria-hidden", "true");
       document.body.classList.remove("modal-open");
+    }
+
+    openSizeBtns.forEach(btn => btn.addEventListener("click", openSizeGuide));
+    closeSizeBtn?.addEventListener("click", closeSizeGuide);
+    sizeBackdrop?.addEventListener("click", closeSizeGuide);
+
+    // Global ESC key listener for all modals
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closePolicy();
+        closeSizeGuide();
+        if (aboutModal?.classList.contains("is-open")) {
+          aboutModal.classList.remove("is-open");
+          document.body.classList.remove("modal-open");
+        }
+      }
     });
   }
 
-  // Event Delegation for Sizes & Add to Cart
+  // Catalog Filters & Cart Delegation
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -264,7 +348,7 @@
     } else if (action === "add" && p) {
       const size = selectedSizes[id] || "M";
       if (getStock(p, size) <= 0) return;
-      if (window.BULKKOT_CART?.addItem) {
+      if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
         window.BULKKOT_CART.addItem({
           id: p.id,
           name: p.name,
@@ -281,9 +365,9 @@
     initCatalog();
   });
 
-  // Init Storefront
+  // Init
   document.addEventListener("DOMContentLoaded", () => {
-    initNavigation();
+    initModalsAndNavigation();
     initCatalog();
     loadCMSContent();
 
