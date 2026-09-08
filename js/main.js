@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 6.0 (Complete Priority 5 Trust Polish & Unified Modals)
+ * Version: 7.0 (Dynamic Store Settings Sync & Unified Modals)
  */
 (function () {
   'use strict';
@@ -49,6 +49,35 @@
     if (stock <= 0) return { text: "SOLD OUT", cls: "is-sold-out", disabled: true };
     if (stock <= 2) return { text: `ONLY ${stock} LEFT`, cls: "is-low", disabled: false };
     return { text: "", cls: "", disabled: false };
+  }
+
+  /* =========================================================
+     DYNAMIC SETTINGS SYNC
+     ========================================================= */
+  async function syncStoreSettings() {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
+      if (!data) return;
+
+      const rawPhone = String(data.support_phone || '').replace(/\D/g, '');
+      const whatsappBtn = document.querySelector('.whatsapp-float');
+      if (whatsappBtn && rawPhone) {
+        whatsappBtn.href = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hi BULKKOT, I have an inquiry about Drop 001.')}`;
+      }
+
+      const email = data.support_email;
+      if (email) {
+        document.querySelectorAll('a[href^="mailto:"]').forEach(a => {
+          a.href = `mailto:${email}`;
+        });
+        document.querySelectorAll('[data-cms-key="contact_email"]').forEach(el => {
+          el.textContent = email;
+        });
+      }
+    } catch (e) {
+      console.warn("Settings sync notice:", e);
+    }
   }
 
   /* =========================================================
@@ -175,7 +204,7 @@
         <h3>HOW DOES DROP 001 WORK?</h3>
         <p>Drop 001 consists of limited-quantity heavyweight silhouettes. Once sold out, silhouettes will not be restocked immediately.</p>
         <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
-        <p>Standard shipping across India is completely complimentary for Drop 001.</p>
+        <p>Standard shipping across India is calculated at checkout based on current promotions and cart value.</p>
         <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
         <p>We accept Cash on Delivery (COD) across all serviceable pin codes in India.</p>
       `
@@ -199,7 +228,7 @@
         <h3>CONDITION</h3>
         <p>Garments must be unworn, unwashed, with all original tags and packaging intact.</p>
         <h3>HOW TO INITIATE</h3>
-        <p>Email us at bulkkotwear@gmail.com with your Order Number and preferred replacement size.</p>
+        <p>Reach out through the email address or WhatsApp channel listed in our contact section with your Order Number.</p>
       `
     },
     privacy: {
@@ -223,10 +252,9 @@
   };
 
   /* =========================================================
-     UNIVERSAL MODAL & TRUST ELEMENT ENGINE (PRIORITY 5)
+     UNIVERSAL MODAL & TRUST ENGINE
      ========================================================= */
   function initModalsAndNavigation() {
-    // 1. Mobile Drawer
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
     const openDrawerBtn = document.querySelector("[data-open-drawer]");
     const closeDrawerBtns = document.querySelectorAll("[data-close-drawer]");
@@ -241,7 +269,7 @@
       document.body.classList.remove("modal-open");
     }));
 
-    // 2. Policy Modal
+    // Policy
     const policyModal = document.querySelector("[data-policy-modal]");
     const policyTitle = policyModal?.querySelector("[data-policy-title]");
     const policyContent = policyModal?.querySelector("[data-policy-content]");
@@ -276,7 +304,7 @@
       if (e.target === policyModal) closePolicy();
     });
 
-    // 3. About Story Modal
+    // About
     const aboutModal = document.querySelector("[data-about-modal]");
     const openAboutBtns = document.querySelectorAll("[data-open-about]");
     const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
@@ -299,7 +327,7 @@
       if (e.target === aboutModal) closeAbout();
     });
 
-    // 4. Size Guide Modal & Tab Switching
+    // Size Guide
     const sizeModal = document.querySelector("[data-size-guide-modal]");
     const openSizeBtns = document.querySelectorAll("[data-size-guide-open]");
     const closeSizeBtns = sizeModal?.querySelectorAll("[data-size-guide-close]");
@@ -343,7 +371,7 @@
       });
     });
 
-    // 5. Search Modal
+    // Search
     const searchModal = document.querySelector("[data-search-modal]");
     const openSearchBtns = document.querySelectorAll("[data-open-search]");
     const closeSearchBtn = searchModal?.querySelector("[data-close-search]");
@@ -376,7 +404,7 @@
       document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
     });
 
-    // 6. Guest Order Tracking Engine
+    // Tracking
     const trackModal = document.querySelector("[data-track-order-modal]");
     const openTrackBtns = document.querySelectorAll("[data-open-track-order]");
     const closeTrackBtns = trackModal?.querySelectorAll("[data-track-order-close]");
@@ -434,13 +462,11 @@
           throw new Error("No shipment found matching that Order Number.");
         }
 
-        // Validate phone match
         const dbPhone = String(data.customer_phone || '').replace(/\D/g, '');
         if (!dbPhone.endsWith(phone.slice(-10))) {
           throw new Error("Phone number does not match order records.");
         }
 
-        // Render Result State
         trackForm.hidden = true;
         trackResult.hidden = false;
 
@@ -454,7 +480,6 @@
         courierEl.textContent = data.courier || "In Dispatch Preparation";
         trackingNoEl.textContent = data.tracking_number || "Will be assigned on pickup";
 
-        // Progress bar step mapper
         const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
         const curIdx = steps.indexOf((data.order_status || "PLACED").toUpperCase());
         const fillPct = Math.max(10, Math.min(100, ((curIdx + 1) / steps.length) * 100));
@@ -477,7 +502,7 @@
       }
     });
 
-    // 7. Customer Account Modal Trigger
+    // Account
     const accountModal = document.querySelector("[data-account-modal]");
     const openAccountBtns = document.querySelectorAll("[data-open-account]");
     const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
@@ -497,7 +522,7 @@
     openAccountBtns.forEach(btn => btn.addEventListener("click", openAccount));
     closeAccountBtns?.forEach(btn => btn.addEventListener("click", closeAccount));
 
-    // 8. Global Escape Key Handler (Closes Any Open Modal)
+    // ESC handler
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closePolicy();
@@ -513,7 +538,6 @@
     });
   }
 
-  // Event Delegation for Sizes & Add to Cart
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -539,16 +563,15 @@
     }
   });
 
-  // Re-fetch catalog when order completes
   window.addEventListener('bulkkot:order-completed', () => {
     initCatalog();
   });
 
-  // Init
   document.addEventListener("DOMContentLoaded", () => {
     initModalsAndNavigation();
     initCatalog();
     loadCMSContent();
+    syncStoreSettings();
 
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
