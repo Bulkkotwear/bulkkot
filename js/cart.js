@@ -1,6 +1,6 @@
 /**
- * BULKKOT — Cart, Checkout & Order Placement Engine
- * Version: 2.0 (RPC create_order Integration)
+ * BULKKOT — Cart, Checkout & Dynamic Shipping Engine
+ * Version: 2.5 (Dynamic Settings & RPC create_order Integration)
  */
 (function () {
   'use strict';
@@ -8,13 +8,12 @@
   const STORAGE_KEY = 'bulkkot_cart';
   let cart = [];
   let appliedCoupon = null;
+  let storeSettings = { shipping_fee: 0, free_shipping_threshold: 0 };
 
-  // Supabase reference
   function getSupabase() {
     return window.supabaseClient || (window.supabase ? window.supabase : null);
   }
 
-  // Formatting helpers
   function formatPrice(amount) {
     return '₹' + Number(amount || 0).toLocaleString('en-IN');
   }
@@ -28,7 +27,6 @@
       .replace(/'/g, '&#039;');
   }
 
-  // Load / Save Local Cart
   function loadCart() {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
@@ -42,7 +40,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
     } catch (e) {
-      console.error('Failed to save cart to localStorage', e);
+      console.error('Failed to save cart', e);
     }
     updateCartBadge();
   }
@@ -56,7 +54,17 @@
     });
   }
 
-  // Cart Operations
+  async function fetchSettings() {
+    const client = getSupabase();
+    if (!client) return;
+    try {
+      const { data } = await client.from('store_settings').select('*').eq('id', 1).maybeSingle();
+      if (data) storeSettings = data;
+    } catch (e) {
+      console.warn('Could not fetch store settings', e);
+    }
+  }
+
   function addItem(item) {
     const existingIndex = cart.findIndex(
       (i) => String(i.id) === String(item.id) && i.size === item.size
@@ -103,7 +111,6 @@
     renderCart();
   }
 
-  // Cart Drawer UI Toggles
   function openCart() {
     const drawer = document.querySelector('[data-cart-drawer]');
     const overlay = document.querySelector('[data-cart-overlay]');
@@ -122,7 +129,6 @@
     document.body.classList.remove('modal-open');
   }
 
-  // Calculate Totals
   function getCartSubtotal() {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }
@@ -137,7 +143,15 @@
     return Math.min(subtotal, appliedCoupon.discount_value);
   }
 
-  // Render Cart & Checkout View
+  function calculateShipping(subtotalAfterDiscount) {
+    const baseFee = Number(storeSettings.shipping_fee || 0);
+    const threshold = Number(storeSettings.free_shipping_threshold || 0);
+
+    if (baseFee <= 0) return 0;
+    if (threshold > 0 && subtotalAfterDiscount >= threshold) return 0;
+    return baseFee;
+  }
+
   async function renderCart() {
     const container = document.getElementById('cart-content');
     if (!container) return;
@@ -156,9 +170,10 @@
 
     const subtotal = getCartSubtotal();
     const discount = calculateDiscount(subtotal);
-    const total = Math.max(0, subtotal - discount);
+    const discountedTotal = Math.max(0, subtotal - discount);
+    const shippingFee = calculateShipping(discountedTotal);
+    const finalTotal = discountedTotal + shippingFee;
 
-    // Fetch user profile for autofill if logged in
     const client = getSupabase();
     let userProfile = null;
     let currentUser = null;
@@ -207,7 +222,6 @@
         ${itemsHTML}
       </div>
 
-      <!-- COUPON ROW -->
       <div style="margin: 16px 0 10px; display: flex; gap: 8px;">
         <input type="text" id="cartCouponInput" placeholder="DISCOUNT CODE" value="${appliedCoupon ? escapeHTML(appliedCoupon.code) : ''}"
                style="flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 8px 12px; font-size: 11px; text-transform: uppercase; border-radius: 4px;"
@@ -217,7 +231,6 @@
         </button>
       </div>
 
-      <!-- SUMMARY -->
       <div style="padding: 12px 0; border-top: 1px solid #222; font-size: 12px; line-height: 1.8;">
         <div style="display: flex; justify-content: space-between; color: #888;">
           <span>Subtotal</span>
@@ -234,16 +247,17 @@
             : ''
         }
         <div style="display: flex; justify-content: space-between; color: #888;">
-          <span>Shipping</span>
-          <span style="color: #31c48d; font-weight: 700;">FREE</span>
+          <span>Delivery</span>
+          <span style="${shippingFee === 0 ? 'color:#31c48d; font-weight:700;' : 'color:#fff;'}">
+            ${shippingFee === 0 ? 'FREE' : formatPrice(shippingFee)}
+          </span>
         </div>
         <div style="display: flex; justify-content: space-between; color: #fff; font-size: 15px; font-weight: 800; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #333;">
           <span>Total</span>
-          <span>${formatPrice(total)}</span>
+          <span>${formatPrice(finalTotal)}</span>
         </div>
       </div>
 
-      <!-- CHECKOUT FORM -->
       <form id="storefrontCheckoutForm" novalidate style="margin-top: 10px; border-top: 1px solid #222; padding-top: 14px;">
         <div style="margin-bottom: 12px;">
           <span class="eyebrow" style="font-size: 10px; color: #aaa;">SHIPPING & CONTACT DETAILS</span>
@@ -278,7 +292,6 @@
       </form>
     `;
 
-    // Bind item buttons
     container.querySelectorAll('[data-cart-remove]').forEach((btn) => {
       btn.addEventListener('click', () => removeItem(Number(btn.dataset.cartRemove)));
     });
@@ -289,7 +302,6 @@
       });
     });
 
-    // Bind Coupon
     const couponBtn = container.querySelector('#cartApplyCouponBtn');
     couponBtn?.addEventListener('click', async () => {
       if (appliedCoupon) {
@@ -320,7 +332,6 @@
       renderCart();
     });
 
-    // Bind Order Submission
     const checkoutForm = container.querySelector('#storefrontCheckoutForm');
     checkoutForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -352,7 +363,6 @@
         const { data: authData } = await client.auth.getUser();
         const userId = authData?.user?.id || null;
 
-        // Map items for RPC signature
         const rpcItems = cart.map((item) => ({
           product_id: item.id,
           size: item.size,
@@ -360,7 +370,6 @@
           price: item.price
         }));
 
-        // Call atomic RPC
         const { data, error } = await client.rpc('create_order', {
           p_customer_name: name,
           p_customer_email: email,
@@ -376,9 +385,8 @@
 
         if (error) throw error;
 
-        // Render Success State
         const orderNumber = data.order_number;
-        const finalTotal = data.total;
+        const totalAmount = data.total + shippingFee;
 
         container.innerHTML = `
           <div style="text-align: center; padding: 40px 16px;">
@@ -387,7 +395,7 @@
             <h2 style="font-size: 22px; margin: 8px 0; color: #fff;">${escapeHTML(orderNumber)}</h2>
             <p style="color: #bbb; font-size: 13px; line-height: 1.6; margin: 12px 0 20px;">
               Thank you, <strong>${escapeHTML(name)}</strong>!<br>
-              Total: <strong>${formatPrice(finalTotal)}</strong> (Cash on Delivery).<br>
+              Total: <strong>${formatPrice(totalAmount)}</strong> (Cash on Delivery).<br>
               We are preparing Drop 001 for shipping.
             </p>
             <div style="background: #141414; border: 1px solid #222; border-radius: 8px; padding: 14px; text-align: left; font-size: 11px; line-height: 1.6; color: #999; margin-bottom: 24px;">
@@ -401,12 +409,10 @@
         `;
         container.querySelector('[data-close-cart]')?.addEventListener('click', closeCart);
 
-        // Clear Cart
         cart = [];
         appliedCoupon = null;
         saveCart();
 
-        // Refresh storefront products catalog immediately to reflect deducted stock
         if (window.dispatchEvent) {
           window.dispatchEvent(new CustomEvent('bulkkot:order-completed'));
         }
@@ -420,9 +426,9 @@
     });
   }
 
-  // Initialize
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     loadCart();
+    await fetchSettings();
 
     const openCartBtns = document.querySelectorAll('[data-open-cart]');
     const closeCartBtns = document.querySelectorAll('[data-close-cart]');
@@ -443,7 +449,6 @@
     });
   });
 
-  // Export API
   window.BULKKOT_CART = {
     addItem,
     removeItem,
