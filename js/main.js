@@ -1,6 +1,6 @@
 /**
- * BULKKOT — Production Main Storefront Engine
- * Version: 16.0 (Flawless Slider, Dynamic Footer Policy Modals, Inline Filters)
+ * BULKKOT (불꽃) — Production Storefront Engine
+ * Unified Modal System, Mobile 2-Column Catalog, Drag Carousel
  */
 (function () {
   'use strict';
@@ -66,118 +66,124 @@
   }
 
   /* =========================================================
-     EDITORIAL CAROUSEL
+     1. EDITORIAL CAROUSEL (DRAG + BUTTONS + SNAP)
      ========================================================= */
   function initEditorialSlider() {
     const track = document.querySelector('[data-carousel-track]');
-    const slides = document.querySelectorAll('[data-slide]');
     const nextBtn = document.querySelector('[data-carousel-next]');
     const prevBtn = document.querySelector('[data-carousel-prev]');
     const dots = document.querySelectorAll('[data-slide-indicator]');
 
-    if (!track || slides.length === 0) return;
+    if (!track) return;
 
-    let currentIndex = 0;
-    const totalSlides = slides.length;
-    let timer = null;
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
 
-    function renderSlide(index) {
-      currentIndex = (index + totalSlides) % totalSlides;
-      track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    track.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - track.offsetLeft;
+      scrollLeft = track.scrollLeft;
+    });
 
-      dots.forEach((dot, idx) => {
-        dot.classList.toggle('is-active', idx === currentIndex);
-      });
-    }
+    track.addEventListener('mouseleave', () => { isDown = false; });
+    track.addEventListener('mouseup', () => { isDown = false; });
 
-    function resetTimer() {
-      clearInterval(timer);
-      timer = setInterval(() => renderSlide(currentIndex + 1), 5500);
+    track.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - track.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      track.scrollLeft = scrollLeft - walk;
+    });
+
+    function getSlideWidth() {
+      const slide = track.querySelector('.editorial-slide');
+      return slide ? slide.offsetWidth + 20 : 320;
     }
 
     nextBtn?.addEventListener('click', (e) => {
       e.preventDefault();
-      renderSlide(currentIndex + 1);
-      resetTimer();
+      track.scrollBy({ left: getSlideWidth(), behavior: 'smooth' });
     });
 
     prevBtn?.addEventListener('click', (e) => {
       e.preventDefault();
-      renderSlide(currentIndex - 1);
-      resetTimer();
+      track.scrollBy({ left: -getSlideWidth(), behavior: 'smooth' });
+    });
+
+    track.addEventListener('scroll', () => {
+      const slideWidth = getSlideWidth();
+      const index = Math.round(track.scrollLeft / slideWidth);
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('is-active', idx === index);
+      });
     });
 
     dots.forEach((dot, idx) => {
       dot.addEventListener('click', () => {
-        renderSlide(idx);
-        resetTimer();
+        track.scrollTo({ left: idx * getSlideWidth(), behavior: 'smooth' });
       });
     });
-
-    renderSlide(0);
-    resetTimer();
   }
 
   /* =========================================================
-     POLICY DATA
+     2. POLICY CONTENT & MODAL HANDLERS
      ========================================================= */
   const POLICY_DATA = {
     faq: {
       title: "FREQUENTLY ASKED QUESTIONS",
       content: `
         <h3>HOW DOES DROP 001 WORK?</h3>
-        <p>Drop 001 consists of limited-quantity heavyweight silhouettes. Once sold out, silhouettes will not be restocked immediately.</p>
+        <p>Drop 001 consists of limited architectural silhouettes. Items are produced in limited quantities with no immediate restocks.</p>
         <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
-        <p>Standard express delivery across India is complimentary during Drop 001.</p>
+        <p>Standard express delivery across India is complimentary during the Drop 001 release.</p>
         <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
-        <p>We accept Cash on Delivery (COD) across serviceable pin codes as well as direct UPI confirmation.</p>
+        <p>We accept Cash on Delivery (COD) across serviceable pin codes along with direct UPI verification.</p>
       `
     },
     shipping: {
-      title: "SHIPPING & DELIVERY POLICY",
+      title: "SHIPPING & DELIVERY PROTOCOL",
       content: `
         <h3>DISPATCH TIMELINE</h3>
-        <p>All orders are confirmed, custom packed, and handed over to logistics partners within 24 to 48 business hours.</p>
-        <h3>DELIVERY TIMELINE</h3>
+        <p>Orders are confirmed, custom inspected, and dispatched through courier partners within 24 to 48 hours.</p>
+        <h3>DELIVERY SCHEDULE</h3>
         <p>Metros: 3–5 business days. Rest of India: 5–7 business days.</p>
-        <h3>REAL-TIME TRACKING</h3>
-        <p>Use the 'Track Order' option in our header or footer anytime using your Order Number.</p>
+        <h3>SHIPMENT TRACKING</h3>
+        <p>You can track delivery status live using the 'Track Order' option in the navigation bar.</p>
       `
     },
     returns: {
       title: "EXCHANGE & RETURN POLICY",
       content: `
         <h3>7-DAY SIZE EXCHANGE</h3>
-        <p>We provide a 7-day size exchange window from the day of delivery, subject to inventory availability.</p>
-        <h3>CONDITION</h3>
-        <p>Garments must be unworn, unwashed, with all original tags and packaging intact.</p>
-        <h3>HOW TO INITIATE</h3>
-        <p>Reach out directly to our WhatsApp support channel with your Order ID.</p>
+        <p>We offer a 7-day size exchange window from the date of delivery, subject to inventory availability.</p>
+        <h3>GARMENT CONDITION</h3>
+        <p>Pieces must remain unworn, unwashed, and returned with complete tags intact.</p>
+        <h3>INITIATION</h3>
+        <p>Reach out directly via our verified WhatsApp channel or support email with your Order ID.</p>
       `
     },
     privacy: {
       title: "PRIVACY POLICY",
       content: `
-        <h3>CLIENT DATA</h3>
-        <p>We collect name, phone, email, and shipping address solely to process shipments and track deliveries.</p>
-        <h3>ENCRYPTION</h3>
-        <p>All database records are protected under Row-Level Security protocols and are never shared.</p>
+        <h3>INFORMATION COLLECTION</h3>
+        <p>Client shipping coordinates and contact details are collected strictly for order dispatch and fulfillment.</p>
+        <h3>SECURITY</h3>
+        <p>Records are secured using Row-Level Security access policies and are never sold or shared.</p>
       `
     },
     terms: {
       title: "TERMS & CONDITIONS",
       content: `
         <h3>PRODUCT AUTHENTICITY</h3>
-        <p>All products sold on bulkkot.com are authentic, heavyweight streetwear constructed with architectural restraint.</p>
+        <p>All silhouettes sold on bulkkot.com are authentic, constructed with heavyweight combed cotton.</p>
         <h3>CANCELLATION</h3>
-        <p>Orders can be cancelled before dispatch directly through WhatsApp with your Order ID.</p>
+        <p>Orders can be cancelled prior to warehouse dispatch by contacting support with your Order Number.</p>
       `
     }
   };
 
-  /* =========================================================
-     GLOBAL MODAL SYSTEM
-     ========================================================= */
   function initModalsAndNavigation() {
     const policyModal = document.querySelector("[data-policy-modal]");
     const policyTitle = policyModal?.querySelector("[data-policy-title]");
@@ -188,23 +194,19 @@
     const accountModal = document.querySelector("[data-account-modal]");
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
 
-    // Open Policy Handler
     document.addEventListener("click", (e) => {
       const policyTrigger = e.target.closest("[data-open-policy]");
       if (policyTrigger) {
         e.preventDefault();
         const type = policyTrigger.dataset.openPolicy;
-        const data = POLICY_DATA[type] || { title: "INFORMATION", content: "<p>Information will be updated shortly.</p>" };
-
+        const data = POLICY_DATA[type] || { title: "INFORMATION", content: "<p>Information updating soon.</p>" };
         if (policyTitle) policyTitle.textContent = data.title;
         if (policyContent) policyContent.innerHTML = data.content;
-
         policyModal?.classList.add("is-open");
         document.body.classList.add("modal-open");
         return;
       }
 
-      // Open About Handler
       const aboutTrigger = e.target.closest("[data-open-about]");
       if (aboutTrigger) {
         e.preventDefault();
@@ -213,7 +215,6 @@
         return;
       }
 
-      // Open Size Guide Handler
       const sizeTrigger = e.target.closest("[data-size-guide-open]");
       if (sizeTrigger) {
         e.preventDefault();
@@ -222,21 +223,18 @@
         return;
       }
 
-      // Close Policy
       if (e.target.closest("[data-close-policy]")) {
         e.preventDefault();
         policyModal?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
       }
 
-      // Close About
       if (e.target.closest("[data-close-about]")) {
         e.preventDefault();
         aboutModal?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
       }
 
-      // Close Size Guide
       if (e.target.closest("[data-size-guide-close]")) {
         e.preventDefault();
         sizeModal?.classList.remove("is-open");
@@ -244,7 +242,6 @@
       }
     });
 
-    // Mobile Drawer
     document.querySelectorAll("[data-open-drawer]").forEach(btn => btn.addEventListener("click", () => {
       mobileDrawer?.classList.add("is-open");
       document.body.classList.add("modal-open");
@@ -254,7 +251,6 @@
       document.body.classList.remove("modal-open");
     }));
 
-    // Account Button Navigation
     document.querySelectorAll("[data-open-account]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -274,7 +270,6 @@
       });
     });
 
-    // Track Order Trigger & Handlers
     document.querySelectorAll("[data-open-track-order]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -306,7 +301,7 @@
       const phone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
 
       if (!orderNumber || !phone) {
-        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone Number.";
+        if (trackMsg) trackMsg.textContent = "Provide both Order Number and Phone Number.";
         return;
       }
 
@@ -316,7 +311,7 @@
       if (trackMsg) trackMsg.textContent = "";
 
       try {
-        if (!supabase) throw new Error("Database offline.");
+        if (!supabase) throw new Error("Database service offline.");
         const { data, error } = await supabase.rpc("lookup_guest_order", { p_order_number: orderNumber, p_phone: phone });
         if (error || !data) throw new Error("No shipment found matching details.");
 
@@ -325,7 +320,7 @@
         trackResult.querySelector("[data-track-result-number]").textContent = data.order_number;
         trackResult.querySelector("[data-track-result-status]").textContent = data.status || "PLACED";
         trackResult.querySelector("[data-track-result-courier]").textContent = data.courier_partner || "In Preparation";
-        trackResult.querySelector("[data-track-result-tracking]").textContent = data.awb_number || "Assigned on dispatch";
+        trackResult.querySelector("[data-track-result-tracking]").textContent = data.awb_number || "Assigned upon pickup";
 
         const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
         const currentStatus = String(data.status || 'PLACED').toUpperCase().replace(/_/g, ' ');
@@ -336,14 +331,13 @@
           stepEl.classList.toggle("is-current", idx === curIdx);
         });
       } catch (err) {
-        if (trackMsg) trackMsg.textContent = err.message || "Failed to find order.";
+        if (trackMsg) trackMsg.textContent = err.message || "Unable to locate order.";
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = "LOOKUP SHIPMENT";
       }
     });
 
-    // ESC Key Global Dismiss
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         accountModal?.classList.remove("is-open");
@@ -361,17 +355,13 @@
   }
 
   /* =========================================================
-     INLINE SEARCH SYSTEM
+     3. SEARCH SYSTEM
      ========================================================= */
   function executeSearchQuery(query) {
     activeSearch = String(query || '').trim().toLowerCase();
     renderProducts(getFilteredProducts());
-
     const shopSection = document.getElementById('shop');
-    if (shopSection) {
-      shopSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
+    if (shopSection) shopSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const searchBar = document.getElementById('headerSearchBar');
     if (searchBar) searchBar.classList.remove('is-active');
   }
@@ -387,9 +377,7 @@
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         searchBar?.classList.toggle('is-active');
-        if (searchBar?.classList.contains('is-active')) {
-          setTimeout(() => input?.focus(), 60);
-        }
+        if (searchBar?.classList.contains('is-active')) setTimeout(() => input?.focus(), 60);
       });
     });
 
@@ -421,8 +409,45 @@
   }
 
   /* =========================================================
-     AUTHENTICATION & USER PROFILE
+     4. CMS & SUPABASE CATALOGUE ENGINE
      ========================================================= */
+  async function loadCMSContent() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from("site_content").select("content_key, content_value, image_url, content_type");
+      if (error || !data) return;
+      data.forEach(row => {
+        const key = row.content_key;
+        const val = row.content_value || row.image_url || "";
+        const type = row.content_type || "text";
+        document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
+          if (type === "image" || el.tagName === "IMG") el.src = val;
+          else el.textContent = val;
+        });
+      });
+    } catch (e) {
+      console.warn("CMS notice:", e);
+    }
+  }
+
+  async function syncStoreSettings() {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
+      if (!data) return;
+      const rawPhone = String(data.support_phone || '').replace(/\D/g, '');
+      const whatsappBtn = document.querySelector('.whatsapp-float');
+      if (whatsappBtn && rawPhone) {
+        whatsappBtn.href = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hi BULKKOT, I have an inquiry about Drop 001.')}`;
+      }
+      const email = data.support_email;
+      if (email) {
+        document.querySelectorAll('a[href^="mailto:"]').forEach(a => a.href = `mailto:${email}`);
+        document.querySelectorAll('[data-cms-key="contact_email"]').forEach(el => el.textContent = email);
+      }
+    } catch (e) {}
+  }
+
   async function initAuth() {
     if (!supabase) return;
 
@@ -461,7 +486,6 @@
     profileForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!cachedUser) return;
-
       const profileData = {
         id: cachedUser.id,
         full_name: profileForm.querySelector('#account-name')?.value.trim(),
@@ -472,15 +496,14 @@
         shipping_pincode: profileForm.querySelector('#account-pincode')?.value.trim(),
         updated_at: new Date().toISOString()
       };
-
       const profMsg = document.querySelector('[data-profile-message]');
       try {
         const { error } = await supabase.from('customer_profiles').upsert(profileData);
         if (error) throw error;
-        if (profMsg) profMsg.textContent = 'Saved successfully!';
+        if (profMsg) profMsg.textContent = 'Saved successfully.';
         setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
       } catch (err) {
-        if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
+        if (profMsg) profMsg.textContent = err.message || 'Error saving profile.';
       }
     });
   }
@@ -507,14 +530,14 @@
     try {
       const { data, error } = await supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false });
       if (error || !data || !data.length) {
-        ordersBox.innerHTML = '<p style="color:#777; font-size:11px; margin:10px 0;">No orders placed yet.</p>';
+        ordersBox.innerHTML = '<p style="color:#777; font-size:11px; margin:10px 0;">No past orders found.</p>';
         return;
       }
       ordersBox.innerHTML = data.map(o => `
-        <div style="border: 1px solid #222; border-radius:6px; padding:12px; margin-bottom:8px; background:#0c0c0c;">
+        <div style="border: 1px solid #222; border-radius:4px; padding:12px; margin-bottom:8px; background:#0c0c0c;">
           <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
             <span style="color:#fff;">${escapeHTML(o.order_number || o.id.slice(0, 8))}</span>
-            <span style="color:var(--bk-red, #e31b23);">${escapeHTML(o.order_status || 'PLACED')}</span>
+            <span style="color:var(--bk-red);">${escapeHTML(o.order_status || 'PLACED')}</span>
           </div>
           <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:6px;">
             <span>${new Date(o.created_at).toLocaleDateString()}</span>
@@ -528,7 +551,7 @@
   }
 
   /* =========================================================
-     PRODUCTS & GRID RENDERING
+     5. CATALOGUE & 2-COLUMN GRID ENGINE
      ========================================================= */
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
@@ -559,7 +582,7 @@
     const grid = document.getElementById("products-grid");
     if (!grid) return;
     if (!items.length) {
-      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No silhouettes found matching your selection.</p>';
+      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No silhouettes match the selection.</p>';
       return;
     }
 
@@ -600,7 +623,7 @@
   }
 
   /* =========================================================
-     PDP MODAL
+     6. PDP QUICK VIEW MODAL
      ========================================================= */
   let currentPdpProduct = null;
   let currentPdpSize = 'M';
@@ -679,7 +702,7 @@
           <h2 class="pdp-title">${escapeHTML(p.name)}</h2>
           <div class="pdp-price">${formatPrice(p.price)}</div>
           <p class="pdp-desc">${escapeHTML(p.description || 'Constructed from heavyweight luxury combed cotton. Tailored with architectural restraint for an elevated, relaxed drape.')}</p>
-          <div class="pdp-option-title"><span>SELECT SIZE</span><span style="color: ${stockCurSize <= 2 && stockCurSize > 0 ? 'var(--bk-yellow, #f5c542)' : '#777'};">${stockCurSize <= 0 ? 'SOLD OUT' : (stockCurSize <= 4 ? `ONLY ${stockCurSize} LEFT` : 'IN STOCK')}</span></div>
+          <div class="pdp-option-title"><span>SELECT SIZE</span><span style="color: ${stockCurSize <= 2 && stockCurSize > 0 ? 'var(--bk-yellow)' : '#777'};">${stockCurSize <= 0 ? 'SOLD OUT' : (stockCurSize <= 4 ? `ONLY ${stockCurSize} LEFT` : 'IN STOCK')}</span></div>
           <div class="pdp-sizes">${sizeButtons}</div>
           <div class="pdp-option-title"><span>QUANTITY</span></div>
           <div class="pdp-qty-row">
@@ -726,7 +749,6 @@
     });
   }
 
-  // Delegated Clicks (Add to Bag, Size, Quickview, Category links)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (btn) {
@@ -750,7 +772,6 @@
       return;
     }
 
-    // Category click from collections or footer
     const catLink = e.target.closest("[data-category]");
     if (catLink && !catLink.classList.contains("product-card")) {
       const cat = catLink.dataset.category;
@@ -766,11 +787,12 @@
 
   window.addEventListener('bulkkot:order-completed', () => { initCatalog(); });
 
-  // Main Boot
   function initStorefront() {
     initEditorialSlider();
     initModalsAndNavigation();
     initCatalog();
+    loadCMSContent();
+    syncStoreSettings();
     initAuth();
     initInlineSearch();
 
@@ -781,6 +803,12 @@
         activeCategory = btn.dataset.shopCategory;
         renderProducts(getFilteredProducts());
       });
+    });
+
+    const sortSelect = document.getElementById("shop-sort");
+    sortSelect?.addEventListener("change", (e) => {
+      activeSort = e.target.value;
+      renderProducts(getFilteredProducts());
     });
   }
 
