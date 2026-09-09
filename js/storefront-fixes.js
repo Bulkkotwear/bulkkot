@@ -1,19 +1,10 @@
-/* BULKKOT — production storefront integration layer
- * Additive only: preserves the existing main.js/cart.js architecture. */
+/* BULKKOT — production storefront integration layer */
 (function(){
   'use strict';
 
-  (function loadFinalLayer(){
-    if(!document.querySelector('link[href$="css/luxury-final.css"],link[data-bk-luxury-final]')){
-      const css=document.createElement('link');css.rel='stylesheet';css.href='css/luxury-final.css';css.dataset.bkLuxuryFinal='1';document.head.appendChild(css);
-    }
-    if(!document.querySelector('script[src$="js/luxury-final.js"],script[data-bk-luxury-final]')){
-      const js=document.createElement('script');js.src='js/luxury-final.js';js.defer=true;js.dataset.bkLuxuryFinal='1';document.head.appendChild(js);
-    }
-  })();
-
   const SUPABASE_URL='https://pgubjluqgqvrybvehzeh.supabase.co';
   const SUPABASE_KEY='sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP';
+  const WHATSAPP_NUMBER='919462909101';
   const client=window.bulkkotSupabase||(window.supabase?.createClient?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null);
   if(client&&!window.bulkkotSupabase) window.bulkkotSupabase=client;
   document.documentElement.classList.add('bk-js');
@@ -29,29 +20,45 @@
     gate.querySelector('button').addEventListener('click',goSignIn);form.prepend(gate);
   }
 
-  document.addEventListener('click',async e=>{const btn=e.target.closest('#proceedToCheckoutBtn');if(!btn)return;if(await isAuthenticated())return;e.preventDefault();e.stopImmediatePropagation();goSignIn();},true);
-  document.addEventListener('submit',async e=>{if(e.target?.id!=='storefrontCheckoutForm')return;if(await isAuthenticated())return;e.preventDefault();e.stopImmediatePropagation();showGate();goSignIn();},true);
+  document.addEventListener('click',async e=>{
+    const btn=e.target.closest('#proceedToCheckoutBtn');
+    if(!btn)return;
+    if(await isAuthenticated())return;
+    e.preventDefault();e.stopImmediatePropagation();goSignIn();
+  },true);
 
-  /* The current server order RPC accepts COD only. Keep the storefront honest:
-     whenever checkout is rendered, select COD and sync cart.js's internal state. */
-  function enforceSupportedPayment(){
+  let onlinePaymentNoticeSent=false;
+  function openWhatsAppPayment(){
+    const name=document.getElementById('chkName')?.value.trim()||'';
+    const total=document.querySelector('#cartSubmitOrderBtn')?.closest('.cart-drawer__footer')?.querySelector('.cart-total-strip strong')?.textContent||'';
+    const message=`Hi BULKKOT, I want to make an online payment for my order.%0AName: ${encodeURIComponent(name)}%0AAmount: ${encodeURIComponent(total)}%0APlease share the UPI payment details.`;
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`,'_blank','noopener,noreferrer');
+    onlinePaymentNoticeSent=true;
+    const btn=document.getElementById('cartSubmitOrderBtn');
+    if(btn)btn.textContent='PLACE ONLINE ORDER →';
     const form=document.getElementById('storefrontCheckoutForm');
-    if(!form)return;
-    const radios=form.querySelectorAll('input[name="payment_mode"]');
-    const cod=form.querySelector('input[name="payment_mode"][value="cod"]');
-    if(!cod)return;
-    const online=form.querySelector('input[name="payment_mode"][value="online"]');
-    if(online){
-      online.disabled=true;
-      const label=online.closest('.payment-card-label');
-      if(label){label.style.opacity='.48';label.style.cursor='not-allowed';const note=label.querySelector('small');if(note)note.textContent='Online payment will be enabled once payment processing is connected.';}
+    if(form&&!form.querySelector('.bk-whatsapp-note')){
+      const note=document.createElement('div');
+      note.className='bk-whatsapp-note';
+      note.innerHTML='<strong>PAYMENT STEP OPENED</strong><span>Complete payment details with BULKKOT on WhatsApp, then return here and place your order.</span>';
+      form.appendChild(note);
     }
-    if(!cod.checked){cod.checked=true;cod.dispatchEvent(new Event('change',{bubbles:true}));}
-    radios.forEach(r=>{if(r.value!=='cod')r.setAttribute('aria-disabled','true');});
   }
 
-  /* Add the applied coupon to the exact RPC payload used by cart.js without
-     replacing the cart engine. The server remains the source of truth. */
+  function handleOnlinePaymentStep(e){
+    if(e.target?.id!=='storefrontCheckoutForm')return;
+    const online=e.target.querySelector('input[name="payment_mode"][value="online"]:checked');
+    if(!online||onlinePaymentNoticeSent)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    openWhatsAppPayment();
+  }
+  document.addEventListener('submit',async e=>{
+    if(e.target?.id!=='storefrontCheckoutForm')return;
+    if(!(await isAuthenticated())){e.preventDefault();e.stopImmediatePropagation();showGate();goSignIn();return;}
+    handleOnlinePaymentStep(e);
+  },true);
+
+  /* Preserve the selected payment method and add the applied coupon to the RPC payload. */
   let rpcPatched=false;
   function patchOrderRpc(){
     if(!client||rpcPatched||typeof client.rpc!=='function')return;
@@ -59,7 +66,7 @@
     client.rpc=function(fn,args,options){
       if(fn==='create_order'&&args&&args.p_items&&args.p_customer){
         const coupon=document.getElementById('cartCouponInput')?.value?.trim().toUpperCase();
-        args={...args,p_customer:{...(args.p_customer||{}),payment_method:'cod'}};
+        args={...args,p_customer:{...(args.p_customer||{})}};
         if(coupon)args.p_customer.coupon_code=coupon;
       }
       return originalRpc(fn,args,options);
@@ -67,9 +74,20 @@
     rpcPatched=true;
   }
 
+  function stylePaymentOptions(){
+    const form=document.getElementById('storefrontCheckoutForm');
+    if(!form)return;
+    const online=form.querySelector('input[name="payment_mode"][value="online"]');
+    if(!online)return;
+    online.disabled=false;
+    online.removeAttribute('aria-disabled');
+    const label=online.closest('.payment-card-label');
+    if(label){label.style.opacity='1';label.style.cursor='pointer';const note=label.querySelector('small');if(note)note.textContent='Message BULKKOT on WhatsApp for payment details, then return here to place your order.';}
+  }
+
   const observer=new MutationObserver(()=>{
     const form=document.getElementById('storefrontCheckoutForm');
-    if(form){enforceSupportedPayment();patchOrderRpc();isAuthenticated().then(ok=>{if(!ok)showGate();});}
+    if(form){stylePaymentOptions();patchOrderRpc();isAuthenticated().then(ok=>{if(!ok)showGate();});}
   });
   observer.observe(document.body,{childList:true,subtree:true});
 
@@ -78,7 +96,7 @@
   document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const bar=document.getElementById('headerSearchBar');if(bar?.classList.contains('is-active'))bar.classList.remove('is-active');});
 
   document.addEventListener('click',e=>{
-    const link=e.target.closest('a[href^="#"]');if(!link)return;const id=link.getAttribute('href');if(!id||id==='#')return;
+    const link=e.target.closest('a[href^="#"]');if(!link)return;
     const drawer=document.querySelector('[data-mobile-drawer]');
     if(drawer?.classList.contains('is-open')){drawer.classList.remove('is-open');drawer.setAttribute('aria-hidden','true');document.querySelector('.drawer-overlay')?.classList.remove('is-visible');document.body.classList.remove('drawer-open');}
   });
