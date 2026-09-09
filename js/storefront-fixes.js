@@ -1,9 +1,8 @@
-/* BULKKOT — safe storefront integration layer
+/* BULKKOT — production storefront integration layer
  * Additive only: preserves the existing main.js/cart.js architecture. */
 (function(){
   'use strict';
 
-  /* Compatibility bootstrap: only inject the final layer when the page has not already linked it. */
   (function loadFinalLayer(){
     if(!document.querySelector('link[href$="css/luxury-final.css"],link[data-bk-luxury-final]')){
       const css=document.createElement('link');css.rel='stylesheet';css.href='css/luxury-final.css';css.dataset.bkLuxuryFinal='1';document.head.appendChild(css);
@@ -33,7 +32,45 @@
   document.addEventListener('click',async e=>{const btn=e.target.closest('#proceedToCheckoutBtn');if(!btn)return;if(await isAuthenticated())return;e.preventDefault();e.stopImmediatePropagation();goSignIn();},true);
   document.addEventListener('submit',async e=>{if(e.target?.id!=='storefrontCheckoutForm')return;if(await isAuthenticated())return;e.preventDefault();e.stopImmediatePropagation();showGate();goSignIn();},true);
 
-  const observer=new MutationObserver(()=>{const form=document.getElementById('storefrontCheckoutForm');if(form)isAuthenticated().then(ok=>{if(!ok)showGate();});});
+  /* The current server order RPC accepts COD only. Keep the storefront honest:
+     whenever checkout is rendered, select COD and sync cart.js's internal state. */
+  function enforceSupportedPayment(){
+    const form=document.getElementById('storefrontCheckoutForm');
+    if(!form)return;
+    const radios=form.querySelectorAll('input[name="payment_mode"]');
+    const cod=form.querySelector('input[name="payment_mode"][value="cod"]');
+    if(!cod)return;
+    const online=form.querySelector('input[name="payment_mode"][value="online"]');
+    if(online){
+      online.disabled=true;
+      const label=online.closest('.payment-card-label');
+      if(label){label.style.opacity='.48';label.style.cursor='not-allowed';const note=label.querySelector('small');if(note)note.textContent='Online payment will be enabled once payment processing is connected.';}
+    }
+    if(!cod.checked){cod.checked=true;cod.dispatchEvent(new Event('change',{bubbles:true}));}
+    radios.forEach(r=>{if(r.value!=='cod')r.setAttribute('aria-disabled','true');});
+  }
+
+  /* Add the applied coupon to the exact RPC payload used by cart.js without
+     replacing the cart engine. The server remains the source of truth. */
+  let rpcPatched=false;
+  function patchOrderRpc(){
+    if(!client||rpcPatched||typeof client.rpc!=='function')return;
+    const originalRpc=client.rpc.bind(client);
+    client.rpc=function(fn,args,options){
+      if(fn==='create_order'&&args&&args.p_items&&args.p_customer){
+        const coupon=document.getElementById('cartCouponInput')?.value?.trim().toUpperCase();
+        args={...args,p_customer:{...(args.p_customer||{}),payment_method:'cod'}};
+        if(coupon)args.p_customer.coupon_code=coupon;
+      }
+      return originalRpc(fn,args,options);
+    };
+    rpcPatched=true;
+  }
+
+  const observer=new MutationObserver(()=>{
+    const form=document.getElementById('storefrontCheckoutForm');
+    if(form){enforceSupportedPayment();patchOrderRpc();isAuthenticated().then(ok=>{if(!ok)showGate();});}
+  });
   observer.observe(document.body,{childList:true,subtree:true});
 
   function filterRenderedCards(value){const q=String(value||'').trim().toLowerCase();document.querySelectorAll('[data-product-card]').forEach(card=>{card.hidden=!!q&&!card.textContent.toLowerCase().includes(q);});}
@@ -58,5 +95,5 @@
   function initKeyboardUX(){document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;document.querySelectorAll('.is-open').forEach(el=>{if(el.matches('[data-cart-drawer],.pdp-modal,.quick-view-modal,[data-account-modal],[data-track-modal]')){el.classList.remove('is-open');el.setAttribute('aria-hidden','true');}});});}
 
   const announcement=document.querySelector('.announcement-track');if(announcement&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)announcement.style.willChange='transform';
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initLuxuryMotion();initKeyboardUX();});else{initLuxuryMotion();initKeyboardUX();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initLuxuryMotion();initKeyboardUX();patchOrderRpc();});else{initLuxuryMotion();initKeyboardUX();patchOrderRpc();}
 })();
