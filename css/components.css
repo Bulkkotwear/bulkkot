@@ -1,5 +1,5 @@
 /* =========================================================
-   BULKKOT (불꽃) — PRODUCTION COMPONENT STYLESHEET
+   BULKKOT (불꽃) — PRODUCTION LUXURY STYLESHEET
    ========================================================= */
 
 :root {
@@ -16,7 +16,7 @@
 }
 
 /* =========================================================
-   ANNOUNCEMENT TICKER FIX
+   1. ANNOUNCEMENT TICKER (FIXED OVERLAP)
    ========================================================= */
 .announcement-bar {
   background: #000;
@@ -50,7 +50,7 @@
 }
 
 /* =========================================================
-   HEADER & INLINE SEARCH
+   2. SITE HEADER & SEARCH
    ========================================================= */
 .site-header {
   position: relative;
@@ -146,10 +146,6 @@
   padding: 0 14px;
 }
 
-.header-search-input-wrap:focus-within {
-  border-color: #444;
-}
-
 .header-search-input-wrap input {
   flex: 1;
   background: transparent;
@@ -207,14 +203,8 @@
   transition: all 0.15s ease;
 }
 
-.search-tag-btn:hover {
-  background: #222;
-  color: #fff;
-  border-color: #444;
-}
-
 /* =========================================================
-   ORIGINAL EDITORIAL SLIDER (SINGLE FULL-WIDTH VIEW)
+   3. EDITORIAL CAROUSEL (CLEAN SLIDER VIEW)
    ========================================================= */
 .editorial-section {
   position: relative;
@@ -350,7 +340,7 @@
 }
 
 /* =========================================================
-   CATALOGUE, FILTERS & 2-COLUMN MOBILE GRID
+   4. CATALOGUE & 2-COLUMN MOBILE GRID
    ========================================================= */
 .shop-section {
   width: 100%;
@@ -599,7 +589,7 @@
 }
 
 /* =========================================================
-   MODALS SYSTEM (FAQ / POLICIES / ABOUT / TRACK)
+   5. MODALS & POLICY POPUPS (GUARANTEED OPEN)
    ========================================================= */
 .content-modal,
 .size-guide-modal,
@@ -707,7 +697,7 @@
 }
 
 /* =========================================================
-   MOBILE RESPONSIVE (<= 768px)
+   6. MOBILE RESPONSIVE (<= 768px)
    ========================================================= */
 @media (max-width: 768px) {
   .header-inner {
