@@ -27,6 +27,6 @@ jobs:
             echo 'No source changes required.'
             exit 0
           fi
-          git add index.html js/main.js
+          git add index.html js/main.js js/cart.js
           git commit -m 'fix: integrate storefront search and polish layer'
           git push origin fix/storefront-production
