@@ -3,13 +3,12 @@
 (function(){
   'use strict';
 
-  /* Load the final visual/interaction layer through this already-linked integration file.
-     This keeps the original HTML architecture stable and prevents duplicate hard-wiring. */
+  /* Compatibility bootstrap: only inject the final layer when the page has not already linked it. */
   (function loadFinalLayer(){
-    if(!document.querySelector('link[data-bk-luxury-final]')){
+    if(!document.querySelector('link[href$="css/luxury-final.css"],link[data-bk-luxury-final]')){
       const css=document.createElement('link');css.rel='stylesheet';css.href='css/luxury-final.css';css.dataset.bkLuxuryFinal='1';document.head.appendChild(css);
     }
-    if(!document.querySelector('script[data-bk-luxury-final]')){
+    if(!document.querySelector('script[src$="js/luxury-final.js"],script[data-bk-luxury-final]')){
       const js=document.createElement('script');js.src='js/luxury-final.js';js.defer=true;js.dataset.bkLuxuryFinal='1';document.head.appendChild(js);
     }
   })();
