@@ -1,5 +1,6 @@
 /* =========================================================
-   BULKKOT (불꽃) — PRODUCTION COMPONENT STYLESHEET
+   BULKKOT (불꽃) — COMPLETE PRODUCTION COMPONENTS STYLESHEET
+   Aesthetic: Korean Luxury Minimalist Streetwear
    ========================================================= */
 
 :root {
@@ -16,7 +17,7 @@
 }
 
 /* =========================================================
-   1. INLINE EXPANDABLE SEARCH
+   1. INLINE EXPANDABLE SEARCH BAR
    ========================================================= */
 .header-search-bar {
   position: absolute;
@@ -25,7 +26,7 @@
   right: 0;
   background: rgba(7, 7, 7, 0.98);
   border-bottom: 1px solid var(--bk-border);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
   padding: 16px 24px;
   display: flex;
   flex-direction: column;
@@ -83,6 +84,10 @@
   cursor: pointer;
 }
 
+.header-search-execute-btn:hover {
+  background: #b91017;
+}
+
 .header-search-close {
   background: none;
   border: none;
@@ -128,13 +133,13 @@
 }
 
 /* =========================================================
-   2. EDITORIAL PRODUCT CAROUSEL
+   2. LUXURY EDITORIAL PRODUCT CAROUSEL (PROPER FIX)
    ========================================================= */
 .editorial-section {
   position: relative;
   width: 100%;
   background: var(--bk-bg);
-  padding: 40px 0;
+  padding: 40px 0 60px;
   overflow: hidden;
 }
 
@@ -143,7 +148,7 @@
   width: 100%;
   max-width: 1380px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 40px;
 }
 
 .editorial-track {
@@ -174,7 +179,7 @@
   scroll-snap-align: start;
   background: var(--bk-card);
   border: 1px solid var(--bk-border);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
@@ -182,7 +187,7 @@
   width: 100%;
   aspect-ratio: 4 / 5;
   object-fit: cover;
-  object-position: center 20%;
+  object-position: center 25%;
   display: block;
   transition: transform 0.4s ease;
 }
@@ -213,7 +218,7 @@
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.15em;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   text-transform: uppercase;
 }
 
@@ -226,7 +231,7 @@
 }
 
 .editorial-slide__content span {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--bk-muted);
 }
@@ -235,8 +240,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: rgba(13, 13, 13, 0.85);
   border: 1px solid var(--bk-border);
   border-radius: 50%;
@@ -246,7 +251,7 @@
   cursor: pointer;
   z-index: 10;
   transition: all 0.2s ease;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .carousel-control:hover {
@@ -255,21 +260,21 @@
   border-color: #fff;
 }
 
-.carousel-control--prev { left: 8px; }
-.carousel-control--next { right: 8px; }
+.carousel-control--prev { left: 10px; }
+.carousel-control--next { right: 10px; }
 
 .carousel-indicators {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 20px;
 }
 
 .carousel-indicators button {
-  width: 18px;
+  width: 22px;
   height: 2px;
-  background: #333;
+  background: #282828;
   border: none;
   padding: 0;
   cursor: pointer;
@@ -278,11 +283,11 @@
 
 .carousel-indicators button.is-active {
   background: #fff;
-  width: 32px;
+  width: 36px;
 }
 
 /* =========================================================
-   3. CATALOGUE, FILTERS & 2-COLUMN GRID
+   3. CATALOGUE, HORIZONTAL FILTERS & 2-COL MOBILE GRID
    ========================================================= */
 .shop-section {
   width: 100%;
@@ -296,7 +301,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
   width: 100%;
 }
 
@@ -367,6 +372,7 @@
   cursor: pointer;
 }
 
+/* Desktop: 4 Columns */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -531,26 +537,26 @@
 }
 
 /* =========================================================
-   4. CONTENT, POLICY & POPUP MODALS
+   4. CONTENT, POLICY & POPUP MODALS (FULLY GUARANTEED)
    ========================================================= */
 .content-modal,
 .size-guide-modal,
 .pdp-modal,
 .track-order-modal,
 .account-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 100000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(14px);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.25s ease, visibility 0.25s ease;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  background: rgba(0, 0, 0, 0.88) !important;
+  backdrop-filter: blur(14px) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity 0.25s ease, visibility 0.25s ease !important;
 }
 
 .content-modal.is-open,
@@ -558,25 +564,25 @@
 .pdp-modal.is-open,
 .track-order-modal.is-open,
 .account-modal.is-open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .content-modal__panel,
 .size-guide-panel,
 .track-order-panel,
 .account-panel {
-  position: relative;
-  width: min(600px, 100%);
-  max-height: 88vh;
-  overflow-y: auto;
-  background: #0d0d0d;
-  border: 1px solid var(--bk-border);
-  border-radius: 4px;
-  padding: 36px 30px;
-  color: #f5f5f5;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.95);
+  position: relative !important;
+  width: min(600px, 100%) !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  background: #0d0d0d !important;
+  border: 1px solid var(--bk-border) !important;
+  border-radius: 4px !important;
+  padding: 36px 30px !important;
+  color: #f5f5f5 !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.95) !important;
 }
 
 .drawer-close,
@@ -584,15 +590,15 @@
 .track-order-close,
 .account-close,
 .pdp-close-btn {
-  position: absolute;
-  top: 16px;
-  right: 18px;
-  background: none;
-  border: none;
-  color: var(--bk-muted);
-  font-size: 24px;
-  cursor: pointer;
-  line-height: 1;
+  position: absolute !important;
+  top: 16px !important;
+  right: 18px !important;
+  background: none !important;
+  border: none !important;
+  color: var(--bk-muted) !important;
+  font-size: 24px !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
 }
 
 .drawer-close:hover,
@@ -600,7 +606,7 @@
 .track-order-close:hover,
 .account-close:hover,
 .pdp-close-btn:hover {
-  color: #fff;
+  color: #fff !important;
 }
 
 .modal-copy h3 {
@@ -618,34 +624,32 @@
   margin: 0 0 12px;
 }
 
-/* =========================================================
-   5. FOOTER LINK BUTTON REFINEMENTS
-   ========================================================= */
+/* FOOTER BUTTONS FIX */
 .site-footer button.footer-link-btn,
 .footer-column button {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--bk-muted);
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
-  display: block;
-  margin-bottom: 10px;
-  transition: color 0.15s ease;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  color: var(--bk-muted) !important;
+  font-size: 12px !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  display: block !important;
+  margin-bottom: 10px !important;
+  transition: color 0.15s ease !important;
 }
 
 .site-footer button.footer-link-btn:hover,
 .footer-column button:hover {
-  color: #fff;
+  color: #fff !important;
 }
 
 /* =========================================================
-   6. RESPONSIVE MOBILE OVERRIDES (<= 768px)
+   5. MOBILE VIEW (<= 768px)
    ========================================================= */
 @media (max-width: 768px) {
   .editorial-section {
-    padding: 24px 0;
+    padding: 24px 0 36px;
   }
 
   .editorial-carousel {
@@ -685,7 +689,7 @@
     width: 100%;
   }
 
-  /* 2-COLUMN LUXURY MOBILE PRODUCT GRID */
+  /* 2-COLUMN LUXURY MOBILE PRODUCT GRID (NO HUGE EMPTY SPACE) */
   .product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
