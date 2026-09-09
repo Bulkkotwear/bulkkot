@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 13.0 (Zero-Freeze Navigation, Execute Search, Instant Auth Redirect)
+ * Version: 14.0 (Fixed Policy Modals, Live CMS Sync, Non-Blocking Auth & Search)
  */
 (function () {
   'use strict';
@@ -66,7 +66,117 @@
   }
 
   /* =========================================================
-     EXECUTE INLINE SEARCH (FIXED)
+     POLICY DATA & MODAL (FIXED FOR ALL STATIC & FOOTER LINKS)
+     ========================================================= */
+  const POLICY_DATA = {
+    faq: {
+      title: "FREQUENTLY ASKED QUESTIONS",
+      content: `
+        <h3>HOW DOES DROP 001 WORK?</h3>
+        <p>Drop 001 consists of limited-quantity heavyweight silhouettes. Once sold out, silhouettes will not be restocked immediately.</p>
+        <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
+        <p>Standard shipping across India is calculated at checkout based on current promotions and cart value.</p>
+        <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
+        <p>We accept Cash on Delivery (COD) as well as prepaid UPI verification via WhatsApp.</p>
+      `
+    },
+    shipping: {
+      title: "SHIPPING POLICY",
+      content: `
+        <h3>DISPATCH TIMELINE</h3>
+        <p>All orders are confirmed, packed, and handed over to logistics partners within 24 to 48 hours.</p>
+        <h3>DELIVERY TIMELINE</h3>
+        <p>Metros: 3–5 business days. Rest of India: 5–7 business days.</p>
+        <h3>REAL-TIME TRACKING</h3>
+        <p>Use the 'Track Order' option in our header anytime using your unique Order Number.</p>
+      `
+    },
+    returns: {
+      title: "RETURNS & EXCHANGES",
+      content: `
+        <h3>7-DAY EXCHANGE WINDOW</h3>
+        <p>We provide a 7-day size exchange window from the day of delivery, subject to inventory availability.</p>
+        <h3>CONDITION</h3>
+        <p>Garments must be unworn, unwashed, with all original tags and packaging intact.</p>
+        <h3>HOW TO INITIATE</h3>
+        <p>Reach out through our official email or WhatsApp with your Order Number.</p>
+      `
+    },
+    privacy: {
+      title: "PRIVACY POLICY",
+      content: `
+        <h3>DATA COLLECTION</h3>
+        <p>We only collect name, phone, email, and shipping address details to process orders and track deliveries.</p>
+        <h3>SECURITY</h3>
+        <p>All records are encrypted through Supabase Row-Level Security and are never sold or rented to third parties.</p>
+      `
+    },
+    terms: {
+      title: "TERMS & CONDITIONS",
+      content: `
+        <h3>PRODUCT AUTHENTICITY</h3>
+        <p>All products sold on bulkkot.com are authentic, heavyweight streetwear crafted under strict quality protocols.</p>
+        <h3>CANCELLATIONS</h3>
+        <p>Orders can be cancelled before dispatch directly by reaching our team with your Order ID.</p>
+      `
+    }
+  };
+
+  /* =========================================================
+     READ-ONLY CMS LOADER
+     ========================================================= */
+  async function loadCMSContent() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from("site_content")
+        .select("content_key, content_value, image_url, content_type");
+
+      if (error || !data) return;
+
+      data.forEach(row => {
+        const key = row.content_key;
+        const val = row.content_value || row.image_url || "";
+        const type = row.content_type || "text";
+
+        document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
+          if (type === "image" || el.tagName === "IMG") {
+            el.src = val;
+          } else {
+            el.textContent = val;
+          }
+        });
+      });
+    } catch (e) {
+      console.warn("CMS load notice:", e);
+    }
+  }
+
+  /* =========================================================
+     DYNAMIC SETTINGS SYNC
+     ========================================================= */
+  async function syncStoreSettings() {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
+      if (!data) return;
+
+      const rawPhone = String(data.support_phone || '').replace(/\D/g, '');
+      const whatsappBtn = document.querySelector('.whatsapp-float');
+      if (whatsappBtn && rawPhone) {
+        whatsappBtn.href = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hi BULKKOT, I have an inquiry about Drop 001.')}`;
+      }
+
+      const email = data.support_email;
+      if (email) {
+        document.querySelectorAll('a[href^="mailto:"]').forEach(a => a.href = `mailto:${email}`);
+        document.querySelectorAll('[data-cms-key="contact_email"]').forEach(el => el.textContent = email);
+      }
+    } catch (e) {}
+  }
+
+  /* =========================================================
+     EXECUTE INLINE SEARCH
      ========================================================= */
   function executeSearchQuery(query) {
     activeSearch = String(query || '').trim().toLowerCase();
@@ -106,19 +216,16 @@
       renderProducts(getFilteredProducts());
     });
 
-    // Execute on typing
     input?.addEventListener('input', (e) => {
       activeSearch = e.target.value.trim().toLowerCase();
       renderProducts(getFilteredProducts());
     });
 
-    // Execute on Enter / Submit button click
     form?.addEventListener('submit', (e) => {
       e.preventDefault();
       executeSearchQuery(input?.value);
     });
 
-    // Execute on Trending Chip Click
     document.querySelectorAll('[data-search-tag]').forEach(btn => {
       btn.addEventListener('click', () => {
         const tag = btn.dataset.searchTag.toLowerCase();
@@ -129,7 +236,7 @@
   }
 
   /* =========================================================
-     FAST NON-BLOCKING AUTH (FIXES BLANK ON CLICK)
+     FAST NON-BLOCKING AUTH (PROFILE DRAWER & REDIRECT)
      ========================================================= */
   async function initAuth() {
     if (!supabase) return;
@@ -154,18 +261,15 @@
       }
     }
 
-    // 1. Instant Cache Check
     supabase.auth.getSession().then(({ data }) => {
       syncUI(data?.session?.user || null);
     });
 
-    // 2. Realtime Listener
     supabase.auth.onAuthStateChange((_, session) => {
       syncUI(session?.user || null);
       if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
     });
 
-    // Sign Out
     const signoutBtn = document.querySelector('[data-account-signout]');
     signoutBtn?.addEventListener('click', async () => {
       signoutBtn.textContent = 'SIGNING OUT...';
@@ -173,7 +277,6 @@
       window.location.reload();
     });
 
-    // Profile Save
     const profileForm = document.querySelector('[data-account-profile-form]');
     profileForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -197,7 +300,7 @@
       try {
         const { error } = await supabase.from('customer_profiles').upsert(profileData);
         if (error) throw error;
-        if (profMsg) profMsg.textContent = 'Saved successfully!';
+        if (profMsg) profMsg.textContent = 'Profile saved successfully!';
         setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
       } catch (err) {
         if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
@@ -209,13 +312,11 @@
 
   function handleAccountClick(e) {
     e.preventDefault();
-    // Zero latency: If not logged in, go to dedicated signin.html immediately
     if (!cachedUser) {
       window.location.href = './signin.html';
       return;
     }
 
-    // If logged in, open the sleek drawer
     const accountModal = document.querySelector("[data-account-modal]");
     accountModal?.classList.add("is-open");
     accountModal?.setAttribute("aria-hidden", "false");
@@ -464,7 +565,7 @@
   }
 
   /* =========================================================
-     NAVIGATION & MODAL BINDINGS
+     NAVIGATION & MODAL BINDINGS (POLICY MODALS INCLUDED)
      ========================================================= */
   function initModalsAndNavigation() {
     // Drawer Menu
@@ -489,7 +590,64 @@
       });
     });
 
-    // 100% Working Track Order
+    // Policy Modals (FAQ / Shipping / Returns / Privacy / Terms)
+    const policyModal = document.querySelector("[data-policy-modal]");
+    const policyTitle = policyModal?.querySelector("[data-policy-title]");
+    const policyContent = policyModal?.querySelector("[data-policy-content]");
+
+    document.querySelectorAll("[data-open-policy]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const type = btn.dataset.openPolicy;
+        const data = POLICY_DATA[type] || {
+          title: "INFORMATION",
+          content: "<p>Information will be updated shortly.</p>"
+        };
+
+        if (policyTitle) policyTitle.textContent = data.title;
+        if (policyContent) policyContent.innerHTML = data.content;
+
+        policyModal?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      });
+    });
+
+    document.querySelectorAll("[data-close-policy]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        policyModal?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
+
+    // About Modal
+    document.querySelectorAll("[data-open-about]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelector("[data-about-modal]")?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      });
+    });
+    document.querySelectorAll("[data-close-about]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelector("[data-about-modal]")?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
+
+    // Size Guide Modal
+    document.querySelectorAll("[data-size-guide-open]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelector("[data-size-guide-modal]")?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      });
+    });
+    document.querySelectorAll("[data-size-guide-close]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelector("[data-size-guide-modal]")?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
+
+    // Track Order Modal
     const trackModal = document.querySelector("[data-track-order-modal]");
     const trackForm = trackModal?.querySelector("[data-track-order-form]");
     const trackMsg = trackModal?.querySelector("[data-track-order-message]");
@@ -558,6 +716,9 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         document.querySelector("[data-account-modal]")?.classList.remove("is-open");
+        document.querySelector("[data-policy-modal]")?.classList.remove("is-open");
+        document.querySelector("[data-about-modal]")?.classList.remove("is-open");
+        document.querySelector("[data-size-guide-modal]")?.classList.remove("is-open");
         trackModal?.classList.remove("is-open");
         closePdpModal();
         document.getElementById('headerSearchBar')?.classList.remove('is-active');
@@ -596,6 +757,8 @@
   function initStorefront() {
     initModalsAndNavigation();
     initCatalog();
+    loadCMSContent();
+    syncStoreSettings();
     initAuth();
     initInlineSearch();
 
