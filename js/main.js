@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 15.0 (Slider Fixed, Mobile 2-Col Grid, All Buttons & Modals Fully Bound)
+ * Version: 16.0 (Flawless Slider, Dynamic Footer Policy Modals, Inline Filters)
  */
 (function () {
   'use strict';
@@ -66,7 +66,7 @@
   }
 
   /* =========================================================
-     EDITORIAL SLIDER / CAROUSEL (100% WORKING)
+     EDITORIAL CAROUSEL
      ========================================================= */
   function initEditorialSlider() {
     const track = document.querySelector('[data-carousel-track]');
@@ -79,9 +79,9 @@
 
     let currentIndex = 0;
     const totalSlides = slides.length;
-    let autoSlideInterval = null;
+    let timer = null;
 
-    function goToSlide(index) {
+    function renderSlide(index) {
       currentIndex = (index + totalSlides) % totalSlides;
       track.style.transform = `translateX(-${currentIndex * 100}%)`;
 
@@ -90,42 +90,36 @@
       });
     }
 
+    function resetTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => renderSlide(currentIndex + 1), 5500);
+    }
+
     nextBtn?.addEventListener('click', (e) => {
       e.preventDefault();
-      goToSlide(currentIndex + 1);
-      resetAutoSlide();
+      renderSlide(currentIndex + 1);
+      resetTimer();
     });
 
     prevBtn?.addEventListener('click', (e) => {
       e.preventDefault();
-      goToSlide(currentIndex - 1);
-      resetAutoSlide();
+      renderSlide(currentIndex - 1);
+      resetTimer();
     });
 
     dots.forEach((dot, idx) => {
       dot.addEventListener('click', () => {
-        goToSlide(idx);
-        resetAutoSlide();
+        renderSlide(idx);
+        resetTimer();
       });
     });
 
-    function startAutoSlide() {
-      autoSlideInterval = setInterval(() => {
-        goToSlide(currentIndex + 1);
-      }, 5000);
-    }
-
-    function resetAutoSlide() {
-      clearInterval(autoSlideInterval);
-      startAutoSlide();
-    }
-
-    goToSlide(0);
-    startAutoSlide();
+    renderSlide(0);
+    resetTimer();
   }
 
   /* =========================================================
-     POLICY DATA & ALL BUTTONS (FAQ / SHIPPING / TERMS / RETURNS)
+     POLICY DATA
      ========================================================= */
   const POLICY_DATA = {
     faq: {
@@ -136,18 +130,18 @@
         <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
         <p>Standard express delivery across India is complimentary during Drop 001.</p>
         <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
-        <p>We accept Cash on Delivery (COD) as well as prepaid UPI verification via WhatsApp.</p>
+        <p>We accept Cash on Delivery (COD) across serviceable pin codes as well as direct UPI confirmation.</p>
       `
     },
     shipping: {
       title: "SHIPPING & DELIVERY POLICY",
       content: `
-        <h3>DISPATCH PROTOCOL</h3>
-        <p>All orders are confirmed, packaged with dust bags, and handed over to logistics within 24 to 48 hours.</p>
+        <h3>DISPATCH TIMELINE</h3>
+        <p>All orders are confirmed, custom packed, and handed over to logistics partners within 24 to 48 business hours.</p>
         <h3>DELIVERY TIMELINE</h3>
         <p>Metros: 3–5 business days. Rest of India: 5–7 business days.</p>
-        <h3>REAL-TIME LOGISTICS</h3>
-        <p>Use the 'Track Order' option in our navigation bar anytime using your Order Number.</p>
+        <h3>REAL-TIME TRACKING</h3>
+        <p>Use the 'Track Order' option in our header or footer anytime using your Order Number.</p>
       `
     },
     returns: {
@@ -156,34 +150,101 @@
         <h3>7-DAY SIZE EXCHANGE</h3>
         <p>We provide a 7-day size exchange window from the day of delivery, subject to inventory availability.</p>
         <h3>CONDITION</h3>
-        <p>Garments must be unworn, unwashed, with all original tags intact.</p>
+        <p>Garments must be unworn, unwashed, with all original tags and packaging intact.</p>
         <h3>HOW TO INITIATE</h3>
-        <p>Message our support team on WhatsApp with your Order ID.</p>
+        <p>Reach out directly to our WhatsApp support channel with your Order ID.</p>
       `
     },
     privacy: {
       title: "PRIVACY POLICY",
       content: `
-        <h3>CLIENT DATA PROTECTION</h3>
-        <p>We collect customer names, phone numbers, and addresses solely for order processing and delivery fulfillment.</p>
-        <h3>SECURITY</h3>
-        <p>All records are encrypted through Supabase Row-Level Security protocols and are never shared.</p>
+        <h3>CLIENT DATA</h3>
+        <p>We collect name, phone, email, and shipping address solely to process shipments and track deliveries.</p>
+        <h3>ENCRYPTION</h3>
+        <p>All database records are protected under Row-Level Security protocols and are never shared.</p>
       `
     },
     terms: {
       title: "TERMS & CONDITIONS",
       content: `
         <h3>PRODUCT AUTHENTICITY</h3>
-        <p>All silhouettes sold on bulkkot.com are authentic, constructed with architectural restraint.</p>
-        <h3>CANCELLATIONS</h3>
-        <p>Orders can be cancelled before dispatch directly by reaching our team with your Order ID.</p>
+        <p>All products sold on bulkkot.com are authentic, heavyweight streetwear constructed with architectural restraint.</p>
+        <h3>CANCELLATION</h3>
+        <p>Orders can be cancelled before dispatch directly through WhatsApp with your Order ID.</p>
       `
     }
   };
 
+  /* =========================================================
+     GLOBAL MODAL SYSTEM
+     ========================================================= */
   function initModalsAndNavigation() {
-    // 1. Mobile Drawer
+    const policyModal = document.querySelector("[data-policy-modal]");
+    const policyTitle = policyModal?.querySelector("[data-policy-title]");
+    const policyContent = policyModal?.querySelector("[data-policy-content]");
+    const aboutModal = document.querySelector("[data-about-modal]");
+    const sizeModal = document.querySelector("[data-size-guide-modal]");
+    const trackModal = document.querySelector("[data-track-order-modal]");
+    const accountModal = document.querySelector("[data-account-modal]");
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
+
+    // Open Policy Handler
+    document.addEventListener("click", (e) => {
+      const policyTrigger = e.target.closest("[data-open-policy]");
+      if (policyTrigger) {
+        e.preventDefault();
+        const type = policyTrigger.dataset.openPolicy;
+        const data = POLICY_DATA[type] || { title: "INFORMATION", content: "<p>Information will be updated shortly.</p>" };
+
+        if (policyTitle) policyTitle.textContent = data.title;
+        if (policyContent) policyContent.innerHTML = data.content;
+
+        policyModal?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+        return;
+      }
+
+      // Open About Handler
+      const aboutTrigger = e.target.closest("[data-open-about]");
+      if (aboutTrigger) {
+        e.preventDefault();
+        aboutModal?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+        return;
+      }
+
+      // Open Size Guide Handler
+      const sizeTrigger = e.target.closest("[data-size-guide-open]");
+      if (sizeTrigger) {
+        e.preventDefault();
+        sizeModal?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+        return;
+      }
+
+      // Close Policy
+      if (e.target.closest("[data-close-policy]")) {
+        e.preventDefault();
+        policyModal?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      }
+
+      // Close About
+      if (e.target.closest("[data-close-about]")) {
+        e.preventDefault();
+        aboutModal?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      }
+
+      // Close Size Guide
+      if (e.target.closest("[data-size-guide-close]")) {
+        e.preventDefault();
+        sizeModal?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      }
+    });
+
+    // Mobile Drawer
     document.querySelectorAll("[data-open-drawer]").forEach(btn => btn.addEventListener("click", () => {
       mobileDrawer?.classList.add("is-open");
       document.body.classList.add("modal-open");
@@ -193,112 +254,27 @@
       document.body.classList.remove("modal-open");
     }));
 
-    // 2. Account Button
+    // Account Button Navigation
     document.querySelectorAll("[data-open-account]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         if (!cachedUser) {
           window.location.href = './signin.html';
         } else {
-          document.querySelector("[data-account-modal]")?.classList.add("is-open");
+          accountModal?.classList.add("is-open");
           document.body.classList.add("modal-open");
         }
       });
     });
+
     document.querySelectorAll("[data-account-close]").forEach(btn => {
       btn.addEventListener("click", () => {
-        document.querySelector("[data-account-modal]")?.classList.remove("is-open");
+        accountModal?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
       });
     });
 
-    // 3. Policy Modals (FAQ / Shipping / Returns / Privacy / Terms)
-    const policyModal = document.querySelector("[data-policy-modal]");
-    const policyTitle = policyModal?.querySelector("[data-policy-title]");
-    const policyContent = policyModal?.querySelector("[data-policy-content]");
-
-    document.querySelectorAll("[data-open-policy]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const type = btn.dataset.openPolicy;
-        const data = POLICY_DATA[type] || {
-          title: "INFORMATION",
-          content: "<p>Information will be updated shortly.</p>"
-        };
-
-        if (policyTitle) policyTitle.textContent = data.title;
-        if (policyContent) policyContent.innerHTML = data.content;
-
-        policyModal?.classList.add("is-open");
-        document.body.classList.add("modal-open");
-      });
-    });
-
-    document.querySelectorAll("[data-close-policy]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        policyModal?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-
-    // 4. About Story Modal
-    const aboutModal = document.querySelector("[data-about-modal]");
-    document.querySelectorAll("[data-open-about]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        aboutModal?.classList.add("is-open");
-        document.body.classList.add("modal-open");
-      });
-    });
-    document.querySelectorAll("[data-close-about]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        aboutModal?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-
-    // 5. Size Guide Modal
-    const sizeModal = document.querySelector("[data-size-guide-modal]");
-    document.querySelectorAll("[data-size-guide-open]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        sizeModal?.classList.add("is-open");
-        document.body.classList.add("modal-open");
-      });
-    });
-    document.querySelectorAll("[data-size-guide-close]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        sizeModal?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-
-    // Size Guide Tabs
-    const sizeTabs = sizeModal?.querySelectorAll("[data-size-tab]");
-    const sizePanels = sizeModal?.querySelectorAll("[data-size-panel]");
-    sizeTabs?.forEach(tab => {
-      tab.addEventListener("click", () => {
-        sizeTabs.forEach(t => t.classList.remove("is-active"));
-        tab.classList.add("is-active");
-        const target = tab.dataset.sizeTab;
-        sizePanels?.forEach(p => {
-          if (p.dataset.sizePanel === target) {
-            p.classList.add("is-active");
-            p.hidden = false;
-          } else {
-            p.classList.remove("is-active");
-            p.hidden = true;
-          }
-        });
-      });
-    });
-
-    // 6. Track Order Modal
-    const trackModal = document.querySelector("[data-track-order-modal]");
-    const trackForm = trackModal?.querySelector("[data-track-order-form]");
-    const trackMsg = trackModal?.querySelector("[data-track-order-message]");
-    const trackResult = trackModal?.querySelector("[data-track-order-result]");
-
+    // Track Order Trigger & Handlers
     document.querySelectorAll("[data-open-track-order]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -306,12 +282,17 @@
         document.body.classList.add("modal-open");
       });
     });
+
     document.querySelectorAll("[data-track-order-close]").forEach(btn => {
       btn.addEventListener("click", () => {
         trackModal?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
       });
     });
+
+    const trackForm = trackModal?.querySelector("[data-track-order-form]");
+    const trackMsg = trackModal?.querySelector("[data-track-order-message]");
+    const trackResult = trackModal?.querySelector("[data-track-order-result]");
 
     trackModal?.querySelector("[data-track-again]")?.addEventListener("click", () => {
       if (trackResult) trackResult.hidden = true;
@@ -337,7 +318,7 @@
       try {
         if (!supabase) throw new Error("Database offline.");
         const { data, error } = await supabase.rpc("lookup_guest_order", { p_order_number: orderNumber, p_phone: phone });
-        if (error || !data) throw new Error("No shipment found.");
+        if (error || !data) throw new Error("No shipment found matching details.");
 
         trackForm.hidden = true;
         trackResult.hidden = false;
@@ -362,10 +343,10 @@
       }
     });
 
-    // 7. Global ESC Dismiss
+    // ESC Key Global Dismiss
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        document.querySelector("[data-account-modal]")?.classList.remove("is-open");
+        accountModal?.classList.remove("is-open");
         policyModal?.classList.remove("is-open");
         aboutModal?.classList.remove("is-open");
         sizeModal?.classList.remove("is-open");
@@ -380,57 +361,7 @@
   }
 
   /* =========================================================
-     LIVE CMS & SETTINGS LOADER
-     ========================================================= */
-  async function loadCMSContent() {
-    if (!supabase) return;
-    try {
-      const { data, error } = await supabase
-        .from("site_content")
-        .select("content_key, content_value, image_url, content_type");
-
-      if (error || !data) return;
-
-      data.forEach(row => {
-        const key = row.content_key;
-        const val = row.content_value || row.image_url || "";
-        const type = row.content_type || "text";
-
-        document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
-          if (type === "image" || el.tagName === "IMG") {
-            el.src = val;
-          } else {
-            el.textContent = val;
-          }
-        });
-      });
-    } catch (e) {
-      console.warn("CMS notice:", e);
-    }
-  }
-
-  async function syncStoreSettings() {
-    if (!supabase) return;
-    try {
-      const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
-      if (!data) return;
-
-      const rawPhone = String(data.support_phone || '').replace(/\D/g, '');
-      const whatsappBtn = document.querySelector('.whatsapp-float');
-      if (whatsappBtn && rawPhone) {
-        whatsappBtn.href = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hi BULKKOT, I have an inquiry about Drop 001.')}`;
-      }
-
-      const email = data.support_email;
-      if (email) {
-        document.querySelectorAll('a[href^="mailto:"]').forEach(a => a.href = `mailto:${email}`);
-        document.querySelectorAll('[data-cms-key="contact_email"]').forEach(el => el.textContent = email);
-      }
-    } catch (e) {}
-  }
-
-  /* =========================================================
-     SEARCH SYSTEM
+     INLINE SEARCH SYSTEM
      ========================================================= */
   function executeSearchQuery(query) {
     activeSearch = String(query || '').trim().toLowerCase();
@@ -490,7 +421,7 @@
   }
 
   /* =========================================================
-     AUTH CHECK & PAST ORDERS
+     AUTHENTICATION & USER PROFILE
      ========================================================= */
   async function initAuth() {
     if (!supabase) return;
@@ -576,7 +507,7 @@
     try {
       const { data, error } = await supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false });
       if (error || !data || !data.length) {
-        ordersBox.innerHTML = '<p style="color:#777; font-size:11px; margin:10px 0;">No orders found yet.</p>';
+        ordersBox.innerHTML = '<p style="color:#777; font-size:11px; margin:10px 0;">No orders placed yet.</p>';
         return;
       }
       ordersBox.innerHTML = data.map(o => `
@@ -597,7 +528,7 @@
   }
 
   /* =========================================================
-     PRODUCTS & DYNAMIC GRID (2-COL READY)
+     PRODUCTS & GRID RENDERING
      ========================================================= */
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
@@ -628,7 +559,7 @@
     const grid = document.getElementById("products-grid");
     if (!grid) return;
     if (!items.length) {
-      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No silhouettes found matching your search.</p>';
+      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No silhouettes found matching your selection.</p>';
       return;
     }
 
@@ -795,38 +726,51 @@
     });
   }
 
-  // Delegated Clicks (Add to Bag, Size, Quickview)
+  // Delegated Clicks (Add to Bag, Size, Quickview, Category links)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
-    if (!btn) return;
-    const action = btn.dataset.action;
-    const id = btn.dataset.id;
-    const p = liveProducts.find(item => String(item.id) === String(id));
+    if (btn) {
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      const p = liveProducts.find(item => String(item.id) === String(id));
 
-    if (action === "quickview" && p) {
-      openPdpModal(p.id);
-    } else if (action === "size" && p) {
-      selectedSizes[id] = btn.dataset.size;
-      renderProducts(getFilteredProducts());
-    } else if (action === "add" && p) {
-      const size = selectedSizes[id] || "M";
-      if (getStock(p, size) <= 0) return;
-      const images = getProductImages(p);
-      if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
-        window.BULKKOT_CART.addItem({ id: p.id, name: p.name, price: Number(p.price || 0), size: size, image: images[0] });
+      if (action === "quickview" && p) {
+        openPdpModal(p.id);
+      } else if (action === "size" && p) {
+        selectedSizes[id] = btn.dataset.size;
+        renderProducts(getFilteredProducts());
+      } else if (action === "add" && p) {
+        const size = selectedSizes[id] || "M";
+        if (getStock(p, size) <= 0) return;
+        const images = getProductImages(p);
+        if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
+          window.BULKKOT_CART.addItem({ id: p.id, name: p.name, price: Number(p.price || 0), size: size, image: images[0] });
+        }
+      }
+      return;
+    }
+
+    // Category click from collections or footer
+    const catLink = e.target.closest("[data-category]");
+    if (catLink && !catLink.classList.contains("product-card")) {
+      const cat = catLink.dataset.category;
+      if (cat) {
+        activeCategory = cat.toLowerCase();
+        document.querySelectorAll("[data-shop-category]").forEach(b => {
+          b.classList.toggle("is-active", b.dataset.shopCategory === activeCategory);
+        });
+        renderProducts(getFilteredProducts());
       }
     }
   });
 
   window.addEventListener('bulkkot:order-completed', () => { initCatalog(); });
 
-  // Main Storefront Boot
+  // Main Boot
   function initStorefront() {
     initEditorialSlider();
     initModalsAndNavigation();
     initCatalog();
-    loadCMSContent();
-    syncStoreSettings();
     initAuth();
     initInlineSearch();
 
