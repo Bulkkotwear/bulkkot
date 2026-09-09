@@ -1,6 +1,6 @@
 /**
- * BULKKOT — Luxury Cart & Checkout Engine
- * Version: 6.0 (2-Step Clean Flow, Responsive Layout, Atomic RPC Sync)
+ * BULKKOT — Luxury Cart Engine
+ * Version: 7.0 (Pincode Auto-Location, Online UPI/COD Selector, WhatsApp Redirect)
  */
 (function () {
   'use strict';
@@ -8,8 +8,9 @@
   const STORAGE_KEY = 'bulkkot_cart';
   let cart = [];
   let appliedCoupon = null;
-  let storeSettings = { shipping_fee: 0, free_shipping_threshold: 0 };
+  let storeSettings = { shipping_fee: 0, free_shipping_threshold: 0, support_phone: '919876543210' };
   let currentStep = 'bag'; // 'bag' or 'checkout'
+  let selectedPayment = 'online'; // 'online' or 'cod'
 
   const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
@@ -70,31 +71,7 @@
     if (!client) return;
     try {
       const { data } = await client.from('store_settings').select('*').eq('id', 1).maybeSingle();
-      if (data) storeSettings = data;
-    } catch (e) {}
-  }
-
-  async function validateAndPurgeStaleCart() {
-    const client = getSupabase();
-    if (!client || !cart.length) return;
-    try {
-      const ids = [...new Set(cart.map(i => i.id))];
-      const { data } = await client.from('products').select('id, active, stock').in('id', ids);
-      if (!data) return;
-
-      const validMap = new Map(data.map(p => [p.id, p]));
-      const originalLen = cart.length;
-
-      cart = cart.filter(item => {
-        const p = validMap.get(item.id);
-        if (!p || p.active === false) return false;
-        const sizeStock = Number(p.stock?.[item.size] || 0);
-        return sizeStock > 0;
-      });
-
-      if (cart.length !== originalLen) {
-        saveCart();
-      }
+      if (data) storeSettings = Object.assign(storeSettings, data);
     } catch (e) {}
   }
 
@@ -189,6 +166,48 @@
     return baseFee;
   }
 
+  // Real India Post Pincode Lookup
+  async function lookupPincode(pincode) {
+    const cleanPin = String(pincode || '').trim();
+    if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) return;
+
+    const cityInput = document.getElementById('chkCity');
+    const stateInput = document.getElementById('chkState');
+    const statusBox = document.getElementById('pincodeStatus');
+
+    if (statusBox) {
+      statusBox.textContent = 'Locating area...';
+      statusBox.style.color = '#888';
+      statusBox.style.display = 'block';
+    }
+
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${cleanPin}`);
+      const data = await res.json();
+
+      if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice?.length) {
+        const po = data[0].PostOffice[0];
+        const district = po.District || po.Block || po.Circle;
+        const state = po.State;
+
+        if (cityInput && !cityInput.value) cityInput.value = district;
+        if (stateInput && !stateInput.value) stateInput.value = state;
+
+        if (statusBox) {
+          statusBox.textContent = `✓ Serviceable: ${district}, ${state}`;
+          statusBox.style.color = '#31c48d';
+        }
+      } else {
+        if (statusBox) {
+          statusBox.textContent = 'Please enter valid 6-digit pin';
+          statusBox.style.color = '#ff7777';
+        }
+      }
+    } catch (e) {
+      if (statusBox) statusBox.style.display = 'none';
+    }
+  }
+
   function renderCart() {
     const drawer = document.querySelector('[data-cart-drawer]');
     if (!drawer) return;
@@ -255,7 +274,6 @@
             ${itemsHTML}
           </div>
 
-          <!-- COUPON INPUT -->
           <div style="margin: 20px 0 10px; display: flex; gap: 8px;">
             <input type="text" id="cartCouponInput" class="bk-input" placeholder="DISCOUNT CODE" value="${appliedCoupon ? escapeHTML(appliedCoupon.code) : ''}"
                    style="text-transform: uppercase;" ${appliedCoupon ? 'disabled' : ''}>
@@ -300,10 +318,10 @@
       });
 
     } else {
-      // STEP 2: LUXURY EXPRESS CHECKOUT
+      // STEP 2: PROFESSIONAL CHECKOUT + PAYMENT METHOD + PINCODE LOOKUP
       drawer.innerHTML = `
         <div class="cart-drawer__header">
-          <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">STEP 02 / 02</p><h2>DISPATCH DETAILS</h2></div>
+          <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">STEP 02 / 02</p><h2>DISPATCH & PAYMENT</h2></div>
           <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
         </div>
 
@@ -318,8 +336,9 @@
           </div>
 
           <form id="storefrontCheckoutForm" novalidate>
+            <!-- Shipping Details -->
             <div class="bk-input-group">
-              <span>CUSTOMER INFORMATION</span>
+              <span>CUSTOMER DETAILS</span>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                 <input type="text" id="chkName" class="bk-input" placeholder="Full Name *" required>
                 <input type="tel" id="chkPhone" class="bk-input" placeholder="10-digit Phone *" maxlength="15" required>
@@ -327,51 +346,94 @@
             </div>
 
             <div class="bk-input-group">
-              <span>EMAIL ADDRESS</span>
-              <input type="email" id="chkEmail" class="bk-input" placeholder="Email for order tracking *" required>
+              <span>EMAIL FOR DISPATCH UPDATES</span>
+              <input type="email" id="chkEmail" class="bk-input" placeholder="name@email.com *" required>
             </div>
 
             <div class="bk-input-group">
-              <span>SHIPPING ADDRESS</span>
-              <input type="text" id="chkAddress" class="bk-input" placeholder="House No / Street / Area *" required style="margin-bottom:8px;">
+              <span>DELIVERY ADDRESS</span>
+              <input type="text" id="chkAddress" class="bk-input" placeholder="House No / Street / Landmark *" required style="margin-bottom:8px;">
               <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                <input type="text" id="chkPincode" class="bk-input" placeholder="Pincode *" maxlength="6" inputmode="numeric" required>
                 <input type="text" id="chkCity" class="bk-input" placeholder="City *" required>
                 <input type="text" id="chkState" class="bk-input" placeholder="State *" required>
-                <input type="text" id="chkPincode" class="bk-input" placeholder="Pincode *" maxlength="6" required>
               </div>
+              <small id="pincodeStatus" style="font-size:10px; font-weight:700; margin-top:4px; display:none;"></small>
             </div>
 
-            <div style="background:#111; border:1px solid var(--bk-border); padding:12px 14px; border-radius:4px; margin-top:14px; display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <span style="font-size:9px; color:#888; display:block; text-transform:uppercase;">PAYMENT METHOD</span>
-                <strong style="font-size:12px; color:#fff;">CASH ON DELIVERY (COD)</strong>
-              </div>
-              <span style="font-size:9px; border:1px solid #333; padding:3px 6px; border-radius:3px; color:#aaa;">Complimentary</span>
+            <!-- PAYMENT OPTIONS SELECTOR -->
+            <div class="bk-input-group" style="margin-top:16px;">
+              <span>SELECT PAYMENT OPTION</span>
+
+              <!-- Online UPI via WhatsApp Card -->
+              <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; background:#111; border:1px solid ${selectedPayment === 'online' ? 'var(--bk-red)' : 'var(--bk-border)'}; border-radius:6px; margin-bottom:8px; cursor:pointer;">
+                <input type="radio" name="payment_mode" value="online" ${selectedPayment === 'online' ? 'checked' : ''} style="margin-top:2px; accent-color:var(--bk-red);">
+                <div style="flex:1;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="font-size:12px; color:#fff;">ONLINE UPI / GPAY / PHONEPE</strong>
+                    <span style="font-size:8px; background:rgba(49,196,141,0.15); color:#31c48d; padding:2px 6px; border-radius:4px; font-weight:800;">FASTEST DISPATCH</span>
+                  </div>
+                  <small style="font-size:10px; color:#888; display:block; margin-top:4px; line-height:1.4;">
+                    Instant WhatsApp QR/UPI link will open upon placing order. Priority packaging within 12 hours.
+                  </small>
+                </div>
+              </label>
+
+              <!-- Cash On Delivery Card -->
+              <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; background:#111; border:1px solid ${selectedPayment === 'cod' ? 'var(--bk-red)' : 'var(--bk-border)'}; border-radius:6px; cursor:pointer;">
+                <input type="radio" name="payment_mode" value="cod" ${selectedPayment === 'cod' ? 'checked' : ''} style="margin-top:2px; accent-color:var(--bk-red);">
+                <div style="flex:1;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="font-size:12px; color:#fff;">CASH ON DELIVERY (COD)</strong>
+                    <span style="font-size:8px; border:1px solid #333; color:#aaa; padding:2px 6px; border-radius:4px;">VERIFIED</span>
+                  </div>
+                  <small style="font-size:10px; color:#888; display:block; margin-top:4px;">
+                    Pay in cash or UPI when the courier agent delivers the package to your doorstep.
+                  </small>
+                </div>
+              </label>
             </div>
 
-            <div id="checkoutInlineError" style="color: #ff7777; font-size: 11px; margin-top: 12px; display: none;"></div>
+            <div id="checkoutInlineError" style="color: #ff7777; font-size: 11px; margin-top: 10px; display: none;"></div>
           </form>
         </div>
 
         <div class="cart-drawer__footer">
           <div class="cart-total-strip" style="border:none; padding:0; margin:0 0 12px;">
-            <span style="color:#888;">TOTAL DUE ON DELIVERY</span>
+            <span style="color:#888;">TOTAL PAYABLE</span>
             <strong>${formatPrice(finalTotal)}</strong>
           </div>
 
           <button type="submit" form="storefrontCheckoutForm" id="cartSubmitOrderBtn" class="bk-btn-primary">
-            PLACE ORDER (COD)
+            ${selectedPayment === 'online' ? 'PLACE ORDER & PAY VIA UPI →' : 'CONFIRM CASH ON DELIVERY ORDER'}
           </button>
 
           <div style="text-align: center; color: #555; font-size: 10px; margin-top: 10px;">
-            🔒 Encrypted & Direct Warehouse Fulfilment
+            🔒 100% Encrypted & Direct Warehouse Fulfilment
           </div>
         </div>
       `;
 
+      // Back to Bag
       drawer.querySelector('#backToBagBtn')?.addEventListener('click', () => {
         currentStep = 'bag';
         renderCart();
+      });
+
+      // Pincode auto-lookup listener
+      const pinInput = drawer.querySelector('#chkPincode');
+      pinInput?.addEventListener('input', (e) => {
+        if (e.target.value.length === 6) {
+          lookupPincode(e.target.value);
+        }
+      });
+
+      // Payment radio switch
+      drawer.querySelectorAll('input[name="payment_mode"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          selectedPayment = e.target.value;
+          renderCart();
+        });
       });
 
       drawer.querySelector('#cartAuthTrigger')?.addEventListener('click', () => {
@@ -447,7 +509,7 @@
 
       errBox.style.display = 'none';
       submitBtn.disabled = true;
-      submitBtn.textContent = 'CONFIRMING WITH WAREHOUSE...';
+      submitBtn.textContent = 'CONFIRMING ORDER WITH WAREHOUSE...';
 
       try {
         const client = getSupabase();
@@ -466,7 +528,8 @@
           shipping_address: address,
           shipping_city: city,
           shipping_state: state,
-          shipping_pincode: pincode
+          shipping_pincode: pincode,
+          payment_method: selectedPayment
         };
 
         const { data, error } = await client.rpc('create_order', {
@@ -478,31 +541,59 @@
 
         const orderNumber = data.order_number;
         const totalAmount = data.total_amount;
+        const paymentMode = data.payment_method || selectedPayment;
+
+        // WhatsApp payment redirect URL
+        const rawPhone = String(storeSettings.support_phone || '919876543210').replace(/\D/g, '');
+        const waMsg = encodeURIComponent(
+          `Hi BULKKOT, I just placed order ${orderNumber} for ${formatPrice(totalAmount)}. Please share the UPI QR code to complete payment!`
+        );
+        const waLink = `https://wa.me/${rawPhone}?text=${waMsg}`;
 
         const drawer = document.querySelector('[data-cart-drawer]');
         drawer.innerHTML = `
           <div class="cart-drawer__header">
-            <div><p class="eyebrow" style="color:#31c48d; font-size:10px; margin:0;">DISPATCH CONFIRMED</p><h2>ORDER PLACED</h2></div>
+            <div><p class="eyebrow" style="color:#31c48d; font-size:10px; margin:0;">SUCCESSFULLY LOGGED</p><h2>ORDER CONFIRMED</h2></div>
             <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
           </div>
-          <div class="cart-body-wrapper" style="text-align: center; padding: 48px 24px;">
+          <div class="cart-body-wrapper" style="text-align: center; padding: 40px 24px;">
             <div style="width: 52px; height: 52px; background: rgba(49,196,141,.12); color: #31c48d; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; font-size: 24px;">✓</div>
-            <p class="eyebrow" style="color: #31c48d; font-weight: 900; margin-bottom:6px;">ORDER CONFIRMED</p>
-            <h2 style="font-size: 22px; margin: 0 0 10px; color: #fff; letter-spacing:0.05em;">${escapeHTML(orderNumber)}</h2>
-            <p style="color: #aaa; font-size: 13px; line-height: 1.6; margin: 0 0 24px;">
+            <p class="eyebrow" style="color: #31c48d; font-weight: 900; margin-bottom:6px;">DISPATCH QUEUE CONFIRMED</p>
+            <h2 style="font-size: 22px; margin: 0 0 8px; color: #fff; letter-spacing:0.05em;">${escapeHTML(orderNumber)}</h2>
+            <p style="color: #aaa; font-size: 13px; line-height: 1.6; margin: 0 0 20px;">
               Thank you, <strong>${escapeHTML(name)}</strong>.<br>
-              Total collectible: <strong>${formatPrice(totalAmount)}</strong> (Cash on Delivery).
+              Order Total: <strong>${formatPrice(totalAmount)}</strong> (${paymentMode.toUpperCase()}).
             </p>
-            <div style="background: #111; border: 1px solid var(--bk-border); border-radius: 6px; padding: 14px; text-align: left; font-size: 11px; line-height: 1.7; color: #888; margin-bottom: 24px;">
-              <strong style="color: #fff; display: block; margin-bottom: 4px;">DISPATCH PROTOCOL:</strong>
-              • Order sent directly to warehouse fulfillment.<br>
-              • Real-time updates active via Track Order in header.<br>
-              • Cash on Delivery payment upon courier arrival.
-            </div>
+
+            ${paymentMode === 'online' ? `
+              <div style="background:#161616; border:1px solid #333; border-radius:8px; padding:18px; text-align:center; margin-bottom:20px;">
+                <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 6px;">ACTION REQUIRED</p>
+                <strong style="color:#fff; font-size:13px; display:block; margin-bottom:8px;">COMPLETE YOUR UPI PAYMENT</strong>
+                <p style="font-size:11px; color:#888; margin:0 0 14px; line-height:1.5;">Click below to open WhatsApp with your Order ID and receive the official merchant payment QR code.</p>
+                <a href="${waLink}" target="_blank" rel="noopener" class="bk-btn-primary" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; background:#25D366 !important; border-color:#25D366 !important; color:#fff !important;">
+                  💬 PAY VIA WHATSAPP UPI NOW
+                </a>
+              </div>
+            ` : `
+              <div style="background: #111; border: 1px solid var(--bk-border); border-radius: 6px; padding: 14px; text-align: left; font-size: 11px; line-height: 1.7; color: #888; margin-bottom: 24px;">
+                <strong style="color: #fff; display: block; margin-bottom: 4px;">DISPATCH PROTOCOL:</strong>
+                • Order assigned to warehouse fulfillment queue.<br>
+                • Real-time updates active via Track Order in header.<br>
+                • Cash on Delivery payment upon courier arrival.
+              </div>
+            `}
+
             <button type="button" class="bk-btn-primary" data-close-cart style="width: 100%;">CONTINUE EXPLORING</button>
           </div>
         `;
         drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
+
+        // Auto redirect to WhatsApp if online payment selected
+        if (paymentMode === 'online') {
+          setTimeout(() => {
+            window.open(waLink, '_blank');
+          }, 800);
+        }
 
         cart = [];
         appliedCoupon = null;
@@ -517,7 +608,7 @@
         errBox.textContent = err.message || 'Unable to place order. Please try again.';
         errBox.style.display = 'block';
         submitBtn.disabled = false;
-        submitBtn.textContent = 'PLACE ORDER (COD)';
+        submitBtn.textContent = 'RETRY PLACING ORDER';
       }
     });
   }
@@ -545,7 +636,10 @@
         if (document.getElementById('chkAddress') && !document.getElementById('chkAddress').value) document.getElementById('chkAddress').value = profile.shipping_address || '';
         if (document.getElementById('chkCity') && !document.getElementById('chkCity').value) document.getElementById('chkCity').value = profile.shipping_city || '';
         if (document.getElementById('chkState') && !document.getElementById('chkState').value) document.getElementById('chkState').value = profile.shipping_state || '';
-        if (document.getElementById('chkPincode') && !document.getElementById('chkPincode').value) document.getElementById('chkPincode').value = profile.shipping_pincode || '';
+        if (document.getElementById('chkPincode') && !document.getElementById('chkPincode').value) {
+          document.getElementById('chkPincode').value = profile.shipping_pincode || '';
+          lookupPincode(profile.shipping_pincode);
+        }
       }
     } catch (e) {}
   }
@@ -553,7 +647,6 @@
   function init() {
     loadCart();
     fetchSettings();
-    validateAndPurgeStaleCart();
 
     document.querySelectorAll('[data-open-cart]').forEach((btn) =>
       btn.addEventListener('click', (e) => {
