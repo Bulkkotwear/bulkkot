@@ -276,7 +276,7 @@
   function getFilteredProducts() {
     let list = [...liveProducts];
     if (activeCategory !== "all") list = list.filter(p => getCategory(p) === activeCategory.toLowerCase());
-    if (activeSearch) list = list.filter(p => (p.name || '').toLowerCase().includes(activeSearch));
+    if (activeSearch) list = list.filter(p => { const haystack = [p.name, p.category, p.description, p.short_description, p.tags, p.keywords, p.slug].filter(Boolean).join(' ').toLowerCase(); return haystack.includes(activeSearch); });
     if (activeSort === "price-low") list.sort((a, b) => Number(a.price) - Number(b.price));
     if (activeSort === "price-high") list.sort((a, b) => Number(b.price) - Number(a.price));
     if (activeSort === "newest") list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
