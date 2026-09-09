@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Luxury Cart Engine
- * Version: 7.0 (Pincode Auto-Location, Online UPI/COD Selector, WhatsApp Redirect)
+ * Version: 7.2 (No-Refresh Payment Switch, WhatsApp Notification Popup, Fix Order Bug)
  */
 (function () {
   'use strict';
@@ -166,7 +166,6 @@
     return baseFee;
   }
 
-  // Real India Post Pincode Lookup
   async function lookupPincode(pincode) {
     const cleanPin = String(pincode || '').trim();
     if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) return;
@@ -238,7 +237,6 @@
     const finalTotal = discountedTotal + shippingFee;
 
     if (currentStep === 'bag') {
-      // STEP 1: BAG REVIEW
       const itemsHTML = cart.map((item, idx) => `
         <div class="cart-item-row">
           <img src="${escapeHTML(item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}"
@@ -318,7 +316,7 @@
       });
 
     } else {
-      // STEP 2: PROFESSIONAL CHECKOUT + PAYMENT METHOD + PINCODE LOOKUP
+      // CHECKOUT STEP
       drawer.innerHTML = `
         <div class="cart-drawer__header">
           <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">STEP 02 / 02</p><h2>DISPATCH & PAYMENT</h2></div>
@@ -336,7 +334,6 @@
           </div>
 
           <form id="storefrontCheckoutForm" novalidate>
-            <!-- Shipping Details -->
             <div class="bk-input-group">
               <span>CUSTOMER DETAILS</span>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -361,26 +358,23 @@
               <small id="pincodeStatus" style="font-size:10px; font-weight:700; margin-top:4px; display:none;"></small>
             </div>
 
-            <!-- PAYMENT OPTIONS SELECTOR -->
             <div class="bk-input-group" style="margin-top:16px;">
               <span>SELECT PAYMENT OPTION</span>
 
-              <!-- Online UPI via WhatsApp Card -->
-              <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; background:#111; border:1px solid ${selectedPayment === 'online' ? 'var(--bk-red)' : 'var(--bk-border)'}; border-radius:6px; margin-bottom:8px; cursor:pointer;">
+              <label class="payment-card-label" style="display:flex; align-items:flex-start; gap:12px; padding:14px; background:#111; border:1px solid ${selectedPayment === 'online' ? 'var(--bk-red)' : 'var(--bk-border)'}; border-radius:6px; margin-bottom:8px; cursor:pointer; transition: border-color 0.2s;">
                 <input type="radio" name="payment_mode" value="online" ${selectedPayment === 'online' ? 'checked' : ''} style="margin-top:2px; accent-color:var(--bk-red);">
                 <div style="flex:1;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
                     <strong style="font-size:12px; color:#fff;">ONLINE UPI / GPAY / PHONEPE</strong>
-                    <span style="font-size:8px; background:rgba(49,196,141,0.15); color:#31c48d; padding:2px 6px; border-radius:4px; font-weight:800;">FASTEST DISPATCH</span>
+                    <span style="font-size:8px; background:rgba(49,196,141,0.15); color:#31c48d; padding:2px 6px; border-radius:4px; font-weight:800;">FAST DISPATCH</span>
                   </div>
                   <small style="font-size:10px; color:#888; display:block; margin-top:4px; line-height:1.4;">
-                    Instant WhatsApp QR/UPI link will open upon placing order. Priority packaging within 12 hours.
+                    Our team will contact you on WhatsApp to collect the payment securely.
                   </small>
                 </div>
               </label>
 
-              <!-- Cash On Delivery Card -->
-              <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; background:#111; border:1px solid ${selectedPayment === 'cod' ? 'var(--bk-red)' : 'var(--bk-border)'}; border-radius:6px; cursor:pointer;">
+              <label class="payment-card-label" style="display:flex; align-items:flex-start; gap:12px; padding:14px; background:#111; border:1px solid ${selectedPayment === 'cod' ? 'var(--bk-red)' : 'var(--bk-border)'}; border-radius:6px; cursor:pointer; transition: border-color 0.2s;">
                 <input type="radio" name="payment_mode" value="cod" ${selectedPayment === 'cod' ? 'checked' : ''} style="margin-top:2px; accent-color:var(--bk-red);">
                 <div style="flex:1;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -388,7 +382,7 @@
                     <span style="font-size:8px; border:1px solid #333; color:#aaa; padding:2px 6px; border-radius:4px;">VERIFIED</span>
                   </div>
                   <small style="font-size:10px; color:#888; display:block; margin-top:4px;">
-                    Pay in cash or UPI when the courier agent delivers the package to your doorstep.
+                    Pay in cash or UPI when the courier agent delivers the package.
                   </small>
                 </div>
               </label>
@@ -405,7 +399,7 @@
           </div>
 
           <button type="submit" form="storefrontCheckoutForm" id="cartSubmitOrderBtn" class="bk-btn-primary">
-            ${selectedPayment === 'online' ? 'PLACE ORDER & PAY VIA UPI →' : 'CONFIRM CASH ON DELIVERY ORDER'}
+            ${selectedPayment === 'online' ? 'PLACE ORDER (UPI NOTIFICATION)' : 'CONFIRM CASH ON DELIVERY'}
           </button>
 
           <div style="text-align: center; color: #555; font-size: 10px; margin-top: 10px;">
@@ -414,25 +408,29 @@
         </div>
       `;
 
-      // Back to Bag
+      // Event Listeners for Checkout
       drawer.querySelector('#backToBagBtn')?.addEventListener('click', () => {
         currentStep = 'bag';
         renderCart();
       });
 
-      // Pincode auto-lookup listener
       const pinInput = drawer.querySelector('#chkPincode');
       pinInput?.addEventListener('input', (e) => {
-        if (e.target.value.length === 6) {
-          lookupPincode(e.target.value);
-        }
+        if (e.target.value.length === 6) lookupPincode(e.target.value);
       });
 
-      // Payment radio switch
+      // NO RE-RENDER on Radio Change - Only DOM update
       drawer.querySelectorAll('input[name="payment_mode"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
           selectedPayment = e.target.value;
-          renderCart();
+          
+          drawer.querySelectorAll('.payment-card-label').forEach(lbl => lbl.style.borderColor = 'var(--bk-border)');
+          e.target.closest('.payment-card-label').style.borderColor = 'var(--bk-red)';
+
+          const submitBtn = drawer.querySelector('#cartSubmitOrderBtn');
+          if (submitBtn) {
+            submitBtn.textContent = selectedPayment === 'online' ? 'PLACE ORDER (UPI NOTIFICATION)' : 'CONFIRM CASH ON DELIVERY';
+          }
         });
       });
 
@@ -448,20 +446,11 @@
       bindCheckoutFormSubmit(finalTotal, shippingFee);
     }
 
-    // Common Bindings
+    // Common Cart Bindings
     drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
-
-    drawer.querySelectorAll('[data-cart-remove]').forEach((btn) => {
-      btn.addEventListener('click', () => removeItem(Number(btn.dataset.cartRemove)));
-    });
-
-    drawer.querySelectorAll('[data-cart-qty]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        updateQuantity(Number(btn.dataset.cartQty), Number(btn.dataset.qty));
-      });
-    });
-
-    // Coupon Handler
+    drawer.querySelectorAll('[data-cart-remove]').forEach(btn => btn.addEventListener('click', () => removeItem(Number(btn.dataset.cartRemove))));
+    drawer.querySelectorAll('[data-cart-qty]').forEach(btn => btn.addEventListener('click', () => updateQuantity(Number(btn.dataset.cartQty), Number(btn.dataset.qty))));
+    
     const couponBtn = drawer.querySelector('#cartApplyCouponBtn');
     couponBtn?.addEventListener('click', async () => {
       if (appliedCoupon) {
@@ -469,18 +458,12 @@
         renderCart();
         return;
       }
-
       const code = drawer.querySelector('#cartCouponInput')?.value.trim().toUpperCase();
       if (!code) return;
-
       const client = getSupabase();
       if (!client) return;
-
       const { data, error } = await client.from('coupons').select('*').eq('code', code).eq('active', true).maybeSingle();
-      if (error || !data) {
-        alert('Invalid or inactive coupon code.');
-        return;
-      }
+      if (error || !data) return alert('Invalid coupon.');
       appliedCoupon = data;
       renderCart();
     });
@@ -515,40 +498,21 @@
         const client = getSupabase();
         if (!client) throw new Error('Database connection unavailable.');
 
-        const rpcItems = cart.map((item) => ({
-          id: item.id,
-          size: item.size,
-          quantity: item.quantity
-        }));
-
+        const rpcItems = cart.map((item) => ({ id: item.id, size: item.size, quantity: item.quantity }));
         const customerPayload = {
-          customer_name: name,
-          customer_email: email,
-          customer_phone: phone,
-          shipping_address: address,
-          shipping_city: city,
-          shipping_state: state,
-          shipping_pincode: pincode,
-          payment_method: selectedPayment
+          customer_name: name, customer_email: email, customer_phone: phone,
+          shipping_address: address, shipping_city: city, shipping_state: state,
+          shipping_pincode: pincode, payment_method: selectedPayment
         };
 
         const { data, error } = await client.rpc('create_order', {
-          p_items: rpcItems,
-          p_customer: customerPayload
+          p_items: rpcItems, p_customer: customerPayload
         });
 
         if (error) throw error;
 
         const orderNumber = data.order_number;
-        const totalAmount = data.total_amount;
         const paymentMode = data.payment_method || selectedPayment;
-
-        // WhatsApp payment redirect URL
-        const rawPhone = String(storeSettings.support_phone || '919876543210').replace(/\D/g, '');
-        const waMsg = encodeURIComponent(
-          `Hi BULKKOT, I just placed order ${orderNumber} for ${formatPrice(totalAmount)}. Please share the UPI QR code to complete payment!`
-        );
-        const waLink = `https://wa.me/${rawPhone}?text=${waMsg}`;
 
         const drawer = document.querySelector('[data-cart-drawer]');
         drawer.innerHTML = `
@@ -562,17 +526,14 @@
             <h2 style="font-size: 22px; margin: 0 0 8px; color: #fff; letter-spacing:0.05em;">${escapeHTML(orderNumber)}</h2>
             <p style="color: #aaa; font-size: 13px; line-height: 1.6; margin: 0 0 20px;">
               Thank you, <strong>${escapeHTML(name)}</strong>.<br>
-              Order Total: <strong>${formatPrice(totalAmount)}</strong> (${paymentMode.toUpperCase()}).
+              Order Total: <strong>${formatPrice(finalTotal)}</strong> (${paymentMode.toUpperCase()}).
             </p>
 
             ${paymentMode === 'online' ? `
               <div style="background:#161616; border:1px solid #333; border-radius:8px; padding:18px; text-align:center; margin-bottom:20px;">
-                <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 6px;">ACTION REQUIRED</p>
-                <strong style="color:#fff; font-size:13px; display:block; margin-bottom:8px;">COMPLETE YOUR UPI PAYMENT</strong>
-                <p style="font-size:11px; color:#888; margin:0 0 14px; line-height:1.5;">Click below to open WhatsApp with your Order ID and receive the official merchant payment QR code.</p>
-                <a href="${waLink}" target="_blank" rel="noopener" class="bk-btn-primary" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; background:#25D366 !important; border-color:#25D366 !important; color:#fff !important;">
-                  💬 PAY VIA WHATSAPP UPI NOW
-                </a>
+                <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 6px;">NEXT STEP</p>
+                <strong style="color:#fff; font-size:13px; display:block; margin-bottom:8px;">OUR TEAM WILL CONTACT YOU SHORTLY</strong>
+                <p style="font-size:11px; color:#888; margin:0; line-height:1.5;">You will receive a WhatsApp message from our official support team with the UPI QR Code to securely complete your payment.</p>
               </div>
             ` : `
               <div style="background: #111; border: 1px solid var(--bk-border); border-radius: 6px; padding: 14px; text-align: left; font-size: 11px; line-height: 1.7; color: #888; margin-bottom: 24px;">
@@ -588,13 +549,6 @@
         `;
         drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
 
-        // Auto redirect to WhatsApp if online payment selected
-        if (paymentMode === 'online') {
-          setTimeout(() => {
-            window.open(waLink, '_blank');
-          }, 800);
-        }
-
         cart = [];
         appliedCoupon = null;
         currentStep = 'bag';
@@ -608,7 +562,7 @@
         errBox.textContent = err.message || 'Unable to place order. Please try again.';
         errBox.style.display = 'block';
         submitBtn.disabled = false;
-        submitBtn.textContent = 'RETRY PLACING ORDER';
+        submitBtn.textContent = selectedPayment === 'online' ? 'PLACE ORDER (UPI NOTIFICATION)' : 'CONFIRM CASH ON DELIVERY';
       }
     });
   }
@@ -624,11 +578,7 @@
       const emailField = document.getElementById('chkEmail');
       if (emailField && !emailField.value) emailField.value = user.email || '';
 
-      const { data: profile } = await client
-        .from('customer_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
+      const { data: profile } = await client.from('customer_profiles').select('*').eq('id', user.id).maybeSingle();
 
       if (profile) {
         if (document.getElementById('chkName') && !document.getElementById('chkName').value) document.getElementById('chkName').value = profile.full_name || '';
@@ -654,19 +604,14 @@
         openCart();
       })
     );
-
     document.querySelectorAll('[data-close-cart]').forEach((btn) =>
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         closeCart();
       })
     );
-
     document.querySelector('[data-cart-overlay]')?.addEventListener('click', closeCart);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeCart();
-    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCart(); });
   }
 
   if (document.readyState === 'loading') {
@@ -676,12 +621,6 @@
   }
 
   window.BULKKOT_CART = {
-    addItem,
-    removeItem,
-    updateQuantity,
-    clearCart,
-    openCart,
-    closeCart,
-    renderCart
+    addItem, removeItem, updateQuantity, clearCart, openCart, closeCart, renderCart
   };
 })();
