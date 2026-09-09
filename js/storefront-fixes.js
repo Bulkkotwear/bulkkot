@@ -2,6 +2,18 @@
  * Additive only: preserves the existing main.js/cart.js architecture. */
 (function(){
   'use strict';
+
+  /* Load the final visual/interaction layer through this already-linked integration file.
+     This keeps the original HTML architecture stable and prevents duplicate hard-wiring. */
+  (function loadFinalLayer(){
+    if(!document.querySelector('link[data-bk-luxury-final]')){
+      const css=document.createElement('link');css.rel='stylesheet';css.href='css/luxury-final.css';css.dataset.bkLuxuryFinal='1';document.head.appendChild(css);
+    }
+    if(!document.querySelector('script[data-bk-luxury-final]')){
+      const js=document.createElement('script');js.src='js/luxury-final.js';js.defer=true;js.dataset.bkLuxuryFinal='1';document.head.appendChild(js);
+    }
+  })();
+
   const SUPABASE_URL='https://pgubjluqgqvrybvehzeh.supabase.co';
   const SUPABASE_KEY='sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP';
   const client=window.bulkkotSupabase||(window.supabase?.createClient?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null);
