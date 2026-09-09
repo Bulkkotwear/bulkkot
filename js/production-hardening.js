@@ -147,6 +147,69 @@
       .bk-account-order__bottom strong{color:#fff}
       #checkoutInlineError{border-left:2px solid ${RED};padding-left:8px}
       #storefrontCheckoutForm .bk-input:invalid:not(:placeholder-shown){border-color:#5b2528}
+
+      /* BULKKOT announcement — one seamless premium marquee */
+      .announcement-bar{
+        position:relative!important;
+        display:block!important;
+        width:100%!important;
+        min-height:28px!important;
+        height:28px!important;
+        overflow:hidden!important;
+        white-space:nowrap!important;
+        background:#d60000!important;
+        color:#000!important;
+      }
+      .announcement-track{
+        display:flex!important;
+        align-items:center!important;
+        width:max-content!important;
+        max-width:none!important;
+        height:28px!important;
+        margin:0!important;
+        padding:0!important;
+        transform:translate3d(0,0,0)!important;
+        animation:bkAnnouncementMarquee 24s linear infinite!important;
+        will-change:transform!important;
+      }
+      .announcement-content{
+        flex:0 0 auto!important;
+        display:flex!important;
+        align-items:center!important;
+        width:max-content!important;
+        max-width:none!important;
+        height:28px!important;
+        margin:0!important;
+        padding:0!important;
+        gap:58px!important;
+        white-space:nowrap!important;
+      }
+      .announcement-content span{
+        flex:0 0 auto!important;
+        display:inline-flex!important;
+        align-items:center!important;
+        white-space:nowrap!important;
+        line-height:1!important;
+        color:#000!important;
+        font-family:var(--bk-heading)!important;
+        font-size:8px!important;
+        font-weight:800!important;
+        letter-spacing:.18em!important;
+      }
+      .announcement-content span::before{color:#000!important;opacity:.45!important}
+      .announcement-bar:hover .announcement-track{animation-play-state:paused!important}
+      @keyframes bkAnnouncementMarquee{
+        from{transform:translate3d(0,0,0)}
+        to{transform:translate3d(-50%,0,0)}
+      }
+      @media(max-width:640px){
+        .announcement-bar,.announcement-track,.announcement-content{height:26px!important;min-height:26px!important}
+        .announcement-content{gap:44px!important}
+        .announcement-content span{font-size:7px!important;letter-spacing:.16em!important}
+      }
+      @media(prefers-reduced-motion:reduce){
+        .announcement-track{animation:none!important;transform:none!important}
+      }
     `;
     document.head.appendChild(style);
   }
