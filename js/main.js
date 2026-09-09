@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 8.0 (Multi-Image Array, Product Detail Modal & Related Products Engine)
+ * Version: 11.0 (Inline Search, Welcome Pop-up, Full Auth Sync & PDP)
  */
 (function () {
   'use strict';
@@ -8,9 +8,11 @@
   const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
 
-  const supabase = window.supabase
+  const supabase = window.supabase && typeof window.supabase.createClient === 'function'
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     : null;
+
+  window.bulkkotSupabase = supabase;
 
   let liveProducts = [];
   const selectedSizes = {};
@@ -62,6 +64,273 @@
   }
 
   /* =========================================================
+     FIRST-VISIT WELCOME POP-UP
+     ========================================================= */
+  function initWelcomePopup() {
+    const popup = document.getElementById('welcomePopupModal');
+    const closeBtn = document.getElementById('welcomePopupClose');
+    const googleBtn = document.getElementById('welcomeGoogleBtn');
+    const emailBtn = document.getElementById('welcomeEmailBtn');
+
+    if (!popup) return;
+
+    // Check if shown before in this session or localStorage
+    const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
+    if (!hasSeen) {
+      setTimeout(() => {
+        popup.classList.add('is-open');
+        popup.setAttribute('aria-hidden', 'false');
+      }, 1500);
+    }
+
+    function dismissPopup() {
+      popup.classList.remove('is-open');
+      popup.setAttribute('aria-hidden', 'true');
+      localStorage.setItem('bulkkot_welcome_seen', 'true');
+    }
+
+    closeBtn?.addEventListener('click', dismissPopup);
+    popup.addEventListener('click', (e) => {
+      if (e.target === popup) dismissPopup();
+    });
+
+    googleBtn?.addEventListener('click', async () => {
+      dismissPopup();
+      if (!supabase) return;
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+    });
+
+    emailBtn?.addEventListener('click', () => {
+      dismissPopup();
+      const accountModal = document.querySelector('[data-account-modal]');
+      accountModal?.classList.add('is-open');
+      document.body.classList.add('modal-open');
+    });
+  }
+
+  /* =========================================================
+     INLINE EXPANDABLE HEADER SEARCH
+     ========================================================= */
+  function initInlineSearch() {
+    const toggleBtn = document.getElementById('headerSearchToggle');
+    const searchBar = document.getElementById('headerSearchBar');
+    const closeBtn = document.getElementById('headerSearchClose');
+    const input = document.getElementById('liveSearchInput');
+
+    toggleBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      searchBar?.classList.toggle('is-active');
+      if (searchBar?.classList.contains('is-active')) {
+        setTimeout(() => input?.focus(), 60);
+      }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+      searchBar?.classList.remove('is-active');
+      activeSearch = "";
+      if (input) input.value = "";
+      renderProducts(getFilteredProducts());
+    });
+
+    input?.addEventListener('input', (e) => {
+      activeSearch = e.target.value.trim().toLowerCase();
+      renderProducts(getFilteredProducts());
+    });
+
+    document.querySelectorAll('[data-search-tag]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.searchTag.toLowerCase();
+        if (input) input.value = tag;
+        activeSearch = tag;
+        renderProducts(getFilteredProducts());
+        document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  }
+
+  /* =========================================================
+     AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP)
+     ========================================================= */
+  async function initAuth() {
+    if (!supabase) return;
+
+    async function updateAuthUI() {
+      const { data: { user } } = await supabase.auth.getUser();
+      const accountLabel = document.querySelector('[data-account-label]');
+      const authView = document.querySelector('[data-account-auth]');
+      const userView = document.querySelector('[data-account-user]');
+      const userEmailEl = document.querySelector('[data-account-user-email]');
+
+      if (user) {
+        const displayName = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
+        if (accountLabel) accountLabel.textContent = displayName;
+        if (authView) authView.hidden = true;
+        if (userView) userView.hidden = false;
+        if (userEmailEl) userEmailEl.textContent = user.email;
+        loadCustomerProfile(user.id);
+        loadCustomerOrders(user.id);
+      } else {
+        if (accountLabel) accountLabel.textContent = 'ACCOUNT';
+        if (authView) authView.hidden = false;
+        if (userView) userView.hidden = true;
+      }
+    }
+
+    supabase.auth.onAuthStateChange(() => {
+      updateAuthUI();
+      if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
+    });
+
+    updateAuthUI();
+
+    const loginForm = document.querySelector('[data-account-login-form]');
+    const msgEl = document.querySelector('[data-account-message]');
+    const signupToggle = document.querySelector('[data-account-signup-toggle]');
+    const title = document.getElementById('account-title');
+
+    signupToggle?.addEventListener('click', () => {
+      const isSignUp = loginForm.dataset.mode === 'signup';
+      const submitBtn = loginForm.querySelector('.account-submit');
+
+      if (isSignUp) {
+        loginForm.dataset.mode = 'signin';
+        if (title) title.textContent = 'SIGN IN';
+        if (submitBtn) submitBtn.textContent = 'SIGN IN';
+        signupToggle.textContent = 'CREATE ACCOUNT';
+      } else {
+        loginForm.dataset.mode = 'signup';
+        if (title) title.textContent = 'CREATE ACCOUNT';
+        if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
+        signupToggle.textContent = 'ALREADY HAVE AN ACCOUNT? SIGN IN';
+      }
+      if (msgEl) msgEl.textContent = '';
+    });
+
+    loginForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = loginForm.querySelector('#account-email')?.value.trim();
+      const password = loginForm.querySelector('#account-password')?.value;
+      const submitBtn = loginForm.querySelector('.account-submit');
+      const isSignUp = loginForm.dataset.mode === 'signup';
+
+      if (!email || !password) {
+        if (msgEl) msgEl.textContent = 'Please enter both email and password.';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = isSignUp ? 'CREATING ACCOUNT...' : 'VERIFYING...';
+      if (msgEl) msgEl.textContent = '';
+
+      try {
+        if (isSignUp) {
+          const { data, error } = await supabase.auth.signUp({ email, password });
+          if (error) throw error;
+          if (msgEl) msgEl.textContent = 'Account created! Signing you in...';
+        } else {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        }
+      } catch (err) {
+        if (msgEl) msgEl.textContent = err.message || 'Authentication failed.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN';
+      }
+    });
+
+    document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+    });
+
+    document.querySelector('[data-account-signout]')?.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+    });
+
+    const profileForm = document.querySelector('[data-account-profile-form]');
+    profileForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const profileData = {
+        id: user.id,
+        full_name: profileForm.querySelector('#account-name')?.value.trim(),
+        phone: profileForm.querySelector('#account-phone')?.value.trim(),
+        shipping_address: profileForm.querySelector('#account-address')?.value.trim(),
+        shipping_city: profileForm.querySelector('#account-city')?.value.trim(),
+        shipping_state: profileForm.querySelector('#account-state')?.value.trim(),
+        shipping_pincode: profileForm.querySelector('#account-pincode')?.value.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      const profMsg = document.querySelector('[data-profile-message]');
+      try {
+        const { error } = await supabase.from('customer_profiles').upsert(profileData);
+        if (error) throw error;
+        if (profMsg) profMsg.textContent = 'Saved successfully!';
+        setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
+      } catch (err) {
+        if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
+      }
+    });
+  }
+
+  async function loadCustomerProfile(userId) {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('customer_profiles').select('*').eq('id', userId).maybeSingle();
+      if (!data) return;
+      const f = document.querySelector('[data-account-profile-form]');
+      if (!f) return;
+      if (f.querySelector('#account-name')) f.querySelector('#account-name').value = data.full_name || '';
+      if (f.querySelector('#account-phone')) f.querySelector('#account-phone').value = data.phone || '';
+      if (f.querySelector('#account-address')) f.querySelector('#account-address').value = data.shipping_address || '';
+      if (f.querySelector('#account-city')) f.querySelector('#account-city').value = data.shipping_city || '';
+      if (f.querySelector('#account-state')) f.querySelector('#account-state').value = data.shipping_state || '';
+      if (f.querySelector('#account-pincode')) f.querySelector('#account-pincode').value = data.shipping_pincode || '';
+    } catch (e) {}
+  }
+
+  async function loadCustomerOrders(userId) {
+    const ordersBox = document.querySelector('[data-account-orders]');
+    if (!ordersBox || !supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error || !data || !data.length) {
+        ordersBox.innerHTML = '<p style="color:#777; font-size:12px; margin:10px 0;">No past orders found.</p>';
+        return;
+      }
+
+      ordersBox.innerHTML = data.map(o => `
+        <div style="border: 1px solid #222; border-radius:6px; padding:10px; margin-bottom:8px; background:#0c0c0c;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
+            <span>${escapeHTML(o.order_number || o.id.slice(0, 8))}</span>
+            <span style="color:var(--bk-red, #e31b23);">${escapeHTML(o.order_status || 'PLACED')}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:4px;">
+            <span>${new Date(o.created_at).toLocaleDateString()}</span>
+            <strong>${formatPrice(o.total)}</strong>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      ordersBox.innerHTML = '<p style="color:#777; font-size:12px;">Failed to load order history.</p>';
+    }
+  }
+
+  /* =========================================================
      DYNAMIC SETTINGS SYNC
      ========================================================= */
   async function syncStoreSettings() {
@@ -85,9 +354,7 @@
           el.textContent = email;
         });
       }
-    } catch (e) {
-      console.warn("Settings sync notice:", e);
-    }
+    } catch (e) {}
   }
 
   /* =========================================================
@@ -115,9 +382,7 @@
           }
         });
       });
-    } catch (e) {
-      console.warn("CMS Load Notice:", e);
-    }
+    } catch (e) {}
   }
 
   /* =========================================================
@@ -207,7 +472,7 @@
   }
 
   /* =========================================================
-     FIX 2 & 3: PRODUCT DETAIL MODAL (PDP) & RELATED PRODUCTS
+     PRODUCT DETAIL MODAL (PDP) & RELATED PRODUCTS
      ========================================================= */
   let currentPdpProduct = null;
   let currentPdpSize = 'M';
@@ -246,7 +511,6 @@
     const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
     const stockCurSize = getStock(p, currentPdpSize);
 
-    // Similar / Related Products (Fix 3)
     let related = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) === cat);
     if (related.length < 4) {
       const rest = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) !== cat);
@@ -288,7 +552,6 @@
 
     container.innerHTML = `
       <div class="pdp-grid">
-        <!-- Gallery -->
         <div class="pdp-gallery">
           <div class="pdp-main-image-wrap">
             <img src="${escapeHTML(images[0])}" id="pdpMainImage" class="pdp-main-image" alt="${escapeHTML(p.name)}">
@@ -296,7 +559,6 @@
           ${images.length > 1 ? `<div class="pdp-thumbnails">${thumbsHtml}</div>` : ''}
         </div>
 
-        <!-- Info -->
         <div class="pdp-info">
           <span class="pdp-korean">${catKorean} · DROP 001</span>
           <h2 class="pdp-title">${escapeHTML(p.name)}</h2>
@@ -332,7 +594,6 @@
         </div>
       </div>
 
-      <!-- Related Items -->
       ${related.length > 0 ? `
         <div class="pdp-related">
           <div class="pdp-related-title">SIMILAR SILHOUETTES</div>
@@ -341,7 +602,6 @@
       ` : ''}
     `;
 
-    // Thumbnails switch
     container.querySelectorAll('[data-pdp-thumb]').forEach(tb => {
       tb.addEventListener('click', () => {
         container.querySelectorAll('[data-pdp-thumb]').forEach(t => t.classList.remove('is-active'));
@@ -352,7 +612,6 @@
       });
     });
 
-    // Size Switch
     container.querySelectorAll('[data-pdp-size]').forEach(sb => {
       sb.addEventListener('click', () => {
         currentPdpSize = sb.dataset.pdpSize;
@@ -360,7 +619,6 @@
       });
     });
 
-    // Qty controls
     container.querySelector('#pdpQtyMinus')?.addEventListener('click', () => {
       if (currentPdpQty > 1) {
         currentPdpQty -= 1;
@@ -375,7 +633,6 @@
       }
     });
 
-    // Add to Cart from PDP
     container.querySelector('#pdpAddBtn')?.addEventListener('click', () => {
       if (stockCurSize <= 0) return;
       if (window.BULKKOT_CART?.addItem) {
@@ -450,7 +707,7 @@
   };
 
   /* =========================================================
-     UNIVERSAL MODAL & TRUST ENGINE
+     UNIVERSAL MODAL & NAVIGATION (REAL GUEST TRACKING FIX)
      ========================================================= */
   function initModalsAndNavigation() {
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
@@ -467,7 +724,7 @@
       document.body.classList.remove("modal-open");
     }));
 
-    // Policy Modal
+    // Policy
     const policyModal = document.querySelector("[data-policy-modal]");
     const policyTitle = policyModal?.querySelector("[data-policy-title]");
     const policyContent = policyModal?.querySelector("[data-policy-content]");
@@ -502,7 +759,7 @@
       if (e.target === policyModal) closePolicy();
     });
 
-    // About Story
+    // About
     const aboutModal = document.querySelector("[data-about-modal]");
     const openAboutBtns = document.querySelectorAll("[data-open-about]");
     const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
@@ -569,40 +826,7 @@
       });
     });
 
-    // Search
-    const searchModal = document.querySelector("[data-search-modal]");
-    const openSearchBtns = document.querySelectorAll("[data-open-search]");
-    const closeSearchBtn = searchModal?.querySelector("[data-close-search]");
-    const searchForm = document.querySelector("[data-search-form]");
-
-    function openSearch() {
-      searchModal?.classList.add("is-open");
-      searchModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-      setTimeout(() => searchModal?.querySelector("input")?.focus(), 60);
-    }
-
-    function closeSearch() {
-      searchModal?.classList.remove("is-open");
-      searchModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-    }
-
-    openSearchBtns.forEach(btn => btn.addEventListener("click", openSearch));
-    closeSearchBtn?.addEventListener("click", closeSearch);
-    searchModal?.addEventListener("click", (e) => {
-      if (e.target === searchModal) closeSearch();
-    });
-
-    searchForm?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      activeSearch = searchForm.querySelector("input")?.value.trim().toLowerCase() || "";
-      closeSearch();
-      renderProducts(getFilteredProducts());
-      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
-    });
-
-    // Tracking
+    // 100% WORKING GUEST ORDER TRACKING
     const trackModal = document.querySelector("[data-track-order-modal]");
     const openTrackBtns = document.querySelectorAll("[data-open-track-order]");
     const closeTrackBtns = trackModal?.querySelectorAll("[data-track-order-close]");
@@ -635,10 +859,10 @@
     trackForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const orderNumber = trackModal.querySelector("#track-order-number")?.value.trim().toUpperCase();
-      const phone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
+      const rawInputPhone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
 
-      if (!orderNumber || !phone) {
-        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone.";
+      if (!orderNumber || !rawInputPhone) {
+        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone Number.";
         return;
       }
 
@@ -648,7 +872,7 @@
       if (trackMsg) trackMsg.textContent = "";
 
       try {
-        if (!supabase) throw new Error("Database offline");
+        if (!supabase) throw new Error("Database offline. Please try again.");
 
         const { data, error } = await supabase
           .from("orders")
@@ -661,7 +885,7 @@
         }
 
         const dbPhone = String(data.customer_phone || '').replace(/\D/g, '');
-        if (!dbPhone.endsWith(phone.slice(-10))) {
+        if (!dbPhone.endsWith(rawInputPhone.slice(-10))) {
           throw new Error("Phone number does not match order records.");
         }
 
@@ -676,11 +900,11 @@
         const trackingNoEl = trackResult.querySelector("[data-track-result-tracking]");
 
         courierEl.textContent = data.courier || "In Dispatch Preparation";
-        trackingNoEl.textContent = data.tracking_number || "Will be assigned on pickup";
+        trackingNoEl.textContent = data.tracking_number || "Will update upon courier pickup";
 
         const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
         const curIdx = steps.indexOf((data.order_status || "PLACED").toUpperCase());
-        const fillPct = Math.max(10, Math.min(100, ((curIdx + 1) / steps.length) * 100));
+        const fillPct = Math.max(15, Math.min(100, ((curIdx + 1) / steps.length) * 100));
 
         const line = trackResult.querySelector("[data-track-progress-line]");
         if (line) line.style.width = `${fillPct}%`;
@@ -700,7 +924,7 @@
       }
     });
 
-    // Account Modal
+    // Account Modal Open/Close
     const accountModal = document.querySelector("[data-account-modal]");
     const openAccountBtns = document.querySelectorAll("[data-open-account]");
     const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
@@ -731,10 +955,11 @@
         closePolicy();
         closeAbout();
         closeSizeGuide();
-        closeSearch();
         closeTracking();
         closeAccount();
         closePdpModal();
+        document.getElementById('headerSearchBar')?.classList.remove('is-active');
+        document.getElementById('welcomePopupModal')?.classList.remove('is-open');
         if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
         mobileDrawer?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
@@ -742,7 +967,7 @@
     });
   }
 
-  // Delegated Clicks (Quick View, Size & Add to Bag)
+  // Delegated Clicks (PDP, Size & Add to Bag)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -775,11 +1000,14 @@
     initCatalog();
   });
 
-  document.addEventListener("DOMContentLoaded", () => {
+  function initStorefront() {
     initModalsAndNavigation();
     initCatalog();
     loadCMSContent();
     syncStoreSettings();
+    initAuth();
+    initInlineSearch();
+    initWelcomePopup();
 
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -789,5 +1017,11 @@
         renderProducts(getFilteredProducts());
       });
     });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", initStorefront);
+  } else {
+    initStorefront();
+  }
 })();
