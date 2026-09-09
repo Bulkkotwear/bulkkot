@@ -1,6 +1,6 @@
 /**
- * BULKKOT — Production Cart & Checkout Engine
- * Version: 5.0 (Atomic RPC create_order Integration + Stale Item Purging)
+ * BULKKOT — Luxury Cart & Checkout Engine
+ * Version: 6.0 (2-Step Clean Flow, Responsive Layout, Atomic RPC Sync)
  */
 (function () {
   'use strict';
@@ -9,6 +9,7 @@
   let cart = [];
   let appliedCoupon = null;
   let storeSettings = { shipping_fee: 0, free_shipping_threshold: 0 };
+  let currentStep = 'bag'; // 'bag' or 'checkout'
 
   const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
@@ -117,6 +118,7 @@
     }
 
     saveCart();
+    currentStep = 'bag';
     renderCart();
     openCart();
   }
@@ -140,6 +142,7 @@
   function clearCart() {
     cart = [];
     appliedCoupon = null;
+    currentStep = 'bag';
     saveCart();
     renderCart();
   }
@@ -186,21 +189,26 @@
     return baseFee;
   }
 
-  async function renderCart() {
-    const container = document.getElementById('cart-content');
-    if (!container) return;
+  function renderCart() {
+    const drawer = document.querySelector('[data-cart-drawer]');
+    if (!drawer) return;
 
     loadCart();
 
     if (cart.length === 0) {
-      container.innerHTML = `
-        <div class="cart-empty" style="text-align: center; padding: 60px 20px;">
-          <p class="eyebrow" style="color: #777;">YOUR BAG IS EMPTY</p>
-          <p style="margin: 12px 0 24px; color: #bbb;">Heavyweight essentials are waiting for you.</p>
-          <button type="button" class="button button--primary" data-close-cart>START SHOPPING</button>
+      drawer.innerHTML = `
+        <div class="cart-drawer__header">
+          <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">BULKKOT · 불꽃</p><h2>YOUR CART</h2></div>
+          <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
+        </div>
+        <div class="cart-body-wrapper" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:60px 24px;">
+          <span style="font-size:32px; color:#333; margin-bottom:12px;">◈</span>
+          <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 6px;">YOUR BAG IS EMPTY</h3>
+          <p style="font-size:12px; color:#888; line-height:1.6; margin:0 0 24px;">Heavyweight silhouettes constructed with architectural restraint await.</p>
+          <button type="button" class="bk-btn-primary" data-close-cart style="max-width:240px;">START SHOPPING</button>
         </div>
       `;
-      container.querySelector('[data-close-cart]')?.addEventListener('click', closeCart);
+      drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
       return;
     }
 
@@ -210,126 +218,189 @@
     const shippingFee = calculateShipping(discountedTotal);
     const finalTotal = discountedTotal + shippingFee;
 
-    const itemsHTML = cart.map((item, idx) => `
-      <div class="cart-item-card">
-        <img src="${escapeHTML(item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}"
-             alt="${escapeHTML(item.name)}">
-        <div style="flex: 1; min-width: 0;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #fff;">${escapeHTML(item.name)}</h4>
-            <button type="button" data-cart-remove="${idx}" style="background: none; border: none; color: #888; cursor: pointer; font-size: 16px; padding: 0 4px;">×</button>
-          </div>
-          <p style="margin: 4px 0; font-size: 11px; color: #888;">SIZE: <strong style="color:#fff;">${escapeHTML(item.size)}</strong></p>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-            <div style="display: flex; align-items: center; border: 1px solid #333; border-radius: 4px; background: #0c0c0c;">
-              <button type="button" data-cart-qty="${idx}" data-qty="${item.quantity - 1}" style="background: none; border: none; color: #fff; padding: 2px 8px; cursor: pointer;">-</button>
-              <span style="font-size: 12px; padding: 0 6px; font-weight: 700;">${item.quantity}</span>
-              <button type="button" data-cart-qty="${idx}" data-qty="${item.quantity + 1}" style="background: none; border: none; color: #fff; padding: 2px 8px; cursor: pointer;">+</button>
+    if (currentStep === 'bag') {
+      // STEP 1: BAG REVIEW
+      const itemsHTML = cart.map((item, idx) => `
+        <div class="cart-item-row">
+          <img src="${escapeHTML(item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}"
+               alt="${escapeHTML(item.name)}" class="cart-item-img">
+          <div class="cart-item-meta">
+            <div>
+              <div class="cart-item-title-row">
+                <h4>${escapeHTML(item.name)}</h4>
+                <button type="button" class="cart-remove-btn" data-cart-remove="${idx}">×</button>
+              </div>
+              <p class="cart-size-label">SIZE: <strong style="color:#fff;">${escapeHTML(item.size)}</strong></p>
             </div>
-            <strong style="font-size: 13px; color: #fff;">${formatPrice(item.price * item.quantity)}</strong>
+            <div class="cart-bottom-row">
+              <div class="cart-qty-pill">
+                <button type="button" data-cart-qty="${idx}" data-qty="${item.quantity - 1}">−</button>
+                <span>${item.quantity}</span>
+                <button type="button" data-cart-qty="${idx}" data-qty="${item.quantity + 1}">+</button>
+              </div>
+              <div class="cart-item-price">${formatPrice(item.price * item.quantity)}</div>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
 
-    container.innerHTML = `
-      <div style="padding-bottom: 24px;">
-        <div class="cart-items-wrap" style="max-height: 28vh; overflow-y: auto; padding-right: 4px;">
-          ${itemsHTML}
+      drawer.innerHTML = `
+        <div class="cart-drawer__header">
+          <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">STEP 01 / 02</p><h2>YOUR BAG (${cart.length})</h2></div>
+          <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
         </div>
 
-        <div style="margin: 14px 0 8px; display: flex; gap: 8px;">
-          <input type="text" id="cartCouponInput" placeholder="DISCOUNT CODE" value="${appliedCoupon ? escapeHTML(appliedCoupon.code) : ''}"
-                 style="flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; text-transform: uppercase; border-radius: 4px;"
-                 ${appliedCoupon ? 'disabled' : ''}>
-          <button type="button" id="cartApplyCouponBtn" class="button button--small" style="padding: 8px 12px; font-size: 10px; font-weight: 700; background: #222; color: #fff; border: 1px solid #444; cursor: pointer;">
-            ${appliedCoupon ? 'REMOVE' : 'APPLY'}
-          </button>
+        <div class="cart-body-wrapper">
+          <div class="cart-items-wrap">
+            ${itemsHTML}
+          </div>
+
+          <!-- COUPON INPUT -->
+          <div style="margin: 20px 0 10px; display: flex; gap: 8px;">
+            <input type="text" id="cartCouponInput" class="bk-input" placeholder="DISCOUNT CODE" value="${appliedCoupon ? escapeHTML(appliedCoupon.code) : ''}"
+                   style="text-transform: uppercase;" ${appliedCoupon ? 'disabled' : ''}>
+            <button type="button" id="cartApplyCouponBtn" class="search-tag-btn" style="padding: 0 16px; min-height: 42px; font-weight: 800;">
+              ${appliedCoupon ? 'REMOVE' : 'APPLY'}
+            </button>
+          </div>
         </div>
 
-        <div style="padding: 10px 0; border-top: 1px solid #222; font-size: 12px; line-height: 1.8;">
-          <div style="display: flex; justify-content: space-between; color: #888;">
-            <span>Subtotal</span>
-            <span>${formatPrice(subtotal)}</span>
+        <div class="cart-drawer__footer">
+          <div class="cart-breakdown-row">
+            <span>SUBTOTAL</span>
+            <span style="color:#fff;">${formatPrice(subtotal)}</span>
           </div>
           ${discount > 0 ? `
-            <div style="display: flex; justify-content: space-between; color: #31c48d;">
-              <span>Discount (${escapeHTML(appliedCoupon.code)})</span>
+            <div class="cart-breakdown-row" style="color:#31c48d;">
+              <span>DISCOUNT (${escapeHTML(appliedCoupon.code)})</span>
               <span>-${formatPrice(discount)}</span>
             </div>
           ` : ''}
-          <div style="display: flex; justify-content: space-between; color: #888;">
-            <span>Delivery</span>
-            <span style="${shippingFee === 0 ? 'color:#31c48d; font-weight:700;' : 'color:#fff;'}">
+          <div class="cart-breakdown-row">
+            <span>DELIVERY</span>
+            <span style="${shippingFee === 0 ? 'color:#31c48d; font-weight:800;' : 'color:#fff;'}">
               ${shippingFee === 0 ? 'FREE' : formatPrice(shippingFee)}
             </span>
           </div>
-          <div style="display: flex; justify-content: space-between; color: #fff; font-size: 15px; font-weight: 800; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #333;">
-            <span>Total</span>
-            <span>${formatPrice(finalTotal)}</span>
+
+          <div class="cart-total-strip">
+            <span>ESTIMATED TOTAL</span>
+            <strong>${formatPrice(finalTotal)}</strong>
           </div>
+
+          <button type="button" id="proceedToCheckoutBtn" class="bk-btn-primary">
+            PROCEED TO CHECKOUT →
+          </button>
+        </div>
+      `;
+
+      drawer.querySelector('#proceedToCheckoutBtn')?.addEventListener('click', () => {
+        currentStep = 'checkout';
+        renderCart();
+      });
+
+    } else {
+      // STEP 2: LUXURY EXPRESS CHECKOUT
+      drawer.innerHTML = `
+        <div class="cart-drawer__header">
+          <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">STEP 02 / 02</p><h2>DISPATCH DETAILS</h2></div>
+          <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
         </div>
 
-        <form id="storefrontCheckoutForm" novalidate style="margin-top: 8px; border-top: 1px solid #222; padding-top: 12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-            <span class="eyebrow" style="font-size: 10px; color: #aaa;">SHIPPING DETAILS</span>
-            <button type="button" id="cartAuthTrigger" style="background:none; border:none; color:var(--bk-red, #e31b23); font-size:10px; font-weight:800; cursor:pointer;">
-              SIGN IN FOR SAVED ADDRESS
+        <div class="cart-body-wrapper">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <button type="button" id="backToBagBtn" style="background:none; border:none; color:#888; font-size:11px; font-weight:800; cursor:pointer; padding:0;">
+              ← BACK TO BAG
+            </button>
+            <button type="button" id="cartAuthTrigger" style="background:none; border:none; color:var(--bk-red); font-size:10px; font-weight:800; cursor:pointer; padding:0;">
+              SIGN IN FOR AUTOFILL
             </button>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-            <input type="text" id="chkName" placeholder="Full Name *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-            <input type="tel" id="chkPhone" placeholder="Phone Number *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-          </div>
-          <div style="margin-bottom: 8px;">
-            <input type="email" id="chkEmail" placeholder="Email Address *" required style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
-          </div>
-          <div style="margin-bottom: 8px;">
-            <input type="text" id="chkAddress" placeholder="House No / Street / Landmark *" required style="width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-            <input type="text" id="chkCity" placeholder="City *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-            <input type="text" id="chkState" placeholder="State *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
-            <input type="text" id="chkPincode" placeholder="Pincode *" required style="background: #111; border: 1px solid #333; color: #fff; padding: 8px 10px; font-size: 11px; border-radius: 4px;">
+          <form id="storefrontCheckoutForm" novalidate>
+            <div class="bk-input-group">
+              <span>CUSTOMER INFORMATION</span>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <input type="text" id="chkName" class="bk-input" placeholder="Full Name *" required>
+                <input type="tel" id="chkPhone" class="bk-input" placeholder="10-digit Phone *" maxlength="15" required>
+              </div>
+            </div>
+
+            <div class="bk-input-group">
+              <span>EMAIL ADDRESS</span>
+              <input type="email" id="chkEmail" class="bk-input" placeholder="Email for order tracking *" required>
+            </div>
+
+            <div class="bk-input-group">
+              <span>SHIPPING ADDRESS</span>
+              <input type="text" id="chkAddress" class="bk-input" placeholder="House No / Street / Area *" required style="margin-bottom:8px;">
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                <input type="text" id="chkCity" class="bk-input" placeholder="City *" required>
+                <input type="text" id="chkState" class="bk-input" placeholder="State *" required>
+                <input type="text" id="chkPincode" class="bk-input" placeholder="Pincode *" maxlength="6" required>
+              </div>
+            </div>
+
+            <div style="background:#111; border:1px solid var(--bk-border); padding:12px 14px; border-radius:4px; margin-top:14px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="font-size:9px; color:#888; display:block; text-transform:uppercase;">PAYMENT METHOD</span>
+                <strong style="font-size:12px; color:#fff;">CASH ON DELIVERY (COD)</strong>
+              </div>
+              <span style="font-size:9px; border:1px solid #333; padding:3px 6px; border-radius:3px; color:#aaa;">Complimentary</span>
+            </div>
+
+            <div id="checkoutInlineError" style="color: #ff7777; font-size: 11px; margin-top: 12px; display: none;"></div>
+          </form>
+        </div>
+
+        <div class="cart-drawer__footer">
+          <div class="cart-total-strip" style="border:none; padding:0; margin:0 0 12px;">
+            <span style="color:#888;">TOTAL DUE ON DELIVERY</span>
+            <strong>${formatPrice(finalTotal)}</strong>
           </div>
 
-          <div id="checkoutInlineError" style="color: #ff7777; font-size: 11px; margin-bottom: 10px; display: none;"></div>
-
-          <button type="submit" id="cartSubmitOrderBtn" class="button button--primary" style="width: 100%; min-height: 46px; font-weight: 800; font-size: 12px; letter-spacing: 0.08em; margin-bottom: 12px;">
-            PLACE ORDER (CASH ON DELIVERY)
+          <button type="submit" form="storefrontCheckoutForm" id="cartSubmitOrderBtn" class="bk-btn-primary">
+            PLACE ORDER (COD)
           </button>
 
-          <div style="text-align: center; color: #666; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-            <span>🔒 Encrypted Checkout</span>
-            <span>•</span>
-            <span>7-Day Size Exchange</span>
+          <div style="text-align: center; color: #555; font-size: 10px; margin-top: 10px;">
+            🔒 Encrypted & Direct Warehouse Fulfilment
           </div>
-        </form>
-      </div>
-    `;
+        </div>
+      `;
 
-    tryAutofillAddress();
+      drawer.querySelector('#backToBagBtn')?.addEventListener('click', () => {
+        currentStep = 'bag';
+        renderCart();
+      });
 
-    container.querySelector('#cartAuthTrigger')?.addEventListener('click', () => {
-      closeCart();
-      const accountModal = document.querySelector('[data-account-modal]');
-      accountModal?.classList.add('is-open');
-      accountModal?.setAttribute('aria-hidden', 'false');
-      document.body.classList.add('modal-open');
-    });
+      drawer.querySelector('#cartAuthTrigger')?.addEventListener('click', () => {
+        closeCart();
+        const accountModal = document.querySelector('[data-account-modal]');
+        accountModal?.classList.add('is-open');
+        accountModal?.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+      });
 
-    container.querySelectorAll('[data-cart-remove]').forEach((btn) => {
+      tryAutofillAddress();
+      bindCheckoutFormSubmit(finalTotal, shippingFee);
+    }
+
+    // Common Bindings
+    drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
+
+    drawer.querySelectorAll('[data-cart-remove]').forEach((btn) => {
       btn.addEventListener('click', () => removeItem(Number(btn.dataset.cartRemove)));
     });
 
-    container.querySelectorAll('[data-cart-qty]').forEach((btn) => {
+    drawer.querySelectorAll('[data-cart-qty]').forEach((btn) => {
       btn.addEventListener('click', () => {
         updateQuantity(Number(btn.dataset.cartQty), Number(btn.dataset.qty));
       });
     });
 
-    const couponBtn = container.querySelector('#cartApplyCouponBtn');
+    // Coupon Handler
+    const couponBtn = drawer.querySelector('#cartApplyCouponBtn');
     couponBtn?.addEventListener('click', async () => {
       if (appliedCoupon) {
         appliedCoupon = null;
@@ -337,7 +408,7 @@
         return;
       }
 
-      const code = container.querySelector('#cartCouponInput')?.value.trim().toUpperCase();
+      const code = drawer.querySelector('#cartCouponInput')?.value.trim().toUpperCase();
       if (!code) return;
 
       const client = getSupabase();
@@ -351,30 +422,32 @@
       appliedCoupon = data;
       renderCart();
     });
+  }
 
-    const checkoutForm = container.querySelector('#storefrontCheckoutForm');
+  function bindCheckoutFormSubmit(finalTotal, shippingFee) {
+    const checkoutForm = document.getElementById('storefrontCheckoutForm');
     checkoutForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const submitBtn = container.querySelector('#cartSubmitOrderBtn');
-      const errBox = container.querySelector('#checkoutInlineError');
+      const submitBtn = document.getElementById('cartSubmitOrderBtn');
+      const errBox = document.getElementById('checkoutInlineError');
 
-      const name = container.querySelector('#chkName').value.trim();
-      const phone = container.querySelector('#chkPhone').value.trim();
-      const email = container.querySelector('#chkEmail').value.trim();
-      const address = container.querySelector('#chkAddress').value.trim();
-      const city = container.querySelector('#chkCity').value.trim();
-      const state = container.querySelector('#chkState').value.trim();
-      const pincode = container.querySelector('#chkPincode').value.trim();
+      const name = document.getElementById('chkName')?.value.trim();
+      const phone = document.getElementById('chkPhone')?.value.trim();
+      const email = document.getElementById('chkEmail')?.value.trim();
+      const address = document.getElementById('chkAddress')?.value.trim();
+      const city = document.getElementById('chkCity')?.value.trim();
+      const state = document.getElementById('chkState')?.value.trim();
+      const pincode = document.getElementById('chkPincode')?.value.trim();
 
       if (!name || !phone || !email || !address || !city || !state || !pincode) {
-        errBox.textContent = 'Please fill in all required shipping fields.';
+        errBox.textContent = 'Please fill in all shipping fields.';
         errBox.style.display = 'block';
         return;
       }
 
       errBox.style.display = 'none';
       submitBtn.disabled = true;
-      submitBtn.textContent = 'PROCESSING ORDER...';
+      submitBtn.textContent = 'CONFIRMING WITH WAREHOUSE...';
 
       try {
         const client = getSupabase();
@@ -406,29 +479,34 @@
         const orderNumber = data.order_number;
         const totalAmount = data.total_amount;
 
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px 16px;">
-            <div style="width: 50px; height: 50px; background: rgba(49,196,141,.15); color: #31c48d; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; font-size: 24px;">✓</div>
-            <p class="eyebrow" style="color: #31c48d; font-weight: 800;">ORDER PLACED SUCCESSFULLY</p>
-            <h2 style="font-size: 22px; margin: 8px 0; color: #fff;">${escapeHTML(orderNumber)}</h2>
-            <p style="color: #bbb; font-size: 13px; line-height: 1.6; margin: 12px 0 20px;">
-              Thank you, <strong>${escapeHTML(name)}</strong>!<br>
-              Total: <strong>${formatPrice(totalAmount)}</strong> (Cash on Delivery).<br>
-              We are preparing Drop 001 for shipping.
+        const drawer = document.querySelector('[data-cart-drawer]');
+        drawer.innerHTML = `
+          <div class="cart-drawer__header">
+            <div><p class="eyebrow" style="color:#31c48d; font-size:10px; margin:0;">DISPATCH CONFIRMED</p><h2>ORDER PLACED</h2></div>
+            <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
+          </div>
+          <div class="cart-body-wrapper" style="text-align: center; padding: 48px 24px;">
+            <div style="width: 52px; height: 52px; background: rgba(49,196,141,.12); color: #31c48d; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; font-size: 24px;">✓</div>
+            <p class="eyebrow" style="color: #31c48d; font-weight: 900; margin-bottom:6px;">ORDER CONFIRMED</p>
+            <h2 style="font-size: 22px; margin: 0 0 10px; color: #fff; letter-spacing:0.05em;">${escapeHTML(orderNumber)}</h2>
+            <p style="color: #aaa; font-size: 13px; line-height: 1.6; margin: 0 0 24px;">
+              Thank you, <strong>${escapeHTML(name)}</strong>.<br>
+              Total collectible: <strong>${formatPrice(totalAmount)}</strong> (Cash on Delivery).
             </p>
-            <div style="background: #141414; border: 1px solid #222; border-radius: 8px; padding: 14px; text-align: left; font-size: 11px; line-height: 1.6; color: #999; margin-bottom: 24px;">
-              <strong style="color: #fff; display: block; margin-bottom: 4px;">WHAT HAPPENS NEXT:</strong>
-              1. Our dispatch team verifies and packs your garment.<br>
-              2. Track progress with your Order Number & Phone.<br>
-              3. Pay when the courier arrives at your door.
+            <div style="background: #111; border: 1px solid var(--bk-border); border-radius: 6px; padding: 14px; text-align: left; font-size: 11px; line-height: 1.7; color: #888; margin-bottom: 24px;">
+              <strong style="color: #fff; display: block; margin-bottom: 4px;">DISPATCH PROTOCOL:</strong>
+              • Order sent directly to warehouse fulfillment.<br>
+              • Real-time updates active via Track Order in header.<br>
+              • Cash on Delivery payment upon courier arrival.
             </div>
-            <button type="button" class="button button--primary" data-close-cart style="width: 100%;">CONTINUE EXPLORING</button>
+            <button type="button" class="bk-btn-primary" data-close-cart style="width: 100%;">CONTINUE EXPLORING</button>
           </div>
         `;
-        container.querySelector('[data-close-cart]')?.addEventListener('click', closeCart);
+        drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
 
         cart = [];
         appliedCoupon = null;
+        currentStep = 'bag';
         saveCart();
 
         if (window.dispatchEvent) {
@@ -439,7 +517,7 @@
         errBox.textContent = err.message || 'Unable to place order. Please try again.';
         errBox.style.display = 'block';
         submitBtn.disabled = false;
-        submitBtn.textContent = 'PLACE ORDER (CASH ON DELIVERY)';
+        submitBtn.textContent = 'PLACE ORDER (COD)';
       }
     });
   }
@@ -462,24 +540,12 @@
         .maybeSingle();
 
       if (profile) {
-        if (document.getElementById('chkName') && !document.getElementById('chkName').value) {
-          document.getElementById('chkName').value = profile.full_name || '';
-        }
-        if (document.getElementById('chkPhone') && !document.getElementById('chkPhone').value) {
-          document.getElementById('chkPhone').value = profile.phone || '';
-        }
-        if (document.getElementById('chkAddress') && !document.getElementById('chkAddress').value) {
-          document.getElementById('chkAddress').value = profile.shipping_address || '';
-        }
-        if (document.getElementById('chkCity') && !document.getElementById('chkCity').value) {
-          document.getElementById('chkCity').value = profile.shipping_city || '';
-        }
-        if (document.getElementById('chkState') && !document.getElementById('chkState').value) {
-          document.getElementById('chkState').value = profile.shipping_state || '';
-        }
-        if (document.getElementById('chkPincode') && !document.getElementById('chkPincode').value) {
-          document.getElementById('chkPincode').value = profile.shipping_pincode || '';
-        }
+        if (document.getElementById('chkName') && !document.getElementById('chkName').value) document.getElementById('chkName').value = profile.full_name || '';
+        if (document.getElementById('chkPhone') && !document.getElementById('chkPhone').value) document.getElementById('chkPhone').value = profile.phone || '';
+        if (document.getElementById('chkAddress') && !document.getElementById('chkAddress').value) document.getElementById('chkAddress').value = profile.shipping_address || '';
+        if (document.getElementById('chkCity') && !document.getElementById('chkCity').value) document.getElementById('chkCity').value = profile.shipping_city || '';
+        if (document.getElementById('chkState') && !document.getElementById('chkState').value) document.getElementById('chkState').value = profile.shipping_state || '';
+        if (document.getElementById('chkPincode') && !document.getElementById('chkPincode').value) document.getElementById('chkPincode').value = profile.shipping_pincode || '';
       }
     } catch (e) {}
   }
