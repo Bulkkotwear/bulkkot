@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 14.0 (Fixed Policy Modals, Live CMS Sync, Non-Blocking Auth & Search)
+ * Version: 15.0 (Slider Fixed, Mobile 2-Col Grid, All Buttons & Modals Fully Bound)
  */
 (function () {
   'use strict';
@@ -66,7 +66,66 @@
   }
 
   /* =========================================================
-     POLICY DATA & MODAL (FIXED FOR ALL STATIC & FOOTER LINKS)
+     EDITORIAL SLIDER / CAROUSEL (100% WORKING)
+     ========================================================= */
+  function initEditorialSlider() {
+    const track = document.querySelector('[data-carousel-track]');
+    const slides = document.querySelectorAll('[data-slide]');
+    const nextBtn = document.querySelector('[data-carousel-next]');
+    const prevBtn = document.querySelector('[data-carousel-prev]');
+    const dots = document.querySelectorAll('[data-slide-indicator]');
+
+    if (!track || slides.length === 0) return;
+
+    let currentIndex = 0;
+    const totalSlides = slides.length;
+    let autoSlideInterval = null;
+
+    function goToSlide(index) {
+      currentIndex = (index + totalSlides) % totalSlides;
+      track.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('is-active', idx === currentIndex);
+      });
+    }
+
+    nextBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      goToSlide(currentIndex + 1);
+      resetAutoSlide();
+    });
+
+    prevBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      goToSlide(currentIndex - 1);
+      resetAutoSlide();
+    });
+
+    dots.forEach((dot, idx) => {
+      dot.addEventListener('click', () => {
+        goToSlide(idx);
+        resetAutoSlide();
+      });
+    });
+
+    function startAutoSlide() {
+      autoSlideInterval = setInterval(() => {
+        goToSlide(currentIndex + 1);
+      }, 5000);
+    }
+
+    function resetAutoSlide() {
+      clearInterval(autoSlideInterval);
+      startAutoSlide();
+    }
+
+    goToSlide(0);
+    startAutoSlide();
+  }
+
+  /* =========================================================
+     POLICY DATA & ALL BUTTONS (FAQ / SHIPPING / TERMS / RETURNS)
      ========================================================= */
   const POLICY_DATA = {
     faq: {
@@ -75,55 +134,253 @@
         <h3>HOW DOES DROP 001 WORK?</h3>
         <p>Drop 001 consists of limited-quantity heavyweight silhouettes. Once sold out, silhouettes will not be restocked immediately.</p>
         <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
-        <p>Standard shipping across India is calculated at checkout based on current promotions and cart value.</p>
+        <p>Standard express delivery across India is complimentary during Drop 001.</p>
         <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
         <p>We accept Cash on Delivery (COD) as well as prepaid UPI verification via WhatsApp.</p>
       `
     },
     shipping: {
-      title: "SHIPPING POLICY",
+      title: "SHIPPING & DELIVERY POLICY",
       content: `
-        <h3>DISPATCH TIMELINE</h3>
-        <p>All orders are confirmed, packed, and handed over to logistics partners within 24 to 48 hours.</p>
+        <h3>DISPATCH PROTOCOL</h3>
+        <p>All orders are confirmed, packaged with dust bags, and handed over to logistics within 24 to 48 hours.</p>
         <h3>DELIVERY TIMELINE</h3>
         <p>Metros: 3–5 business days. Rest of India: 5–7 business days.</p>
-        <h3>REAL-TIME TRACKING</h3>
-        <p>Use the 'Track Order' option in our header anytime using your unique Order Number.</p>
+        <h3>REAL-TIME LOGISTICS</h3>
+        <p>Use the 'Track Order' option in our navigation bar anytime using your Order Number.</p>
       `
     },
     returns: {
-      title: "RETURNS & EXCHANGES",
+      title: "EXCHANGE & RETURN POLICY",
       content: `
-        <h3>7-DAY EXCHANGE WINDOW</h3>
+        <h3>7-DAY SIZE EXCHANGE</h3>
         <p>We provide a 7-day size exchange window from the day of delivery, subject to inventory availability.</p>
         <h3>CONDITION</h3>
-        <p>Garments must be unworn, unwashed, with all original tags and packaging intact.</p>
+        <p>Garments must be unworn, unwashed, with all original tags intact.</p>
         <h3>HOW TO INITIATE</h3>
-        <p>Reach out through our official email or WhatsApp with your Order Number.</p>
+        <p>Message our support team on WhatsApp with your Order ID.</p>
       `
     },
     privacy: {
       title: "PRIVACY POLICY",
       content: `
-        <h3>DATA COLLECTION</h3>
-        <p>We only collect name, phone, email, and shipping address details to process orders and track deliveries.</p>
+        <h3>CLIENT DATA PROTECTION</h3>
+        <p>We collect customer names, phone numbers, and addresses solely for order processing and delivery fulfillment.</p>
         <h3>SECURITY</h3>
-        <p>All records are encrypted through Supabase Row-Level Security and are never sold or rented to third parties.</p>
+        <p>All records are encrypted through Supabase Row-Level Security protocols and are never shared.</p>
       `
     },
     terms: {
       title: "TERMS & CONDITIONS",
       content: `
         <h3>PRODUCT AUTHENTICITY</h3>
-        <p>All products sold on bulkkot.com are authentic, heavyweight streetwear crafted under strict quality protocols.</p>
+        <p>All silhouettes sold on bulkkot.com are authentic, constructed with architectural restraint.</p>
         <h3>CANCELLATIONS</h3>
         <p>Orders can be cancelled before dispatch directly by reaching our team with your Order ID.</p>
       `
     }
   };
 
+  function initModalsAndNavigation() {
+    // 1. Mobile Drawer
+    const mobileDrawer = document.querySelector("[data-mobile-drawer]");
+    document.querySelectorAll("[data-open-drawer]").forEach(btn => btn.addEventListener("click", () => {
+      mobileDrawer?.classList.add("is-open");
+      document.body.classList.add("modal-open");
+    }));
+    document.querySelectorAll("[data-close-drawer]").forEach(btn => btn.addEventListener("click", () => {
+      mobileDrawer?.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
+    }));
+
+    // 2. Account Button
+    document.querySelectorAll("[data-open-account]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (!cachedUser) {
+          window.location.href = './signin.html';
+        } else {
+          document.querySelector("[data-account-modal]")?.classList.add("is-open");
+          document.body.classList.add("modal-open");
+        }
+      });
+    });
+    document.querySelectorAll("[data-account-close]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelector("[data-account-modal]")?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
+
+    // 3. Policy Modals (FAQ / Shipping / Returns / Privacy / Terms)
+    const policyModal = document.querySelector("[data-policy-modal]");
+    const policyTitle = policyModal?.querySelector("[data-policy-title]");
+    const policyContent = policyModal?.querySelector("[data-policy-content]");
+
+    document.querySelectorAll("[data-open-policy]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const type = btn.dataset.openPolicy;
+        const data = POLICY_DATA[type] || {
+          title: "INFORMATION",
+          content: "<p>Information will be updated shortly.</p>"
+        };
+
+        if (policyTitle) policyTitle.textContent = data.title;
+        if (policyContent) policyContent.innerHTML = data.content;
+
+        policyModal?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      });
+    });
+
+    document.querySelectorAll("[data-close-policy]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        policyModal?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
+
+    // 4. About Story Modal
+    const aboutModal = document.querySelector("[data-about-modal]");
+    document.querySelectorAll("[data-open-about]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        aboutModal?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      });
+    });
+    document.querySelectorAll("[data-close-about]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        aboutModal?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
+
+    // 5. Size Guide Modal
+    const sizeModal = document.querySelector("[data-size-guide-modal]");
+    document.querySelectorAll("[data-size-guide-open]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        sizeModal?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      });
+    });
+    document.querySelectorAll("[data-size-guide-close]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        sizeModal?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
+
+    // Size Guide Tabs
+    const sizeTabs = sizeModal?.querySelectorAll("[data-size-tab]");
+    const sizePanels = sizeModal?.querySelectorAll("[data-size-panel]");
+    sizeTabs?.forEach(tab => {
+      tab.addEventListener("click", () => {
+        sizeTabs.forEach(t => t.classList.remove("is-active"));
+        tab.classList.add("is-active");
+        const target = tab.dataset.sizeTab;
+        sizePanels?.forEach(p => {
+          if (p.dataset.sizePanel === target) {
+            p.classList.add("is-active");
+            p.hidden = false;
+          } else {
+            p.classList.remove("is-active");
+            p.hidden = true;
+          }
+        });
+      });
+    });
+
+    // 6. Track Order Modal
+    const trackModal = document.querySelector("[data-track-order-modal]");
+    const trackForm = trackModal?.querySelector("[data-track-order-form]");
+    const trackMsg = trackModal?.querySelector("[data-track-order-message]");
+    const trackResult = trackModal?.querySelector("[data-track-order-result]");
+
+    document.querySelectorAll("[data-open-track-order]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        trackModal?.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      });
+    });
+    document.querySelectorAll("[data-track-order-close]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        trackModal?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
+
+    trackModal?.querySelector("[data-track-again]")?.addEventListener("click", () => {
+      if (trackResult) trackResult.hidden = true;
+      if (trackForm) trackForm.hidden = false;
+      if (trackMsg) trackMsg.textContent = "";
+    });
+
+    trackForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const orderNumber = trackModal.querySelector("#track-order-number")?.value.trim().toUpperCase();
+      const phone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
+
+      if (!orderNumber || !phone) {
+        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone Number.";
+        return;
+      }
+
+      const submitBtn = trackForm.querySelector(".track-order-submit");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "LOCATING...";
+      if (trackMsg) trackMsg.textContent = "";
+
+      try {
+        if (!supabase) throw new Error("Database offline.");
+        const { data, error } = await supabase.rpc("lookup_guest_order", { p_order_number: orderNumber, p_phone: phone });
+        if (error || !data) throw new Error("No shipment found.");
+
+        trackForm.hidden = true;
+        trackResult.hidden = false;
+        trackResult.querySelector("[data-track-result-number]").textContent = data.order_number;
+        trackResult.querySelector("[data-track-result-status]").textContent = data.status || "PLACED";
+        trackResult.querySelector("[data-track-result-courier]").textContent = data.courier_partner || "In Preparation";
+        trackResult.querySelector("[data-track-result-tracking]").textContent = data.awb_number || "Assigned on dispatch";
+
+        const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
+        const currentStatus = String(data.status || 'PLACED').toUpperCase().replace(/_/g, ' ');
+        const curIdx = steps.indexOf(currentStatus) >= 0 ? steps.indexOf(currentStatus) : 0;
+
+        trackResult.querySelectorAll(".track-step").forEach((stepEl, idx) => {
+          stepEl.classList.toggle("is-active", idx <= curIdx);
+          stepEl.classList.toggle("is-current", idx === curIdx);
+        });
+      } catch (err) {
+        if (trackMsg) trackMsg.textContent = err.message || "Failed to find order.";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "LOOKUP SHIPMENT";
+      }
+    });
+
+    // 7. Global ESC Dismiss
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        document.querySelector("[data-account-modal]")?.classList.remove("is-open");
+        policyModal?.classList.remove("is-open");
+        aboutModal?.classList.remove("is-open");
+        sizeModal?.classList.remove("is-open");
+        trackModal?.classList.remove("is-open");
+        closePdpModal();
+        document.getElementById('headerSearchBar')?.classList.remove('is-active');
+        if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
+        mobileDrawer?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      }
+    });
+  }
+
   /* =========================================================
-     READ-ONLY CMS LOADER
+     LIVE CMS & SETTINGS LOADER
      ========================================================= */
   async function loadCMSContent() {
     if (!supabase) return;
@@ -148,13 +405,10 @@
         });
       });
     } catch (e) {
-      console.warn("CMS load notice:", e);
+      console.warn("CMS notice:", e);
     }
   }
 
-  /* =========================================================
-     DYNAMIC SETTINGS SYNC
-     ========================================================= */
   async function syncStoreSettings() {
     if (!supabase) return;
     try {
@@ -176,7 +430,7 @@
   }
 
   /* =========================================================
-     EXECUTE INLINE SEARCH
+     SEARCH SYSTEM
      ========================================================= */
   function executeSearchQuery(query) {
     activeSearch = String(query || '').trim().toLowerCase();
@@ -236,7 +490,7 @@
   }
 
   /* =========================================================
-     FAST NON-BLOCKING AUTH (PROFILE DRAWER & REDIRECT)
+     AUTH CHECK & PAST ORDERS
      ========================================================= */
   async function initAuth() {
     if (!supabase) return;
@@ -261,18 +515,13 @@
       }
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      syncUI(data?.session?.user || null);
-    });
-
+    supabase.auth.getSession().then(({ data }) => syncUI(data?.session?.user || null));
     supabase.auth.onAuthStateChange((_, session) => {
       syncUI(session?.user || null);
       if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
     });
 
-    const signoutBtn = document.querySelector('[data-account-signout]');
-    signoutBtn?.addEventListener('click', async () => {
-      signoutBtn.textContent = 'SIGNING OUT...';
+    document.querySelector('[data-account-signout]')?.addEventListener('click', async () => {
       await supabase.auth.signOut();
       window.location.reload();
     });
@@ -294,33 +543,15 @@
       };
 
       const profMsg = document.querySelector('[data-profile-message]');
-      const btn = profileForm.querySelector('button');
-      if (btn) { btn.disabled = true; btn.textContent = 'SAVING...'; }
-
       try {
         const { error } = await supabase.from('customer_profiles').upsert(profileData);
         if (error) throw error;
-        if (profMsg) profMsg.textContent = 'Profile saved successfully!';
+        if (profMsg) profMsg.textContent = 'Saved successfully!';
         setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
       } catch (err) {
         if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'SAVE PROFILE'; }
       }
     });
-  }
-
-  function handleAccountClick(e) {
-    e.preventDefault();
-    if (!cachedUser) {
-      window.location.href = './signin.html';
-      return;
-    }
-
-    const accountModal = document.querySelector("[data-account-modal]");
-    accountModal?.classList.add("is-open");
-    accountModal?.setAttribute("aria-hidden", "false");
-    document.body.classList.add("modal-open");
   }
 
   async function loadCustomerProfile(userId) {
@@ -366,7 +597,7 @@
   }
 
   /* =========================================================
-     PRODUCTS & CATALOGUE
+     PRODUCTS & DYNAMIC GRID (2-COL READY)
      ========================================================= */
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
@@ -564,172 +795,7 @@
     });
   }
 
-  /* =========================================================
-     NAVIGATION & MODAL BINDINGS (POLICY MODALS INCLUDED)
-     ========================================================= */
-  function initModalsAndNavigation() {
-    // Drawer Menu
-    const mobileDrawer = document.querySelector("[data-mobile-drawer]");
-    document.querySelectorAll("[data-open-drawer]").forEach(btn => btn.addEventListener("click", () => {
-      mobileDrawer?.classList.add("is-open");
-      document.body.classList.add("modal-open");
-    }));
-    document.querySelectorAll("[data-close-drawer]").forEach(btn => btn.addEventListener("click", () => {
-      mobileDrawer?.classList.remove("is-open");
-      document.body.classList.remove("modal-open");
-    }));
-
-    // Account Buttons
-    document.querySelectorAll("[data-open-account]").forEach(btn => {
-      btn.addEventListener("click", handleAccountClick);
-    });
-    document.querySelectorAll("[data-account-close]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelector("[data-account-modal]")?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-
-    // Policy Modals (FAQ / Shipping / Returns / Privacy / Terms)
-    const policyModal = document.querySelector("[data-policy-modal]");
-    const policyTitle = policyModal?.querySelector("[data-policy-title]");
-    const policyContent = policyModal?.querySelector("[data-policy-content]");
-
-    document.querySelectorAll("[data-open-policy]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const type = btn.dataset.openPolicy;
-        const data = POLICY_DATA[type] || {
-          title: "INFORMATION",
-          content: "<p>Information will be updated shortly.</p>"
-        };
-
-        if (policyTitle) policyTitle.textContent = data.title;
-        if (policyContent) policyContent.innerHTML = data.content;
-
-        policyModal?.classList.add("is-open");
-        document.body.classList.add("modal-open");
-      });
-    });
-
-    document.querySelectorAll("[data-close-policy]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        policyModal?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-
-    // About Modal
-    document.querySelectorAll("[data-open-about]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelector("[data-about-modal]")?.classList.add("is-open");
-        document.body.classList.add("modal-open");
-      });
-    });
-    document.querySelectorAll("[data-close-about]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelector("[data-about-modal]")?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-
-    // Size Guide Modal
-    document.querySelectorAll("[data-size-guide-open]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelector("[data-size-guide-modal]")?.classList.add("is-open");
-        document.body.classList.add("modal-open");
-      });
-    });
-    document.querySelectorAll("[data-size-guide-close]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelector("[data-size-guide-modal]")?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      });
-    });
-
-    // Track Order Modal
-    const trackModal = document.querySelector("[data-track-order-modal]");
-    const trackForm = trackModal?.querySelector("[data-track-order-form]");
-    const trackMsg = trackModal?.querySelector("[data-track-order-message]");
-    const trackResult = trackModal?.querySelector("[data-track-order-result]");
-
-    document.querySelectorAll("[data-open-track-order]").forEach(btn => btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      trackModal?.classList.add("is-open");
-      document.body.classList.add("modal-open");
-    }));
-    document.querySelectorAll("[data-track-order-close]").forEach(btn => btn.addEventListener("click", () => {
-      trackModal?.classList.remove("is-open");
-      document.body.classList.remove("modal-open");
-    }));
-
-    trackModal?.querySelector("[data-track-again]")?.addEventListener("click", () => {
-      if (trackResult) trackResult.hidden = true;
-      if (trackForm) trackForm.hidden = false;
-      if (trackMsg) trackMsg.textContent = "";
-    });
-
-    trackForm?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const orderNumber = trackModal.querySelector("#track-order-number")?.value.trim().toUpperCase();
-      const phone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
-
-      if (!orderNumber || !phone) {
-        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone Number.";
-        return;
-      }
-
-      const submitBtn = trackForm.querySelector(".track-order-submit");
-      submitBtn.disabled = true;
-      submitBtn.textContent = "LOCATING...";
-      if (trackMsg) trackMsg.textContent = "";
-
-      try {
-        if (!supabase) throw new Error("Database offline.");
-        const { data, error } = await supabase.rpc("lookup_guest_order", { p_order_number: orderNumber, p_phone: phone });
-        if (error || !data) throw new Error("No shipment found.");
-
-        trackForm.hidden = true;
-        trackResult.hidden = false;
-        trackResult.querySelector("[data-track-result-number]").textContent = data.order_number;
-        trackResult.querySelector("[data-track-result-status]").textContent = data.status || "PLACED";
-        trackResult.querySelector("[data-track-result-courier]").textContent = data.courier_partner || "In Preparation";
-        trackResult.querySelector("[data-track-result-tracking]").textContent = data.awb_number || "Assigned on dispatch";
-
-        const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
-        const currentStatus = String(data.status || 'PLACED').toUpperCase().replace(/_/g, ' ');
-        const curIdx = steps.indexOf(currentStatus) >= 0 ? steps.indexOf(currentStatus) : 0;
-
-        trackResult.querySelectorAll(".track-step").forEach((stepEl, idx) => {
-          stepEl.classList.toggle("is-active", idx <= curIdx);
-          stepEl.classList.toggle("is-current", idx === curIdx);
-        });
-      } catch (err) {
-        if (trackMsg) trackMsg.textContent = err.message || "Failed to find order.";
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "LOOKUP SHIPMENT";
-      }
-    });
-
-    // ESC dismiss
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        document.querySelector("[data-account-modal]")?.classList.remove("is-open");
-        document.querySelector("[data-policy-modal]")?.classList.remove("is-open");
-        document.querySelector("[data-about-modal]")?.classList.remove("is-open");
-        document.querySelector("[data-size-guide-modal]")?.classList.remove("is-open");
-        trackModal?.classList.remove("is-open");
-        closePdpModal();
-        document.getElementById('headerSearchBar')?.classList.remove('is-active');
-        if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
-        mobileDrawer?.classList.remove("is-open");
-        document.body.classList.remove("modal-open");
-      }
-    });
-  }
-
-  // Delegated Clicks
+  // Delegated Clicks (Add to Bag, Size, Quickview)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -754,7 +820,9 @@
 
   window.addEventListener('bulkkot:order-completed', () => { initCatalog(); });
 
+  // Main Storefront Boot
   function initStorefront() {
+    initEditorialSlider();
     initModalsAndNavigation();
     initCatalog();
     loadCMSContent();
