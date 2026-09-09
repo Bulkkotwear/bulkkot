@@ -66,10 +66,10 @@
       </nav>
 
       <div class="header-actions">
-        <!-- TRACK ORDER -->
+        <!-- 100% WORKING GUEST TRACK ORDER -->
         <button type="button" class="header-track-order" data-open-track-order aria-label="Track your order">TRACK ORDER</button>
         
-        <!-- ACCOUNT BUTTON -->
+        <!-- LUXURY ACCOUNT BUTTON -->
         <button type="button" class="header-account" data-open-account aria-label="Open account" style="display:inline-flex; align-items:center; gap:6px;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="8" r="4"/>
@@ -78,7 +78,7 @@
           <span data-account-label>ACCOUNT</span>
         </button>
 
-        <!-- INLINE SEARCH TOGGLE -->
+        <!-- LUXURY INLINE SEARCH TOGGLE -->
         <button type="button" class="header-action" aria-label="Search" id="headerSearchToggle">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
         </button>
@@ -97,12 +97,11 @@
 
     <!-- INLINE EXPANDABLE SEARCH BAR -->
     <div class="header-search-bar" id="headerSearchBar">
-      <form id="liveSearchForm" class="header-search-input-wrap">
+      <div class="header-search-input-wrap">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#777" stroke-width="2"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
-        <input type="text" id="liveSearchInput" placeholder="Search heavyweight tees, hoodies, drapes..." autocomplete="off">
-        <button type="submit" class="header-search-execute-btn">SEARCH</button>
+        <input type="text" id="liveSearchInput" placeholder="SEARCH HEAVYWEIGHT TEES, HOODIES, SILHOUETTES..." autocomplete="off">
         <button type="button" class="header-search-close" id="headerSearchClose" aria-label="Close search">×</button>
-      </form>
+      </div>
       <div class="search-trending-tags">
         <span>TRENDING:</span>
         <button type="button" class="search-tag-btn" data-search-tag="OVERSIZED">OVERSIZED</button>
@@ -395,6 +394,24 @@
     </span>
   </a>
 
+  <!-- FIRST-VISIT WELCOME POP-UP -->
+  <div class="welcome-popup-modal" id="welcomePopupModal" aria-hidden="true">
+    <div class="welcome-card">
+      <button type="button" class="welcome-close" id="welcomePopupClose">×</button>
+      <p class="eyebrow" style="color:var(--bk-red, #e31b23); margin-bottom:8px;">불꽃 · EXCLUSIVE ACCESS</p>
+      <h2 style="font-size:22px; font-weight:900; margin:0 0 10px; color:#fff;">WELCOME TO BULKKOT</h2>
+      <p style="font-size:12px; color:#aaa; line-height:1.6; margin:0 0 20px;">
+        Sign in to save shipping addresses, track drop shipments in real time, and unlock Drop 001.
+      </p>
+      <button type="button" class="button button--primary" style="width:100%; margin-bottom:10px;" id="welcomeGoogleBtn">
+        CONTINUE WITH GOOGLE
+      </button>
+      <button type="button" class="text-button" id="welcomeEmailBtn" style="font-size:11px; color:#888;">
+        Or sign in with Email →
+      </button>
+    </div>
+  </div>
+
   <!-- PRODUCT DETAIL MODAL -->
   <div class="pdp-modal" id="pdpModal" aria-hidden="true">
     <div class="pdp-backdrop" data-pdp-close></div>
@@ -414,68 +431,90 @@
     <div class="drawer__body" id="cart-content"></div>
   </aside>
 
-  <!-- MYNTRA-STYLE CUSTOMER PROFILE DRAWER (LOGGED IN ONLY) -->
+  <!-- CUSTOMER ACCOUNT MODAL -->
   <div class="account-modal" data-account-modal aria-hidden="true">
     <div class="account-backdrop" data-account-close></div>
     <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button type="button" class="account-close" data-account-close aria-label="Close account">×</button>
 
-      <div class="account-user-view" data-account-user>
-        <div class="myntra-profile-card">
-          <div class="myntra-avatar" data-user-avatar>B</div>
-          <div class="myntra-user-meta">
-            <h3 data-account-name-heading>BULKKOT VIP</h3>
-            <p data-account-user-email>customer@bulkkot.com</p>
-          </div>
+      <div class="account-auth-view" data-account-auth>
+        <div class="account-header">
+          <p class="eyebrow">BULKKOT · ACCOUNT</p>
+          <h2 id="account-title">SIGN IN</h2>
+          <p>Sign in to save shipping addresses and access order history.</p>
         </div>
 
-        <div class="myntra-quick-grid">
-          <div class="myntra-quick-item" onclick="document.querySelector('.account-orders').scrollIntoView({behavior:'smooth'})">
-            <span>DISPATCH</span>
-            <strong>ORDERS</strong>
+        <form class="account-auth-form" data-account-login-form novalidate>
+          <div class="account-field">
+            <label for="account-email">EMAIL</label>
+            <input id="account-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
           </div>
-          <div class="myntra-quick-item" onclick="document.querySelector('#profileAddressForm').scrollIntoView({behavior:'smooth'})">
-            <span>SAVED</span>
-            <strong>ADDRESS</strong>
+          <div class="account-field">
+            <label for="account-password">PASSWORD</label>
+            <input id="account-password" type="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
           </div>
+          <button type="submit" class="button button--primary account-submit">SIGN IN</button>
+          <p class="account-message" data-account-message aria-live="polite"></p>
+        </form>
+
+        <div class="account-divider"><span>OR</span></div>
+
+        <button type="button" class="account-google" data-google-login>
+          <span class="account-google-icon">G</span> CONTINUE WITH GOOGLE
+        </button>
+
+        <div class="account-auth-switch">
+          <span>Don't have an account?</span>
+          <button type="button" data-account-signup-toggle>CREATE ACCOUNT</button>
+        </div>
+      </div>
+
+      <div class="account-user-view" data-account-user hidden>
+        <div class="account-header">
+          <p class="eyebrow">BULKKOT · ACCOUNT</p>
+          <h2>MY PROFILE</h2>
+          <p data-account-user-email>—</p>
         </div>
 
-        <section class="account-section" style="margin-bottom:32px;">
-          <div class="account-section-head" style="margin-bottom:16px;">
-            <div><span class="eyebrow" style="color:#888; font-size:10px;">SAVED DETAILS</span><h3 style="font-size:14px; margin:2px 0 0;">SHIPPING ADDRESS</h3></div>
+        <section class="account-section">
+          <div class="account-section-head">
+            <div><span class="eyebrow">SAVED DETAILS</span><h3>SHIPPING ADDRESS</h3></div>
           </div>
 
-          <form class="account-profile-form" id="profileAddressForm" data-account-profile-form>
-            <div class="bk-input-group">
-              <input id="account-name" name="full_name" type="text" class="bk-input" autocomplete="name" placeholder="Full Name">
+          <form class="account-profile-form" data-account-profile-form>
+            <div class="account-field">
+              <label for="account-name">FULL NAME</label>
+              <input id="account-name" name="full_name" type="text" autocomplete="name" placeholder="Full name">
             </div>
-            <div class="bk-input-group">
-              <input id="account-phone" name="phone" type="tel" class="bk-input" autocomplete="tel" placeholder="Phone Number">
+            <div class="account-field">
+              <label for="account-phone">PHONE</label>
+              <input id="account-phone" name="phone" type="tel" autocomplete="tel" placeholder="Phone number">
             </div>
-            <div class="bk-input-group">
-              <textarea id="account-address" name="shipping_address" class="bk-input" autocomplete="street-address" placeholder="House / street / area" rows="3"></textarea>
+            <div class="account-field">
+              <label for="account-address">ADDRESS</label>
+              <textarea id="account-address" name="shipping_address" autocomplete="street-address" placeholder="House / street / area" rows="3"></textarea>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-              <input id="account-city" name="shipping_city" type="text" class="bk-input" autocomplete="address-level2" placeholder="City">
-              <input id="account-state" name="shipping_state" type="text" class="bk-input" autocomplete="address-level1" placeholder="State">
-              <input id="account-pincode" name="shipping_pincode" type="text" class="bk-input" inputmode="numeric" autocomplete="postal-code" placeholder="Pincode">
+            <div class="account-profile-grid">
+              <div class="account-field"><label for="account-city">CITY</label><input id="account-city" name="shipping_city" type="text" autocomplete="address-level2"></div>
+              <div class="account-field"><label for="account-state">STATE</label><input id="account-state" name="shipping_state" type="text" autocomplete="address-level1"></div>
+              <div class="account-field"><label for="account-pincode">PINCODE</label><input id="account-pincode" name="shipping_pincode" type="text" inputmode="numeric" autocomplete="postal-code"></div>
             </div>
-            <button type="submit" class="bk-btn-primary" style="margin-top:16px;">SAVE PROFILE</button>
-            <p class="account-message" data-profile-message aria-live="polite" style="color:#31c48d; font-size:11px; margin-top:8px; text-align:center; min-height:16px;"></p>
+            <button type="submit" class="button button--primary" style="margin-top:10px;">SAVE PROFILE</button>
+            <p class="account-message" data-profile-message aria-live="polite"></p>
           </form>
         </section>
 
         <section class="account-section">
-          <div class="account-section-head" style="margin-bottom:16px;"><div><span class="eyebrow" style="color:#888; font-size:10px;">LOG</span><h3 style="font-size:14px; margin:2px 0 0;">PAST ORDERS</h3></div></div>
-          <div class="account-orders" data-account-orders><div class="account-orders-loading" style="color:#666; font-size:11px;">Loading orders...</div></div>
+          <div class="account-section-head"><div><span class="eyebrow">LOG</span><h3>PAST ORDERS</h3></div></div>
+          <div class="account-orders" data-account-orders><div class="account-orders-loading">Loading orders...</div></div>
         </section>
 
-        <button type="button" class="account-signout" data-account-signout style="width:100%; padding:14px; background:none; border:1px solid #333; color:#888; border-radius:4px; font-size:11px; font-weight:800; cursor:pointer; margin-top:32px; transition:all 0.2s;">SIGN OUT</button>
+        <button type="button" class="account-signout" data-account-signout>SIGN OUT</button>
       </div>
     </section>
   </div>
 
-  <!-- TRACKING MODAL -->
+  <!-- 100% WORKING GUEST ORDER TRACKING MODAL -->
   <div class="track-order-modal" data-track-order-modal aria-hidden="true">
     <div class="track-order-backdrop" data-track-order-close></div>
     <section class="track-order-panel" role="dialog" aria-modal="true" aria-labelledby="track-order-title">
@@ -524,6 +563,80 @@
         </div>
       </div>
     </section>
+  </div>
+
+  <!-- ABOUT STORY MODAL -->
+  <div class="content-modal" data-about-modal aria-hidden="true">
+    <div class="content-modal__panel">
+      <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
+      <p class="eyebrow">BULKKOT · 불꽃</p>
+      <h2>OUR STORY</h2>
+      <div class="modal-copy">
+        <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
+        <p>We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
+        <p class="modal-signature">Less noise. More presence.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- POLICY MODAL -->
+  <div class="content-modal" data-policy-modal aria-hidden="true">
+    <div class="content-modal__panel content-modal__panel--large">
+      <button type="button" class="drawer-close" data-close-policy aria-label="Close information">×</button>
+      <p class="eyebrow" data-policy-eyebrow>BULKKOT</p>
+      <h2 data-policy-title>INFORMATION</h2>
+      <div class="modal-copy" data-policy-content></div>
+    </div>
+  </div>
+
+  <!-- SIZE GUIDE MODAL -->
+  <div class="size-guide-modal" data-size-guide-modal aria-hidden="true">
+    <div class="size-guide-backdrop" data-size-guide-close></div>
+    <div class="size-guide-panel" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
+      <button type="button" class="size-guide-close" data-size-guide-close aria-label="Close size guide">×</button>
+      <div class="size-guide-header">
+        <span class="size-guide-eyebrow">BULKKOT / ARCHITECTURAL FIT</span>
+        <h2 id="size-guide-title">SIZE GUIDE</h2>
+        <p>Exact garment measurements in inches. Designed with an oversized drop-shoulder cut.</p>
+      </div>
+
+      <div class="size-guide-tabs" role="tablist" aria-label="Size categories">
+        <button type="button" class="size-guide-tab is-active" data-size-tab="tees" role="tab" aria-selected="true">TEES</button>
+        <button type="button" class="size-guide-tab" data-size-tab="hoodies" role="tab" aria-selected="false">HOODS & SWEATS</button>
+      </div>
+
+      <div class="size-guide-table-wrap is-active" data-size-panel="tees">
+        <div class="size-guide-table-scroll">
+          <table class="size-guide-table">
+            <thead>
+              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
+            </thead>
+            <tbody>
+              <tr><th>S</th><td>42"</td><td>28.5"</td><td>20.5"</td><td>8.5"</td></tr>
+              <tr><th>M</th><td>44"</td><td>29.5"</td><td>21.5"</td><td>9.0"</td></tr>
+              <tr><th>L</th><td>46"</td><td>30.5"</td><td>22.5"</td><td>9.5"</td></tr>
+              <tr><th>XL</th><td>48"</td><td>31.5"</td><td>23.5"</td><td>10.0"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="size-guide-table-wrap" data-size-panel="hoodies" hidden>
+        <div class="size-guide-table-scroll">
+          <table class="size-guide-table">
+            <thead>
+              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
+            </thead>
+            <tbody>
+              <tr><th>S</th><td>44"</td><td>27.5"</td><td>22.0"</td><td>23.5"</td></tr>
+              <tr><th>M</th><td>46"</td><td>28.5"</td><td>23.0"</td><td>24.0"</td></tr>
+              <tr><th>L</th><td>48"</td><td>29.5"</td><td>24.0"</td><td>24.5"</td></tr>
+              <tr><th>XL</th><td>50"</td><td>30.5"</td><td>25.0"</td><td>25.0"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Core Scripts -->
