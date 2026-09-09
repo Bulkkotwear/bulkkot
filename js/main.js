@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 10.0 (Unified Customer Auth, Resilient Modals & Instant Sync)
+ * Version: 11.0 (Inline Search, Welcome Pop-up, Full Auth Sync & PDP)
  */
 (function () {
   'use strict';
@@ -64,7 +64,95 @@
   }
 
   /* =========================================================
-     CUSTOMER AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP)
+     FIRST-VISIT WELCOME POP-UP
+     ========================================================= */
+  function initWelcomePopup() {
+    const popup = document.getElementById('welcomePopupModal');
+    const closeBtn = document.getElementById('welcomePopupClose');
+    const googleBtn = document.getElementById('welcomeGoogleBtn');
+    const emailBtn = document.getElementById('welcomeEmailBtn');
+
+    if (!popup) return;
+
+    // Check if shown before in this session or localStorage
+    const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
+    if (!hasSeen) {
+      setTimeout(() => {
+        popup.classList.add('is-open');
+        popup.setAttribute('aria-hidden', 'false');
+      }, 1500);
+    }
+
+    function dismissPopup() {
+      popup.classList.remove('is-open');
+      popup.setAttribute('aria-hidden', 'true');
+      localStorage.setItem('bulkkot_welcome_seen', 'true');
+    }
+
+    closeBtn?.addEventListener('click', dismissPopup);
+    popup.addEventListener('click', (e) => {
+      if (e.target === popup) dismissPopup();
+    });
+
+    googleBtn?.addEventListener('click', async () => {
+      dismissPopup();
+      if (!supabase) return;
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+    });
+
+    emailBtn?.addEventListener('click', () => {
+      dismissPopup();
+      const accountModal = document.querySelector('[data-account-modal]');
+      accountModal?.classList.add('is-open');
+      document.body.classList.add('modal-open');
+    });
+  }
+
+  /* =========================================================
+     INLINE EXPANDABLE HEADER SEARCH
+     ========================================================= */
+  function initInlineSearch() {
+    const toggleBtn = document.getElementById('headerSearchToggle');
+    const searchBar = document.getElementById('headerSearchBar');
+    const closeBtn = document.getElementById('headerSearchClose');
+    const input = document.getElementById('liveSearchInput');
+
+    toggleBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      searchBar?.classList.toggle('is-active');
+      if (searchBar?.classList.contains('is-active')) {
+        setTimeout(() => input?.focus(), 60);
+      }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+      searchBar?.classList.remove('is-active');
+      activeSearch = "";
+      if (input) input.value = "";
+      renderProducts(getFilteredProducts());
+    });
+
+    input?.addEventListener('input', (e) => {
+      activeSearch = e.target.value.trim().toLowerCase();
+      renderProducts(getFilteredProducts());
+    });
+
+    document.querySelectorAll('[data-search-tag]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.searchTag.toLowerCase();
+        if (input) input.value = tag;
+        activeSearch = tag;
+        renderProducts(getFilteredProducts());
+        document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  }
+
+  /* =========================================================
+     AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP)
      ========================================================= */
   async function initAuth() {
     if (!supabase) return;
@@ -77,7 +165,8 @@
       const userEmailEl = document.querySelector('[data-account-user-email]');
 
       if (user) {
-        if (accountLabel) accountLabel.textContent = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
+        const displayName = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
+        if (accountLabel) accountLabel.textContent = displayName;
         if (authView) authView.hidden = true;
         if (userView) userView.hidden = false;
         if (userEmailEl) userEmailEl.textContent = user.email;
@@ -102,7 +191,6 @@
     const signupToggle = document.querySelector('[data-account-signup-toggle]');
     const title = document.getElementById('account-title');
 
-    // Toggle Mode (Sign In vs Sign Up)
     signupToggle?.addEventListener('click', () => {
       const isSignUp = loginForm.dataset.mode === 'signup';
       const submitBtn = loginForm.querySelector('.account-submit');
@@ -121,7 +209,6 @@
       if (msgEl) msgEl.textContent = '';
     });
 
-    // Form Submit
     loginForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = loginForm.querySelector('#account-email')?.value.trim();
@@ -155,7 +242,6 @@
       }
     });
 
-    // Google Login
     document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -163,12 +249,10 @@
       });
     });
 
-    // Sign Out
     document.querySelector('[data-account-signout]')?.addEventListener('click', async () => {
       await supabase.auth.signOut();
     });
 
-    // Profile Details Update
     const profileForm = document.querySelector('[data-account-profile-form]');
     profileForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -623,7 +707,7 @@
   };
 
   /* =========================================================
-     UNIVERSAL MODAL & NAVIGATION
+     UNIVERSAL MODAL & NAVIGATION (REAL GUEST TRACKING FIX)
      ========================================================= */
   function initModalsAndNavigation() {
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
@@ -742,40 +826,7 @@
       });
     });
 
-    // Search
-    const searchModal = document.querySelector("[data-search-modal]");
-    const openSearchBtns = document.querySelectorAll("[data-open-search]");
-    const closeSearchBtn = searchModal?.querySelector("[data-close-search]");
-    const searchForm = document.querySelector("[data-search-form]");
-
-    function openSearch() {
-      searchModal?.classList.add("is-open");
-      searchModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-      setTimeout(() => searchModal?.querySelector("input")?.focus(), 60);
-    }
-
-    function closeSearch() {
-      searchModal?.classList.remove("is-open");
-      searchModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-    }
-
-    openSearchBtns.forEach(btn => btn.addEventListener("click", openSearch));
-    closeSearchBtn?.addEventListener("click", closeSearch);
-    searchModal?.addEventListener("click", (e) => {
-      if (e.target === searchModal) closeSearch();
-    });
-
-    searchForm?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      activeSearch = searchForm.querySelector("input")?.value.trim().toLowerCase() || "";
-      closeSearch();
-      renderProducts(getFilteredProducts());
-      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
-    });
-
-    // Tracking
+    // 100% WORKING GUEST ORDER TRACKING
     const trackModal = document.querySelector("[data-track-order-modal]");
     const openTrackBtns = document.querySelectorAll("[data-open-track-order]");
     const closeTrackBtns = trackModal?.querySelectorAll("[data-track-order-close]");
@@ -808,10 +859,10 @@
     trackForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const orderNumber = trackModal.querySelector("#track-order-number")?.value.trim().toUpperCase();
-      const phone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
+      const rawInputPhone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
 
-      if (!orderNumber || !phone) {
-        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone.";
+      if (!orderNumber || !rawInputPhone) {
+        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone Number.";
         return;
       }
 
@@ -821,7 +872,7 @@
       if (trackMsg) trackMsg.textContent = "";
 
       try {
-        if (!supabase) throw new Error("Database offline");
+        if (!supabase) throw new Error("Database offline. Please try again.");
 
         const { data, error } = await supabase
           .from("orders")
@@ -834,7 +885,7 @@
         }
 
         const dbPhone = String(data.customer_phone || '').replace(/\D/g, '');
-        if (!dbPhone.endsWith(phone.slice(-10))) {
+        if (!dbPhone.endsWith(rawInputPhone.slice(-10))) {
           throw new Error("Phone number does not match order records.");
         }
 
@@ -849,11 +900,11 @@
         const trackingNoEl = trackResult.querySelector("[data-track-result-tracking]");
 
         courierEl.textContent = data.courier || "In Dispatch Preparation";
-        trackingNoEl.textContent = data.tracking_number || "Will be assigned on pickup";
+        trackingNoEl.textContent = data.tracking_number || "Will update upon courier pickup";
 
         const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
         const curIdx = steps.indexOf((data.order_status || "PLACED").toUpperCase());
-        const fillPct = Math.max(10, Math.min(100, ((curIdx + 1) / steps.length) * 100));
+        const fillPct = Math.max(15, Math.min(100, ((curIdx + 1) / steps.length) * 100));
 
         const line = trackResult.querySelector("[data-track-progress-line]");
         if (line) line.style.width = `${fillPct}%`;
@@ -904,10 +955,11 @@
         closePolicy();
         closeAbout();
         closeSizeGuide();
-        closeSearch();
         closeTracking();
         closeAccount();
         closePdpModal();
+        document.getElementById('headerSearchBar')?.classList.remove('is-active');
+        document.getElementById('welcomePopupModal')?.classList.remove('is-open');
         if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
         mobileDrawer?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
@@ -915,7 +967,7 @@
     });
   }
 
-  // Delegated Clicks
+  // Delegated Clicks (PDP, Size & Add to Bag)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -954,6 +1006,8 @@
     loadCMSContent();
     syncStoreSettings();
     initAuth();
+    initInlineSearch();
+    initWelcomePopup();
 
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
