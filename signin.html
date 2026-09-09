@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — BULKKOT</title>
+
+  <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./css/signin.css">
+</head>
+
+<body>
+  <main class="auth-page">
+
+    <!-- LEFT BRAND PANEL -->
+    <section class="auth-visual">
+      <div class="visual-overlay"></div>
+      <div class="visual-content">
+        <a href="./index.html" class="brand">
+          <span class="brand-kr">불꽃</span>
+          <span class="brand-en">BULKKOT</span>
+        </a>
+        <div class="visual-copy">
+          <span class="eyebrow">DROP 001</span>
+          <h1>WEAR<br>YOUR<br><span>FIRE.</span></h1>
+          <p>Korean-inspired essentials. Built for everyday movement.</p>
+        </div>
+        <div class="visual-footer">
+          <span>PREMIUM EVERYDAY WEAR</span>
+          <span>© BULKKOT</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT AUTH PANEL -->
+    <section class="auth-panel">
+      <div class="auth-container">
+        <!-- MOBILE BRAND -->
+        <a href="./index.html" class="mobile-brand">
+          <span>불꽃</span>BULKKOT
+        </a>
+
+        <!-- HEADER -->
+        <div class="auth-header">
+          <span class="auth-kicker">WELCOME BACK</span>
+          <h2 id="authTitle">Sign in</h2>
+          <p id="authSubtitle">Access your BULKKOT account and orders.</p>
+        </div>
+
+        <!-- AUTH SWITCH -->
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab active" id="loginTab">SIGN IN</button>
+          <button type="button" class="auth-tab" id="signupTab">CREATE ACCOUNT</button>
+        </div>
+
+        <!-- GOOGLE -->
+        <button type="button" class="google-btn" id="googleBtn">
+          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M21.35 12.23c0-.78-.07-1.53-.22-2.25H12v4.26h5.23a4.46 4.46 0 0 1-1.94 2.93v2.44h3.14c1.84-1.69 2.92-4.18 2.92-7.38Z"/>
+            <path fill="#34A853" d="M12 21.6c2.63 0 4.84-.87 6.45-2.36l-3.14-2.44c-.87.58-1.98.93-3.31.93-2.54 0-4.69-1.72-5.46-4.03H3.3v2.52A9.74 9.74 0 0 0 12 21.6Z"/>
+            <path fill="#FBBC05" d="M6.54 13.7a5.86 5.86 0 0 1 0-3.76V7.42H3.3a9.72 9.72 0 0 0 0 8.8l3.24-2.52Z"/>
+            <path fill="#EA4335" d="M12 5.9c1.43 0 2.72.49 3.73 1.46l2.8-2.8C16.83 2.99 14.63 2.1 12 2.1a9.74 9.74 0 0 0-8.7 5.32l3.24 2.52C7.31 7.63 9.46 5.9 12 5.9Z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+
+        <!-- DIVIDER -->
+        <div class="divider"><span>OR</span></div>
+
+        <!-- FORM -->
+        <form id="authForm" novalidate>
+          <!-- NAME -->
+          <div class="field signup-only" id="nameField">
+            <label for="name">FULL NAME</label>
+            <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name">
+            <small class="field-error" id="nameError"></small>
+          </div>
+
+          <!-- EMAIL -->
+          <div class="field">
+            <label for="email">EMAIL ADDRESS</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+            <small class="field-error" id="emailError"></small>
+          </div>
+
+          <!-- PASSWORD -->
+          <div class="field">
+            <div class="label-row">
+              <label for="password">PASSWORD</label>
+              <button type="button" class="forgot-btn" id="forgotBtn">Forgot password?</button>
+            </div>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+              <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password">SHOW</button>
+            </div>
+            <small class="field-error" id="passwordError"></small>
+          </div>
+
+          <!-- CONFIRM PASSWORD -->
+          <div class="field signup-only" id="confirmField">
+            <label for="confirmPassword">CONFIRM PASSWORD</label>
+            <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm your password">
+            <small class="field-error" id="confirmError"></small>
+          </div>
+
+          <!-- MESSAGE -->
+          <div class="auth-message" id="authMessage" role="alert"></div>
+
+          <!-- SUBMIT -->
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span id="submitText">SIGN IN</span>
+            <span class="loader" id="submitLoader"></span>
+          </button>
+        </form>
+
+        <!-- FOOTER -->
+        <div class="auth-terms">
+          <p>By continuing, you agree to BULKKOT's <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
+        </div>
+
+        <!-- BACK -->
+        <a href="./index.html" class="back-home">← Back to store</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.BULKKOT_CONFIG = {
+      SUPABASE_URL: "https://pgubjluqgqvrybvehzeh.supabase.co",
+      SUPABASE_ANON_KEY: "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP"
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/signin.js"></script>
+</body>
+</html>
