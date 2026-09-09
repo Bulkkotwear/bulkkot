@@ -69,7 +69,7 @@
         <!-- 100% WORKING GUEST TRACK ORDER -->
         <button type="button" class="header-track-order" data-open-track-order aria-label="Track your order">TRACK ORDER</button>
         
-        <!-- LUXURY ACCOUNT BUTTON -->
+        <!-- LUXURY ACCOUNT BUTTON (Links to signin.html when logged out) -->
         <button type="button" class="header-account" data-open-account aria-label="Open account" style="display:inline-flex; align-items:center; gap:6px;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="8" r="4"/>
@@ -394,24 +394,6 @@
     </span>
   </a>
 
-  <!-- FIRST-VISIT WELCOME POP-UP -->
-  <div class="welcome-popup-modal" id="welcomePopupModal" aria-hidden="true">
-    <div class="welcome-card">
-      <button type="button" class="welcome-close" id="welcomePopupClose">×</button>
-      <p class="eyebrow" style="color:var(--bk-red, #e31b23); margin-bottom:8px;">불꽃 · EXCLUSIVE ACCESS</p>
-      <h2 style="font-size:22px; font-weight:900; margin:0 0 10px; color:#fff;">WELCOME TO BULKKOT</h2>
-      <p style="font-size:12px; color:#aaa; line-height:1.6; margin:0 0 20px;">
-        Sign in to save shipping addresses, track drop shipments in real time, and unlock Drop 001.
-      </p>
-      <button type="button" class="button button--primary" style="width:100%; margin-bottom:10px;" id="welcomeGoogleBtn">
-        CONTINUE WITH GOOGLE
-      </button>
-      <button type="button" class="text-button" id="welcomeEmailBtn" style="font-size:11px; color:#888;">
-        Or sign in with Email →
-      </button>
-    </div>
-  </div>
-
   <!-- PRODUCT DETAIL MODAL -->
   <div class="pdp-modal" id="pdpModal" aria-hidden="true">
     <div class="pdp-backdrop" data-pdp-close></div>
@@ -431,68 +413,13 @@
     <div class="drawer__body" id="cart-content"></div>
   </aside>
 
- <!-- CUSTOMER ACCOUNT MODAL (PREMIUM MYNTRA STYLE) -->
+  <!-- CUSTOMER PROFILE DRAWER (LOGGED IN ONLY) -->
   <div class="account-modal" data-account-modal aria-hidden="true">
     <div class="account-backdrop" data-account-close></div>
     <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button type="button" class="account-close" data-account-close aria-label="Close account">×</button>
 
-      <!-- AUTHENTICATION VIEW -->
-      <div class="account-auth-view" data-account-auth>
-        <div class="auth-banner-wrap">
-          <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Drop 001">
-          <div class="auth-banner-overlay">
-            <h2 id="auth-mode-text">Login <span style="font-weight:400; font-size:18px;">or</span> Signup</h2>
-            <p>Get exclusive access to Drop 001 and save your details.</p>
-          </div>
-        </div>
-
-        <form class="account-auth-form" data-account-login-form data-mode="signin" novalidate>
-          <!-- Hidden by default, shown on Signup -->
-          <div class="bk-input-group" id="account-name-field" style="display: none;">
-            <span>FULL NAME</span>
-            <input id="account-name-input" type="text" class="bk-input" name="name" autocomplete="name" placeholder="Enter your full name">
-          </div>
-
-          <div class="bk-input-group">
-            <span>EMAIL ADDRESS</span>
-            <input id="account-email" type="email" class="bk-input" name="email" autocomplete="email" placeholder="you@example.com" required>
-          </div>
-          
-          <div class="bk-input-group">
-            <span>PASSWORD</span>
-            <input id="account-password" type="password" class="bk-input" name="password" autocomplete="current-password" placeholder="••••••••" required>
-          </div>
-
-          <p class="auth-terms">By continuing, I agree to the <a href="#" data-open-policy="terms">Terms of Use</a> & <a href="#" data-open-policy="privacy">Privacy Policy</a></p>
-
-          <button type="submit" class="bk-btn-primary account-submit" style="margin-top:8px;">CONTINUE</button>
-          <div id="authInlineError" style="color: #ff7777; font-size: 11px; margin-top: 10px; text-align:center; min-height:16px;"></div>
-        </form>
-
-        <div class="account-divider" style="display:flex; align-items:center; gap:12px; margin:24px 0; color:#555; font-size:10px; font-weight:700;">
-          <span style="flex:1; height:1px; background:#222;"></span>
-          OR
-          <span style="flex:1; height:1px; background:#222;"></span>
-        </div>
-
-        <button type="button" class="google-premium-btn" data-google-login>
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          CONTINUE WITH GOOGLE
-        </button>
-
-        <button type="button" class="auth-toggle-btn" data-account-signup-toggle>
-          New to BULKKOT? <strong>Create an account</strong>
-        </button>
-      </div>
-
-      <!-- LOGGED-IN PROFILE VIEW (Unchanged structure, refined classes) -->
-      <div class="account-user-view" data-account-user hidden>
+      <div class="account-user-view" data-account-user>
         <div class="account-header" style="margin-bottom:24px;">
           <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">AUTHENTICATED</p>
           <h2 style="font-size:24px; margin:0 0 4px;">MY PROFILE</h2>
@@ -533,6 +460,7 @@
       </div>
     </section>
   </div>
+
   <!-- 100% WORKING GUEST ORDER TRACKING MODAL -->
   <div class="track-order-modal" data-track-order-modal aria-hidden="true">
     <div class="track-order-backdrop" data-track-order-close></div>
@@ -582,80 +510,6 @@
         </div>
       </div>
     </section>
-  </div>
-
-  <!-- ABOUT STORY MODAL -->
-  <div class="content-modal" data-about-modal aria-hidden="true">
-    <div class="content-modal__panel">
-      <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
-      <p class="eyebrow">BULKKOT · 불꽃</p>
-      <h2>OUR STORY</h2>
-      <div class="modal-copy">
-        <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
-        <p>We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
-        <p class="modal-signature">Less noise. More presence.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- POLICY MODAL -->
-  <div class="content-modal" data-policy-modal aria-hidden="true">
-    <div class="content-modal__panel content-modal__panel--large">
-      <button type="button" class="drawer-close" data-close-policy aria-label="Close information">×</button>
-      <p class="eyebrow" data-policy-eyebrow>BULKKOT</p>
-      <h2 data-policy-title>INFORMATION</h2>
-      <div class="modal-copy" data-policy-content></div>
-    </div>
-  </div>
-
-  <!-- SIZE GUIDE MODAL -->
-  <div class="size-guide-modal" data-size-guide-modal aria-hidden="true">
-    <div class="size-guide-backdrop" data-size-guide-close></div>
-    <div class="size-guide-panel" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
-      <button type="button" class="size-guide-close" data-size-guide-close aria-label="Close size guide">×</button>
-      <div class="size-guide-header">
-        <span class="size-guide-eyebrow">BULKKOT / ARCHITECTURAL FIT</span>
-        <h2 id="size-guide-title">SIZE GUIDE</h2>
-        <p>Exact garment measurements in inches. Designed with an oversized drop-shoulder cut.</p>
-      </div>
-
-      <div class="size-guide-tabs" role="tablist" aria-label="Size categories">
-        <button type="button" class="size-guide-tab is-active" data-size-tab="tees" role="tab" aria-selected="true">TEES</button>
-        <button type="button" class="size-guide-tab" data-size-tab="hoodies" role="tab" aria-selected="false">HOODS & SWEATS</button>
-      </div>
-
-      <div class="size-guide-table-wrap is-active" data-size-panel="tees">
-        <div class="size-guide-table-scroll">
-          <table class="size-guide-table">
-            <thead>
-              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
-            </thead>
-            <tbody>
-              <tr><th>S</th><td>42"</td><td>28.5"</td><td>20.5"</td><td>8.5"</td></tr>
-              <tr><th>M</th><td>44"</td><td>29.5"</td><td>21.5"</td><td>9.0"</td></tr>
-              <tr><th>L</th><td>46"</td><td>30.5"</td><td>22.5"</td><td>9.5"</td></tr>
-              <tr><th>XL</th><td>48"</td><td>31.5"</td><td>23.5"</td><td>10.0"</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="size-guide-table-wrap" data-size-panel="hoodies" hidden>
-        <div class="size-guide-table-scroll">
-          <table class="size-guide-table">
-            <thead>
-              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
-            </thead>
-            <tbody>
-              <tr><th>S</th><td>44"</td><td>27.5"</td><td>22.0"</td><td>23.5"</td></tr>
-              <tr><th>M</th><td>46"</td><td>28.5"</td><td>23.0"</td><td>24.0"</td></tr>
-              <tr><th>L</th><td>48"</td><td>29.5"</td><td>24.0"</td><td>24.5"</td></tr>
-              <tr><th>XL</th><td>50"</td><td>30.5"</td><td>25.0"</td><td>25.0"</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Core Scripts -->
