@@ -2712,3 +2712,61 @@ section {
   }
 
 }
+/* =========================================================
+   BULKKOT — MOBILE HEADER DE-CLUTTER & POLISH
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .site-header {
+    height: 60px;
+    padding: 0 14px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  /* Hide long text buttons on small mobile bar to prevent crowding */
+  .header-track-order {
+    display: none !important;
+  }
+
+  /* Compact Account icon only, hide text label */
+  .header-account span {
+    display: none !important;
+  }
+
+  .header-account svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Instagram can live inside mobile drawer footer */
+  .instagram-action {
+    display: none !important;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-action svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .brand-name .brand-english {
+    font-size: 14px;
+    letter-spacing: 0.15em;
+  }
+}
+
+/* Luxury Touch Target Size Standards */
+button, a, input {
+  -webkit-tap-highlight-color: transparent;
+}
