@@ -2461,3 +2461,198 @@ button, input, select {
   font-size: 13px;
   color: #fff;
 }
+/* =========================================================
+   BULKKOT — SLIDER, 2-COL MOBILE GRID & HORIZONTAL FILTERS
+   ========================================================= */
+
+/* 1. EDITORIAL CAROUSEL / SLIDER FIX */
+.editorial-carousel {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.editorial-track {
+  display: flex;
+  transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+.editorial-slide {
+  min-width: 100%;
+  flex: 0 0 100%;
+  position: relative;
+}
+
+.editorial-slide img {
+  width: 100%;
+  height: 70vh;
+  object-fit: cover;
+  display: block;
+}
+
+.editorial-slide__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7,7,7,0.2) 0%, rgba(7,7,7,0.75) 100%);
+}
+
+.editorial-slide__content {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  z-index: 2;
+  color: #fff;
+}
+
+.editorial-slide__content p {
+  color: var(--bk-red, #e31b23);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
+
+.editorial-slide__content h2 {
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.editorial-slide__content span {
+  font-size: clamp(18px, 2.5vw, 32px);
+  font-weight: 700;
+  color: #aaa;
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: 20px;
+  right: 40px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.carousel-indicators button {
+  width: 24px;
+  height: 3px;
+  background: rgba(255,255,255,0.3);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, width 0.2s ease;
+}
+
+.carousel-indicators button.is-active {
+  background: #fff;
+  width: 38px;
+}
+
+/* 2. SHOP HORIZONTAL FILTER PILLS */
+.shop-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.shop-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 0;
+}
+
+.shop-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.shop-filter {
+  background: #111;
+  border: 1px solid #222;
+  color: #888;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.shop-filter.is-active,
+.shop-filter:hover {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+/* 3. 2-COLUMN LUXURY PRODUCT GRID ON MOBILE */
+@media (max-width: 768px) {
+  .product-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .product-card {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-card__thumb img {
+    height: 230px !important;
+    object-fit: cover;
+  }
+
+  .product-information {
+    padding: 10px 4px;
+  }
+
+  .product-information h3 {
+    font-size: 11px !important;
+    line-height: 1.3;
+  }
+
+  .product-price {
+    font-size: 12px !important;
+  }
+
+  .product-sizes-row {
+    margin: 6px 0;
+  }
+
+  .product-size-btn {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 9px !important;
+  }
+
+  .product-add-button {
+    min-height: 36px !important;
+    font-size: 9px !important;
+    padding: 6px 8px !important;
+  }
+
+  .editorial-slide img {
+    height: 52vh;
+  }
+
+  .editorial-slide__content {
+    bottom: 24px;
+    left: 20px;
+  }
+
+  .carousel-indicators {
+    right: 20px;
+    bottom: 14px;
+  }
+}
