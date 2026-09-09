@@ -316,6 +316,7 @@
       });
 
     } else {
+      // CHECKOUT STEP
       drawer.innerHTML = `
         <div class="cart-drawer__header">
           <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">STEP 02 / 02</p><h2>DISPATCH & PAYMENT</h2></div>
@@ -407,6 +408,7 @@
         </div>
       `;
 
+      // Event Listeners for Checkout
       drawer.querySelector('#backToBagBtn')?.addEventListener('click', () => {
         currentStep = 'bag';
         renderCart();
@@ -417,9 +419,11 @@
         if (e.target.value.length === 6) lookupPincode(e.target.value);
       });
 
+      // NO RE-RENDER on Radio Change - Only DOM update
       drawer.querySelectorAll('input[name="payment_mode"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
           selectedPayment = e.target.value;
+          
           drawer.querySelectorAll('.payment-card-label').forEach(lbl => lbl.style.borderColor = 'var(--bk-border)');
           e.target.closest('.payment-card-label').style.borderColor = 'var(--bk-red)';
 
@@ -432,13 +436,17 @@
 
       drawer.querySelector('#cartAuthTrigger')?.addEventListener('click', () => {
         closeCart();
-        window.location.href = './signin.html';
+        const accountModal = document.querySelector('[data-account-modal]');
+        accountModal?.classList.add('is-open');
+        accountModal?.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
       });
 
       tryAutofillAddress();
       bindCheckoutFormSubmit(finalTotal, shippingFee);
     }
 
+    // Common Cart Bindings
     drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
     drawer.querySelectorAll('[data-cart-remove]').forEach(btn => btn.addEventListener('click', () => removeItem(Number(btn.dataset.cartRemove))));
     drawer.querySelectorAll('[data-cart-qty]').forEach(btn => btn.addEventListener('click', () => updateQuantity(Number(btn.dataset.cartQty), Number(btn.dataset.qty))));
