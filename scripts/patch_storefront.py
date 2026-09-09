@@ -13,7 +13,6 @@ def replace_once(path, old, new, label):
     print(f'{label}: applied')
     return True
 
-# Main catalog search: name + category + description + tags/keywords.
 replace_once(
     'js/main.js',
     "if (activeSearch) list = list.filter(p => (p.name || '').toLowerCase().includes(activeSearch));",
@@ -21,18 +20,27 @@ replace_once(
     'catalog search'
 )
 
-# Load the production polish layer once, without replacing the existing architecture.
 index = Path('index.html')
 s = index.read_text(encoding='utf-8')
-css_tag = '  <link rel="stylesheet" href="css/storefront-fixes.css">'
-js_tag = '  <script src="js/storefront-fixes.js" defer></script>'
-if css_tag not in s:
-    marker = '  <link rel="stylesheet" href="css/components.css">'
-    if marker not in s: raise SystemExit('index: components.css marker not found')
-    s = s.replace(marker, marker + '\n' + css_tag, 1)
-if js_tag not in s:
-    marker = '  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>'
-    if marker not in s: raise SystemExit('index: supabase script marker not found')
-    s = s.replace(marker, marker + '\n' + js_tag, 1)
+css_marker = '  <link rel="stylesheet" href="css/components.css">'
+for css_tag in [
+    '  <link rel="stylesheet" href="css/storefront-fixes.css">',
+    '  <link rel="stylesheet" href="css/luxury-final.css">'
+]:
+    if css_tag not in s:
+        if css_marker not in s:
+            raise SystemExit('index: components.css marker not found')
+        s = s.replace(css_marker, css_marker + '\n' + css_tag, 1)
+
+js_marker = '  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>'
+for js_tag in [
+    '  <script src="js/storefront-fixes.js" defer></script>',
+    '  <script src="js/luxury-final.js" defer></script>'
+]:
+    if js_tag not in s:
+        if js_marker not in s:
+            raise SystemExit('index: supabase script marker not found')
+        s = s.replace(js_marker, js_marker + '\n' + js_tag, 1)
+
 index.write_text(s, encoding='utf-8')
-print('index: fix assets linked')
+print('index: all storefront layers linked')
