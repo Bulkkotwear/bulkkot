@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Cart & Checkout Engine
- * Version: 4.1 (Full Scrollable Drawer & Visible CTA)
+ * Version: 5.0 (Atomic RPC create_order Integration + Stale Item Purging)
  */
 (function () {
   'use strict';
@@ -70,6 +70,30 @@
     try {
       const { data } = await client.from('store_settings').select('*').eq('id', 1).maybeSingle();
       if (data) storeSettings = data;
+    } catch (e) {}
+  }
+
+  async function validateAndPurgeStaleCart() {
+    const client = getSupabase();
+    if (!client || !cart.length) return;
+    try {
+      const ids = [...new Set(cart.map(i => i.id))];
+      const { data } = await client.from('products').select('id, active, stock').in('id', ids);
+      if (!data) return;
+
+      const validMap = new Map(data.map(p => [p.id, p]));
+      const originalLen = cart.length;
+
+      cart = cart.filter(item => {
+        const p = validMap.get(item.id);
+        if (!p || p.active === false) return false;
+        const sizeStock = Number(p.stock?.[item.size] || 0);
+        return sizeStock > 0;
+      });
+
+      if (cart.length !== originalLen) {
+        saveCart();
+      }
     } catch (e) {}
   }
 
@@ -162,7 +186,7 @@
     return baseFee;
   }
 
-  function renderCart() {
+  async function renderCart() {
     const container = document.getElementById('cart-content');
     if (!container) return;
 
@@ -187,9 +211,9 @@
     const finalTotal = discountedTotal + shippingFee;
 
     const itemsHTML = cart.map((item, idx) => `
-      <div class="cart-item" style="display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #222;">
+      <div class="cart-item-card">
         <img src="${escapeHTML(item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}"
-             alt="${escapeHTML(item.name)}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 6px; background: #181818;">
+             alt="${escapeHTML(item.name)}">
         <div style="flex: 1; min-width: 0;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #fff;">${escapeHTML(item.name)}</h4>
@@ -356,33 +380,31 @@
         const client = getSupabase();
         if (!client) throw new Error('Database connection unavailable.');
 
-        const { data: authData } = await client.auth.getUser();
-        const userId = authData?.user?.id || null;
-
         const rpcItems = cart.map((item) => ({
-          product_id: item.id,
+          id: item.id,
           size: item.size,
-          quantity: item.quantity,
-          price: item.price
+          quantity: item.quantity
         }));
 
+        const customerPayload = {
+          customer_name: name,
+          customer_email: email,
+          customer_phone: phone,
+          shipping_address: address,
+          shipping_city: city,
+          shipping_state: state,
+          shipping_pincode: pincode
+        };
+
         const { data, error } = await client.rpc('create_order', {
-          p_customer_name: name,
-          p_customer_email: email,
-          p_customer_phone: phone,
-          p_shipping_address: address,
-          p_shipping_city: city,
-          p_shipping_state: state,
-          p_shipping_pincode: pincode,
           p_items: rpcItems,
-          p_coupon_code: appliedCoupon ? appliedCoupon.code : null,
-          p_user_id: userId
+          p_customer: customerPayload
         });
 
         if (error) throw error;
 
         const orderNumber = data.order_number;
-        const totalAmount = data.total + shippingFee;
+        const totalAmount = data.total_amount;
 
         container.innerHTML = `
           <div style="text-align: center; padding: 40px 16px;">
@@ -465,6 +487,7 @@
   function init() {
     loadCart();
     fetchSettings();
+    validateAndPurgeStaleCart();
 
     document.querySelectorAll('[data-open-cart]').forEach((btn) =>
       btn.addEventListener('click', (e) => {
