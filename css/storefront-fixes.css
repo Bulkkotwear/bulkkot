@@ -1,0 +1,51 @@
+/* BULKKOT production polish layer. Kept separate so the existing design system remains intact. */
+:root{--bk-red-luxury:#c9151e;--bk-red-luxury-dark:#991019}
+
+/* Announcement: solid luxury red, no neon / no jumpy ticker. */
+.announcement-bar{background:var(--bk-red-luxury)!important;color:#fff!important;border:0!important;overflow:hidden;min-height:30px;display:flex;align-items:center}
+.announcement-track{will-change:transform}
+.announcement-content{gap:56px!important;white-space:nowrap}
+.announcement-content span{color:#fff!important;font-family:var(--bk-heading)!important;font-size:9px!important;font-weight:800!important;letter-spacing:.14em!important}
+
+/* Slightly larger brand mark without changing the logo artwork. */
+.brand-logo{width:34px;height:34px}
+@media(max-width:640px){.brand-logo{width:29px;height:29px}.announcement-content{gap:36px!important}.announcement-content span{font-size:8px!important}}
+
+/* Search polish. */
+.header-search-bar{box-shadow:0 18px 50px rgba(0,0,0,.42)}
+.header-search-input-wrap{border-radius:4px!important;background:#0d0d0d!important;border-color:rgba(255,255,255,.14)!important}
+.header-search-input-wrap:focus-within{border-color:var(--bk-red-luxury)!important;box-shadow:0 0 0 3px rgba(201,21,30,.12)!important}
+.header-search-execute-btn{background:var(--bk-red-luxury)!important;border-radius:3px!important;min-height:34px}
+.header-search-execute-btn:hover{background:var(--bk-red-luxury-dark)!important}
+
+/* Premium form controls across checkout/account surfaces. */
+.bk-input,.waitlist-form input,.header-search-input-wrap input{appearance:none;-webkit-appearance:none;box-shadow:none}
+.bk-input{background:#0b0b0b!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:3px!important;color:#fff!important;min-height:46px;padding:0 13px!important;outline:none!important;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+.bk-input::placeholder{color:#5e5e5e!important}
+.bk-input:focus{border-color:var(--bk-red-luxury)!important;box-shadow:0 0 0 3px rgba(201,21,30,.10)!important;background:#0e0e0e!important}
+.bk-input:invalid:not(:placeholder-shown){border-color:rgba(220,70,70,.55)!important}
+
+/* Prevent mobile checkout grids from becoming cramped. */
+@media(max-width:640px){
+  #storefrontCheckoutForm [style*="grid-template-columns:1fr 1fr"],
+  #storefrontCheckoutForm [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}
+  .header-search-bar{padding:12px 14px!important}
+  .header-search-input-wrap{padding:0 10px!important}
+  .header-search-execute-btn{padding:8px 10px!important}
+}
+
+/* Make interactive navigation visibly interactive. */
+.desktop-navigation a,.mobile-navigation a,.category-card{cursor:pointer}
+
+/* Auth-required checkout notice injected by storefront-fixes.js. */
+.bk-auth-gate{border:1px solid rgba(201,21,30,.38);background:linear-gradient(145deg,#110909,#090909);padding:16px;margin:0 0 18px}
+.bk-auth-gate__eyebrow{color:var(--bk-red-luxury);font:800 9px/1 var(--bk-heading);letter-spacing:.15em;margin:0 0 8px}
+.bk-auth-gate__text{color:#aaa;font-size:12px;line-height:1.65;margin:0}
+.bk-auth-gate__button{margin-top:12px;width:100%;min-height:44px;background:#fff;color:#000;font:800 10px var(--bk-heading);letter-spacing:.12em}
+
+/* Tracking states: data-driven UI can use these classes without hardcoding a fake timeline. */
+.bk-track-status{border:1px solid rgba(255,255,255,.10);background:#0b0b0b;padding:16px}
+.bk-track-status__value{color:#fff;font:800 12px var(--bk-heading);letter-spacing:.10em}
+.bk-track-status__meta{color:#777;font-size:11px;margin-top:7px;line-height:1.6}
+
+@media(prefers-reduced-motion:reduce){.announcement-track{animation:none!important}}
