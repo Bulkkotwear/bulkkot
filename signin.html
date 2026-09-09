@@ -2,128 +2,614 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — BULKKOT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#070707">
+  <title>BULKKOT (불꽃) — VIP Portal & Access</title>
 
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="./css/signin.css">
+  <style>
+    :root {
+      --bg: #070707;
+      --card: #0d0d0d;
+      --border: #1f1f1f;
+      --border-focus: #444;
+      --text: #f5f5f5;
+      --muted: #808080;
+      --red: #e31b23;
+      --green: #31c48d;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .auth-layout {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+
+    /* LEFT EDITORIAL PANEL */
+    .auth-editorial {
+      position: relative;
+      min-height: 100vh;
+      background: #0a0a0a;
+      overflow: hidden;
+    }
+
+    .editorial-backdrop {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png');
+      background-size: cover;
+      background-position: center 20%;
+      filter: grayscale(100%) brightness(35%);
+      transform: scale(1.03);
+    }
+
+    .auth-editorial::after {
+      content: "불꽃";
+      position: absolute;
+      right: -5vw;
+      bottom: -4vw;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: clamp(200px, 22vw, 380px);
+      font-weight: 900;
+      line-height: 1;
+      color: rgba(255, 255, 255, 0.03);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .editorial-content {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      padding: 48px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(7,7,7,0.3) 0%, rgba(7,7,7,0.88) 100%);
+    }
+
+    .editorial-brand {
+      display: inline-flex;
+      flex-direction: column;
+      width: fit-content;
+    }
+
+    .kr-logo {
+      font-family: 'Noto Sans KR', sans-serif;
+      color: var(--red);
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+    }
+
+    .en-logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.35em;
+      margin-top: 2px;
+    }
+
+    .editorial-copy {
+      max-width: 500px;
+    }
+
+    .editorial-pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      color: var(--red);
+      margin-bottom: 20px;
+    }
+
+    .editorial-copy h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: clamp(52px, 6vw, 92px);
+      line-height: 0.9;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
+    }
+
+    .fire-text {
+      color: var(--red);
+    }
+
+    .editorial-copy p {
+      color: #999;
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 380px;
+    }
+
+    .editorial-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      font-weight: 700;
+      color: #555;
+      letter-spacing: 0.18em;
+    }
+
+    /* RIGHT AUTH HUB */
+    .auth-hub {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 36px;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+    }
+
+    .auth-card {
+      width: min(100%, 420px);
+    }
+
+    .auth-mobile-header {
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .mobile-logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+    }
+
+    .mobile-logo span {
+      color: var(--red);
+      margin-right: 4px;
+    }
+
+    .mobile-exit {
+      font-size: 18px;
+      color: #888;
+      padding: 4px 8px;
+    }
+
+    .auth-lead {
+      margin-bottom: 24px;
+    }
+
+    .auth-eyebrow {
+      display: block;
+      color: var(--red);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      margin-bottom: 8px;
+    }
+
+    .auth-lead h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .auth-lead p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* TAB SWITCHER */
+    .auth-switch-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .auth-switch-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #666;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      padding: 12px 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .auth-switch-btn.active {
+      color: #fff;
+      border-bottom-color: var(--red);
+    }
+
+    /* GOOGLE OAUTH */
+    .luxury-google-btn {
+      width: 100%;
+      min-height: 48px;
+      background: #fff;
+      color: #000;
+      border: 1px solid #fff;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .luxury-google-btn:hover {
+      background: #f0f0f0;
+      transform: translateY(-1px);
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0;
+      color: #444;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+    }
+
+    .auth-divider::before, .auth-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* FORM FIELDS */
+    .form-field-wrap {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-field-wrap label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      color: #aaa;
+      margin-bottom: 7px;
+    }
+
+    .field-label-split {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+
+    .field-label-split label {
+      margin-bottom: 0;
+    }
+
+    .forgot-link {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 10px;
+      cursor: pointer;
+    }
+    .forgot-link:hover { color: #fff; }
+
+    .form-field-wrap input {
+      width: 100%;
+      height: 48px;
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 14px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .form-field-wrap input:focus {
+      border-color: var(--border-focus);
+      background: #141414;
+    }
+
+    .form-field-wrap.has-error input {
+      border-color: var(--red);
+    }
+
+    .field-error-msg {
+      color: var(--red);
+      font-size: 10px;
+      font-weight: 600;
+      margin-top: 5px;
+      min-height: 14px;
+    }
+
+    /* PASSWORD WRAPPER */
+    .pwd-input-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .pwd-input-box input {
+      padding-right: 64px;
+    }
+
+    .pwd-toggle-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      padding: 6px;
+    }
+    .pwd-toggle-btn:hover { color: #fff; }
+
+    /* FEEDBACK BANNER */
+    .auth-feedback-banner {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 4px;
+      font-size: 11px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .auth-feedback-banner.is-error {
+      display: block;
+      background: rgba(227, 27, 35, 0.08);
+      border: 1px solid rgba(227, 27, 35, 0.3);
+      color: #ff7777;
+    }
+    .auth-feedback-banner.is-success {
+      display: block;
+      background: rgba(49, 196, 141, 0.08);
+      border: 1px solid rgba(49, 196, 141, 0.3);
+      color: var(--green);
+    }
+
+    /* SUBMIT BUTTON */
+    .auth-submit-btn {
+      position: relative;
+      width: 100%;
+      min-height: 50px;
+      background: var(--text);
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .auth-submit-btn:hover {
+      background: #fff;
+      transform: translateY(-1px);
+    }
+
+    .auth-submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #666;
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    .auth-submit-btn.is-loading #txtSubmit { display: none; }
+    .auth-submit-btn.is-loading .btn-spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* LEGAL & EXIT */
+    .auth-legal-note {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .auth-legal-note p {
+      font-size: 10px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .auth-legal-note a {
+      color: #888;
+      text-decoration: underline;
+    }
+
+    .exit-store-link {
+      display: block;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #777;
+      margin-top: 24px;
+      transition: color 0.15s ease;
+    }
+    .exit-store-link:hover { color: #fff; }
+
+    /* RESPONSIVE MEDIA QUERIES */
+    @media (max-width: 900px) {
+      .auth-layout {
+        grid-template-columns: 1fr;
+      }
+      .auth-editorial {
+        display: none;
+      }
+      .auth-hub {
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 30px 20px;
+        border-left: none;
+      }
+      .auth-mobile-header {
+        display: flex;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <main class="auth-page">
+  <main class="auth-layout">
 
-    <!-- LEFT BRAND PANEL -->
-    <section class="auth-visual">
-      <div class="visual-overlay"></div>
-      <div class="visual-content">
-        <a href="./index.html" class="brand">
-          <span class="brand-kr">불꽃</span>
-          <span class="brand-en">BULKKOT</span>
+    <!-- LEFT BRAND EDITORIAL PANEL -->
+    <section class="auth-editorial">
+      <div class="editorial-backdrop"></div>
+      <div class="editorial-content">
+        <a href="./index.html" class="editorial-brand" aria-label="Return home">
+          <span class="kr-logo">불꽃</span>
+          <span class="en-logo">BULKKOT</span>
         </a>
-        <div class="visual-copy">
-          <span class="eyebrow">DROP 001</span>
-          <h1>WEAR<br>YOUR<br><span>FIRE.</span></h1>
-          <p>Korean-inspired essentials. Built for everyday movement.</p>
+
+        <div class="editorial-copy">
+          <span class="editorial-pill">DROP 001 · VIP ACCESS</span>
+          <h1>WEAR<br>YOUR<br><span class="fire-text">FIRE.</span></h1>
+          <p>Architectural streetwear silhouettes tailored from luxury heavyweight combed cotton. Quiet design, uncompromised presence.</p>
         </div>
-        <div class="visual-footer">
-          <span>PREMIUM EVERYDAY WEAR</span>
-          <span>© BULKKOT</span>
+
+        <div class="editorial-footer">
+          <span>KOREAN-INSPIRED MINIMALISM</span>
+          <span>EST. 2026</span>
         </div>
       </div>
     </section>
 
-    <!-- RIGHT AUTH PANEL -->
-    <section class="auth-panel">
-      <div class="auth-container">
-        <!-- MOBILE BRAND -->
-        <a href="./index.html" class="mobile-brand">
-          <span>불꽃</span>BULKKOT
-        </a>
+    <!-- RIGHT ACTION HUB PANEL -->
+    <section class="auth-hub">
+      <div class="auth-card">
 
-        <!-- HEADER -->
-        <div class="auth-header">
-          <span class="auth-kicker">WELCOME BACK</span>
-          <h2 id="authTitle">Sign in</h2>
-          <p id="authSubtitle">Access your BULKKOT account and orders.</p>
+        <!-- Mobile Header Bar -->
+        <div class="auth-mobile-header">
+          <a href="./index.html" class="mobile-logo">
+            <span>불꽃</span> BULKKOT
+          </a>
+          <a href="./index.html" class="mobile-exit" aria-label="Close">✕</a>
         </div>
 
-        <!-- AUTH SWITCH -->
-        <div class="auth-tabs">
-          <button type="button" class="auth-tab active" id="loginTab">SIGN IN</button>
-          <button type="button" class="auth-tab" id="signupTab">CREATE ACCOUNT</button>
+        <!-- Section Lead Title -->
+        <div class="auth-lead">
+          <span class="auth-eyebrow">EXCLUSIVE CLIENT PORTAL</span>
+          <h2 id="authModeHeading">SIGN IN</h2>
+          <p id="authModeSubtitle">Access your saved dispatch addresses, track shipments live, and secure your silhouettes.</p>
         </div>
 
-        <!-- GOOGLE -->
-        <button type="button" class="google-btn" id="googleBtn">
-          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="#4285F4" d="M21.35 12.23c0-.78-.07-1.53-.22-2.25H12v4.26h5.23a4.46 4.46 0 0 1-1.94 2.93v2.44h3.14c1.84-1.69 2.92-4.18 2.92-7.38Z"/>
-            <path fill="#34A853" d="M12 21.6c2.63 0 4.84-.87 6.45-2.36l-3.14-2.44c-.87.58-1.98.93-3.31.93-2.54 0-4.69-1.72-5.46-4.03H3.3v2.52A9.74 9.74 0 0 0 12 21.6Z"/>
-            <path fill="#FBBC05" d="M6.54 13.7a5.86 5.86 0 0 1 0-3.76V7.42H3.3a9.72 9.72 0 0 0 0 8.8l3.24-2.52Z"/>
-            <path fill="#EA4335" d="M12 5.9c1.43 0 2.72.49 3.73 1.46l2.8-2.8C16.83 2.99 14.63 2.1 12 2.1a9.74 9.74 0 0 0-8.7 5.32l3.24 2.52C7.31 7.63 9.46 5.9 12 5.9Z"/>
+        <!-- Auth Tabs Switch -->
+        <div class="auth-switch-bar">
+          <button type="button" class="auth-switch-btn active" id="btnTabLogin">SIGN IN</button>
+          <button type="button" class="auth-switch-btn" id="btnTabSignup">CREATE ACCOUNT</button>
+        </div>
+
+        <!-- Google OAuth Button -->
+        <button type="button" class="luxury-google-btn" id="btnGoogleAuth">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
           <span>Continue with Google</span>
         </button>
 
-        <!-- DIVIDER -->
-        <div class="divider"><span>OR</span></div>
+        <div class="auth-divider">
+          <span>OR CONTINUE WITH EMAIL</span>
+        </div>
 
-        <!-- FORM -->
-        <form id="authForm" novalidate>
-          <!-- NAME -->
-          <div class="field signup-only" id="nameField">
-            <label for="name">FULL NAME</label>
-            <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name">
-            <small class="field-error" id="nameError"></small>
+        <!-- Form Elements -->
+        <form id="authMainForm" novalidate>
+          <div class="form-field-wrap signup-field" id="wrapFullName" style="display: none;">
+            <label for="inputFullName">FULL NAME</label>
+            <input type="text" id="inputFullName" name="full_name" placeholder="e.g. Garima Singh" autocomplete="name">
+            <span class="field-error-msg" id="errFullName"></span>
           </div>
 
-          <!-- EMAIL -->
-          <div class="field">
-            <label for="email">EMAIL ADDRESS</label>
-            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
-            <small class="field-error" id="emailError"></small>
+          <div class="form-field-wrap">
+            <label for="inputEmail">EMAIL ADDRESS</label>
+            <input type="email" id="inputEmail" name="email" placeholder="name@domain.com" autocomplete="email" required>
+            <span class="field-error-msg" id="errEmail"></span>
           </div>
 
-          <!-- PASSWORD -->
-          <div class="field">
-            <div class="label-row">
-              <label for="password">PASSWORD</label>
-              <button type="button" class="forgot-btn" id="forgotBtn">Forgot password?</button>
+          <div class="form-field-wrap">
+            <div class="field-label-split">
+              <label for="inputPassword">PASSWORD</label>
+              <button type="button" class="forgot-link" id="btnForgotPwd">Forgot password?</button>
             </div>
-            <div class="password-wrap">
-              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
-              <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password">SHOW</button>
+            <div class="pwd-input-box">
+              <input type="password" id="inputPassword" name="password" placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="pwd-toggle-btn" id="btnTogglePwd" aria-label="Toggle password view">SHOW</button>
             </div>
-            <small class="field-error" id="passwordError"></small>
+            <span class="field-error-msg" id="errPassword"></span>
           </div>
 
-          <!-- CONFIRM PASSWORD -->
-          <div class="field signup-only" id="confirmField">
-            <label for="confirmPassword">CONFIRM PASSWORD</label>
-            <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm your password">
-            <small class="field-error" id="confirmError"></small>
+          <div class="form-field-wrap signup-field" id="wrapConfirmPwd" style="display: none;">
+            <label for="inputConfirmPassword">CONFIRM PASSWORD</label>
+            <input type="password" id="inputConfirmPassword" name="confirm_password" placeholder="Repeat your password" autocomplete="new-password">
+            <span class="field-error-msg" id="errConfirmPwd"></span>
           </div>
 
-          <!-- MESSAGE -->
-          <div class="auth-message" id="authMessage" role="alert"></div>
+          <div class="auth-feedback-banner" id="authFeedbackBanner" role="alert"></div>
 
-          <!-- SUBMIT -->
-          <button type="submit" class="submit-btn" id="submitBtn">
-            <span id="submitText">SIGN IN</span>
-            <span class="loader" id="submitLoader"></span>
+          <button type="submit" class="auth-submit-btn" id="btnSubmitAuth">
+            <span id="txtSubmit">SIGN IN</span>
+            <div class="btn-spinner" id="spinSubmit"></div>
           </button>
         </form>
 
-        <!-- FOOTER -->
-        <div class="auth-terms">
-          <p>By continuing, you agree to BULKKOT's <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
+        <div class="auth-legal-note">
+          <p>By proceeding, you agree to BULKKOT's <a href="./index.html#terms">Terms of Service</a> & <a href="./index.html#privacy">Privacy Protocol</a>.</p>
         </div>
 
-        <!-- BACK -->
-        <a href="./index.html" class="back-home">← Back to store</a>
+        <a href="./index.html" class="exit-store-link">← Return to Storefront</a>
       </div>
     </section>
   </main>
