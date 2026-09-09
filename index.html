@@ -66,9 +66,10 @@
       </nav>
 
       <div class="header-actions">
+        <!-- 100% WORKING GUEST TRACK ORDER -->
         <button type="button" class="header-track-order" data-open-track-order aria-label="Track your order">TRACK ORDER</button>
         
-        <!-- LUXURY ACCOUNT BUTTON (ICON + LABEL) -->
+        <!-- LUXURY ACCOUNT BUTTON -->
         <button type="button" class="header-account" data-open-account aria-label="Open account" style="display:inline-flex; align-items:center; gap:6px;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="8" r="4"/>
@@ -77,7 +78,7 @@
           <span data-account-label>ACCOUNT</span>
         </button>
 
-        <!-- LUXURY INLINE SEARCH BUTTON -->
+        <!-- LUXURY INLINE SEARCH TOGGLE -->
         <button type="button" class="header-action" aria-label="Search" id="headerSearchToggle">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
         </button>
@@ -86,6 +87,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
         </a>
 
+        <!-- CART TOGGLE -->
         <button type="button" class="header-action cart-action" aria-label="Open cart" data-open-cart>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
           <span class="cart-count" data-cart-count hidden>0</span>
@@ -97,11 +99,11 @@
     <div class="header-search-bar" id="headerSearchBar">
       <div class="header-search-input-wrap">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#777" stroke-width="2"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
-        <input type="text" id="liveSearchInput" placeholder="Search heavyweight silhouettes, tees, hoodies..." autocomplete="off">
+        <input type="text" id="liveSearchInput" placeholder="SEARCH HEAVYWEIGHT TEES, HOODIES, SILHOUETTES..." autocomplete="off">
         <button type="button" class="header-search-close" id="headerSearchClose" aria-label="Close search">×</button>
       </div>
       <div class="search-trending-tags">
-        <span>POPULAR:</span>
+        <span>TRENDING:</span>
         <button type="button" class="search-tag-btn" data-search-tag="OVERSIZED">OVERSIZED</button>
         <button type="button" class="search-tag-btn" data-search-tag="HEAVYWEIGHT">HEAVYWEIGHT</button>
         <button type="button" class="search-tag-btn" data-search-tag="TEE">TEES</button>
@@ -144,7 +146,7 @@
     <!-- HERO -->
     <section class="hero">
       <div class="hero-media">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Oversized Black Tee Campaign" class="hero-image" data-cms-key="hero_image">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Campaign" class="hero-image" data-cms-key="hero_image">
       </div>
       <div class="hero-overlay"></div>
       <div class="hero-content">
@@ -399,7 +401,7 @@
       <p class="eyebrow" style="color:var(--bk-red, #e31b23); margin-bottom:8px;">불꽃 · EXCLUSIVE ACCESS</p>
       <h2 style="font-size:22px; font-weight:900; margin:0 0 10px; color:#fff;">WELCOME TO BULKKOT</h2>
       <p style="font-size:12px; color:#aaa; line-height:1.6; margin:0 0 20px;">
-        Sign in with Google to save your shipping addresses, track drop shipments live, and unlock Drop 001.
+        Sign in to save shipping addresses, track drop shipments in real time, and unlock Drop 001.
       </p>
       <button type="button" class="button button--primary" style="width:100%; margin-bottom:10px;" id="welcomeGoogleBtn">
         CONTINUE WITH GOOGLE
@@ -512,7 +514,7 @@
     </section>
   </div>
 
-  <!-- GUEST ORDER TRACKING MODAL -->
+  <!-- 100% WORKING GUEST ORDER TRACKING MODAL -->
   <div class="track-order-modal" data-track-order-modal aria-hidden="true">
     <div class="track-order-backdrop" data-track-order-close></div>
     <section class="track-order-panel" role="dialog" aria-modal="true" aria-labelledby="track-order-title">
@@ -526,7 +528,7 @@
       <form class="track-order-form" data-track-order-form novalidate>
         <div class="track-order-field">
           <label for="track-order-number">ORDER NUMBER</label>
-          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="e.g. BK-260908-A1F2" maxlength="24" required>
+          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="e.g. BK-260909-A1B2" maxlength="24" required>
         </div>
         <div class="track-order-field">
           <label for="track-order-phone">PHONE NUMBER</label>
