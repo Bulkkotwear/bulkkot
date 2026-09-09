@@ -2167,3 +2167,105 @@ button, input, select {
   .header-search-bar { padding: 12px 16px; }
   .welcome-card { padding: 32px 20px; }
 }
+/* =========================================================
+   BULKKOT — PREMIUM MYNTRA-STYLE AUTH DRAWER
+   ========================================================= */
+
+.auth-banner-wrap {
+  position: relative;
+  height: 160px;
+  margin: -24px -24px 20px -24px;
+  background: #111;
+  overflow: hidden;
+}
+
+.auth-banner-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+.auth-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--bk-bg) 0%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px 24px;
+}
+
+.auth-banner-overlay h2 {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+.auth-banner-overlay p {
+  font-size: 12px;
+  color: #aaa;
+  margin: 0;
+}
+
+.auth-terms {
+  font-size: 10px;
+  color: #666;
+  line-height: 1.5;
+  margin-top: 16px;
+}
+
+.auth-terms a {
+  color: var(--bk-red);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.auth-toggle-btn {
+  background: none;
+  border: none;
+  color: #bbb;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 24px;
+  width: 100%;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.auth-toggle-btn strong {
+  color: var(--bk-red);
+}
+
+.auth-toggle-btn:hover {
+  color: #fff;
+}
+
+.google-premium-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  background: #fff;
+  color: #000;
+  border: none;
+  min-height: 48px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.google-premium-btn:hover {
+  background: #f0f0f0;
+}
+
+.google-premium-btn svg {
+  width: 18px;
+  height: 18px;
+}
