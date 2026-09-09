@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 12.0 (Unified Core, Bug-Free Navigation, Premium Auth & Search)
+ * Version: 13.0 (Zero-Freeze Navigation, Execute Search, Instant Auth Redirect)
  */
 (function () {
   'use strict';
@@ -13,12 +13,14 @@
     : null;
 
   window.bulkkotSupabase = supabase;
+  window.BULKKOT_SUPABASE_CLIENT = supabase;
 
   let liveProducts = [];
   const selectedSizes = {};
   let activeCategory = "all";
   let activeSearch = "";
   let activeSort = "featured";
+  let cachedUser = null;
 
   function escapeHTML(str) {
     return String(str ?? '')
@@ -64,60 +66,27 @@
   }
 
   /* =========================================================
-     FIRST-VISIT WELCOME POP-UP
+     EXECUTE INLINE SEARCH
      ========================================================= */
-  function initWelcomePopup() {
-    const popup = document.getElementById('welcomePopupModal');
-    const closeBtn = document.getElementById('welcomePopupClose');
-    const googleBtn = document.getElementById('welcomeGoogleBtn');
-    const emailBtn = document.getElementById('welcomeEmailBtn');
+  function executeSearchQuery(query) {
+    activeSearch = String(query || '').trim().toLowerCase();
+    renderProducts(getFilteredProducts());
 
-    if (!popup) return;
-
-    const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
-    if (!hasSeen) {
-      setTimeout(() => {
-        popup.classList.add('is-open');
-        popup.setAttribute('aria-hidden', 'false');
-      }, 1500);
+    const shopSection = document.getElementById('shop');
+    if (shopSection) {
+      shopSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function dismissPopup() {
-      popup.classList.remove('is-open');
-      popup.setAttribute('aria-hidden', 'true');
-      localStorage.setItem('bulkkot_welcome_seen', 'true');
-    }
-
-    closeBtn?.addEventListener('click', dismissPopup);
-    popup.addEventListener('click', (e) => {
-      if (e.target === popup) dismissPopup();
-    });
-
-    googleBtn?.addEventListener('click', async () => {
-      dismissPopup();
-      if (!supabase) return;
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
-    });
-
-    emailBtn?.addEventListener('click', () => {
-      dismissPopup();
-      const accountModal = document.querySelector('[data-account-modal]');
-      accountModal?.classList.add('is-open');
-      document.body.classList.add('modal-open');
-    });
+    const searchBar = document.getElementById('headerSearchBar');
+    if (searchBar) searchBar.classList.remove('is-active');
   }
 
-  /* =========================================================
-     INLINE EXPANDABLE HEADER SEARCH
-     ========================================================= */
   function initInlineSearch() {
     const toggleBtns = document.querySelectorAll('#headerSearchToggle, [data-open-search]');
     const searchBar = document.getElementById('headerSearchBar');
     const closeBtn = document.getElementById('headerSearchClose');
     const input = document.getElementById('liveSearchInput');
+    const form = document.getElementById('liveSearchForm');
 
     toggleBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -129,7 +98,8 @@
       });
     });
 
-    closeBtn?.addEventListener('click', () => {
+    closeBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
       searchBar?.classList.remove('is-active');
       activeSearch = "";
       if (input) input.value = "";
@@ -141,164 +111,69 @@
       renderProducts(getFilteredProducts());
     });
 
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      executeSearchQuery(input?.value);
+    });
+
     document.querySelectorAll('[data-search-tag]').forEach(btn => {
       btn.addEventListener('click', () => {
         const tag = btn.dataset.searchTag.toLowerCase();
         if (input) input.value = tag;
-        activeSearch = tag;
-        renderProducts(getFilteredProducts());
-        document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+        executeSearchQuery(tag);
       });
     });
   }
 
   /* =========================================================
-     PREMIUM MYNTRA-STYLE AUTH & ACCOUNT MODAL
+     FAST NON-BLOCKING AUTH
      ========================================================= */
   async function initAuth() {
     if (!supabase) return;
 
-    async function updateAuthUI() {
-      const { data: { user } } = await supabase.auth.getUser();
+    function syncUI(user) {
+      cachedUser = user;
       const accountLabel = document.querySelector('[data-account-label]');
-      const authView = document.querySelector('[data-account-auth]');
-      const userView = document.querySelector('[data-account-user]');
       const userEmailEl = document.querySelector('[data-account-user-email]');
+      const avatarEl = document.querySelector('[data-user-avatar]');
+      const headingEl = document.querySelector('[data-account-name-heading]');
 
       if (user) {
-        const displayName = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
-        if (accountLabel) accountLabel.textContent = displayName;
-        if (authView) authView.hidden = true;
-        if (userView) userView.hidden = false;
+        const name = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
+        if (accountLabel) accountLabel.textContent = name.split(' ')[0];
         if (userEmailEl) userEmailEl.textContent = user.email;
+        if (headingEl) headingEl.textContent = name;
+        if (avatarEl) avatarEl.textContent = name.charAt(0);
         loadCustomerProfile(user.id);
         loadCustomerOrders(user.id);
       } else {
         if (accountLabel) accountLabel.textContent = 'ACCOUNT';
-        if (authView) authView.hidden = false;
-        if (userView) userView.hidden = true;
       }
     }
 
-    supabase.auth.onAuthStateChange(() => {
-      updateAuthUI();
+    supabase.auth.getSession().then(({ data }) => {
+      syncUI(data?.session?.user || null);
+    });
+
+    supabase.auth.onAuthStateChange((_, session) => {
+      syncUI(session?.user || null);
       if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
     });
 
-    updateAuthUI();
-
-    const loginForm = document.querySelector('[data-account-login-form]');
-    const msgEl = document.getElementById('authInlineError');
-    const signupToggle = document.querySelector('[data-account-signup-toggle]');
-    const modeText = document.getElementById('auth-mode-text');
-    const nameField = document.getElementById('account-name-field');
-    const nameInput = document.getElementById('account-name-input');
-
-    // Smooth Toggle between Login & Signup
-    signupToggle?.addEventListener('click', () => {
-      const isSignUp = loginForm.dataset.mode === 'signup';
-      const submitBtn = loginForm.querySelector('.account-submit');
-      if (msgEl) msgEl.textContent = '';
-
-      if (isSignUp) {
-        loginForm.dataset.mode = 'signin';
-        if(nameField) nameField.style.display = 'none';
-        if(nameInput) nameInput.removeAttribute('required');
-        if(modeText) modeText.innerHTML = 'Login <span style="font-weight:400; font-size:18px;">or</span> Signup';
-        if(submitBtn) submitBtn.textContent = 'CONTINUE';
-        signupToggle.innerHTML = 'New to BULKKOT? <strong>Create an account</strong>';
-      } else {
-        loginForm.dataset.mode = 'signup';
-        if(nameField) nameField.style.display = 'flex';
-        if(nameInput) nameInput.setAttribute('required', 'true');
-        if(modeText) modeText.innerHTML = 'Create Account';
-        if(submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
-        signupToggle.innerHTML = 'Already have an account? <strong>Login here</strong>';
-      }
-    });
-
-    // Form Submit Logic
-    loginForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = loginForm.querySelector('#account-email')?.value.trim();
-      const password = loginForm.querySelector('#account-password')?.value;
-      const fullName = nameInput?.value.trim();
-      const submitBtn = loginForm.querySelector('.account-submit');
-      const isSignUp = loginForm.dataset.mode === 'signup';
-
-      if (!email || !password || (isSignUp && !fullName)) {
-        if (msgEl) msgEl.textContent = 'Please fill in all required fields.';
-        return;
-      }
-
-      if(submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'PROCESSING...';
-      }
-      if (msgEl) msgEl.textContent = '';
-
-      try {
-        if (isSignUp) {
-          const { data, error } = await supabase.auth.signUp({
-            email, 
-            password,
-            options: { data: { full_name: fullName } }
-          });
-          if (error) throw error;
-          
-          if (data?.user) {
-            await supabase.from('customer_profiles').upsert({
-              id: data.user.id,
-              full_name: fullName,
-              updated_at: new Date().toISOString()
-            });
-          }
-          if (msgEl) {
-            msgEl.style.color = '#31c48d';
-            msgEl.textContent = 'Account created successfully!';
-          }
-        } else {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-        }
-      } catch (err) {
-        if (msgEl) {
-          msgEl.style.color = '#ff7777';
-          msgEl.textContent = err.message || 'Authentication failed.';
-        }
-      } finally {
-        if(submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'CONTINUE';
-        }
-      }
-    });
-
-    // Google OAuth
-    document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
-    });
-
-    // Sign Out
     const signoutBtn = document.querySelector('[data-account-signout]');
     signoutBtn?.addEventListener('click', async () => {
       signoutBtn.textContent = 'SIGNING OUT...';
       await supabase.auth.signOut();
-      signoutBtn.textContent = 'SIGN OUT';
+      window.location.reload();
     });
 
-    // Profile Details Update
     const profileForm = document.querySelector('[data-account-profile-form]');
     profileForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!cachedUser) return;
 
       const profileData = {
-        id: user.id,
+        id: cachedUser.id,
         full_name: profileForm.querySelector('#account-name')?.value.trim(),
         phone: profileForm.querySelector('#account-phone')?.value.trim(),
         shipping_address: profileForm.querySelector('#account-address')?.value.trim(),
@@ -310,19 +185,32 @@
 
       const profMsg = document.querySelector('[data-profile-message]');
       const btn = profileForm.querySelector('button');
-      if(btn) { btn.disabled = true; btn.textContent = 'SAVING...'; }
+      if (btn) { btn.disabled = true; btn.textContent = 'SAVING...'; }
 
       try {
         const { error } = await supabase.from('customer_profiles').upsert(profileData);
         if (error) throw error;
-        if (profMsg) profMsg.textContent = 'Profile saved successfully!';
+        if (profMsg) profMsg.textContent = 'Saved successfully!';
         setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
       } catch (err) {
         if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
       } finally {
-        if(btn) { btn.disabled = false; btn.textContent = 'SAVE PROFILE'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'SAVE PROFILE'; }
       }
     });
+  }
+
+  function handleAccountClick(e) {
+    e.preventDefault();
+    if (!cachedUser) {
+      window.location.href = './signin.html';
+      return;
+    }
+
+    const accountModal = document.querySelector("[data-account-modal]");
+    accountModal?.classList.add("is-open");
+    accountModal?.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
   }
 
   async function loadCustomerProfile(userId) {
@@ -347,72 +235,28 @@
     try {
       const { data, error } = await supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false });
       if (error || !data || !data.length) {
-        ordersBox.innerHTML = '<p style="color:#777; font-size:12px; margin:10px 0;">No past orders found.</p>';
+        ordersBox.innerHTML = '<p style="color:#777; font-size:11px; margin:10px 0;">No orders found yet.</p>';
         return;
       }
       ordersBox.innerHTML = data.map(o => `
-        <div style="border: 1px solid #222; border-radius:6px; padding:10px; margin-bottom:8px; background:#0c0c0c;">
+        <div style="border: 1px solid #222; border-radius:6px; padding:12px; margin-bottom:8px; background:#0c0c0c;">
           <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
-            <span>${escapeHTML(o.order_number || o.id.slice(0, 8))}</span>
+            <span style="color:#fff;">${escapeHTML(o.order_number || o.id.slice(0, 8))}</span>
             <span style="color:var(--bk-red, #e31b23);">${escapeHTML(o.order_status || 'PLACED')}</span>
           </div>
-          <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:4px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:6px;">
             <span>${new Date(o.created_at).toLocaleDateString()}</span>
-            <strong>${formatPrice(o.total)}</strong>
+            <strong style="color:#fff;">${formatPrice(o.total)}</strong>
           </div>
         </div>
       `).join('');
     } catch (e) {
-      ordersBox.innerHTML = '<p style="color:#777; font-size:12px;">Failed to load order history.</p>';
+      ordersBox.innerHTML = '<p style="color:#777; font-size:11px;">Unable to fetch orders.</p>';
     }
   }
 
   /* =========================================================
-     DYNAMIC SETTINGS SYNC
-     ========================================================= */
-  async function syncStoreSettings() {
-    if (!supabase) return;
-    try {
-      const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
-      if (!data) return;
-
-      const rawPhone = String(data.support_phone || '').replace(/\D/g, '');
-      const whatsappBtn = document.querySelector('.whatsapp-float');
-      if (whatsappBtn && rawPhone) {
-        whatsappBtn.href = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hi BULKKOT, I have an inquiry about Drop 001.')}`;
-      }
-
-      const email = data.support_email;
-      if (email) {
-        document.querySelectorAll('a[href^="mailto:"]').forEach(a => a.href = `mailto:${email}`);
-        document.querySelectorAll('[data-cms-key="contact_email"]').forEach(el => el.textContent = email);
-      }
-    } catch (e) {}
-  }
-
-  /* =========================================================
-     READ-ONLY CMS LOADER
-     ========================================================= */
-  async function loadCMSContent() {
-    if (!supabase) return;
-    try {
-      const { data, error } = await supabase.from("site_content").select("content_key, content_value, image_url, content_type");
-      if (error || !data) return;
-
-      data.forEach(row => {
-        const key = row.content_key;
-        const val = row.content_value || row.image_url || "";
-        const type = row.content_type || "text";
-        document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
-          if (type === "image" || el.tagName === "IMG") el.src = val;
-          else el.textContent = val;
-        });
-      });
-    } catch (e) {}
-  }
-
-  /* =========================================================
-     CATALOGUE & PRODUCTS
+     PRODUCTS & CATALOGUE
      ========================================================= */
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
@@ -443,7 +287,7 @@
     const grid = document.getElementById("products-grid");
     if (!grid) return;
     if (!items.length) {
-      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No garments found matching your filter.</p>';
+      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No silhouettes found matching your search.</p>';
       return;
     }
 
@@ -484,7 +328,7 @@
   }
 
   /* =========================================================
-     PRODUCT DETAIL MODAL (PDP) & RELATED PRODUCTS
+     PDP MODAL
      ========================================================= */
   let currentPdpProduct = null;
   let currentPdpSize = 'M';
@@ -611,10 +455,9 @@
   }
 
   /* =========================================================
-     UNIVERSAL MODAL & NAVIGATION BINDINGS
+     NAVIGATION & MODAL BINDINGS
      ========================================================= */
   function initModalsAndNavigation() {
-    // Mobile Drawer
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
     document.querySelectorAll("[data-open-drawer]").forEach(btn => btn.addEventListener("click", () => {
       mobileDrawer?.classList.add("is-open");
@@ -625,53 +468,43 @@
       document.body.classList.remove("modal-open");
     }));
 
-    // Policy & About Modals
-    document.querySelectorAll("[data-open-policy]").forEach(btn => btn.addEventListener("click", (e) => { e.preventDefault(); document.querySelector("[data-policy-modal]")?.classList.add("is-open"); }));
-    document.querySelectorAll("[data-close-policy]").forEach(btn => btn.addEventListener("click", () => document.querySelector("[data-policy-modal]")?.classList.remove("is-open")));
-    
-    document.querySelectorAll("[data-open-about]").forEach(btn => btn.addEventListener("click", () => document.querySelector("[data-about-modal]")?.classList.add("is-open")));
-    document.querySelectorAll("[data-close-about]").forEach(btn => btn.addEventListener("click", () => document.querySelector("[data-about-modal]")?.classList.remove("is-open")));
+    document.querySelectorAll("[data-open-account]").forEach(btn => {
+      btn.addEventListener("click", handleAccountClick);
+    });
+    document.querySelectorAll("[data-account-close]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelector("[data-account-modal]")?.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+      });
+    });
 
-    document.querySelectorAll("[data-size-guide-open]").forEach(btn => btn.addEventListener("click", () => document.querySelector("[data-size-guide-modal]")?.classList.add("is-open")));
-    document.querySelectorAll("[data-size-guide-close]").forEach(btn => btn.addEventListener("click", () => document.querySelector("[data-size-guide-modal]")?.classList.remove("is-open")));
-
-    // Account Modal
-    const accountModal = document.querySelector("[data-account-modal]");
-    document.querySelectorAll("[data-open-account]").forEach(btn => btn.addEventListener("click", () => {
-      accountModal?.classList.add("is-open");
-      document.body.classList.add("modal-open");
-    }));
-    document.querySelectorAll("[data-account-close]").forEach(btn => btn.addEventListener("click", () => {
-      accountModal?.classList.remove("is-open");
-      document.body.classList.remove("modal-open");
-    }));
-
-    // 100% Working Track Order Modal
     const trackModal = document.querySelector("[data-track-order-modal]");
     const trackForm = trackModal?.querySelector("[data-track-order-form]");
     const trackMsg = trackModal?.querySelector("[data-track-order-message]");
     const trackResult = trackModal?.querySelector("[data-track-order-result]");
 
-    document.querySelectorAll("[data-open-track-order], [data-open-track]").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-open-track-order]").forEach(btn => btn.addEventListener("click", (e) => {
+      e.preventDefault();
       trackModal?.classList.add("is-open");
       document.body.classList.add("modal-open");
     }));
-    document.querySelectorAll("[data-track-order-close], [data-close-track]").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-track-order-close]").forEach(btn => btn.addEventListener("click", () => {
       trackModal?.classList.remove("is-open");
       document.body.classList.remove("modal-open");
     }));
 
     trackModal?.querySelector("[data-track-again]")?.addEventListener("click", () => {
-      if(trackResult) trackResult.hidden = true;
-      if(trackForm) trackForm.hidden = false;
+      if (trackResult) trackResult.hidden = true;
+      if (trackForm) trackForm.hidden = false;
       if (trackMsg) trackMsg.textContent = "";
     });
 
     trackForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const orderNumber = trackModal.querySelector("#track-order-number")?.value.trim().toUpperCase();
-      const rawInputPhone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
-      if (!orderNumber || !rawInputPhone) {
+      const phone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
+
+      if (!orderNumber || !phone) {
         if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone Number.";
         return;
       }
@@ -683,25 +516,24 @@
 
       try {
         if (!supabase) throw new Error("Database offline.");
-        const { data, error } = await supabase.rpc("lookup_guest_order", { p_order_number: orderNumber, p_phone: rawInputPhone });
+        const { data, error } = await supabase.rpc("lookup_guest_order", { p_order_number: orderNumber, p_phone: phone });
         if (error || !data) throw new Error("No shipment found.");
-        
+
         trackForm.hidden = true;
         trackResult.hidden = false;
         trackResult.querySelector("[data-track-result-number]").textContent = data.order_number;
         trackResult.querySelector("[data-track-result-status]").textContent = data.status || "PLACED";
-        trackResult.querySelector("[data-track-result-courier]").textContent = data.courier_partner || "Preparing";
-        trackResult.querySelector("[data-track-result-tracking]").textContent = data.awb_number || "Will update upon pickup";
+        trackResult.querySelector("[data-track-result-courier]").textContent = data.courier_partner || "In Preparation";
+        trackResult.querySelector("[data-track-result-tracking]").textContent = data.awb_number || "Assigned on dispatch";
 
-        const steps = ["PLACED", "PACKED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"];
-        const currentStatus = String(data.status || 'PLACED').toUpperCase().replace(/ /g, '_');
+        const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
+        const currentStatus = String(data.status || 'PLACED').toUpperCase().replace(/_/g, ' ');
         const curIdx = steps.indexOf(currentStatus) >= 0 ? steps.indexOf(currentStatus) : 0;
-        
+
         trackResult.querySelectorAll(".track-step").forEach((stepEl, idx) => {
           stepEl.classList.toggle("is-active", idx <= curIdx);
           stepEl.classList.toggle("is-current", idx === curIdx);
         });
-
       } catch (err) {
         if (trackMsg) trackMsg.textContent = err.message || "Failed to find order.";
       } finally {
@@ -710,17 +542,12 @@
       }
     });
 
-    // Global Dismiss on ESC
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        document.querySelector("[data-policy-modal]")?.classList.remove("is-open");
-        document.querySelector("[data-about-modal]")?.classList.remove("is-open");
-        document.querySelector("[data-size-guide-modal]")?.classList.remove("is-open");
-        accountModal?.classList.remove("is-open");
+        document.querySelector("[data-account-modal]")?.classList.remove("is-open");
         trackModal?.classList.remove("is-open");
         closePdpModal();
         document.getElementById('headerSearchBar')?.classList.remove('is-active');
-        document.getElementById('welcomePopupModal')?.classList.remove('is-open');
         if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
         mobileDrawer?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
@@ -728,7 +555,6 @@
     });
   }
 
-  // Delegated Clicks (Quick View, Size & Add to Bag)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -756,11 +582,8 @@
   function initStorefront() {
     initModalsAndNavigation();
     initCatalog();
-    loadCMSContent();
-    syncStoreSettings();
     initAuth();
     initInlineSearch();
-    initWelcomePopup();
 
     document.querySelectorAll("[data-shop-category]").forEach(btn => {
       btn.addEventListener("click", () => {
