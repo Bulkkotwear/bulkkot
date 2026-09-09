@@ -30,7 +30,7 @@
   let onlinePaymentNoticeSent=false;
   function openWhatsAppPayment(){
     const name=document.getElementById('chkName')?.value.trim()||'';
-    const total=document.querySelector('#cartSubmitOrderBtn')?.closest('.cart-drawer__footer')?.querySelector('.cart-total-strip strong')?.textContent||'';
+    const total=document.querySelector('#storefrontCheckoutForm .checkout-summary-total strong, #storefrontCheckoutForm .cart-total-strip strong')?.textContent||'';
     const message=`Hi BULKKOT, I want to make an online payment for my order.%0AName: ${encodeURIComponent(name)}%0AAmount: ${encodeURIComponent(total)}%0APlease share the UPI payment details.`;
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`,'_blank','noopener,noreferrer');
     onlinePaymentNoticeSent=true;
