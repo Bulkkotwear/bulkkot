@@ -28,6 +28,25 @@
   },true);
 
   let onlinePaymentNoticeSent=false;
+
+  function validateBeforePayment(){
+    const name=document.getElementById('chkName')?.value.trim()||'';
+    const phone=(document.getElementById('chkPhone')?.value||'').replace(/\D/g,'');
+    const email=document.getElementById('chkEmail')?.value.trim()||'';
+    const address=document.getElementById('chkAddress')?.value.trim()||'';
+    const city=document.getElementById('chkCity')?.value.trim()||'';
+    const state=document.getElementById('chkState')?.value.trim()||'';
+    const pin=document.getElementById('chkPincode')?.value.trim()||'';
+    const box=document.getElementById('checkoutInlineError');
+    const fail=(message,id)=>{if(box){box.textContent=message;box.style.display='block';box.setAttribute('role','alert');}document.getElementById(id)?.focus();return false;};
+    if(!name||!phone||!email||!address||!city||!state||!pin)return fail('Please complete all required delivery details.','chkName');
+    if(!/^[6-9]\d{9}$/.test(phone))return fail('Please enter a valid 10-digit Indian mobile number.','chkPhone');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return fail('Please enter a valid email address.','chkEmail');
+    if(!/^\d{6}$/.test(pin))return fail('Please enter a valid 6-digit pincode.','chkPincode');
+    if(box)box.style.display='none';
+    return true;
+  }
+
   function openWhatsAppPayment(){
     const name=document.getElementById('chkName')?.value.trim()||'';
     const total=document.querySelector('#storefrontCheckoutForm .checkout-summary-total strong, #storefrontCheckoutForm .cart-total-strip strong')?.textContent||'';
@@ -49,6 +68,10 @@
     if(e.target?.id!=='storefrontCheckoutForm')return;
     const online=e.target.querySelector('input[name="payment_mode"][value="online"]:checked');
     if(!online||onlinePaymentNoticeSent)return;
+    if(!validateBeforePayment()){
+      e.preventDefault();e.stopImmediatePropagation();
+      return;
+    }
     e.preventDefault();e.stopImmediatePropagation();
     openWhatsAppPayment();
   }
