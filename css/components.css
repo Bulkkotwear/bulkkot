@@ -16,7 +16,7 @@
 }
 
 /* =========================================================
-   1. ANNOUNCEMENT TICKER (FIXED OVERLAP)
+   1. ANNOUNCEMENT TICKER
    ========================================================= */
 .announcement-bar {
   background: #000;
@@ -204,7 +204,7 @@
 }
 
 /* =========================================================
-   3. EDITORIAL CAROUSEL (CLEAN SLIDER VIEW)
+   3. EDITORIAL CAROUSEL (ORIGINAL FULL WIDTH)
    ========================================================= */
 .editorial-section {
   position: relative;
@@ -589,7 +589,7 @@
 }
 
 /* =========================================================
-   5. MODALS & POLICY POPUPS (GUARANTEED OPEN)
+   5. MODALS & POLICY POPUPS
    ========================================================= */
 .content-modal,
 .size-guide-modal,
