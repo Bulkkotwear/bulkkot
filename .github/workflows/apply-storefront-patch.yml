@@ -1,0 +1,32 @@
+name: Apply BULKKOT storefront patch
+
+on:
+  push:
+    branches: [fix/storefront-production]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/storefront-production
+          fetch-depth: 0
+      - name: Apply surgical source patch
+        run: python scripts/patch_storefront.py
+      - name: Commit source patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet; then
+            echo 'No source changes required.'
+            exit 0
+          fi
+          git add index.html js/main.js js/cart.js
+          git commit -m 'fix: integrate storefront search and polish layer'
+          git push origin fix/storefront-production

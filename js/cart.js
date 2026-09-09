@@ -10,7 +10,7 @@
   let appliedCoupon = null;
   let storeSettings = { shipping_fee: 0, free_shipping_threshold: 0, support_phone: '919876543210' };
   let currentStep = 'bag'; // 'bag' or 'checkout'
-  let selectedPayment = 'online'; // 'online' or 'cod'
+  let selectedPayment = 'cod'; // 'cod' is the currently supported payment method
 
   const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
@@ -152,7 +152,9 @@
     if (appliedCoupon.min_order_value && subtotal < appliedCoupon.min_order_value) return 0;
 
     if (appliedCoupon.discount_type === 'percentage') {
-      return Math.round((subtotal * (Number(appliedCoupon.discount_value || 0) / 100)));
+      const rawDiscount = Math.round((subtotal * (Number(appliedCoupon.discount_value || 0) / 100)));
+      const maxDiscount = Number(appliedCoupon.max_discount || 0);
+      return maxDiscount > 0 ? Math.min(rawDiscount, maxDiscount) : rawDiscount;
     }
     return Math.min(subtotal, Number(appliedCoupon.discount_value || 0));
   }
@@ -494,7 +496,8 @@
         const customerPayload = {
           customer_name: name, customer_email: email, customer_phone: phone,
           shipping_address: address, shipping_city: city, shipping_state: state,
-          shipping_pincode: pincode, payment_method: selectedPayment
+          shipping_pincode: pincode, payment_method: selectedPayment,
+          coupon_code: appliedCoupon?.code || null
         };
 
         const { data, error } = await client.rpc('create_order', {
