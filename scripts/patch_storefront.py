@@ -56,7 +56,7 @@ for css_tag in [
 js_marker = '  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>'
 for js_tag in [
     '  <script src="js/storefront-fixes.js" defer></script>',
-    '  <script src="js/luxury-final.js" defer></script',
+    '  <script src="js/luxury-final.js" defer></script>',
     '  <script src="js/production-hardening.js" defer></script'
 ]:
     if js_tag not in s:
