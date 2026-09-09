@@ -151,7 +151,7 @@
     });
   }
 
-  /* =========================================================
+ /* =========================================================
      AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP)
      ========================================================= */
   async function initAuth() {
@@ -178,6 +178,152 @@
         if (userView) userView.hidden = true;
       }
     }
+
+    supabase.auth.onAuthStateChange(() => {
+      updateAuthUI();
+      if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
+    });
+
+    updateAuthUI();
+
+    const loginForm = document.querySelector('[data-account-login-form]');
+    const msgEl = document.getElementById('authInlineError');
+    const signupToggle = document.querySelector('[data-account-signup-toggle]');
+    const modeText = document.getElementById('auth-mode-text');
+    const nameField = document.getElementById('account-name-field');
+    const nameInput = document.getElementById('account-name-input');
+
+    // Smooth Toggle between Login & Signup
+    signupToggle?.addEventListener('click', () => {
+      const isSignUp = loginForm.dataset.mode === 'signup';
+      const submitBtn = loginForm.querySelector('.account-submit');
+      if (msgEl) msgEl.textContent = '';
+
+      if (isSignUp) {
+        // Switch to Login
+        loginForm.dataset.mode = 'signin';
+        nameField.style.display = 'none';
+        nameInput.removeAttribute('required');
+        modeText.innerHTML = 'Login <span style="font-weight:400; font-size:18px;">or</span> Signup';
+        submitBtn.textContent = 'CONTINUE';
+        signupToggle.innerHTML = 'New to BULKKOT? <strong>Create an account</strong>';
+      } else {
+        // Switch to Signup
+        loginForm.dataset.mode = 'signup';
+        nameField.style.display = 'flex';
+        nameInput.setAttribute('required', 'true');
+        modeText.innerHTML = 'Create Account';
+        submitBtn.textContent = 'CREATE ACCOUNT';
+        signupToggle.innerHTML = 'Already have an account? <strong>Login here</strong>';
+      }
+    });
+
+    // Handle Submit
+    loginForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = loginForm.querySelector('#account-email')?.value.trim();
+      const password = loginForm.querySelector('#account-password')?.value;
+      const fullName = nameInput?.value.trim();
+      const submitBtn = loginForm.querySelector('.account-submit');
+      const isSignUp = loginForm.dataset.mode === 'signup';
+
+      if (!email || !password || (isSignUp && !fullName)) {
+        if (msgEl) msgEl.textContent = 'Please fill in all required fields.';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'PROCESSING...';
+      if (msgEl) msgEl.textContent = '';
+
+      try {
+        if (isSignUp) {
+          const { data, error } = await supabase.auth.signUp({
+            email, 
+            password,
+            options: { data: { full_name: fullName } }
+          });
+          if (error) throw error;
+          
+          // Auto create profile row
+          if (data?.user) {
+            await supabase.from('customer_profiles').upsert({
+              id: data.user.id,
+              full_name: fullName,
+              updated_at: new Date().toISOString()
+            });
+          }
+          if (msgEl) {
+            msgEl.style.color = '#31c48d';
+            msgEl.textContent = 'Account created successfully!';
+          }
+        } else {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        }
+      } catch (err) {
+        if (msgEl) {
+          msgEl.style.color = '#ff7777';
+          msgEl.textContent = err.message || 'Authentication failed.';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'CONTINUE';
+      }
+    });
+
+    // Google OAuth
+    document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+    });
+
+    // Sign Out Custom Styling logic
+    const signoutBtn = document.querySelector('[data-account-signout]');
+    signoutBtn?.addEventListener('click', async () => {
+      signoutBtn.textContent = 'SIGNING OUT...';
+      await supabase.auth.signOut();
+      signoutBtn.textContent = 'SIGN OUT';
+    });
+
+    // Profile Save
+    const profileForm = document.querySelector('[data-account-profile-form]');
+    profileForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const profileData = {
+        id: user.id,
+        full_name: profileForm.querySelector('#account-name')?.value.trim(),
+        phone: profileForm.querySelector('#account-phone')?.value.trim(),
+        shipping_address: profileForm.querySelector('#account-address')?.value.trim(),
+        shipping_city: profileForm.querySelector('#account-city')?.value.trim(),
+        shipping_state: profileForm.querySelector('#account-state')?.value.trim(),
+        shipping_pincode: profileForm.querySelector('#account-pincode')?.value.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      const profMsg = document.querySelector('[data-profile-message]');
+      const btn = profileForm.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = 'SAVING...';
+
+      try {
+        const { error } = await supabase.from('customer_profiles').upsert(profileData);
+        if (error) throw error;
+        if (profMsg) profMsg.textContent = 'Profile saved successfully!';
+        setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
+      } catch (err) {
+        if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'SAVE PROFILE';
+      }
+    });
+  }
 
     supabase.auth.onAuthStateChange(() => {
       updateAuthUI();
