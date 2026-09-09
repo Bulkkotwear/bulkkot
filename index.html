@@ -69,7 +69,7 @@
         <!-- 100% WORKING GUEST TRACK ORDER -->
         <button type="button" class="header-track-order" data-open-track-order aria-label="Track your order">TRACK ORDER</button>
         
-        <!-- LUXURY ACCOUNT BUTTON (Links to signin.html when logged out) -->
+        <!-- ACCOUNT BUTTON -->
         <button type="button" class="header-account" data-open-account aria-label="Open account" style="display:inline-flex; align-items:center; gap:6px;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="8" r="4"/>
@@ -95,13 +95,14 @@
       </div>
     </div>
 
-    <!-- INLINE EXPANDABLE SEARCH BAR -->
+    <!-- INLINE EXPANDABLE SEARCH BAR (EXECUTES ON ENTER & BUTTON CLICK) -->
     <div class="header-search-bar" id="headerSearchBar">
-      <div class="header-search-input-wrap">
+      <form id="liveSearchForm" class="header-search-input-wrap">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#777" stroke-width="2"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
-        <input type="text" id="liveSearchInput" placeholder="SEARCH HEAVYWEIGHT TEES, HOODIES, SILHOUETTES..." autocomplete="off">
+        <input type="text" id="liveSearchInput" placeholder="Search heavyweight tees, hoodies, drapes..." autocomplete="off">
+        <button type="submit" class="header-search-execute-btn">SEARCH</button>
         <button type="button" class="header-search-close" id="headerSearchClose" aria-label="Close search">×</button>
-      </div>
+      </form>
       <div class="search-trending-tags">
         <span>TRENDING:</span>
         <button type="button" class="search-tag-btn" data-search-tag="OVERSIZED">OVERSIZED</button>
@@ -413,17 +414,32 @@
     <div class="drawer__body" id="cart-content"></div>
   </aside>
 
-  <!-- CUSTOMER PROFILE DRAWER (LOGGED IN ONLY) -->
+  <!-- MYNTRA-STYLE CUSTOMER PROFILE DRAWER (LOGGED IN ONLY) -->
   <div class="account-modal" data-account-modal aria-hidden="true">
     <div class="account-backdrop" data-account-close></div>
     <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button type="button" class="account-close" data-account-close aria-label="Close account">×</button>
 
       <div class="account-user-view" data-account-user>
-        <div class="account-header" style="margin-bottom:24px;">
-          <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">AUTHENTICATED</p>
-          <h2 style="font-size:24px; margin:0 0 4px;">MY PROFILE</h2>
-          <p data-account-user-email style="color:#888; font-size:12px; margin:0;">—</p>
+        <!-- Myntra-Grade Profile Card -->
+        <div class="myntra-profile-card">
+          <div class="myntra-avatar" data-user-avatar>B</div>
+          <div class="myntra-user-meta">
+            <h3 data-account-name-heading>BULKKOT VIP</h3>
+            <p data-account-user-email>customer@bulkkot.com</p>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="myntra-quick-grid">
+          <div class="myntra-quick-item" onclick="document.querySelector('.account-orders').scrollIntoView({behavior:'smooth'})">
+            <span>DISPATCH</span>
+            <strong>ORDERS</strong>
+          </div>
+          <div class="myntra-quick-item" onclick="document.querySelector('#profileAddressForm').scrollIntoView({behavior:'smooth'})">
+            <span>SAVED</span>
+            <strong>ADDRESS</strong>
+          </div>
         </div>
 
         <section class="account-section" style="margin-bottom:32px;">
@@ -431,7 +447,7 @@
             <div><span class="eyebrow" style="color:#888; font-size:10px;">SAVED DETAILS</span><h3 style="font-size:14px; margin:2px 0 0;">SHIPPING ADDRESS</h3></div>
           </div>
 
-          <form class="account-profile-form" data-account-profile-form>
+          <form class="account-profile-form" id="profileAddressForm" data-account-profile-form>
             <div class="bk-input-group">
               <input id="account-name" name="full_name" type="text" class="bk-input" autocomplete="name" placeholder="Full Name">
             </div>
