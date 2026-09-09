@@ -1,217 +1,137 @@
+/**
+ * BULKKOT — Production Auth System
+ * Version: 2.0 (Direct OAuth Redirect, Smooth Mode Switch, Zero-Crash)
+ */
 (() => {
   "use strict";
 
-  const body = document.body;
-  const authForm = document.getElementById("authForm");
-  const loginTab = document.getElementById("loginTab");
-  const signupTab = document.getElementById("signupTab");
-  const authTitle = document.getElementById("authTitle");
-  const authSubtitle = document.getElementById("authSubtitle");
-  const submitBtn = document.getElementById("submitBtn");
-  const submitText = document.getElementById("submitText");
-  const googleBtn = document.getElementById("googleBtn");
-  const forgotBtn = document.getElementById("forgotBtn");
-  const passwordToggle = document.getElementById("passwordToggle");
-  const nameInput = document.getElementById("name");
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
-  const confirmPasswordInput = document.getElementById("confirmPassword");
-  const authMessage = document.getElementById("authMessage");
+  const authForm = document.getElementById("authMainForm");
+  const tabLogin = document.getElementById("btnTabLogin");
+  const tabSignup = document.getElementById("btnTabSignup");
+  const modeHeading = document.getElementById("authModeHeading");
+  const modeSubtitle = document.getElementById("authModeSubtitle");
 
-  let mode = "login";
+  const wrapFullName = document.getElementById("wrapFullName");
+  const wrapConfirmPwd = document.getElementById("wrapConfirmPwd");
+
+  const inputFullName = document.getElementById("inputFullName");
+  const inputEmail = document.getElementById("inputEmail");
+  const inputPassword = document.getElementById("inputPassword");
+  const inputConfirmPassword = document.getElementById("inputConfirmPassword");
+
+  const btnSubmit = document.getElementById("btnSubmitAuth");
+  const txtSubmit = document.getElementById("txtSubmit");
+  const btnGoogle = document.getElementById("btnGoogleAuth");
+  const btnForgot = document.getElementById("btnForgotPwd");
+  const btnTogglePwd = document.getElementById("btnTogglePwd");
+
+  const bannerFeedback = document.getElementById("authFeedbackBanner");
+
+  let currentMode = "login";
   let supabaseClient = null;
 
   function getSupabase() {
     if (supabaseClient) return supabaseClient;
-    const config = window.BULKKOT_CONFIG;
-    if (!config || !window.supabase) {
-      showMessage("Authentication configuration missing.");
+    const cfg = window.BULKKOT_CONFIG;
+    if (!cfg || !window.supabase) {
+      showFeedback("Auth service offline. Please try again.", "error");
       return null;
     }
-    supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
     return supabaseClient;
   }
 
-  function setMode(nextMode) {
-    mode = nextMode;
+  function setAuthMode(mode) {
+    currentMode = mode;
     clearErrors();
-    clearMessage();
+    clearFeedback();
 
     if (mode === "signup") {
-      body.classList.add("signup-mode");
-      loginTab.classList.remove("active");
-      signupTab.classList.add("active");
-      authTitle.textContent = "Create account";
-      authSubtitle.textContent = "Join BULKKOT and keep your orders in one place.";
-      submitText.textContent = "CREATE ACCOUNT";
-      passwordInput.autocomplete = "new-password";
+      tabLogin.classList.remove("active");
+      tabSignup.classList.add("active");
+      wrapFullName.style.display = "flex";
+      wrapConfirmPwd.style.display = "flex";
+      btnForgot.style.visibility = "hidden";
+      modeHeading.textContent = "CREATE ACCOUNT";
+      modeSubtitle.textContent = "Join BULKKOT VIP to unlock Drop 001 and access priority dispatch.";
+      txtSubmit.textContent = "CREATE ACCOUNT";
+      inputPassword.autocomplete = "new-password";
     } else {
-      body.classList.remove("signup-mode");
-      signupTab.classList.remove("active");
-      loginTab.classList.add("active");
-      authTitle.textContent = "Sign in";
-      authSubtitle.textContent = "Access your BULKKOT account and orders.";
-      submitText.textContent = "SIGN IN";
-      passwordInput.autocomplete = "current-password";
+      tabSignup.classList.remove("active");
+      tabLogin.classList.add("active");
+      wrapFullName.style.display = "none";
+      wrapConfirmPwd.style.display = "none";
+      btnForgot.style.visibility = "visible";
+      modeHeading.textContent = "SIGN IN";
+      modeSubtitle.textContent = "Access your saved dispatch addresses, track shipments live, and secure your silhouettes.";
+      txtSubmit.textContent = "SIGN IN";
+      inputPassword.autocomplete = "current-password";
     }
   }
 
-  function validateEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  function showFeedback(msg, type = "error") {
+    if (!bannerFeedback) return;
+    bannerFeedback.textContent = msg;
+    bannerFeedback.className = `auth-feedback-banner is-${type}`;
   }
 
-  function validateForm() {
-    let valid = true;
-    clearErrors();
-    const name = nameInput.value.trim();
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    const confirm = confirmPasswordInput.value;
-
-    if (mode === "signup") {
-      if (!name) { setError("nameField", "nameError", "Please enter your name."); valid = false; }
-      else if (name.length < 2) { setError("nameField", "nameError", "Name must be at least 2 characters."); valid = false; }
-    }
-
-    if (!email) { setError(null, "emailError", "Please enter your email."); valid = false; }
-    else if (!validateEmail(email)) { setError(null, "emailError", "Please enter a valid email address."); valid = false; }
-
-    if (!password) { setError(null, "passwordError", "Please enter your password."); valid = false; }
-    else if (password.length < 6) { setError(null, "passwordError", "Password must be at least 6 characters."); valid = false; }
-
-    if (mode === "signup") {
-      if (!confirm) { setError("confirmField", "confirmError", "Please confirm your password."); valid = false; }
-      else if (password !== confirm) { setError("confirmField", "confirmError", "Passwords do not match."); valid = false; }
-    }
-    return valid;
+  function clearFeedback() {
+    if (!bannerFeedback) return;
+    bannerFeedback.textContent = "";
+    bannerFeedback.className = "auth-feedback-banner";
   }
 
-  function setError(fieldId, errorId, message) {
-    if (fieldId) {
-      const field = document.getElementById(fieldId);
-      if (field) field.classList.add("invalid");
-    }
-    const error = document.getElementById(errorId);
-    if (error) error.textContent = message;
+  function setError(wrapEl, errSpanId, msg) {
+    if (wrapEl) wrapEl.classList.add("has-error");
+    const span = document.getElementById(errSpanId);
+    if (span) span.textContent = msg;
   }
 
   function clearErrors() {
-    document.querySelectorAll(".field").forEach(field => field.classList.remove("invalid"));
-    document.querySelectorAll(".field-error").forEach(error => error.textContent = "");
+    document.querySelectorAll(".form-field-wrap").forEach(w => w.classList.remove("has-error"));
+    document.querySelectorAll(".field-error-msg").forEach(s => s.textContent = "");
   }
 
-  function showMessage(message, isSuccess = false) {
-    authMessage.textContent = message;
-    authMessage.style.color = isSuccess ? '#80c890' : '#e87c81';
-    authMessage.style.backgroundColor = isSuccess ? 'rgba(49,196,141,.06)' : 'rgba(227,38,46,.06)';
-    authMessage.style.borderColor = isSuccess ? 'rgba(49,196,141,.3)' : 'rgba(227,38,46,.3)';
-    authMessage.classList.add("show");
-  }
+  function validate() {
+    let isValid = true;
+    clearErrors();
+    clearFeedback();
 
-  function clearMessage() {
-    authMessage.textContent = "";
-    authMessage.classList.remove("show");
+    const email = inputEmail.value.trim();
+    const pwd = inputPassword.value;
+
+    if (currentMode === "signup") {
+      const name = inputFullName.value.trim();
+      const confirm = inputConfirmPassword.value;
+
+      if (!name || name.length < 2) {
+        setError(wrapFullName, "errFullName", "Please enter your full name.");
+        isValid = false;
+      }
+
+      if (!confirm || confirm !== pwd) {
+        setError(wrapConfirmPwd, "errConfirmPwd", "Passwords do not match.");
+        isValid = false;
+      }
+    }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError(inputEmail.closest(".form-field-wrap"), "errEmail", "Please provide a valid email address.");
+      isValid = false;
+    }
+
+    if (!pwd || pwd.length < 6) {
+      setError(inputPassword.closest(".form-field-wrap"), "errPassword", "Password must be at least 6 characters.");
+      isValid = false;
+    }
+
+    return isValid;
   }
 
   function setLoading(loading) {
-    submitBtn.disabled = loading;
-    googleBtn.disabled = loading;
-    submitBtn.classList.toggle("loading", loading);
-  }
-
-  async function login() {
-    const supabase = getSupabase();
-    if (!supabase) return;
-    setLoading(true);
-    clearMessage();
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailInput.value.trim(),
-        password: passwordInput.value
-      });
-      if (error) throw error;
-      if (!data?.user) throw new Error("Unable to create login session.");
-      showMessage("Signed in successfully.", true);
-      await handleSuccessfulAuth(data.user);
-    } catch (error) {
-      showMessage(friendlyAuthError(error));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function signup() {
-    const supabase = getSupabase();
-    if (!supabase) return;
-    const name = nameInput.value.trim();
-    setLoading(true);
-    clearMessage();
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: emailInput.value.trim(),
-        password: passwordInput.value,
-        options: { data: { full_name: name } }
-      });
-      if (error) throw error;
-      
-      if (data?.user) {
-        await supabase.from('customer_profiles').upsert({
-          id: data.user.id,
-          full_name: name,
-          updated_at: new Date().toISOString()
-        });
-      }
-
-      if (data.user && !data.session) {
-        showMessage("Account created. Please check your email to confirm your account.", true);
-        return;
-      }
-      if (data.user) await handleSuccessfulAuth(data.user);
-    } catch (error) {
-      showMessage(friendlyAuthError(error));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function googleLogin() {
-    const supabase = getSupabase();
-    if (!supabase) return;
-    googleBtn.disabled = true;
-    clearMessage();
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: window.location.origin + '/index.html' }
-      });
-      if (error) throw error;
-    } catch (error) {
-      showMessage(friendlyAuthError(error));
-      googleBtn.disabled = false;
-    }
-  }
-
-  async function forgotPassword() {
-    const supabase = getSupabase();
-    if (!supabase) return;
-    const email = emailInput.value.trim();
-    if (!email) { setError(null, "emailError", "Enter your email first."); emailInput.focus(); return; }
-    if (!validateEmail(email)) { setError(null, "emailError", "Enter a valid email address."); return; }
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password.html`
-      });
-      if (error) throw error;
-      showMessage("Password reset instructions have been sent to your email.", true);
-    } catch (error) {
-      showMessage(friendlyAuthError(error));
-    }
-  }
-
-  async function handleSuccessfulAuth(user) {
-    setTimeout(() => {
-      window.location.href = getRedirectDestination();
-    }, 500);
+    btnSubmit.disabled = loading;
+    btnGoogle.disabled = loading;
+    btnSubmit.classList.toggle("is-loading", loading);
   }
 
   function getRedirectDestination() {
@@ -221,34 +141,126 @@
     return "./index.html";
   }
 
-  function friendlyAuthError(error) {
-    const message = String(error?.message || "").toLowerCase();
-    if (message.includes("invalid login credentials")) return "Email or password is incorrect.";
-    if (message.includes("email not confirmed")) return "Please confirm your email before signing in.";
-    if (message.includes("user already registered")) return "An account with this email already exists. Try signing in.";
-    if (message.includes("password should be at least")) return "Your password is too short.";
-    if (message.includes("rate limit")) return "Too many attempts. Please wait a moment and try again.";
-    return error?.message || "Something went wrong. Please try again.";
+  async function handleLogin() {
+    const supabase = getSupabase();
+    if (!supabase) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: inputEmail.value.trim(),
+        password: inputPassword.value
+      });
+
+      if (error) throw error;
+      showFeedback("Authentication verified. Redirecting...", "success");
+      setTimeout(() => {
+        window.location.href = getRedirectDestination();
+      }, 400);
+    } catch (err) {
+      showFeedback(err.message || "Invalid credentials. Please verify and retry.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  passwordToggle.addEventListener("click", () => {
-    const isPassword = passwordInput.type === "password";
-    passwordInput.type = isPassword ? "text" : "password";
-    passwordToggle.textContent = isPassword ? "HIDE" : "SHOW";
+  async function handleSignup() {
+    const supabase = getSupabase();
+    if (!supabase) return;
+
+    const name = inputFullName.value.trim();
+    const email = inputEmail.value.trim();
+    const password = inputPassword.value;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } }
+      });
+
+      if (error) throw error;
+
+      if (data?.user) {
+        await supabase.from("customer_profiles").upsert({
+          id: data.user.id,
+          full_name: name,
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      if (data.user && !data.session) {
+        showFeedback("Verification email sent! Please check your inbox.", "success");
+        return;
+      }
+
+      showFeedback("VIP Account created! Redirecting...", "success");
+      setTimeout(() => {
+        window.location.href = getRedirectDestination();
+      }, 500);
+    } catch (err) {
+      showFeedback(err.message || "Failed to create account. Please retry.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // EVENT LISTENERS
+  tabLogin?.addEventListener("click", () => setAuthMode("login"));
+  tabSignup?.addEventListener("click", () => setAuthMode("signup"));
+
+  btnTogglePwd?.addEventListener("click", () => {
+    const isPwd = inputPassword.type === "password";
+    inputPassword.type = isPwd ? "text" : "password";
+    if (inputConfirmPassword) inputConfirmPassword.type = isPwd ? "text" : "password";
+    btnTogglePwd.textContent = isPwd ? "HIDE" : "SHOW";
   });
 
-  loginTab.addEventListener("click", () => setMode("login"));
-  signupTab.addEventListener("click", () => setMode("signup"));
-  googleBtn.addEventListener("click", googleLogin);
-  forgotBtn.addEventListener("click", forgotPassword);
-
-  authForm.addEventListener("submit", async event => {
-    event.preventDefault();
-    if (!validateForm()) return;
-    if (mode === "signup") await signup();
-    else await login();
+  btnGoogle?.addEventListener("click", async () => {
+    const supabase = getSupabase();
+    if (!supabase) return;
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin + "/index.html" }
+      });
+      if (error) throw error;
+    } catch (err) {
+      showFeedback(err.message || "Google OAuth failed.");
+    }
   });
 
+  btnForgot?.addEventListener("click", async () => {
+    const email = inputEmail.value.trim();
+    if (!email) {
+      setError(inputEmail.closest(".form-field-wrap"), "errEmail", "Enter your registered email first.");
+      inputEmail.focus();
+      return;
+    }
+
+    const supabase = getSupabase();
+    if (!supabase) return;
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/signin.html"
+      });
+      if (error) throw error;
+      showFeedback("Password reset link sent to your email!", "success");
+    } catch (err) {
+      showFeedback(err.message || "Unable to send reset email.");
+    }
+  });
+
+  authForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    if (currentMode === "signup") await handleSignup();
+    else await handleLogin();
+  });
+
+  // INITIAL SESSION VERIFICATION
   async function init() {
     const supabase = getSupabase();
     if (!supabase) return;
@@ -256,14 +268,7 @@
     const { data } = await supabase.auth.getSession();
     if (data?.session?.user) {
       window.location.href = getRedirectDestination();
-      return;
     }
-
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        await handleSuccessfulAuth(session.user);
-      }
-    });
   }
 
   init();
