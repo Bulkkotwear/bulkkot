@@ -1,6 +1,5 @@
 /* =========================================================
-   BULKKOT (불꽃) — COMPLETE PRODUCTION COMPONENTS STYLESHEET
-   Aesthetic: Korean Luxury Minimalist Streetwear
+   BULKKOT (불꽃) — PRODUCTION COMPONENT STYLESHEET
    ========================================================= */
 
 :root {
@@ -17,8 +16,98 @@
 }
 
 /* =========================================================
-   1. INLINE EXPANDABLE SEARCH BAR
+   ANNOUNCEMENT TICKER FIX
    ========================================================= */
+.announcement-bar {
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bk-border);
+  position: relative;
+  z-index: 100;
+}
+
+.announcement-track {
+  display: flex;
+  width: max-content;
+  animation: announcement-ticker 25s linear infinite;
+}
+
+.announcement-content {
+  display: flex;
+  gap: 48px;
+  padding-right: 48px;
+  white-space: nowrap;
+}
+
+@keyframes announcement-ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* =========================================================
+   HEADER & INLINE SEARCH
+   ========================================================= */
+.site-header {
+  position: relative;
+  background: rgba(7, 7, 7, 0.95);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--bk-border);
+  z-index: 900;
+}
+
+.header-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 28px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-track-order,
+.header-account {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.header-action {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 6px;
+}
+
+.header-action svg,
+.header-account svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
 .header-search-bar {
   position: absolute;
   top: 100%;
@@ -84,10 +173,6 @@
   cursor: pointer;
 }
 
-.header-search-execute-btn:hover {
-  background: #b91017;
-}
-
 .header-search-close {
   background: none;
   border: none;
@@ -96,10 +181,6 @@
   cursor: pointer;
   line-height: 1;
   padding: 4px;
-}
-
-.header-search-close:hover {
-  color: #fff;
 }
 
 .search-trending-tags {
@@ -133,117 +214,96 @@
 }
 
 /* =========================================================
-   2. LUXURY EDITORIAL PRODUCT CAROUSEL (PROPER FIX)
+   ORIGINAL EDITORIAL SLIDER (SINGLE FULL-WIDTH VIEW)
    ========================================================= */
 .editorial-section {
   position: relative;
   width: 100%;
-  background: var(--bk-bg);
-  padding: 40px 0 60px;
+  background: #000;
   overflow: hidden;
 }
 
 .editorial-carousel {
   position: relative;
   width: 100%;
-  max-width: 1380px;
-  margin: 0 auto;
-  padding: 0 40px;
+  overflow: hidden;
 }
 
 .editorial-track {
   display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 10px 0;
-  cursor: grab;
-  user-select: none;
-}
-
-.editorial-track::-webkit-scrollbar {
-  display: none;
-}
-
-.editorial-track:active {
-  cursor: grabbing;
+  width: 100%;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
 .editorial-slide {
-  flex: 0 0 calc(33.333% - 14px);
-  min-width: 280px;
+  flex: 0 0 100%;
+  min-width: 100%;
   position: relative;
-  scroll-snap-align: start;
-  background: var(--bk-card);
-  border: 1px solid var(--bk-border);
-  border-radius: 3px;
-  overflow: hidden;
+  height: 80vh;
+  min-height: 520px;
+  max-height: 820px;
 }
 
 .editorial-slide img {
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: 100%;
   object-fit: cover;
   object-position: center 25%;
   display: block;
-  transition: transform 0.4s ease;
-}
-
-.editorial-slide:hover img {
-  transform: scale(1.03);
 }
 
 .editorial-slide__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(7,7,7,0.1) 0%, rgba(7,7,7,0.85) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.8) 100%);
   pointer-events: none;
 }
 
 .editorial-slide__content {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
-  right: 24px;
-  z-index: 2;
+  bottom: 56px;
+  left: clamp(20px, 6vw, 80px);
+  z-index: 5;
   color: #fff;
   pointer-events: none;
 }
 
 .editorial-slide__content p {
   color: var(--bk-red);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.15em;
-  margin-bottom: 6px;
+  letter-spacing: 0.2em;
+  margin-bottom: 8px;
   text-transform: uppercase;
 }
 
 .editorial-slide__content h2 {
-  font-size: 22px;
+  font-size: clamp(36px, 5.5vw, 76px);
   font-weight: 900;
-  line-height: 1.1;
-  margin: 0 0 4px;
-  letter-spacing: -0.02em;
+  line-height: 0.95;
+  margin: 0 0 6px;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
 
 .editorial-slide__content span {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--bk-muted);
+  font-size: clamp(22px, 3vw, 44px);
+  font-weight: 800;
+  color: #888;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
 .carousel-control {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  background: rgba(13, 13, 13, 0.85);
-  border: 1px solid var(--bk-border);
+  width: 46px;
+  height: 46px;
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   color: #fff;
   display: grid;
@@ -260,40 +320,43 @@
   border-color: #fff;
 }
 
-.carousel-control--prev { left: 10px; }
-.carousel-control--next { right: 10px; }
+.carousel-control--prev { left: 24px; }
+.carousel-control--next { right: 24px; }
 
 .carousel-indicators {
+  position: absolute;
+  bottom: 28px;
+  right: clamp(20px, 6vw, 80px);
   display: flex;
-  justify-content: center;
   align-items: center;
   gap: 8px;
-  margin-top: 20px;
+  z-index: 10;
 }
 
 .carousel-indicators button {
-  width: 22px;
-  height: 2px;
-  background: #282828;
+  width: 20px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.25);
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  border-radius: 2px;
+  transition: all 0.25s ease;
 }
 
 .carousel-indicators button.is-active {
   background: #fff;
-  width: 36px;
+  width: 40px;
 }
 
 /* =========================================================
-   3. CATALOGUE, HORIZONTAL FILTERS & 2-COL MOBILE GRID
+   CATALOGUE, FILTERS & 2-COLUMN MOBILE GRID
    ========================================================= */
 .shop-section {
   width: 100%;
-  max-width: 1380px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 40px 32px 80px;
+  padding: 50px 32px 80px;
 }
 
 .shop-toolbar {
@@ -301,7 +364,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
   width: 100%;
 }
 
@@ -313,7 +376,6 @@
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  -ms-overflow-style: none;
   padding: 4px 0;
 }
 
@@ -326,7 +388,7 @@
   background: #111;
   border: 1px solid var(--bk-border);
   color: var(--bk-muted);
-  padding: 8px 18px;
+  padding: 8px 20px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 800;
@@ -372,7 +434,7 @@
   cursor: pointer;
 }
 
-/* Desktop: 4 Columns */
+/* Desktop Grid: 4 Columns */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -537,7 +599,7 @@
 }
 
 /* =========================================================
-   4. CONTENT, POLICY & POPUP MODALS (FULLY GUARANTEED)
+   MODALS SYSTEM (FAQ / POLICIES / ABOUT / TRACK)
    ========================================================= */
 .content-modal,
 .size-guide-modal,
@@ -624,7 +686,7 @@
   margin: 0 0 12px;
 }
 
-/* FOOTER BUTTONS FIX */
+/* Footer Link Buttons */
 .site-footer button.footer-link-btn,
 .footer-column button {
   background: none !important;
@@ -645,32 +707,47 @@
 }
 
 /* =========================================================
-   5. MOBILE VIEW (<= 768px)
+   MOBILE RESPONSIVE (<= 768px)
    ========================================================= */
 @media (max-width: 768px) {
-  .editorial-section {
-    padding: 24px 0 36px;
-  }
-
-  .editorial-carousel {
+  .header-inner {
     padding: 0 16px;
   }
 
-  .editorial-track {
-    gap: 12px;
+  .header-track-order {
+    display: none !important;
+  }
+
+  .header-account span {
+    display: none !important;
   }
 
   .editorial-slide {
-    flex: 0 0 calc(75% - 6px);
-    min-width: 240px;
+    height: 58vh;
+    min-height: 420px;
+  }
+
+  .editorial-slide__content {
+    bottom: 32px;
+    left: 20px;
   }
 
   .carousel-control {
-    display: none;
+    width: 38px;
+    height: 38px;
+    font-size: 15px;
+  }
+
+  .carousel-control--prev { left: 12px; }
+  .carousel-control--next { right: 12px; }
+
+  .carousel-indicators {
+    right: 20px;
+    bottom: 24px;
   }
 
   .shop-section {
-    padding: 24px 14px 60px;
+    padding: 28px 14px 60px;
   }
 
   .shop-toolbar {
@@ -689,7 +766,7 @@
     width: 100%;
   }
 
-  /* 2-COLUMN LUXURY MOBILE PRODUCT GRID (NO HUGE EMPTY SPACE) */
+  /* 2-COLUMN CLEAN MOBILE GRID */
   .product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
