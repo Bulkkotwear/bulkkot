@@ -1,6 +1,6 @@
 /**
  * BULKKOT (불꽃) — Production Storefront Engine
- * Unified Modal System, Mobile 2-Column Catalog, Drag Carousel
+ * Version: 18.0 (Original Full-Width Editorial Slider + Working Policy Modals)
  */
 (function () {
   'use strict';
@@ -66,76 +66,86 @@
   }
 
   /* =========================================================
-     1. EDITORIAL CAROUSEL (DRAG + BUTTONS + SNAP)
+     1. EDITORIAL CAROUSEL (CLEAN FULL-WIDTH SLIDES)
      ========================================================= */
   function initEditorialSlider() {
     const track = document.querySelector('[data-carousel-track]');
+    const slides = document.querySelectorAll('[data-slide]');
     const nextBtn = document.querySelector('[data-carousel-next]');
     const prevBtn = document.querySelector('[data-carousel-prev]');
     const dots = document.querySelectorAll('[data-slide-indicator]');
 
-    if (!track) return;
+    if (!track || slides.length === 0) return;
 
-    let isDown = false;
-    let startX = 0;
-    let scrollLeft = 0;
+    let currentIndex = 0;
+    const totalSlides = slides.length;
+    let timer = null;
 
-    track.addEventListener('mousedown', (e) => {
-      isDown = true;
-      startX = e.pageX - track.offsetLeft;
-      scrollLeft = track.scrollLeft;
-    });
+    function renderSlide(index) {
+      currentIndex = (index + totalSlides) % totalSlides;
+      track.style.transform = `translateX(-${currentIndex * 100}%)`;
 
-    track.addEventListener('mouseleave', () => { isDown = false; });
-    track.addEventListener('mouseup', () => { isDown = false; });
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('is-active', idx === currentIndex);
+      });
+    }
 
-    track.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - track.offsetLeft;
-      const walk = (x - startX) * 1.5;
-      track.scrollLeft = scrollLeft - walk;
-    });
-
-    function getSlideWidth() {
-      const slide = track.querySelector('.editorial-slide');
-      return slide ? slide.offsetWidth + 20 : 320;
+    function resetTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => renderSlide(currentIndex + 1), 5500);
     }
 
     nextBtn?.addEventListener('click', (e) => {
       e.preventDefault();
-      track.scrollBy({ left: getSlideWidth(), behavior: 'smooth' });
+      renderSlide(currentIndex + 1);
+      resetTimer();
     });
 
     prevBtn?.addEventListener('click', (e) => {
       e.preventDefault();
-      track.scrollBy({ left: -getSlideWidth(), behavior: 'smooth' });
-    });
-
-    track.addEventListener('scroll', () => {
-      const slideWidth = getSlideWidth();
-      const index = Math.round(track.scrollLeft / slideWidth);
-      dots.forEach((dot, idx) => {
-        dot.classList.toggle('is-active', idx === index);
-      });
+      renderSlide(currentIndex - 1);
+      resetTimer();
     });
 
     dots.forEach((dot, idx) => {
       dot.addEventListener('click', () => {
-        track.scrollTo({ left: idx * getSlideWidth(), behavior: 'smooth' });
+        renderSlide(idx);
+        resetTimer();
       });
     });
+
+    // Touch Swipe support
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    track.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    track.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      if (touchStartX - touchEndX > 50) {
+        renderSlide(currentIndex + 1);
+        resetTimer();
+      } else if (touchEndX - touchStartX > 50) {
+        renderSlide(currentIndex - 1);
+        resetTimer();
+      }
+    }, { passive: true });
+
+    renderSlide(0);
+    resetTimer();
   }
 
   /* =========================================================
-     2. POLICY CONTENT & MODAL HANDLERS
+     2. POLICY DATA & MODAL SYSTEM (GUARANTEED OPEN)
      ========================================================= */
   const POLICY_DATA = {
     faq: {
       title: "FREQUENTLY ASKED QUESTIONS",
       content: `
         <h3>HOW DOES DROP 001 WORK?</h3>
-        <p>Drop 001 consists of limited architectural silhouettes. Items are produced in limited quantities with no immediate restocks.</p>
+        <p>Drop 001 consists of limited architectural silhouettes. Items are produced in limited runs with no immediate restocks.</p>
         <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
         <p>Standard express delivery across India is complimentary during the Drop 001 release.</p>
         <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
@@ -551,7 +561,7 @@
   }
 
   /* =========================================================
-     5. CATALOGUE & 2-COLUMN GRID ENGINE
+     5. CATALOGUE & GRID ENGINE
      ========================================================= */
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
@@ -623,7 +633,7 @@
   }
 
   /* =========================================================
-     6. PDP QUICK VIEW MODAL
+     6. PDP MODAL
      ========================================================= */
   let currentPdpProduct = null;
   let currentPdpSize = 'M';
@@ -662,15 +672,9 @@
     const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
     const stockCurSize = getStock(p, currentPdpSize);
 
-    let related = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) === cat);
-    if (related.length < 4) {
-      const rest = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) !== cat);
-      related = [...related, ...rest].slice(0, 4);
-    } else related = related.slice(0, 4);
-
     const thumbsHtml = images.map((img, i) => `
       <div class="pdp-thumb ${i === 0 ? 'is-active' : ''}" data-pdp-thumb="${i}">
-        <img src="${escapeHTML(img)}" alt="Thumbnail ${i + 1}">
+        <img src="${escapeHTML(img)}" alt="Thumb ${i + 1}">
       </div>
     `).join('');
 
@@ -679,16 +683,6 @@
       const isSelected = currentPdpSize === s;
       const isOut = st <= 0;
       return `<button type="button" class="pdp-size-btn ${isSelected ? 'is-selected' : ''} ${isOut ? 'is-sold-out' : ''}" data-pdp-size="${s}" ${isOut ? 'disabled' : ''}>${s}</button>`;
-    }).join('');
-
-    const relatedHtml = related.map(rel => {
-      const rImages = getProductImages(rel);
-      return `
-        <div class="pdp-related-card" data-action="quickview" data-id="${rel.id}">
-          <img src="${escapeHTML(rImages[0])}" alt="${escapeHTML(rel.name)}">
-          <div class="pdp-related-meta"><strong>${escapeHTML(rel.name)}</strong><span>${formatPrice(rel.price)}</span></div>
-        </div>
-      `;
     }).join('');
 
     container.innerHTML = `
@@ -701,23 +695,15 @@
           <span class="pdp-korean">${catKorean} · DROP 001</span>
           <h2 class="pdp-title">${escapeHTML(p.name)}</h2>
           <div class="pdp-price">${formatPrice(p.price)}</div>
-          <p class="pdp-desc">${escapeHTML(p.description || 'Constructed from heavyweight luxury combed cotton. Tailored with architectural restraint for an elevated, relaxed drape.')}</p>
-          <div class="pdp-option-title"><span>SELECT SIZE</span><span style="color: ${stockCurSize <= 2 && stockCurSize > 0 ? 'var(--bk-yellow)' : '#777'};">${stockCurSize <= 0 ? 'SOLD OUT' : (stockCurSize <= 4 ? `ONLY ${stockCurSize} LEFT` : 'IN STOCK')}</span></div>
+          <p class="pdp-desc">${escapeHTML(p.description || 'Constructed from heavyweight luxury combed cotton.')}</p>
           <div class="pdp-sizes">${sizeButtons}</div>
-          <div class="pdp-option-title"><span>QUANTITY</span></div>
-          <div class="pdp-qty-row">
-            <div class="pdp-qty-box">
-              <button type="button" id="pdpQtyMinus">-</button>
-              <span id="pdpQtyVal">${currentPdpQty}</span>
-              <button type="button" id="pdpQtyPlus">+</button>
-            </div>
+          <div class="pdp-qty-row" style="margin-top:16px;">
             <button type="button" class="button button--primary pdp-add-btn" id="pdpAddBtn" ${stockCurSize <= 0 ? 'disabled' : ''}>
               ${stockCurSize <= 0 ? 'SOLD OUT' : 'ADD TO BAG'}
             </button>
           </div>
         </div>
       </div>
-      ${related.length > 0 ? `<div class="pdp-related"><div class="pdp-related-title">SIMILAR SILHOUETTES</div><div class="pdp-related-grid">${relatedHtml}</div></div>` : ''}
     `;
 
     container.querySelectorAll('[data-pdp-thumb]').forEach(tb => {
@@ -733,22 +719,16 @@
       sb.addEventListener('click', () => { currentPdpSize = sb.dataset.pdpSize; renderPdpView(); });
     });
 
-    container.querySelector('#pdpQtyMinus')?.addEventListener('click', () => {
-      if (currentPdpQty > 1) { currentPdpQty--; container.querySelector('#pdpQtyVal').textContent = currentPdpQty; }
-    });
-    container.querySelector('#pdpQtyPlus')?.addEventListener('click', () => {
-      if (currentPdpQty < stockCurSize) { currentPdpQty++; container.querySelector('#pdpQtyVal').textContent = currentPdpQty; }
-    });
-
     container.querySelector('#pdpAddBtn')?.addEventListener('click', () => {
       if (stockCurSize <= 0) return;
       if (window.BULKKOT_CART?.addItem) {
-        window.BULKKOT_CART.addItem({ id: p.id, name: p.name, price: Number(p.price || 0), size: currentPdpSize, image: images[0], quantity: currentPdpQty });
+        window.BULKKOT_CART.addItem({ id: p.id, name: p.name, price: Number(p.price || 0), size: currentPdpSize, image: images[0], quantity: 1 });
       }
       closePdpModal();
     });
   }
 
+  // Delegated Clicks
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (btn) {
@@ -785,14 +765,10 @@
     }
   });
 
-  window.addEventListener('bulkkot:order-completed', () => { initCatalog(); });
-
   function initStorefront() {
     initEditorialSlider();
     initModalsAndNavigation();
     initCatalog();
-    loadCMSContent();
-    syncStoreSettings();
     initAuth();
     initInlineSearch();
 
