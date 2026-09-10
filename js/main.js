@@ -615,24 +615,20 @@
         return `<button type="button" class="product-size-btn ${sel ? 'is-selected' : ''} ${qty <= 0 ? 'is-disabled' : ''}" data-action="size" data-id="${p.id}" data-size="${s}">${s}</button>`;
       }).join('');
 
-      return `
+     return `
         <article class="product-card" data-product-card data-category="${cat}">
-          <div class="product-card__thumb" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
+          <a href="product.html?id=${p.id}" class="product-card__thumb" style="display:block; text-decoration:none;">
             <img src="${escapeHTML(coverImage)}" alt="${escapeHTML(p.name)}" loading="lazy">
             <span class="product-status">${totalStock <= 0 ? 'SOLD OUT' : 'DROP 001'}</span>
-          </div>
+          </a>
           <div class="product-information">
-            <div class="product-information__header" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
+            <a href="product.html?id=${p.id}" class="product-information__header" style="display:flex; text-decoration:none; color:inherit;">
               <div>
                 <h3>${escapeHTML(p.name)}</h3>
                 <p class="product-category">${catKorean}</p>
               </div>
               <span class="product-price">${formatPrice(p.price)}</span>
-            </div>
-            <div class="product-sizes-row">
-              <div class="product-sizes">${sizePills}</div>
-              <span class="product-stock ${badge.cls}">${badge.text}</span>
-            </div>
+            </a>
             <button type="button" class="button button--primary product-add-button" data-action="add" data-id="${p.id}" ${badge.disabled ? 'disabled' : ''}>
               ${badge.disabled ? 'SOLD OUT' : 'ADD TO BAG'}
             </button>
