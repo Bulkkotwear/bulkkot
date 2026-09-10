@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 11.0 (Inline Search, Welcome Pop-up, Full Auth Sync & PDP)
+ * Version: 12.0 (Mobile Drawer Fix, Clean Auth, PDP & Guest Tracking)
  */
 (function () {
   'use strict';
@@ -74,7 +74,6 @@
 
     if (!popup) return;
 
-    // Check if shown before in this session or localStorage
     const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
     if (!hasSeen) {
       setTimeout(() => {
@@ -151,7 +150,7 @@
     });
   }
 
- /* =========================================================
+  /* =========================================================
      AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP)
      ========================================================= */
   async function initAuth() {
@@ -193,32 +192,28 @@
     const nameField = document.getElementById('account-name-field');
     const nameInput = document.getElementById('account-name-input');
 
-    // Smooth Toggle between Login & Signup
     signupToggle?.addEventListener('click', () => {
       const isSignUp = loginForm.dataset.mode === 'signup';
       const submitBtn = loginForm.querySelector('.account-submit');
       if (msgEl) msgEl.textContent = '';
 
       if (isSignUp) {
-        // Switch to Login
         loginForm.dataset.mode = 'signin';
-        nameField.style.display = 'none';
-        nameInput.removeAttribute('required');
-        modeText.innerHTML = 'Login <span style="font-weight:400; font-size:18px;">or</span> Signup';
-        submitBtn.textContent = 'CONTINUE';
+        if (nameField) nameField.style.display = 'none';
+        nameInput?.removeAttribute('required');
+        if (modeText) modeText.innerHTML = 'Login <span style="font-weight:400; font-size:18px;">or</span> Signup';
+        if (submitBtn) submitBtn.textContent = 'CONTINUE';
         signupToggle.innerHTML = 'New to BULKKOT? <strong>Create an account</strong>';
       } else {
-        // Switch to Signup
         loginForm.dataset.mode = 'signup';
-        nameField.style.display = 'flex';
-        nameInput.setAttribute('required', 'true');
-        modeText.innerHTML = 'Create Account';
-        submitBtn.textContent = 'CREATE ACCOUNT';
+        if (nameField) nameField.style.display = 'flex';
+        nameInput?.setAttribute('required', 'true');
+        if (modeText) modeText.innerHTML = 'Create Account';
+        if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
         signupToggle.innerHTML = 'Already have an account? <strong>Login here</strong>';
       }
     });
 
-    // Handle Submit
     loginForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = loginForm.querySelector('#account-email')?.value.trim();
@@ -245,7 +240,6 @@
           });
           if (error) throw error;
           
-          // Auto create profile row
           if (data?.user) {
             await supabase.from('customer_profiles').upsert({
               id: data.user.id,
@@ -258,7 +252,7 @@
             msgEl.textContent = 'Account created successfully!';
           }
         } else {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          const { error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
         }
       } catch (err) {
@@ -272,7 +266,6 @@
       }
     });
 
-    // Google OAuth
     document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -280,7 +273,6 @@
       });
     });
 
-    // Sign Out Custom Styling logic
     const signoutBtn = document.querySelector('[data-account-signout]');
     signoutBtn?.addEventListener('click', async () => {
       signoutBtn.textContent = 'SIGNING OUT...';
@@ -288,7 +280,6 @@
       signoutBtn.textContent = 'SIGN OUT';
     });
 
-    // Profile Save
     const profileForm = document.querySelector('[data-account-profile-form]');
     profileForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -321,109 +312,6 @@
       } finally {
         btn.disabled = false;
         btn.textContent = 'SAVE PROFILE';
-      }
-    });
-  }
-
-    supabase.auth.onAuthStateChange(() => {
-      updateAuthUI();
-      if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
-    });
-
-    updateAuthUI();
-
-    const loginForm = document.querySelector('[data-account-login-form]');
-    const msgEl = document.querySelector('[data-account-message]');
-    const signupToggle = document.querySelector('[data-account-signup-toggle]');
-    const title = document.getElementById('account-title');
-
-    signupToggle?.addEventListener('click', () => {
-      const isSignUp = loginForm.dataset.mode === 'signup';
-      const submitBtn = loginForm.querySelector('.account-submit');
-
-      if (isSignUp) {
-        loginForm.dataset.mode = 'signin';
-        if (title) title.textContent = 'SIGN IN';
-        if (submitBtn) submitBtn.textContent = 'SIGN IN';
-        signupToggle.textContent = 'CREATE ACCOUNT';
-      } else {
-        loginForm.dataset.mode = 'signup';
-        if (title) title.textContent = 'CREATE ACCOUNT';
-        if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
-        signupToggle.textContent = 'ALREADY HAVE AN ACCOUNT? SIGN IN';
-      }
-      if (msgEl) msgEl.textContent = '';
-    });
-
-    loginForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = loginForm.querySelector('#account-email')?.value.trim();
-      const password = loginForm.querySelector('#account-password')?.value;
-      const submitBtn = loginForm.querySelector('.account-submit');
-      const isSignUp = loginForm.dataset.mode === 'signup';
-
-      if (!email || !password) {
-        if (msgEl) msgEl.textContent = 'Please enter both email and password.';
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = isSignUp ? 'CREATING ACCOUNT...' : 'VERIFYING...';
-      if (msgEl) msgEl.textContent = '';
-
-      try {
-        if (isSignUp) {
-          const { data, error } = await supabase.auth.signUp({ email, password });
-          if (error) throw error;
-          if (msgEl) msgEl.textContent = 'Account created! Signing you in...';
-        } else {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-        }
-      } catch (err) {
-        if (msgEl) msgEl.textContent = err.message || 'Authentication failed.';
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN';
-      }
-    });
-
-    document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
-    });
-
-    document.querySelector('[data-account-signout]')?.addEventListener('click', async () => {
-      await supabase.auth.signOut();
-    });
-
-    const profileForm = document.querySelector('[data-account-profile-form]');
-    profileForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const profileData = {
-        id: user.id,
-        full_name: profileForm.querySelector('#account-name')?.value.trim(),
-        phone: profileForm.querySelector('#account-phone')?.value.trim(),
-        shipping_address: profileForm.querySelector('#account-address')?.value.trim(),
-        shipping_city: profileForm.querySelector('#account-city')?.value.trim(),
-        shipping_state: profileForm.querySelector('#account-state')?.value.trim(),
-        shipping_pincode: profileForm.querySelector('#account-pincode')?.value.trim(),
-        updated_at: new Date().toISOString()
-      };
-
-      const profMsg = document.querySelector('[data-profile-message]');
-      try {
-        const { error } = await supabase.from('customer_profiles').upsert(profileData);
-        if (error) throw error;
-        if (profMsg) profMsg.textContent = 'Saved successfully!';
-        setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
-      } catch (err) {
-        if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
       }
     });
   }
@@ -853,22 +741,35 @@
   };
 
   /* =========================================================
-     UNIVERSAL MODAL & NAVIGATION (REAL GUEST TRACKING FIX)
+     UNIVERSAL MODAL & NAVIGATION (MOBILE DRAWER FIX)
      ========================================================= */
   function initModalsAndNavigation() {
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
+    const mobileOverlay = document.querySelector("[data-mobile-overlay]");
     const openDrawerBtn = document.querySelector("[data-open-drawer]");
     const closeDrawerBtns = document.querySelectorAll("[data-close-drawer]");
 
-    openDrawerBtn?.addEventListener("click", () => {
+    function openMobileMenu() {
       mobileDrawer?.classList.add("is-open");
+      mobileDrawer?.setAttribute("aria-hidden", "false");
+      mobileOverlay?.classList.add("is-active");
       document.body.classList.add("modal-open");
+    }
+
+    function closeMobileMenu() {
+      mobileDrawer?.classList.remove("is-open");
+      mobileDrawer?.setAttribute("aria-hidden", "true");
+      mobileOverlay?.classList.remove("is-active");
+      document.body.classList.remove("modal-open");
+    }
+
+    openDrawerBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      openMobileMenu();
     });
 
-    closeDrawerBtns.forEach(btn => btn.addEventListener("click", () => {
-      mobileDrawer?.classList.remove("is-open");
-      document.body.classList.remove("modal-open");
-    }));
+    closeDrawerBtns.forEach(btn => btn.addEventListener("click", closeMobileMenu));
+    mobileOverlay?.addEventListener("click", closeMobileMenu);
 
     // Policy
     const policyModal = document.querySelector("[data-policy-modal]");
@@ -972,7 +873,7 @@
       });
     });
 
-    // 100% WORKING GUEST ORDER TRACKING
+    // Guest Order Tracking
     const trackModal = document.querySelector("[data-track-order-modal]");
     const openTrackBtns = document.querySelectorAll("[data-open-track-order]");
     const closeTrackBtns = trackModal?.querySelectorAll("[data-track-order-close]");
@@ -997,8 +898,8 @@
     closeTrackBtns?.forEach(btn => btn.addEventListener("click", closeTracking));
 
     trackAgainBtn?.addEventListener("click", () => {
-      trackResult.hidden = true;
-      trackForm.hidden = false;
+      if (trackResult) trackResult.hidden = true;
+      if (trackForm) trackForm.hidden = false;
       if (trackMsg) trackMsg.textContent = "";
     });
 
@@ -1070,7 +971,7 @@
       }
     });
 
-    // Account Modal Open/Close
+    // Account Modal
     const accountModal = document.querySelector("[data-account-modal]");
     const openAccountBtns = document.querySelectorAll("[data-open-account]");
     const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
@@ -1098,6 +999,7 @@
     // Global ESC key dismiss
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
+        closeMobileMenu();
         closePolicy();
         closeAbout();
         closeSizeGuide();
@@ -1107,7 +1009,6 @@
         document.getElementById('headerSearchBar')?.classList.remove('is-active');
         document.getElementById('welcomePopupModal')?.classList.remove('is-open');
         if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
-        mobileDrawer?.classList.remove("is-open");
         document.body.classList.remove("modal-open");
       }
     });
