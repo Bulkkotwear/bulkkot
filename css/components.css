@@ -2862,3 +2862,249 @@ button, input, select {
     padding: 10px 12px;
   }
 }
+/* =========================================================
+   LUXURY EDITORIAL NEWS CAROUSEL (CLEAN VOGUE/MYNTRA VIBE)
+   ========================================================= */
+
+.editorial-section {
+  position: relative !important;
+  width: 100% !important;
+  background: #000 !important;
+  padding: 0 !important;
+  border-top: 1px solid var(--bk-border);
+  border-bottom: 1px solid var(--bk-border);
+  overflow: hidden;
+}
+
+.editorial-carousel {
+  position: relative !important;
+  width: 100% !important;
+  height: clamp(480px, 65vh, 600px) !important;
+  max-height: 620px !important;
+  overflow: hidden !important;
+}
+
+.editorial-track {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.editorial-slide {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s ease !important;
+  z-index: 1;
+}
+
+.editorial-slide.is-active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 2;
+}
+
+.editorial-slide img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 30% !important;
+  filter: brightness(0.62) contrast(1.1) !important;
+  transform: scale(1.03);
+  transition: transform 7s ease-out !important;
+}
+
+.editorial-slide.is-active img {
+  transform: scale(1.0);
+}
+
+.editorial-slide__overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(
+    90deg, 
+    rgba(5, 5, 5, 0.88) 0%, 
+    rgba(5, 5, 5, 0.5) 50%, 
+    rgba(5, 5, 5, 0.82) 100%
+  ) !important;
+}
+
+.editorial-slide__content {
+  position: absolute !important;
+  top: 50% !important;
+  left: clamp(24px, 7vw, 100px) !important;
+  transform: translateY(-50%) !important;
+  max-width: 620px !important;
+  z-index: 3 !important;
+  text-align: left !important;
+}
+
+.slide-badge {
+  display: inline-block;
+  background: rgba(227, 27, 35, 0.15);
+  border: 1px solid rgba(227, 27, 35, 0.4);
+  color: var(--bk-red, #e31b23);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  padding: 4px 10px;
+  border-radius: 2px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.slide-korean {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--bk-red, #e31b23) !important;
+  margin: 0 0 6px 0 !important;
+  font-family: 'Noto Sans KR', sans-serif !important;
+}
+
+.editorial-slide__content h2 {
+  font-size: clamp(34px, 6vw, 68px) !important;
+  font-weight: 900 !important;
+  line-height: 0.95 !important;
+  color: #fff !important;
+  letter-spacing: -0.03em !important;
+  margin: 0 0 4px 0 !important;
+}
+
+.slide-sub {
+  display: block;
+  font-size: clamp(16px, 2.8vw, 30px);
+  font-weight: 800;
+  color: #ccc;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+}
+
+.slide-desc {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.6;
+  max-width: 460px;
+  margin-bottom: 22px;
+}
+
+.slide-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: #000;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  padding: 12px 24px;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.slide-cta:hover {
+  background: var(--bk-red, #e31b23);
+  color: #fff;
+}
+
+/* Minimalist Circular Arrows */
+.carousel-control {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  background: rgba(15, 15, 15, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+  display: grid !important;
+  place-items: center !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  backdrop-filter: blur(8px) !important;
+  transition: all 0.2s ease !important;
+}
+
+.carousel-control:hover {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #fff !important;
+  transform: translateY(-50%) scale(1.06) !important;
+}
+
+.carousel-control--prev { left: 24px !important; }
+.carousel-control--next { right: 24px !important; }
+
+/* Vogue / Luxury Horizontal Line Indicators */
+.carousel-indicators {
+  position: absolute !important;
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  gap: 10px !important;
+  z-index: 10 !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.carousel-indicator {
+  background: none !important;
+  border: none !important;
+  padding: 6px 0 !important;
+  cursor: pointer !important;
+}
+
+.indicator-bar {
+  display: block;
+  width: 32px;
+  height: 2.5px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.carousel-indicator:hover .indicator-bar {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.carousel-indicator.is-active .indicator-bar {
+  width: 50px;
+  background: var(--bk-red, #e31b23);
+  box-shadow: 0 0 10px rgba(227, 27, 35, 0.6);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .editorial-carousel {
+    height: 460px !important;
+  }
+  .editorial-slide__content {
+    left: 20px !important;
+    right: 20px !important;
+    max-width: 100% !important;
+  }
+  .editorial-slide__content h2 {
+    font-size: 34px !important;
+  }
+  .slide-sub {
+    font-size: 16px !important;
+    margin-bottom: 10px !important;
+  }
+  .slide-desc {
+    font-size: 11px !important;
+    margin-bottom: 16px !important;
+  }
+  .carousel-control {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  .carousel-control--prev { left: 10px !important; }
+  .carousel-control--next { right: 10px !important; }
+  .indicator-bar { width: 20px; }
+  .carousel-indicator.is-active .indicator-bar { width: 34px; }
+}
