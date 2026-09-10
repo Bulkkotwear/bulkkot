@@ -3108,3 +3108,147 @@ button, input, select {
   .indicator-bar { width: 20px; }
   .carousel-indicator.is-active .indicator-bar { width: 34px; }
 }
+/* =========================================================
+   EDITORIAL SLIDER LUXURY TYPOGRAPHY & SPACING FIX
+   ========================================================= */
+
+/* Carousel Height & Padding expansion */
+.editorial-carousel {
+  height: clamp(520px, 70vh, 640px) !important;
+  min-height: 520px !important;
+}
+
+/* Image position & shadow for crystal clear text readability */
+.editorial-slide img {
+  object-position: center 25% !important;
+}
+
+.editorial-slide__overlay {
+  background: linear-gradient(
+    90deg,
+    rgba(5, 5, 5, 0.92) 0%,
+    rgba(5, 5, 5, 0.72) 45%,
+    rgba(5, 5, 5, 0.4) 100%
+  ) !important;
+}
+
+/* Content Box Perfect Center-Left Alignment */
+.editorial-slide__content {
+  top: 48% !important;
+  left: clamp(48px, 8vw, 120px) !important;
+  transform: translateY(-50%) !important;
+  max-width: 580px !important;
+  padding-bottom: 20px !important;
+}
+
+/* News Tag Pill (Subtle, sleek, non-boxy) */
+.slide-badge {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #fff !important;
+  font-size: 9px !important;
+  letter-spacing: 0.22em !important;
+  padding: 5px 12px !important;
+  margin-bottom: 12px !important;
+  border-radius: 2px !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Korean Subtitle */
+.slide-korean {
+  font-size: 11px !important;
+  letter-spacing: 0.12em !important;
+  color: var(--bk-red, #e31b23) !important;
+  margin: 0 0 6px 0 !important;
+}
+
+/* Big Headline */
+.editorial-slide__content h2 {
+  font-size: clamp(36px, 5.2vw, 62px) !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.0 !important;
+  margin: 0 0 4px 0 !important;
+}
+
+/* Sub-headline */
+.slide-sub {
+  font-size: clamp(14px, 2.2vw, 22px) !important;
+  letter-spacing: 0.12em !important;
+  color: #bbb !important;
+  margin-bottom: 14px !important;
+}
+
+/* Description (Clean muted silver, not jarring red) */
+.slide-desc {
+  font-size: 12px !important;
+  line-height: 1.65 !important;
+  color: #8e8e8e !important;
+  max-width: 440px !important;
+  margin: 0 0 24px 0 !important;
+}
+
+/* Button (Clean & completely visible above bottom edge) */
+.slide-cta {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #fff !important;
+  color: #000 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em !important;
+  padding: 12px 26px !important;
+  border-radius: 2px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
+}
+
+.slide-cta:hover {
+  background: var(--bk-red, #e31b23) !important;
+  color: #fff !important;
+}
+
+/* Navigation Arrows moved to outer safe edges */
+.carousel-control--prev {
+  left: 18px !important;
+}
+
+.carousel-control--next {
+  right: 18px !important;
+}
+
+/* Indicators placed at safe bottom */
+.carousel-indicators {
+  bottom: 20px !important;
+}
+
+/* Mobile Polish */
+@media (max-width: 768px) {
+  .editorial-carousel {
+    height: 480px !important;
+    min-height: 480px !important;
+  }
+  .editorial-slide__content {
+    left: 20px !important;
+    right: 20px !important;
+    top: 50% !important;
+    max-width: calc(100% - 40px) !important;
+  }
+  .editorial-slide__content h2 {
+    font-size: 32px !important;
+  }
+  .slide-sub {
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+  }
+  .slide-desc {
+    font-size: 11px !important;
+    margin-bottom: 18px !important;
+  }
+  .carousel-control {
+    display: none !important; /* Mobile me swipe gesture use hota hai, arrows hata kar screen clean rakhte hain */
+  }
+  .carousel-indicators {
+    bottom: 16px !important;
+  }
+}
