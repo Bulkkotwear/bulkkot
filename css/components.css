@@ -2461,3 +2461,112 @@ button, input, select {
   font-size: 13px;
   color: #fff;
 }
+/* =========================================================
+   HERO COMPACT & VISUAL RE-CENTER OVERRIDE (NO-GAP FIT)
+   ========================================================= */
+
+/* Hero Section Height & Gap Control */
+.hero {
+  min-height: auto !important;
+  height: clamp(480px, 60vh, 580px) !important;
+  max-height: 600px !important;
+  padding: 40px 20px 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 0 !important;
+}
+
+/* Image Fit & Focus (Main Part Always Visible) */
+.hero-media {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.hero-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 25% !important; /* Model / graphic ka main area center rahega */
+  filter: brightness(0.78) contrast(1.05) !important;
+}
+
+/* Hero Content Compact Typography */
+.hero-content {
+  position: relative !important;
+  z-index: 2 !important;
+  max-width: 680px !important;
+  text-align: center !important;
+  margin: 0 auto !important;
+}
+
+.hero-korean {
+  font-size: clamp(14px, 2vw, 18px) !important;
+  margin-bottom: 4px !important;
+  color: var(--bk-red, #e31b23) !important;
+  font-weight: 800 !important;
+}
+
+.hero-content h1 {
+  font-size: clamp(34px, 5.5vw, 56px) !important;
+  line-height: 1.05 !important;
+  margin: 0 0 8px 0 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.hero-label {
+  font-size: 10px !important;
+  letter-spacing: 0.25em !important;
+  margin-bottom: 8px !important;
+  color: #ccc !important;
+}
+
+.hero-description {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  max-width: 440px !important;
+  margin: 0 auto 18px !important;
+  color: #999 !important;
+}
+
+.hero-content .button--primary {
+  padding: 12px 28px !important;
+  font-size: 11px !important;
+  letter-spacing: 0.12em !important;
+}
+
+/* Scroll indicator ko hide karke space save karna */
+.hero-scroll {
+  display: none !important;
+}
+
+/* Niche wale section (Collections / Shop) ko upar kheenchne ke liye */
+.category-section,
+.categories-bar,
+#collections,
+#shop {
+  margin-top: 0 !important;
+  padding-top: 36px !important;
+}
+
+/* Mobile specific 1:1 ratio frame */
+@media (max-width: 768px) {
+  .hero {
+    height: 420px !important;
+    padding: 30px 16px 20px !important;
+  }
+  .hero-content h1 {
+    font-size: 32px !important;
+  }
+  .hero-description {
+    font-size: 12px !important;
+    margin-bottom: 16px !important;
+  }
+  .category-section,
+  #collections {
+    padding-top: 24px !important;
+  }
+}
