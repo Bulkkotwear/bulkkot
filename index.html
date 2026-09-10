@@ -160,25 +160,94 @@
       <div class="hero-scroll"><span>SCROLL</span><i></i></div>
     </section>
 
-    <!-- COLLECTIONS -->
+    <!-- COLLECTIONS HIGHLIGHT -->
     <section class="category-section" id="collections">
-      <div class="section-heading">
-        <p class="eyebrow" data-cms-key="collections_eyebrow">COLLECTIONS · 컬렉션</p>
-        <h2 data-cms-key="collections_title">THE ESSENTIALS</h2>
+      <div class="container">
+        <div class="section-heading" style="text-align: center; margin-bottom: 24px;">
+          <p class="eyebrow" style="color:var(--bk-red, #e31b23); font-size: 11px; letter-spacing: 0.2em;">COLLECTIONS · 컬렉션</p>
+          <h2 style="font-size: clamp(24px, 3.5vw, 36px); font-weight: 900; letter-spacing: -0.02em;">THE ARCHITECTURAL ESSENTIALS</h2>
+        </div>
+
+        <div class="category-row">
+          <!-- TEES -->
+          <div class="category-card">
+            <div class="category-image">
+              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" loading="lazy">
+            </div>
+            <button type="button" class="category-action-btn" data-open-category="tees">
+              <div>
+                <strong>TEES</strong>
+                <span class="cat-kr">티셔츠</span>
+              </div>
+              <span class="cat-arrow">EXPLORE →</span>
+            </button>
+          </div>
+
+          <!-- HOODS -->
+          <div class="category-card">
+            <div class="category-image">
+              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy">
+            </div>
+            <button type="button" class="category-action-btn" data-open-category="hoods">
+              <div>
+                <strong>HOODS</strong>
+                <span class="cat-kr">후드</span>
+              </div>
+              <span class="cat-arrow">EXPLORE →</span>
+            </button>
+          </div>
+
+          <!-- SWEATS -->
+          <div class="category-card">
+            <div class="category-image">
+              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy">
+            </div>
+            <button type="button" class="category-action-btn" data-open-category="sweats">
+              <div>
+                <strong>SWEATS</strong>
+                <span class="cat-kr">스웨트</span>
+              </div>
+              <span class="cat-arrow">EXPLORE →</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="category-row">
-        <a href="#shop" class="category-card" data-category="tees">
-          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Oversized Tees" loading="lazy" data-cms-key="tees_image"></div>
-          <div class="category-name"><strong data-cms-key="tees_title">TEES</strong><span data-cms-key="tees_korean">티셔츠</span></div>
-        </a>
-        <a href="#shop" class="category-card" data-category="hoods">
-          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Oversized Hoodies" loading="lazy" data-cms-key="hoods_image"></div>
-          <div class="category-name"><strong data-cms-key="hoods_title">HOODS</strong><span data-cms-key="hoods_korean">후드</span></div>
-        </a>
-        <a href="#shop" class="category-card" data-category="sweats">
-          <div class="category-image"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Oversized Sweatshirts" loading="lazy" data-cms-key="sweats_image"></div>
-          <div class="category-name"><strong data-cms-key="sweats_title">SWEATS</strong><span data-cms-key="sweats_korean">스웨트</span></div>
-        </a>
+    </section>
+
+    <!-- DEDICATED CATEGORY LISTING VIEW (PLP) -->
+    <section class="category-page-view" id="categoryPageView">
+      <div class="container">
+        <div class="category-page-header">
+          <button type="button" class="category-back-btn" id="categoryBackHomeBtn">
+            ← BACK TO HOME
+          </button>
+          <div class="category-title-wrap">
+            <h1 id="categoryPageTitle">TEES</h1>
+            <span class="hangul-badge" id="categoryPageHangul">티셔츠</span>
+          </div>
+        </div>
+
+        <!-- Sticky Horizontal Filter & Sort Bar -->
+        <div class="category-sticky-bar">
+          <div class="category-filter-chips">
+            <button type="button" class="cat-chip is-active" data-collection-tag="all">ALL</button>
+            <button type="button" class="cat-chip" data-collection-tag="drop-001">DROP 001</button>
+            <button type="button" class="cat-chip" data-collection-tag="heavyweight">HEAVYWEIGHT</button>
+            <button type="button" class="cat-chip" data-collection-tag="oversized">OVERSIZED FIT</button>
+          </div>
+
+          <select class="category-sort-select" id="categoryPageSort">
+            <option value="featured">FEATURED</option>
+            <option value="newest">NEWEST</option>
+            <option value="price-low">PRICE: LOW TO HIGH</option>
+            <option value="price-high">PRICE: HIGH TO LOW</option>
+          </select>
+        </div>
+
+        <!-- Dynamic Category Product Grid (Mobile 2-column) -->
+        <div class="category-product-grid" id="categoryProductGrid">
+          <!-- Populated by main.js with Coming Soon placeholders if no live DB products -->
+        </div>
       </div>
     </section>
 
