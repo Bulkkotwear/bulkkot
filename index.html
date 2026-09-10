@@ -374,32 +374,81 @@
       </div>
     </section>
 
-    <!-- EDITORIAL CAROUSEL -->
-    <section class="editorial-section">
-      <div class="editorial-carousel" data-carousel>
+ <!-- EDITORIAL / LATEST NEWS CAROUSEL (LUXURY EDITORIAL SLIDER) -->
+    <section class="editorial-section" aria-label="Latest News & Editorial">
+      <div class="editorial-carousel" data-carousel id="editorialCarousel">
         <div class="editorial-track" data-carousel-track>
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Editorial Tee" loading="lazy">
+          <!-- SLIDE 1: GENESIS / DROP 001 -->
+          <article class="editorial-slide is-active" data-slide="0">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Drop 001 Editorial" loading="lazy">
             <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content"><p>불꽃 · 001</p><h2>LESS NOISE.</h2><span>MORE PRESENCE.</span></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 01 // DROP 001</span>
+              <p class="slide-korean">불꽃 · 001</p>
+              <h2>LESS NOISE.</h2>
+              <span class="slide-sub">MORE PRESENCE.</span>
+              <p class="slide-desc">Architectural drop shoulders with pure matte combed yarn. Engineered for elevated movement.</p>
+              <a href="#drop-001" class="slide-cta">DISCOVER DROP 001 →</a>
+            </div>
           </article>
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Editorial Hood" loading="lazy">
+
+          <!-- SLIDE 2: FABRIC ARCHITECTURE -->
+          <article class="editorial-slide" data-slide="1">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Heavy Fleece" loading="lazy">
             <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content"><p>서울에서 영감</p><h2>MADE FOR</h2><span>EVERYDAY.</span></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 02 // CRAFTSMANSHIP</span>
+              <p class="slide-korean">서울에서 영감 · 헤비웨이트</p>
+              <h2>450 GSM</h2>
+              <span class="slide-sub">LOOPBACK FLEECE.</span>
+              <p class="slide-desc">Double-density weave built to retain structure through repeated washes without loss of drape.</p>
+              <a href="shop.html?category=hoods" class="slide-cta">EXPLORE HOODS →</a>
+            </div>
           </article>
-          <article class="editorial-slide" data-slide>
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Editorial Sweat" loading="lazy">
+
+          <!-- SLIDE 3: PHILOSOPHY & STREETWEAR -->
+          <article class="editorial-slide" data-slide="2">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Silhouette" loading="lazy">
             <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content"><p>불꽃 · BULKKOT</p><h2>QUIETLY</h2><span>DISTINCT.</span></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 03 // SILHOUETTES</span>
+              <p class="slide-korean">디자인 미학 · SEOUL TO WORLD</p>
+              <h2>QUIETLY</h2>
+              <span class="slide-sub">DISTINCT.</span>
+              <p class="slide-desc">No loud exterior billboards. The garment commands attention through silhouette and proportion.</p>
+              <a href="shop.html?category=sweats" class="slide-cta">EXPLORE SWEATS →</a>
+            </div>
+          </article>
+
+          <!-- SLIDE 4: LIMITED EDITION RUNS -->
+          <article class="editorial-slide" data-slide="3">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Limited Tees" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 04 // LIMITED SUPPLY</span>
+              <p class="slide-korean">한정판 수량 · 150 PCS</p>
+              <h2>STRICTLY 150</h2>
+              <span class="slide-sub">PIECES PER CUT.</span>
+              <p class="slide-desc">Zero mass-production restocking. Every unit serialized and dispatched in custom matte black boxing.</p>
+              <a href="shop.html?category=tees" class="slide-cta">EXPLORE TEES →</a>
+            </div>
           </article>
         </div>
-        <button type="button" class="carousel-control carousel-control--prev" aria-label="Previous slide" data-carousel-prev>←</button>
-        <button type="button" class="carousel-control carousel-control--next" aria-label="Next slide" data-carousel-next>→</button>
-        <div class="carousel-indicators">
-          <button type="button" data-carousel-dot data-slide-indicator aria-label="Go to slide 1"></button>
-          <button type="button" data-carousel-dot data-slide-indicator aria-label="Go to slide 2"></button>
-          <button type="button" data-carousel-dot data-slide-indicator aria-label="Go to slide 3"></button>
+
+        <!-- Sleek Minimalist Controls -->
+        <button type="button" class="carousel-control carousel-control--prev" aria-label="Previous slide" data-carousel-prev>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button type="button" class="carousel-control carousel-control--next" aria-label="Next slide" data-carousel-next>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+
+        <!-- Vogue / Myntra Style Sleek Line Indicators -->
+        <div class="carousel-indicators" role="tablist" aria-label="Slider Indicators">
+          <button type="button" class="carousel-indicator is-active" data-slide-indicator="0" aria-label="Slide 1"><span class="indicator-bar"></span></button>
+          <button type="button" class="carousel-indicator" data-slide-indicator="1" aria-label="Slide 2"><span class="indicator-bar"></span></button>
+          <button type="button" class="carousel-indicator" data-slide-indicator="2" aria-label="Slide 3"><span class="indicator-bar"></span></button>
+          <button type="button" class="carousel-indicator" data-slide-indicator="3" aria-label="Slide 4"><span class="indicator-bar"></span></button>
         </div>
       </div>
     </section>
