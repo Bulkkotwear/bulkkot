@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 12.0 (Mobile Drawer Fix, Clean Auth, PDP & Guest Tracking)
+ * Version: 13.0 (Clean Editorial Slider, Mobile Drawer, PDP & Full Storefront Logic)
  */
 (function () {
   'use strict';
@@ -61,6 +61,93 @@
       return [product.image_url];
     }
     return ['https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
+  }
+
+  /* =========================================================
+     LUXURY EDITORIAL NEWS CAROUSEL CONTROLLER
+     ========================================================= */
+  function initEditorialCarousel() {
+    const container = document.getElementById('editorialCarousel');
+    if (!container) return;
+
+    const slides = container.querySelectorAll('[data-slide]');
+    const indicators = container.querySelectorAll('[data-slide-indicator]');
+    const prevBtn = container.querySelector('[data-carousel-prev]');
+    const nextBtn = container.querySelector('[data-carousel-next]');
+
+    if (!slides.length) return;
+
+    let currentIndex = 0;
+    let autoPlayTimer = null;
+    const TOTAL = slides.length;
+
+    function goToSlide(index) {
+      currentIndex = (index + TOTAL) % TOTAL;
+
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('is-active', i === currentIndex);
+      });
+
+      indicators.forEach((ind, i) => {
+        ind.classList.toggle('is-active', i === currentIndex);
+        ind.setAttribute('aria-selected', i === currentIndex ? 'true' : 'false');
+      });
+    }
+
+    function nextSlide() { goToSlide(currentIndex + 1); }
+    function prevSlide() { goToSlide(currentIndex - 1); }
+
+    function startAutoPlay() {
+      stopAutoPlay();
+      autoPlayTimer = setInterval(nextSlide, 5000);
+    }
+
+    function stopAutoPlay() {
+      if (autoPlayTimer) clearInterval(autoPlayTimer);
+    }
+
+    prevBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      prevSlide();
+      startAutoPlay();
+    });
+
+    nextBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      nextSlide();
+      startAutoPlay();
+    });
+
+    indicators.forEach((ind, idx) => {
+      ind.addEventListener('click', (e) => {
+        e.preventDefault();
+        goToSlide(idx);
+        startAutoPlay();
+      });
+    });
+
+    // Touch Swipe Support for Mobile Screens
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    container.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      stopAutoPlay();
+    }, { passive: true });
+
+    container.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      if (touchStartX - touchEndX > 50) nextSlide();
+      if (touchEndX - touchStartX > 50) prevSlide();
+      startAutoPlay();
+    }, { passive: true });
+
+    container.addEventListener('mouseenter', stopAutoPlay);
+    container.addEventListener('mouseleave', startAutoPlay);
+
+    // Initial Start
+    goToSlide(0);
+    startAutoPlay();
   }
 
   /* =========================================================
@@ -365,7 +452,7 @@
   }
 
   /* =========================================================
-     DYNAMIC SETTINGS SYNC
+     DYNAMIC STORE SETTINGS
      ========================================================= */
   async function syncStoreSettings() {
     if (!supabase) return;
@@ -384,15 +471,12 @@
         document.querySelectorAll('a[href^="mailto:"]').forEach(a => {
           a.href = `mailto:${email}`;
         });
-        document.querySelectorAll('[data-cms-key="contact_email"]').forEach(el => {
-          el.textContent = email;
-        });
       }
     } catch (e) {}
   }
 
   /* =========================================================
-     READ-ONLY CMS LOADER
+     CMS CONTENT LOADER
      ========================================================= */
   async function loadCMSContent() {
     if (!supabase) return;
@@ -420,28 +504,81 @@
   }
 
   /* =========================================================
-     CATALOGUE & PRODUCTS
+     CATALOGUE & FALLBACK PRODUCTS
      ========================================================= */
+  const COMING_SOON_TEMPLATES = [
+    {
+      id: "mock-tee-01",
+      name: "ARCHITECTURAL BOXY TEE",
+      category: "tees",
+      price: 2499,
+      description: "280 GSM heavyweight combed luxury cotton. Custom boxy fall tailored with Korean minimalist drop-shoulder proportions.",
+      stock: { S: 10, M: 15, L: 8, XL: 4 },
+      active: true,
+      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"]
+    },
+    {
+      id: "mock-hood-01",
+      name: "STRUCTURED HEAVYWEIGHT HOODIE",
+      category: "hoods",
+      price: 4499,
+      description: "450 GSM diagonal loopback fleece. Double-layered hood without drawstrings for an uncompromising, clean silhouette.",
+      stock: { S: 5, M: 8, L: 10, XL: 2 },
+      active: true,
+      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"]
+    },
+    {
+      id: "mock-sweat-01",
+      name: "MINIMALIST OVERSIZED SWEAT",
+      category: "sweats",
+      price: 3699,
+      description: "380 GSM brushed interior cotton. High-density ribbing that retains volume even after extensive everyday wear.",
+      stock: { S: 6, M: 12, L: 9, XL: 5 },
+      active: true,
+      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"]
+    },
+    {
+      id: "mock-tee-02",
+      name: "SEOUL EDITION GRAPHIC TEE",
+      category: "tees",
+      price: 2699,
+      description: "High-density screen print with subtle Korean Hangul accents. Built with zero-compromise streetwear architecture.",
+      stock: { S: 8, M: 14, L: 12, XL: 3 },
+      active: true,
+      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"]
+    }
+  ];
+
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
-    if (!grid || !supabase) return;
+    if (!grid) return;
 
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("active", true)
-        .order("created_at", { ascending: false });
+      let data = [];
+      if (supabase) {
+        const res = await supabase.from("products").select("*").eq("active", true).order("created_at", { ascending: false });
+        if (!res.error && res.data && res.data.length > 0) {
+          data = res.data;
+        }
+      }
 
-      if (error) throw error;
-      liveProducts = data || [];
+      liveProducts = data.length > 0 ? data : COMING_SOON_TEMPLATES;
+
       liveProducts.forEach(p => {
         selectedSizes[p.id] = ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
       });
+
       renderProducts(getFilteredProducts());
     } catch (err) {
-      grid.innerHTML = '<p class="catalog-message">Unable to load catalog right now.</p>';
+      liveProducts = COMING_SOON_TEMPLATES;
+      renderProducts(getFilteredProducts());
     }
+
+    const sortSelect = document.getElementById('shop-sort');
+    sortSelect?.addEventListener('change', (e) => {
+      activeSort = e.target.value;
+      renderProducts(getFilteredProducts());
+    });
   }
 
   function getFilteredProducts() {
@@ -506,7 +643,7 @@
   }
 
   /* =========================================================
-     PRODUCT DETAIL MODAL (PDP) & RELATED PRODUCTS
+     PRODUCT DETAIL POP-UP (PDP)
      ========================================================= */
   let currentPdpProduct = null;
   let currentPdpSize = 'M';
@@ -741,7 +878,7 @@
   };
 
   /* =========================================================
-     UNIVERSAL MODAL & NAVIGATION (MOBILE DRAWER FIX)
+     UNIVERSAL MODAL & NAVIGATION
      ========================================================= */
   function initModalsAndNavigation() {
     const mobileDrawer = document.querySelector("[data-mobile-drawer]");
@@ -771,7 +908,7 @@
     closeDrawerBtns.forEach(btn => btn.addEventListener("click", closeMobileMenu));
     mobileOverlay?.addEventListener("click", closeMobileMenu);
 
-    // Policy
+    // Policy Modal
     const policyModal = document.querySelector("[data-policy-modal]");
     const policyTitle = policyModal?.querySelector("[data-policy-title]");
     const policyContent = policyModal?.querySelector("[data-policy-content]");
@@ -806,7 +943,7 @@
       if (e.target === policyModal) closePolicy();
     });
 
-    // About
+    // About Modal
     const aboutModal = document.querySelector("[data-about-modal]");
     const openAboutBtns = document.querySelectorAll("[data-open-about]");
     const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
@@ -829,7 +966,7 @@
       if (e.target === aboutModal) closeAbout();
     });
 
-    // Size Guide
+    // Size Guide Modal
     const sizeModal = document.querySelector("[data-size-guide-modal]");
     const openSizeBtns = document.querySelectorAll("[data-size-guide-open]");
     const closeSizeBtns = sizeModal?.querySelectorAll("[data-size-guide-close]");
@@ -996,7 +1133,7 @@
       el.addEventListener('click', closePdpModal);
     });
 
-    // Global ESC key dismiss
+    // Global ESC Key Dismiss
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closeMobileMenu();
@@ -1050,6 +1187,7 @@
   function initStorefront() {
     initModalsAndNavigation();
     initCatalog();
+    initEditorialCarousel();
     loadCMSContent();
     syncStoreSettings();
     initAuth();
@@ -1072,122 +1210,3 @@
     initStorefront();
   }
 })();
-/* =========================================================
-     CATEGORY PAGE ROUTER & COMING SOON TEMPLATES
-     ========================================================= */
-  let activePageCategory = null;
-  let activeCollectionTag = "all";
-
-  const CATEGORY_META = {
-    tees: { title: "OVERSIZED TEES", hangul: "티셔츠", defaultPrice: 2499 },
-    hoods: { title: "HEAVYWEIGHT HOODS", hangul: "후드", defaultPrice: 4299 },
-    sweats: { title: "LUXURY SWEATSHIRTS", hangul: "스웨트", defaultPrice: 3499 }
-  };
-
-  function openCategoryPage(categoryKey) {
-    activePageCategory = categoryKey.toLowerCase();
-    activeCollectionTag = "all";
-
-    const homeMain = document.getElementById('top');
-    const catView = document.getElementById('categoryPageView');
-    const titleEl = document.getElementById('categoryPageTitle');
-    const hangulEl = document.getElementById('categoryPageHangul');
-
-    if (!catView) return;
-
-    const meta = CATEGORY_META[activePageCategory] || { title: activePageCategory.toUpperCase(), hangul: "컬렉션", defaultPrice: 2999 };
-    if (titleEl) titleEl.textContent = meta.title;
-    if (hangulEl) hangulEl.textContent = meta.hangul;
-
-    // Smooth switch
-    if (homeMain) homeMain.style.display = 'none';
-    catView.classList.add('is-active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    renderCategoryViewProducts();
-  }
-
-  function closeCategoryPage() {
-    activePageCategory = null;
-    const homeMain = document.getElementById('top');
-    const catView = document.getElementById('categoryPageView');
-
-    if (catView) catView.classList.remove('is-active');
-    if (homeMain) homeMain.style.display = 'block';
-
-    const colSection = document.getElementById('collections');
-    if (colSection) colSection.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  function renderCategoryViewProducts() {
-    const grid = document.getElementById('categoryProductGrid');
-    if (!grid) return;
-
-    let items = liveProducts.filter(p => getCategory(p) === activePageCategory);
-
-    // Apply collection filter
-    if (activeCollectionTag !== 'all') {
-      items = items.filter(p => (p.name || '').toLowerCase().includes(activeCollectionTag) || (p.description || '').toLowerCase().includes(activeCollectionTag));
-    }
-
-    // Apply sorting
-    const sortVal = document.getElementById('categoryPageSort')?.value || 'featured';
-    if (sortVal === "price-low") items.sort((a, b) => Number(a.price) - Number(b.price));
-    if (sortVal === "price-high") items.sort((a, b) => Number(b.price) - Number(a.price));
-    if (sortVal === "newest") items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    // If database products not added yet, show luxury COMING SOON templates
-    if (items.length === 0) {
-      const meta = CATEGORY_META[activePageCategory] || { defaultPrice: 2999 };
-      const placeholderTemplates = [
-        { id: `mock-${activePageCategory}-1`, name: `Boxy Heavyweight ${activePageCategory.slice(0,-1).toUpperCase()} 01`, price: meta.defaultPrice, img: 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png' },
-        { id: `mock-${activePageCategory}-2`, name: `Architectural Cut ${activePageCategory.slice(0,-1).toUpperCase()} 02`, price: meta.defaultPrice + 200, img: 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png' },
-        { id: `mock-${activePageCategory}-3`, name: `Minimalist Korean Silhouette 03`, price: meta.defaultPrice - 100, img: 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png' },
-        { id: `mock-${activePageCategory}-4`, name: `Seoul Signature Edition 04`, price: meta.defaultPrice + 500, img: 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png' }
-      ];
-
-      grid.innerHTML = placeholderTemplates.map(p => `
-        <article class="product-card">
-          <div class="product-card__thumb" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
-            <img src="${p.img}" alt="${escapeHTML(p.name)}" loading="lazy">
-            <span class="product-status" style="background:var(--bk-red, #e31b23); color:#fff;">DROP 001 · SOON</span>
-          </div>
-          <div class="product-information">
-            <div class="product-information__header" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
-              <div><h3>${escapeHTML(p.name)}</h3><p class="product-category">${CATEGORY_META[activePageCategory]?.hangul || '에센셜'}</p></div>
-              <span class="product-price">${formatPrice(p.price)}</span>
-            </div>
-            <button type="button" class="button button--primary product-add-button" data-action="quickview" data-id="${p.id}" style="margin-top:10px;">
-              VIEW SILHOUETTE
-            </button>
-          </div>
-        </article>
-      `).join('');
-      return;
-    }
-
-    renderProductsInGrid(items, grid);
-  }
-
-  // Bind Buttons
-  document.querySelectorAll('[data-open-category]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openCategoryPage(btn.dataset.openCategory);
-    });
-  });
-
-  document.getElementById('categoryBackHomeBtn')?.addEventListener('click', closeCategoryPage);
-
-  document.querySelectorAll('[data-collection-tag]').forEach(chip => {
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('[data-collection-tag]').forEach(c => c.classList.remove('is-active'));
-      chip.classList.add('is-active');
-      activeCollectionTag = chip.dataset.collectionTag;
-      renderCategoryViewProducts();
-    });
-  });
-
-  document.getElementById('categoryPageSort')?.addEventListener('change', () => {
-    renderCategoryViewProducts();
-  });
