@@ -112,7 +112,8 @@
     </div>
   </header>
 
-  <!-- MOBILE DRAWER -->
+  <!-- MOBILE DRAWER BACKDROP & PANEL -->
+  <div class="drawer-overlay" data-mobile-overlay></div>
   <aside class="mobile-drawer" id="mobile-drawer" data-mobile-drawer aria-hidden="true">
     <div class="mobile-drawer__header">
       <a href="#top" class="brand">
@@ -431,13 +432,12 @@
     <div class="drawer__body" id="cart-content"></div>
   </aside>
 
- <!-- CUSTOMER ACCOUNT MODAL (PREMIUM MYNTRA STYLE) -->
+  <!-- CUSTOMER ACCOUNT MODAL -->
   <div class="account-modal" data-account-modal aria-hidden="true">
     <div class="account-backdrop" data-account-close></div>
     <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button type="button" class="account-close" data-account-close aria-label="Close account">×</button>
 
-      <!-- AUTHENTICATION VIEW -->
       <div class="account-auth-view" data-account-auth>
         <div class="auth-banner-wrap">
           <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Drop 001">
@@ -448,7 +448,6 @@
         </div>
 
         <form class="account-auth-form" data-account-login-form data-mode="signin" novalidate>
-          <!-- Hidden by default, shown on Signup -->
           <div class="bk-input-group" id="account-name-field" style="display: none;">
             <span>FULL NAME</span>
             <input id="account-name-input" type="text" class="bk-input" name="name" autocomplete="name" placeholder="Enter your full name">
@@ -491,7 +490,6 @@
         </button>
       </div>
 
-      <!-- LOGGED-IN PROFILE VIEW (Unchanged structure, refined classes) -->
       <div class="account-user-view" data-account-user hidden>
         <div class="account-header" style="margin-bottom:24px;">
           <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">AUTHENTICATED</p>
@@ -533,7 +531,8 @@
       </div>
     </section>
   </div>
-  <!-- 100% WORKING GUEST ORDER TRACKING MODAL -->
+
+  <!-- GUEST ORDER TRACKING MODAL -->
   <div class="track-order-modal" data-track-order-modal aria-hidden="true">
     <div class="track-order-backdrop" data-track-order-close></div>
     <section class="track-order-panel" role="dialog" aria-modal="true" aria-labelledby="track-order-title">
