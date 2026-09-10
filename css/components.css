@@ -3495,3 +3495,202 @@ button, input, select {
     height: 280px !important;
   }
 }
+/* =========================================================
+   BULKKOT ULTRA-LUXURY EDITORIAL SLIDER OVERRIDE
+   ========================================================= */
+
+.editorial-carousel {
+  height: clamp(540px, 72vh, 650px) !important;
+  background: #000 !important;
+}
+
+/* Subtle Cinematic Gradient - lets the model blend naturally */
+.editorial-slide__overlay {
+  background: radial-gradient(
+    circle at 75% 45%,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.75) 55%,
+    rgba(0, 0, 0, 0.95) 100%
+  ),
+  linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.96) 0%,
+    rgba(0, 0, 0, 0.8) 42%,
+    rgba(0, 0, 0, 0.25) 100%
+  ) !important;
+}
+
+/* Elegant Text Placement */
+.editorial-slide__content {
+  top: 50% !important;
+  left: clamp(40px, 9vw, 130px) !important;
+  transform: translateY(-50%) !important;
+  max-width: 520px !important;
+  padding: 0 !important;
+}
+
+/* Clean Tag - No ugly border box, purely editorial */
+.slide-badge {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3em !important;
+  color: #777 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  text-transform: uppercase !important;
+}
+
+.slide-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--bk-red, #e31b23);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Red Korean Hit */
+.slide-korean {
+  font-size: 11px !important;
+  letter-spacing: 0.16em !important;
+  color: var(--bk-red, #e31b23) !important;
+  margin: 0 0 10px 0 !important;
+  font-weight: 700 !important;
+}
+
+/* Heavy Bold Silhouette Heading */
+.editorial-slide__content h2 {
+  font-size: clamp(38px, 5.5vw, 66px) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 0.95 !important;
+  color: #fff !important;
+  margin: 0 0 6px 0 !important;
+}
+
+/* Secondary Hook */
+.slide-sub {
+  font-size: clamp(15px, 2.2vw, 24px) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  color: #aaa !important;
+  margin: 0 0 18px 0 !important;
+  display: block !important;
+}
+
+/* Understated Description */
+.slide-desc {
+  font-size: 12px !important;
+  line-height: 1.7 !important;
+  color: #6d6d6d !important;
+  max-width: 420px !important;
+  margin: 0 0 26px 0 !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* High-End Architectural CTA */
+.slide-cta {
+  background: #fff !important;
+  color: #050505 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.18em !important;
+  padding: 13px 26px !important;
+  border-radius: 1px !important;
+  display: inline-flex !important;
+  border: 1px solid #fff !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: none !important;
+}
+
+.slide-cta:hover {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: #fff !important;
+  transform: translateX(3px) !important;
+}
+
+/* Discreet Luxury Arrows */
+.carousel-control {
+  width: 40px !important;
+  height: 40px !important;
+  background: rgba(10, 10, 10, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #888 !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.2s ease !important;
+}
+
+.carousel-control:hover {
+  background: #111 !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-50%) !important;
+}
+
+.carousel-control--prev { left: 24px !important; }
+.carousel-control--next { right: 24px !important; }
+
+/* Thin Architectural Progress Bars */
+.carousel-indicators {
+  bottom: 26px !important;
+  gap: 8px !important;
+}
+
+.carousel-indicator {
+  padding: 4px 0 !important;
+}
+
+.indicator-bar {
+  width: 24px !important;
+  height: 2px !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 0 !important;
+}
+
+.carousel-indicator:hover .indicator-bar {
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+.carousel-indicator.is-active .indicator-bar {
+  width: 44px !important;
+  background: var(--bk-red, #e31b23) !important;
+  box-shadow: 0 0 12px rgba(227, 27, 35, 0.7) !important;
+}
+
+/* Clean Mobile Stack */
+@media (max-width: 768px) {
+  .editorial-carousel {
+    height: 490px !important;
+  }
+  .editorial-slide__content {
+    left: 20px !important;
+    right: 20px !important;
+    max-width: 100% !important;
+  }
+  .editorial-slide__content h2 {
+    font-size: 34px !important;
+  }
+  .slide-sub {
+    font-size: 15px !important;
+    margin-bottom: 12px !important;
+  }
+  .slide-desc {
+    font-size: 11px !important;
+    margin-bottom: 20px !important;
+  }
+  .carousel-control {
+    display: none !important;
+  }
+  .indicator-bar {
+    width: 16px !important;
+  }
+  .carousel-indicator.is-active .indicator-bar {
+    width: 28px !important;
+  }
+}
