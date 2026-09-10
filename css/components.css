@@ -3330,3 +3330,168 @@ button, input, select {
     padding: 6px 10px !important;
   }
 }
+/* =========================================================
+   MYNTRA-GRADE CLEAN FILTER STRIP & SWIPEABLE PRODUCTS RAIL
+   ========================================================= */
+
+/* Clean Minimal Toolbar (No heavy black box container) */
+.shop-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 10px 0 20px !important;
+  margin: 0 !important;
+  gap: 12px !important;
+  border-bottom: 1px solid #161616 !important;
+}
+
+/* Category Filter Pills (Ultra clean luxury style) */
+.shop-filters {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.shop-filters::-webkit-scrollbar { display: none; }
+
+.shop-filter {
+  background: #111 !important;
+  color: #888 !important;
+  border: 1px solid #222 !important;
+  border-radius: 999px !important;
+  padding: 8px 18px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.shop-filter:hover {
+  color: #fff !important;
+  border-color: #444 !important;
+}
+
+.shop-filter.is-active {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #fff !important;
+  box-shadow: 0 4px 12px rgba(255,255,255,0.15) !important;
+}
+
+.shop-toolbar__actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.size-guide-trigger {
+  background: transparent !important;
+  border: 1px solid #2a2a2a !important;
+  color: #aaa !important;
+  padding: 7px 14px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+.size-guide-trigger:hover {
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+.shop-sort select {
+  background: #111 !important;
+  border: 1px solid #222 !important;
+  color: #ddd !important;
+  padding: 7px 14px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  border-radius: 4px !important;
+  outline: none !important;
+}
+
+/* Horizontal Swipeable Product Grid on Mobile */
+.product-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 20px !important;
+  margin-top: 24px !important;
+}
+
+.product-card {
+  background: #0d0d0d !important;
+  border: 1px solid #1a1a1a !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  transition: transform 0.25s ease, border-color 0.25s ease !important;
+}
+
+.product-card:hover {
+  border-color: #333 !important;
+  transform: translateY(-4px) !important;
+}
+
+.product-card__thumb {
+  height: 320px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background: #131313 !important;
+}
+
+.product-card__thumb img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.5s ease !important;
+}
+.product-card:hover .product-card__thumb img {
+  transform: scale(1.05) !important;
+}
+
+/* Mobile: Horizontal Swipeable Rail (Myntra App Vibe) */
+@media (max-width: 768px) {
+  .shop-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding-bottom: 14px !important;
+  }
+  .shop-toolbar__actions {
+    justify-content: space-between !important;
+  }
+  .shop-filter {
+    padding: 6px 14px !important;
+    font-size: 10px !important;
+  }
+
+  /* Horizontal swipe track */
+  .product-grid {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 12px !important;
+    padding: 4px 16px 20px !important;
+    margin: 16px -16px 0 !important;
+    scrollbar-width: none !important;
+  }
+  .product-grid::-webkit-scrollbar { display: none; }
+
+  .product-card {
+    flex: 0 0 72vw !important; /* Mobile pe clean modern peek card */
+    max-width: 270px !important;
+    scroll-snap-align: center !important;
+    border-radius: 6px !important;
+  }
+
+  .product-card__thumb {
+    height: 280px !important;
+  }
+}
