@@ -1072,3 +1072,122 @@
     initStorefront();
   }
 })();
+/* =========================================================
+     CATEGORY PAGE ROUTER & COMING SOON TEMPLATES
+     ========================================================= */
+  let activePageCategory = null;
+  let activeCollectionTag = "all";
+
+  const CATEGORY_META = {
+    tees: { title: "OVERSIZED TEES", hangul: "티셔츠", defaultPrice: 2499 },
+    hoods: { title: "HEAVYWEIGHT HOODS", hangul: "후드", defaultPrice: 4299 },
+    sweats: { title: "LUXURY SWEATSHIRTS", hangul: "스웨트", defaultPrice: 3499 }
+  };
+
+  function openCategoryPage(categoryKey) {
+    activePageCategory = categoryKey.toLowerCase();
+    activeCollectionTag = "all";
+
+    const homeMain = document.getElementById('top');
+    const catView = document.getElementById('categoryPageView');
+    const titleEl = document.getElementById('categoryPageTitle');
+    const hangulEl = document.getElementById('categoryPageHangul');
+
+    if (!catView) return;
+
+    const meta = CATEGORY_META[activePageCategory] || { title: activePageCategory.toUpperCase(), hangul: "컬렉션", defaultPrice: 2999 };
+    if (titleEl) titleEl.textContent = meta.title;
+    if (hangulEl) hangulEl.textContent = meta.hangul;
+
+    // Smooth switch
+    if (homeMain) homeMain.style.display = 'none';
+    catView.classList.add('is-active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    renderCategoryViewProducts();
+  }
+
+  function closeCategoryPage() {
+    activePageCategory = null;
+    const homeMain = document.getElementById('top');
+    const catView = document.getElementById('categoryPageView');
+
+    if (catView) catView.classList.remove('is-active');
+    if (homeMain) homeMain.style.display = 'block';
+
+    const colSection = document.getElementById('collections');
+    if (colSection) colSection.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function renderCategoryViewProducts() {
+    const grid = document.getElementById('categoryProductGrid');
+    if (!grid) return;
+
+    let items = liveProducts.filter(p => getCategory(p) === activePageCategory);
+
+    // Apply collection filter
+    if (activeCollectionTag !== 'all') {
+      items = items.filter(p => (p.name || '').toLowerCase().includes(activeCollectionTag) || (p.description || '').toLowerCase().includes(activeCollectionTag));
+    }
+
+    // Apply sorting
+    const sortVal = document.getElementById('categoryPageSort')?.value || 'featured';
+    if (sortVal === "price-low") items.sort((a, b) => Number(a.price) - Number(b.price));
+    if (sortVal === "price-high") items.sort((a, b) => Number(b.price) - Number(a.price));
+    if (sortVal === "newest") items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // If database products not added yet, show luxury COMING SOON templates
+    if (items.length === 0) {
+      const meta = CATEGORY_META[activePageCategory] || { defaultPrice: 2999 };
+      const placeholderTemplates = [
+        { id: `mock-${activePageCategory}-1`, name: `Boxy Heavyweight ${activePageCategory.slice(0,-1).toUpperCase()} 01`, price: meta.defaultPrice, img: 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png' },
+        { id: `mock-${activePageCategory}-2`, name: `Architectural Cut ${activePageCategory.slice(0,-1).toUpperCase()} 02`, price: meta.defaultPrice + 200, img: 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png' },
+        { id: `mock-${activePageCategory}-3`, name: `Minimalist Korean Silhouette 03`, price: meta.defaultPrice - 100, img: 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png' },
+        { id: `mock-${activePageCategory}-4`, name: `Seoul Signature Edition 04`, price: meta.defaultPrice + 500, img: 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png' }
+      ];
+
+      grid.innerHTML = placeholderTemplates.map(p => `
+        <article class="product-card">
+          <div class="product-card__thumb" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
+            <img src="${p.img}" alt="${escapeHTML(p.name)}" loading="lazy">
+            <span class="product-status" style="background:var(--bk-red, #e31b23); color:#fff;">DROP 001 · SOON</span>
+          </div>
+          <div class="product-information">
+            <div class="product-information__header" data-action="quickview" data-id="${p.id}" style="cursor: pointer;">
+              <div><h3>${escapeHTML(p.name)}</h3><p class="product-category">${CATEGORY_META[activePageCategory]?.hangul || '에센셜'}</p></div>
+              <span class="product-price">${formatPrice(p.price)}</span>
+            </div>
+            <button type="button" class="button button--primary product-add-button" data-action="quickview" data-id="${p.id}" style="margin-top:10px;">
+              VIEW SILHOUETTE
+            </button>
+          </div>
+        </article>
+      `).join('');
+      return;
+    }
+
+    renderProductsInGrid(items, grid);
+  }
+
+  // Bind Buttons
+  document.querySelectorAll('[data-open-category]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openCategoryPage(btn.dataset.openCategory);
+    });
+  });
+
+  document.getElementById('categoryBackHomeBtn')?.addEventListener('click', closeCategoryPage);
+
+  document.querySelectorAll('[data-collection-tag]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-collection-tag]').forEach(c => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      activeCollectionTag = chip.dataset.collectionTag;
+      renderCategoryViewProducts();
+    });
+  });
+
+  document.getElementById('categoryPageSort')?.addEventListener('change', () => {
+    renderCategoryViewProducts();
+  });
