@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 13.0 (Clean Editorial Slider, Mobile Drawer, PDP & Full Storefront Logic)
+ * Version: 13.1 (Clean Editorial Slider, Mobile Drawer, PDP & Full Storefront Logic, Hardened Announcement CMS Sync)
  */
 (function () {
   'use strict';
@@ -478,51 +478,74 @@
   /* =========================================================
      READ-ONLY CMS LOADER & DYNAMIC ANNOUNCEMENT SYNC
      ========================================================= */
+  const ANNOUNCEMENT_STOREFRONT_DEFAULTS = {
+    announcement_bg: "#e31b23",
+    announcement_color: "#ffffff",
+    announcement_font: "'Inter', sans-serif",
+    announcement_speed: "20"
+  };
+
   async function loadCMSContent() {
     if (!supabase) return;
     try {
       const { data, error } = await supabase
         .from("site_content")
-        .select("key, value");
-
-      if (error || !data) return;
+        .select("key, value, content_key, content_value");
 
       const bar = document.querySelector('.announcement-bar');
       const track = document.querySelector('.announcement-track');
 
-      data.forEach(row => {
-        const key = row.key;
-        const val = row.value || "";
+      // Normalize rows regardless of which column pair actually holds data
+      // (defends against older rows written with key/value vs content_key/content_value).
+      const rows = (!error && data) ? data.map(r => ({
+        key: r.content_key || r.key,
+        value: (r.content_value ?? r.value ?? "")
+      })).filter(r => r.key) : [];
 
-        // Dynamic Announcement Bar Styling Sync
-        if (key === "announcement_bg" && bar) bar.style.backgroundColor = val;
-        if (key === "announcement_color" && bar) bar.style.color = val;
-        if (key === "announcement_font" && bar) bar.style.fontFamily = val;
-        if (key === "announcement_speed" && track && val) {
-          track.style.animationDuration = `${val}s`;
-        }
+      // Build a lookup with safe fallbacks so styling never breaks if a key is missing.
+      const lookup = {};
+      rows.forEach(r => { lookup[r.key] = r.value; });
 
-        // Ticker texts
-        if (key === "announcement_1") {
-          document.querySelectorAll('[data-cms-key="announcement_1"]').forEach(el => el.textContent = val);
-        }
-        if (key === "announcement_2") {
-          document.querySelectorAll('[data-cms-key="announcement_2"]').forEach(el => el.textContent = val);
-        }
-        if (key === "announcement_3") {
-          document.querySelectorAll('[data-cms-key="announcement_3"]').forEach(el => el.textContent = val);
-        }
+      const bg = lookup.announcement_bg || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_bg;
+      const color = lookup.announcement_color || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_color;
+      const font = lookup.announcement_font || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_font;
+      const speed = lookup.announcement_speed || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_speed;
 
-        // General tags
+      if (bar) {
+        bar.style.backgroundColor = bg;
+        bar.style.color = color;
+        bar.style.fontFamily = font;
+      }
+      if (track && speed) {
+        track.style.animationDuration = `${speed}s`;
+      }
+
+      // Ticker texts
+      if (lookup.announcement_1 !== undefined) {
+        document.querySelectorAll('[data-cms-key="announcement_1"]').forEach(el => el.textContent = lookup.announcement_1);
+      }
+      if (lookup.announcement_2 !== undefined) {
+        document.querySelectorAll('[data-cms-key="announcement_2"]').forEach(el => el.textContent = lookup.announcement_2);
+      }
+      if (lookup.announcement_3 !== undefined) {
+        document.querySelectorAll('[data-cms-key="announcement_3"]').forEach(el => el.textContent = lookup.announcement_3);
+      }
+
+      // General tags (hero, about, philosophy, contact, etc.)
+      rows.forEach(({ key, value }) => {
+        if (["announcement_1", "announcement_2", "announcement_3"].includes(key)) return;
         document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
           if (el.tagName === "IMG") {
-            el.src = val;
+            el.src = value;
           } else {
-            el.textContent = val;
+            el.textContent = value;
           }
         });
       });
-    } catch (e) {}
+    } catch (e) {
+      // Silent fail — storefront keeps its CSS-defined defaults (which already
+      // match ANNOUNCEMENT_STOREFRONT_DEFAULTS above), so the bar never breaks.
+    }
   }
 
   /* =========================================================
