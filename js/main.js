@@ -476,24 +476,46 @@
   }
 
   /* =========================================================
-     CMS CONTENT LOADER
+     READ-ONLY CMS LOADER & DYNAMIC ANNOUNCEMENT SYNC
      ========================================================= */
   async function loadCMSContent() {
     if (!supabase) return;
     try {
       const { data, error } = await supabase
         .from("site_content")
-        .select("content_key, content_value, image_url, content_type");
+        .select("key, value");
 
       if (error || !data) return;
 
-      data.forEach(row => {
-        const key = row.content_key;
-        const val = row.content_value || row.image_url || "";
-        const type = row.content_type || "text";
+      const bar = document.querySelector('.announcement-bar');
+      const track = document.querySelector('.announcement-track');
 
+      data.forEach(row => {
+        const key = row.key;
+        const val = row.value || "";
+
+        // Dynamic Announcement Bar Styling Sync
+        if (key === "announcement_bg" && bar) bar.style.backgroundColor = val;
+        if (key === "announcement_color" && bar) bar.style.color = val;
+        if (key === "announcement_font" && bar) bar.style.fontFamily = val;
+        if (key === "announcement_speed" && track && val) {
+          track.style.animationDuration = `${val}s`;
+        }
+
+        // Ticker texts
+        if (key === "announcement_1") {
+          document.querySelectorAll('[data-cms-key="announcement_1"]').forEach(el => el.textContent = val);
+        }
+        if (key === "announcement_2") {
+          document.querySelectorAll('[data-cms-key="announcement_2"]').forEach(el => el.textContent = val);
+        }
+        if (key === "announcement_3") {
+          document.querySelectorAll('[data-cms-key="announcement_3"]').forEach(el => el.textContent = val);
+        }
+
+        // General tags
         document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
-          if (type === "image" || el.tagName === "IMG") {
+          if (el.tagName === "IMG") {
             el.src = val;
           } else {
             el.textContent = val;
