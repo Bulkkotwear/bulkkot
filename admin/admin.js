@@ -1,6 +1,6 @@
 /**
  * BULKKOT (불꽃) — Admin Core Engine
- * Version: 2.0 (Integrated Announcement Bar Customizer & Real-time Site Content)
+ * Version: 2.1 (Hardened Announcement Bar Controller — Always Renders, Safe Fallbacks, Verified Upsert)
  */
 
 // 1. SUPABASE CLIENT INITIALIZATION
@@ -17,6 +17,19 @@ let currentOrders = [];
 let currentWaitlist = [];
 let currentSiteContent = [];
 let pendingProductImages = [];
+let activeContentGroup = "announcement";
+
+// Hardcoded safe defaults — used whenever the DB is empty, offline, or a key is missing.
+// This guarantees the Announcement Bar tab ALWAYS renders fully populated.
+const ANNOUNCEMENT_DEFAULTS = {
+  announcement_1: "DROP 001 — DROPPING SOON",
+  announcement_2: "불꽃 DROP 001 — COMING SOON",
+  announcement_3: "JOIN THE VIP WAITLIST",
+  announcement_bg: "#e31b23",
+  announcement_color: "#ffffff",
+  announcement_font: "'Inter', sans-serif",
+  announcement_speed: "20"
+};
 
 // 2. DOM ELEMENTS & ROUTING
 const loginScreen = document.getElementById("login-screen");
@@ -92,11 +105,11 @@ document.querySelectorAll(".sidebar-nav .nav-item").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".sidebar-nav .nav-item").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".tab-pane").forEach(t => t.classList.remove("active"));
-    
+
     btn.classList.add("active");
     const targetTab = btn.getAttribute("data-tab");
     document.getElementById(`tab-${targetTab}`).classList.add("active");
-    
+
     viewTitle.textContent = btn.textContent.trim();
   });
 });
@@ -128,7 +141,7 @@ async function fetchDashboardMetrics() {
       document.getElementById("stat-total-orders").textContent = orders.length;
       const rev = orders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
       document.getElementById("stat-total-revenue").textContent = `₹${rev.toLocaleString("en-IN")}`;
-      
+
       const tbody = document.getElementById("dashboard-recent-orders");
       if (orders.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No orders placed yet.</td></tr>`;
@@ -160,12 +173,12 @@ async function fetchDashboardMetrics() {
 async function fetchProducts() {
   const tbody = document.getElementById("products-table-body");
   const { data, error } = await supabase.from("products").select("*").order("created_at", { ascending: false });
-  
+
   if (error) {
     tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Failed to fetch products: ${error.message}</td></tr>`;
     return;
   }
-  
+
   currentProducts = data || [];
   renderProductsTable(currentProducts);
 }
@@ -349,26 +362,42 @@ window.deleteProduct = async function(id) {
     fetchDashboardMetrics();
   }
 };
-// 7. SITE CONTENT EDITOR (WITH DEDICATED ANNOUNCEMENT CUSTOMIZER)
+
+// 7. SITE CONTENT EDITOR (WITH HARDENED ANNOUNCEMENT BAR CUSTOMIZER)
 async function fetchSiteContent() {
-  const { data, error } = await supabase.from("site_content").select("*");
-  if (!error && data) {
-    currentSiteContent = data;
-    renderContentSubgroup("announcement");
+  try {
+    const { data, error } = await supabase.from("site_content").select("content_key, content_value");
+    if (error) {
+      console.warn("site_content fetch error — falling back to defaults:", error.message);
+      currentSiteContent = [];
+    } else {
+      currentSiteContent = data || [];
+    }
+  } catch (err) {
+    console.warn("site_content fetch threw — falling back to defaults:", err);
+    currentSiteContent = [];
   }
+
+  // ALWAYS render — regardless of DB success/failure/emptiness.
+  // getContentValue() below supplies safe fallbacks per-key so the tab is never blank.
+  renderContentSubgroup(activeContentGroup);
 }
 
 document.querySelectorAll("#content-sections-tabs .subnav-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("#content-sections-tabs .subnav-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    renderContentSubgroup(btn.getAttribute("data-content-group"));
+    activeContentGroup = btn.getAttribute("data-content-group");
+    renderContentSubgroup(activeContentGroup);
   });
 });
 
 function getContentValue(key, fallback = "") {
   const item = currentSiteContent.find(c => (c.content_key || c.key) === key);
-  return item ? (item.content_value || item.value || "") : fallback;
+  const val = item ? (item.content_value ?? item.value ?? "") : "";
+  // Treat empty-string DB values as "not set" and use the fallback instead,
+  // so the Announcement Bar tab never renders blank fields.
+  return (val === "" || val === null || val === undefined) ? fallback : val;
 }
 
 function renderContentSubgroup(groupName) {
@@ -376,18 +405,18 @@ function renderContentSubgroup(groupName) {
 
   // DEDICATED CUSTOMIZER FOR ANNOUNCEMENT BAR
   if (groupName === "announcement") {
-    const text1 = getContentValue("announcement_1", "DROP 001 — DROPPING SOON");
-    const text2 = getContentValue("announcement_2", "불꽃 DROP 001 — COMING SOON");
-    const text3 = getContentValue("announcement_3", "JOIN THE VIP WAITLIST");
-    const bgColor = getContentValue("announcement_bg", "#e31b23");
-    const textColor = getContentValue("announcement_color", "#ffffff");
-    const font = getContentValue("announcement_font", "'Inter', sans-serif");
-    const speed = getContentValue("announcement_speed", "20");
+    const text1 = getContentValue("announcement_1", ANNOUNCEMENT_DEFAULTS.announcement_1);
+    const text2 = getContentValue("announcement_2", ANNOUNCEMENT_DEFAULTS.announcement_2);
+    const text3 = getContentValue("announcement_3", ANNOUNCEMENT_DEFAULTS.announcement_3);
+    const bgColor = getContentValue("announcement_bg", ANNOUNCEMENT_DEFAULTS.announcement_bg);
+    const textColor = getContentValue("announcement_color", ANNOUNCEMENT_DEFAULTS.announcement_color);
+    const font = getContentValue("announcement_font", ANNOUNCEMENT_DEFAULTS.announcement_font);
+    const speed = getContentValue("announcement_speed", ANNOUNCEMENT_DEFAULTS.announcement_speed);
 
     container.innerHTML = `
       <div style="margin-bottom: 20px;">
         <h4 style="margin: 0 0 4px; color:#fff;">Announcement Bar Style & Ticker Controls</h4>
-        <p class="text-muted" style="font-size:12px;">Customize announcements, background colors, font and speed in real-time.</p>
+        <p class="text-muted" style="font-size:12px;">Customize announcements, background colors, font and speed in real-time. Changes save directly to <code>site_content</code>.</p>
       </div>
 
       <div class="form-group" style="margin-bottom: 14px;">
@@ -407,15 +436,15 @@ function renderContentSubgroup(groupName) {
         <div class="form-group">
           <label>Background Color</label>
           <div class="color-picker-row">
-            <input type="color" id="ctrl_ann_bg_pick" value="${bgColor}">
-            <input type="text" name="announcement_bg" id="ctrl_ann_bg" value="${bgColor}">
+            <input type="color" id="ctrl_ann_bg_pick" value="${escapeHtml(bgColor)}">
+            <input type="text" name="announcement_bg" id="ctrl_ann_bg" value="${escapeHtml(bgColor)}">
           </div>
         </div>
         <div class="form-group">
           <label>Text Color</label>
           <div class="color-picker-row">
-            <input type="color" id="ctrl_ann_color_pick" value="${textColor}">
-            <input type="text" name="announcement_color" id="ctrl_ann_color" value="${textColor}">
+            <input type="color" id="ctrl_ann_color_pick" value="${escapeHtml(textColor)}">
+            <input type="text" name="announcement_color" id="ctrl_ann_color" value="${escapeHtml(textColor)}">
           </div>
         </div>
       </div>
@@ -431,13 +460,13 @@ function renderContentSubgroup(groupName) {
         </div>
         <div class="form-group">
           <label>Ticker Speed (Seconds)</label>
-          <input type="number" name="announcement_speed" id="ctrl_ann_speed" value="${speed}" min="6" max="60">
+          <input type="number" name="announcement_speed" id="ctrl_ann_speed" value="${escapeHtml(String(speed))}" min="6" max="60">
         </div>
       </div>
 
       <div style="margin-top: 24px;">
         <label style="font-size:12px; color:#aaa; font-weight:700;">Live Interactive Preview</label>
-        <div class="ann-preview-container" id="ann_live_preview" style="background:${bgColor}; color:${textColor}; font-family:${font};">
+        <div class="ann-preview-container" id="ann_live_preview" style="background:${escapeHtml(bgColor)}; color:${escapeHtml(textColor)}; font-family:${font};">
           <span id="ann_preview_text">${escapeHtml(text1)} &nbsp;•&nbsp; ${escapeHtml(text2)} &nbsp;•&nbsp; ${escapeHtml(text3)}</span>
         </div>
       </div>
@@ -448,9 +477,9 @@ function renderContentSubgroup(groupName) {
     const previewText = document.getElementById("ann_preview_text");
 
     function refreshPreview() {
-      const b = document.getElementById("ctrl_ann_bg").value;
-      const c = document.getElementById("ctrl_ann_color").value;
-      const f = document.getElementById("ctrl_ann_font").value;
+      const b = document.getElementById("ctrl_ann_bg").value || ANNOUNCEMENT_DEFAULTS.announcement_bg;
+      const c = document.getElementById("ctrl_ann_color").value || ANNOUNCEMENT_DEFAULTS.announcement_color;
+      const f = document.getElementById("ctrl_ann_font").value || ANNOUNCEMENT_DEFAULTS.announcement_font;
       const t1 = document.getElementById("ctrl_ann1").value;
       const t2 = document.getElementById("ctrl_ann2").value;
       const t3 = document.getElementById("ctrl_ann3").value;
@@ -461,18 +490,29 @@ function renderContentSubgroup(groupName) {
       previewText.innerHTML = `${escapeHtml(t1)} &nbsp;•&nbsp; ${escapeHtml(t2)} &nbsp;•&nbsp; ${escapeHtml(t3)}`;
     }
 
-    ["ctrl_ann1", "ctrl_ann2", "ctrl_ann3", "ctrl_ann_bg", "ctrl_ann_color", "ctrl_ann_font"].forEach(id => {
+    ["ctrl_ann1", "ctrl_ann2", "ctrl_ann3", "ctrl_ann_bg", "ctrl_ann_color", "ctrl_ann_font", "ctrl_ann_speed"].forEach(id => {
       document.getElementById(id)?.addEventListener("input", refreshPreview);
     });
 
+    // Sync color picker <-> hex text field (both directions)
     document.getElementById("ctrl_ann_bg_pick")?.addEventListener("input", (e) => {
       document.getElementById("ctrl_ann_bg").value = e.target.value;
       refreshPreview();
+    });
+    document.getElementById("ctrl_ann_bg")?.addEventListener("input", (e) => {
+      if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(e.target.value)) {
+        document.getElementById("ctrl_ann_bg_pick").value = e.target.value;
+      }
     });
 
     document.getElementById("ctrl_ann_color_pick")?.addEventListener("input", (e) => {
       document.getElementById("ctrl_ann_color").value = e.target.value;
       refreshPreview();
+    });
+    document.getElementById("ctrl_ann_color")?.addEventListener("input", (e) => {
+      if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(e.target.value)) {
+        document.getElementById("ctrl_ann_color_pick").value = e.target.value;
+      }
     });
 
     return;
@@ -487,7 +527,7 @@ function renderContentSubgroup(groupName) {
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <p class="text-muted">No editable keys matching "<code>${groupName}</code>" in <code>site_content</code> table.</p>
+      <p class="text-muted">No editable keys matching "<code>${escapeHtml(groupName)}</code>" in <code>site_content</code> table.</p>
     `;
     return;
   }
@@ -501,23 +541,23 @@ function renderContentSubgroup(groupName) {
     return `
       <div class="form-group" style="border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 16px;">
         <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
-          <label style="font-family: monospace; font-size: 13px; color: #fff;">${k}</label>
-          <small class="text-muted">${groupName}</small>
+          <label style="font-family: monospace; font-size: 13px; color: #fff;">${escapeHtml(k)}</label>
+          <small class="text-muted">${escapeHtml(groupName)}</small>
         </div>
         ${
           isImage ? `
             <div style="display:flex; gap: 12px; align-items:center;">
-              <img src="${v}" style="width: 60px; height: 60px; object-fit: cover; background: #000; border: 1px solid var(--border-color);" id="preview-${k}">
-              <input type="text" name="${k}" value="${escapeHtml(v)}" style="flex:1;" oninput="document.getElementById('preview-${k}').src = this.value">
+              <img src="${escapeHtml(v)}" style="width: 60px; height: 60px; object-fit: cover; background: #000; border: 1px solid var(--border-color);" id="preview-${escapeHtml(k)}">
+              <input type="text" name="${escapeHtml(k)}" value="${escapeHtml(v)}" style="flex:1;" oninput="document.getElementById('preview-${escapeHtml(k)}').src = this.value">
               <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
                 Upload
-                <input type="file" accept="image/*" style="display:none;" onchange="uploadSingleContentImage(this.files[0], '${k}')">
+                <input type="file" accept="image/*" style="display:none;" onchange="uploadSingleContentImage(this.files[0], '${escapeHtml(k)}')">
               </label>
             </div>
           ` : isLong ? `
-            <textarea name="${k}" rows="3">${escapeHtml(v)}</textarea>
+            <textarea name="${escapeHtml(k)}" rows="3">${escapeHtml(v)}</textarea>
           ` : `
-            <input type="text" name="${k}" value="${escapeHtml(v)}">
+            <input type="text" name="${escapeHtml(k)}" value="${escapeHtml(v)}">
           `
         }
       </div>
@@ -548,20 +588,60 @@ window.uploadSingleContentImage = async function(file, key) {
 
 document.getElementById("site-content-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const formData = new FormData(e.target);
-  const updates = [];
 
-  for (const [key, value] of formData.entries()) {
-    updates.push(
-      supabase.from("site_content").upsert({ content_key: key, content_value: value }, { onConflict: "content_key" })
+  // If we're on the Announcement tab, explicitly build the 7-key payload
+  // (guarantees all keys are present even if a field was left untouched/empty).
+  let updates = [];
+  const saveBtn = document.getElementById("save-content-btn");
+
+  if (activeContentGroup === "announcement") {
+    const payload = {
+      announcement_1: document.getElementById("ctrl_ann1")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_1,
+      announcement_2: document.getElementById("ctrl_ann2")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_2,
+      announcement_3: document.getElementById("ctrl_ann3")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_3,
+      announcement_bg: document.getElementById("ctrl_ann_bg")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_bg,
+      announcement_color: document.getElementById("ctrl_ann_color")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_color,
+      announcement_font: document.getElementById("ctrl_ann_font")?.value || ANNOUNCEMENT_DEFAULTS.announcement_font,
+      announcement_speed: String(document.getElementById("ctrl_ann_speed")?.value || ANNOUNCEMENT_DEFAULTS.announcement_speed)
+    };
+
+    updates = Object.entries(payload).map(([content_key, content_value]) =>
+      supabase.from("site_content").upsert(
+        { content_key, content_value, content_type: "text", updated_at: new Date().toISOString() },
+        { onConflict: "content_key" }
+      )
     );
+  } else {
+    const formData = new FormData(e.target);
+    for (const [key, value] of formData.entries()) {
+      updates.push(
+        supabase.from("site_content").upsert(
+          { content_key: key, content_value: value, content_type: "text", updated_at: new Date().toISOString() },
+          { onConflict: "content_key" }
+        )
+      );
+    }
   }
 
+  saveBtn.disabled = true;
+  saveBtn.textContent = "SAVING...";
   showToast("Syncing with live website...");
-  await Promise.all(updates);
-  await fetchSiteContent();
-  showToast("All changes synced live to database!");
+
+  try {
+    const results = await Promise.all(updates);
+    const failed = results.find(r => r.error);
+    if (failed) throw failed.error;
+
+    await fetchSiteContent();
+    showToast("All changes synced live to database!");
+  } catch (err) {
+    showToast(`Save failed: ${err.message || "Unknown error"}`, true);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "SAVE ALL CHANGES LIVE";
+  }
 });
+
 // 8. ORDERS MODULE
 async function fetchOrders() {
   const tbody = document.getElementById("orders-table-body");
