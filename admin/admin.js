@@ -1,6 +1,6 @@
 /**
  * BULKKOT (불꽃) — Admin Core Engine
- * Integrates Supabase Auth, PostgreSQL Tables, & Storage Bucket API
+ * Version: 2.0 (Integrated Announcement Bar Customizer & Real-time Site Content)
  */
 
 // 1. SUPABASE CLIENT INITIALIZATION
@@ -186,7 +186,7 @@ function renderProductsTable(products) {
       <tr>
         <td><img src="${firstImg}" class="thumb-preview" alt="Thumb"></td>
         <td><strong>${escapeHtml(p.name)}</strong></td>
-        <td><span class="badge badge-warning">${p.category.toUpperCase()}</span></td>
+        <td><span class="badge badge-warning">${(p.category || 'TEES').toUpperCase()}</span></td>
         <td>₹${p.price}</td>
         <td><code>${stockSummary}</code></td>
         <td>
@@ -204,14 +204,12 @@ function renderProductsTable(products) {
   }).join("");
 }
 
-// Search Filter
 document.getElementById("product-search")?.addEventListener("input", (e) => {
   const q = e.target.value.toLowerCase();
-  const filtered = currentProducts.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+  const filtered = currentProducts.filter(p => p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q));
   renderProductsTable(filtered);
 });
 
-// Product Add / Edit Modal Controls
 const openProductModalBtn = document.getElementById("open-product-modal-btn");
 const productForm = document.getElementById("product-form");
 const dropZone = document.getElementById("product-drop-zone");
@@ -239,7 +237,7 @@ async function handleImageUploads(files) {
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
     const filePath = `catalog/${fileName}`;
 
-    const { data, error } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file);
+    const { error } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file);
 
     if (error) {
       showToast(`Upload failed: ${error.message}`, true);
@@ -352,7 +350,7 @@ window.deleteProduct = async function(id) {
   }
 };
 
-// 7. SITE CONTENT EDITOR (KEY-VALUE STORE)
+// 7. SITE CONTENT EDITOR (WITH DEDICATED ANNOUNCEMENT CUSTOMIZER)
 async function fetchSiteContent() {
   const { data, error } = await supabase.from("site_content").select("*").order("key");
   if (!error && data) {
@@ -369,8 +367,119 @@ document.querySelectorAll("#content-sections-tabs .subnav-btn").forEach(btn => {
   });
 });
 
+function getContentValue(key, fallback = "") {
+  const item = currentSiteContent.find(c => c.key === key);
+  return item ? (item.value || "") : fallback;
+}
+
 function renderContentSubgroup(groupName) {
   const container = document.getElementById("content-fields-container");
+
+  // DEDICATED CUSTOMIZER FOR ANNOUNCEMENT BAR
+  if (groupName === "announcement") {
+    const text1 = getContentValue("announcement_1", "DROP 001 — DROPPING SOON");
+    const text2 = getContentValue("announcement_2", "불꽃 DROP 001 — COMING SOON");
+    const text3 = getContentValue("announcement_3", "JOIN THE VIP WAITLIST");
+    const bgColor = getContentValue("announcement_bg", "#e31b23");
+    const textColor = getContentValue("announcement_color", "#ffffff");
+    const font = getContentValue("announcement_font", "'Inter', sans-serif");
+    const speed = getContentValue("announcement_speed", "20");
+
+    container.innerHTML = `
+      <div style="margin-bottom: 20px;">
+        <h4 style="margin: 0 0 4px; color:#fff;">Announcement Bar Style & Ticker Controls</h4>
+        <p class="text-muted" style="font-size:12px;">Customize announcements, background colors, font and speed in real-time.</p>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label>Announcement Text 1</label>
+        <input type="text" name="announcement_1" id="ctrl_ann1" value="${escapeHtml(text1)}">
+      </div>
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label>Announcement Text 2 (Hangul / Sub)</label>
+        <input type="text" name="announcement_2" id="ctrl_ann2" value="${escapeHtml(text2)}">
+      </div>
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label>Announcement Text 3</label>
+        <input type="text" name="announcement_3" id="ctrl_ann3" value="${escapeHtml(text3)}">
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;">
+        <div class="form-group">
+          <label>Background Color</label>
+          <div class="color-picker-row">
+            <input type="color" id="ctrl_ann_bg_pick" value="${bgColor}">
+            <input type="text" name="announcement_bg" id="ctrl_ann_bg" value="${bgColor}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Text Color</label>
+          <div class="color-picker-row">
+            <input type="color" id="ctrl_ann_color_pick" value="${textColor}">
+            <input type="text" name="announcement_color" id="ctrl_ann_color" value="${textColor}">
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;">
+        <div class="form-group">
+          <label>Font Family</label>
+          <select name="announcement_font" id="ctrl_ann_font">
+            <option value="'Inter', sans-serif" ${font.includes("Inter") ? "selected" : ""}>Inter (Minimalist Modern)</option>
+            <option value="'Montserrat', sans-serif" ${font.includes("Montserrat") ? "selected" : ""}>Montserrat (Streetwear Bold)</option>
+            <option value="'Noto Sans KR', sans-serif" ${font.includes("Noto Sans KR") ? "selected" : ""}>Noto Sans KR (Korean Vibe)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ticker Speed (Seconds)</label>
+          <input type="number" name="announcement_speed" id="ctrl_ann_speed" value="${speed}" min="6" max="60">
+        </div>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <label style="font-size:12px; color:#aaa; font-weight:700;">Live Interactive Preview</label>
+        <div class="ann-preview-container" id="ann_live_preview" style="background:${bgColor}; color:${textColor}; font-family:${font};">
+          <span id="ann_preview_text">${escapeHtml(text1)} &nbsp;•&nbsp; ${escapeHtml(text2)} &nbsp;•&nbsp; ${escapeHtml(text3)}</span>
+        </div>
+      </div>
+    `;
+
+    // Live preview event listeners
+    const previewBox = document.getElementById("ann_live_preview");
+    const previewText = document.getElementById("ann_preview_text");
+
+    function refreshPreview() {
+      const b = document.getElementById("ctrl_ann_bg").value;
+      const c = document.getElementById("ctrl_ann_color").value;
+      const f = document.getElementById("ctrl_ann_font").value;
+      const t1 = document.getElementById("ctrl_ann1").value;
+      const t2 = document.getElementById("ctrl_ann2").value;
+      const t3 = document.getElementById("ctrl_ann3").value;
+
+      previewBox.style.backgroundColor = b;
+      previewBox.style.color = c;
+      previewBox.style.fontFamily = f;
+      previewText.innerHTML = `${escapeHtml(t1)} &nbsp;•&nbsp; ${escapeHtml(t2)} &nbsp;•&nbsp; ${escapeHtml(t3)}`;
+    }
+
+    ["ctrl_ann1", "ctrl_ann2", "ctrl_ann3", "ctrl_ann_bg", "ctrl_ann_color", "ctrl_ann_font"].forEach(id => {
+      document.getElementById(id)?.addEventListener("input", refreshPreview);
+    });
+
+    document.getElementById("ctrl_ann_bg_pick")?.addEventListener("input", (e) => {
+      document.getElementById("ctrl_ann_bg").value = e.target.value;
+      refreshPreview();
+    });
+
+    document.getElementById("ctrl_ann_color_pick")?.addEventListener("input", (e) => {
+      document.getElementById("ctrl_ann_color").value = e.target.value;
+      refreshPreview();
+    });
+
+    return;
+  }
+
+  // OTHER GENERAL CMS GROUPS (HERO, ABOUT, PHILOSOPHY, ETC.)
   const filtered = currentSiteContent.filter(item => {
     if (!item.key) return false;
     return item.key.toLowerCase().startsWith(groupName.toLowerCase());
@@ -384,8 +493,8 @@ function renderContentSubgroup(groupName) {
   }
 
   container.innerHTML = filtered.map(item => {
-    const isImage = item.key.includes("img") || item.key.includes("image") || item.value.startsWith("http");
-    const isLong = item.value.length > 80;
+    const isImage = item.key.includes("img") || item.key.includes("image") || (item.value || '').startsWith("http");
+    const isLong = (item.value || '').length > 80;
 
     return `
       <div class="form-group" style="border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 16px;">
