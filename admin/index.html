@@ -3,19 +3,147 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BULKKOT (불꽃) — Admin Control Hub</title>
-  
+  <title>BULKKOT (불꽃) — Site CMS & Control</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Noto+Sans+KR:wght@700&display=swap" rel="stylesheet">
-  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <link rel="stylesheet" href="admin.css">
   <style>
-    /* Announcement Bar Custom Controller Styles */
-    .ann-preview-container {
-      margin-top: 14px;
+    :root {
+      --bg-black: #050505;
+      --card-bg: #0d0d0d;
+      --border-color: #1f1f1f;
+      --text-white: #ffffff;
+      --text-muted: #888888;
+      --bk-red: #e31b23;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: var(--bg-black); color: var(--text-white); padding: 30px 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 30px;
+    }
+    .header-bar h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+    .header-actions { display: flex; gap: 12px; }
+
+    .btn {
+      padding: 10px 18px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+    .btn-outline { background: transparent; border-color: var(--border-color); color: #fff; }
+    .btn-outline:hover { background: #141414; }
+    .btn-primary { background: var(--bk-red); color: #fff; }
+    .btn-primary:hover { background: #ff2a33; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .cms-title-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+    .cms-title-area h2 { font-size: 20px; font-weight: 800; }
+    .cms-title-area p { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .cms-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .cms-card-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: #fff;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #181818;
+    }
+
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      background: #000;
+      border: 1px solid #222;
+      color: #fff;
+      padding: 10px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: #555;
+    }
+
+    .color-picker-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .color-picker-box input[type="color"] {
+      width: 44px;
+      height: 38px;
+      padding: 2px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .color-picker-box input[type="text"] {
+      flex: 1;
+      font-family: monospace;
+      text-transform: uppercase;
+    }
+
+    .banner-preview-box {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .banner-preview-box img {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      background: #000;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+
+    .ann-preview-tray {
+      margin-top: 16px;
       padding: 12px 16px;
       border-radius: 4px;
       overflow: hidden;
@@ -23,365 +151,153 @@
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.1em;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
       transition: all 0.3s ease;
     }
-    .color-picker-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .color-picker-row input[type="color"] {
-      width: 44px;
-      height: 38px;
-      padding: 2px;
-      border: 1px solid #333;
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #fff;
+      color: #000;
+      padding: 12px 24px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
       border-radius: 4px;
-      background: #111;
-      cursor: pointer;
-    }
-    .color-picker-row input[type="text"] {
-      flex: 1;
-      text-transform: uppercase;
-      font-family: monospace;
+      display: none;
+      z-index: 9999;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
   </style>
 </head>
 <body>
 
-  <div id="login-screen" class="login-wrapper">
-    <div class="login-card">
-      <div class="login-header">
-        <span class="brand-kr">불꽃</span>
-        <h2>BULKKOT ADMIN</h2>
-        <p>Enter administrative credentials</p>
+  <div class="container">
+    <header class="header-bar">
+      <h1>Site CMS</h1>
+      <div class="header-actions">
+        <button type="button" class="btn btn-outline" onclick="loadAllCMSData()">↻ Refresh</button>
+        <a href="/" target="_blank" class="btn btn-outline">Storefront ↗</a>
       </div>
-      <form id="admin-login-form">
-        <div class="form-group">
-          <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" required placeholder="admin@bulkkot.com" autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <div id="login-error" class="error-badge" style="display: none;"></div>
-        <button type="submit" id="login-btn" class="btn btn-primary btn-block">AUTHENTICATE</button>
-      </form>
+    </header>
+
+    <div class="cms-title-area">
+      <div>
+        <h2>Site Content & Media CMS</h2>
+        <p>Override storefront copy, announcement tickers, typography and visuals live.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="saveTopBtn" onclick="saveCMSForm()">SAVE ALL CMS CHANGES</button>
     </div>
-  </div>
 
-  <div id="admin-app" class="admin-layout" style="display: none;">
-    
-    <aside class="admin-sidebar">
-      <div class="sidebar-brand">
-        <span class="brand-kr">불꽃</span>
-        <span class="brand-text">BULKKOT</span>
+    <form id="cmsForm">
+      <!-- HERO SECTION -->
+      <div class="cms-card">
+        <div class="cms-card-title">Hero Campaign & Banner</div>
+        <div class="form-group">
+          <label>Hero Banner Photo</label>
+          <div class="banner-preview-box">
+            <img id="hero_img_preview" src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="Hero">
+            <div style="flex: 1;">
+              <input type="file" id="hero_file_input" accept="image/*" style="margin-bottom: 8px; font-size: 11px;">
+              <input type="text" name="hero_img" id="hero_img_input" placeholder="Banner Image URL">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Hero Korean Eyebrow</label>
+            <input type="text" name="hero_korean" id="hero_korean" value="불꽃">
+          </div>
+          <div class="form-group">
+            <label>Hero Main Brand Title</label>
+            <input type="text" name="hero_title" id="hero_title" value="BULKKOT">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Hero Subtitle</label>
+            <input type="text" name="hero_sub" id="hero_sub" value="PREMIUM EVERYDAY WEAR">
+          </div>
+          <div class="form-group">
+            <label>Button Text</label>
+            <input type="text" name="hero_btn" id="hero_btn" value="EXPLORE DROP 001">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Hero Lead Description</label>
+          <textarea name="hero_desc" id="hero_desc" rows="2">Korean-inspired minimalist heavyweight essentials.</textarea>
+        </div>
       </div>
-      
-      <nav class="sidebar-nav">
-        <button class="nav-item active" data-tab="dashboard">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Dashboard
-        </button>
-        <button class="nav-item" data-tab="products">
-          <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          Products Manager
-        </button>
-        <button class="nav-item" data-tab="site-content">
-          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Site Content Editor
-        </button>
-        <button class="nav-item" data-tab="orders">
-          <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          Orders Manager
-        </button>
-        <button class="nav-item" data-tab="waitlist">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Waitlist Signups
-        </button>
-        <button class="nav-item" data-tab="media">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          Media Library
-        </button>
-      </nav>
 
-      <div class="sidebar-footer">
-        <div class="user-meta">
-          <span id="current-user-email">admin@bulkkot.com</span>
-        </div>
-        <button id="logout-btn" class="btn btn-secondary btn-block">Sign Out</button>
-      </div>
-    </aside>
+      <!-- ANNOUNCEMENT BAR CONTROLLER -->
+      <div class="cms-card">
+        <div class="cms-card-title">Announcement Ticker</div>
 
-    <main class="admin-main">
-      <header class="admin-topbar">
-        <h1 id="view-title">Dashboard Overview</h1>
-        <div class="topbar-actions">
-          <a href="/" target="_blank" class="btn btn-outline btn-sm">View Live Site ↗</a>
-        </div>
-      </header>
-
-      <section id="tab-dashboard" class="tab-pane active">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-label">TOTAL ORDERS</span>
-            <strong id="stat-total-orders" class="stat-value">0</strong>
-            <small class="stat-sub">Lifetime completed</small>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Ticker Message 1</label>
+            <input type="text" name="announcement_1" id="ann_text1" value="DROP 001 — THIS MONTH">
           </div>
-          <div class="stat-card">
-            <span class="stat-label">TOTAL REVENUE</span>
-            <strong id="stat-total-revenue" class="stat-value">₹0</strong>
-            <small class="stat-sub">Gross sales amount</small>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">ACTIVE PRODUCTS</span>
-            <strong id="stat-active-products" class="stat-value">0</strong>
-            <small class="stat-sub">Live on storefront</small>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">VIP WAITLIST</span>
-            <strong id="stat-waitlist-count" class="stat-value">0</strong>
-            <small class="stat-sub">Interested shoppers</small>
+          <div class="form-group">
+            <label>Ticker Message 2</label>
+            <input type="text" name="announcement_2" id="ann_text2" value="불꽃 DROP 001 — COMING SOON">
           </div>
         </div>
 
-        <div class="card mt-4">
-          <div class="card-header">
-            <h3>Recent Orders Overview</h3>
-          </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
-                  <th>Amount</th>
-                  <th>Payment</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody id="dashboard-recent-orders">
-                <tr><td colspan="6" class="text-center">Loading latest activities...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="tab-products" class="tab-pane">
-        <div class="action-bar">
-          <div class="search-bar">
-            <input type="text" id="product-search" placeholder="Search products by title or category...">
-          </div>
-          <button id="open-product-modal-btn" class="btn btn-primary">+ Add New Product</button>
+        <div class="form-group">
+          <label>Ticker Message 3</label>
+          <input type="text" name="announcement_3" id="ann_text3" value="JOIN THE VIP WAITLIST">
         </div>
 
-        <div class="card mt-3">
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Preview</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Inventory (S / M / L / XL)</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="products-table-body">
-                <tr><td colspan="7" class="text-center">Loading product catalog...</td></tr>
-              </tbody>
-            </table>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Background Color</label>
+            <div class="color-picker-box">
+              <input type="color" id="ann_bg_pick" value="#e31b23">
+              <input type="text" name="announcement_bg" id="ann_bg_val" value="#e31b23">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Text Color</label>
+            <div class="color-picker-box">
+              <input type="color" id="ann_color_pick" value="#ffffff">
+              <input type="text" name="announcement_color" id="ann_color_val" value="#ffffff">
+            </div>
           </div>
         </div>
-      </section>
 
-      <section id="tab-site-content" class="tab-pane">
-        <div class="info-banner">
-          <p>Modify live texts, announcement ticker, colors, typography and hero banners. Changes save directly to database.</p>
-        </div>
-
-        <div class="tabs-subnav" id="content-sections-tabs">
-          <button class="subnav-btn active" data-content-group="announcement">Announcement Bar</button>
-          <button class="subnav-btn" data-content-group="hero">Hero Section</button>
-          <button class="subnav-btn" data-content-group="drop">Drop 001</button>
-          <button class="subnav-btn" data-content-group="about">About Brand</button>
-          <button class="subnav-btn" data-content-group="philosophy">Philosophy</button>
-          <button class="subnav-btn" data-content-group="contact">Contact & Social</button>
-        </div>
-
-        <form id="site-content-form">
-          <div id="content-fields-container" class="card mt-3"></div>
-          <div class="form-actions-fixed">
-            <button type="submit" id="save-content-btn" class="btn btn-primary">SAVE ALL CHANGES LIVE</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="tab-orders" class="tab-pane">
-        <div class="card">
-          <div class="card-header">
-            <h3>Customer Orders</h3>
-          </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Order #</th>
-                  <th>Customer Name</th>
-                  <th>Contact Info</th>
-                  <th>Total</th>
-                  <th>Payment</th>
-                  <th>Fulfillment Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="orders-table-body">
-                <tr><td colspan="7" class="text-center">Fetching orders...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="tab-waitlist" class="tab-pane">
-        <div class="action-bar">
-          <div>
-            <h3>VIP Signups Catalog</h3>
-            <p class="text-muted">Direct subscriber list for Drop 001 launch announcement.</p>
-          </div>
-          <button id="export-waitlist-csv" class="btn btn-secondary">↓ Export CSV</button>
-        </div>
-
-        <div class="card mt-3">
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Email Address</th>
-                  <th>Date Joined</th>
-                </tr>
-              </thead>
-              <tbody id="waitlist-table-body">
-                <tr><td colspan="3" class="text-center">Loading subscriber list...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="tab-media" class="tab-pane">
-        <div class="action-bar">
-          <p class="text-muted">All uploaded assets in Supabase Storage Bucket (<code>product-media</code>).</p>
-          <label class="btn btn-primary" style="cursor: pointer;">
-            + Upload New Media
-            <input type="file" id="media-direct-upload" accept="image/*" multiple style="display: none;">
-          </label>
-        </div>
-
-        <div id="media-gallery" class="media-grid mt-3"></div>
-      </section>
-
-    </main>
-  </div>
-
-  <div id="product-modal" class="modal-backdrop" style="display: none;">
-    <div class="modal-card modal-lg">
-      <div class="modal-header">
-        <h3 id="product-modal-title">Add New Product</h3>
-        <button type="button" class="modal-close" data-close-modal="product-modal">&times;</button>
-      </div>
-      <form id="product-form">
-        <input type="hidden" id="prod-id">
-
-        <div class="form-row">
-          <div class="form-group flex-2">
-            <label for="prod-name">Product Name *</label>
-            <input type="text" id="prod-name" required placeholder="e.g. OVERSIZED TEE 001">
-          </div>
-          <div class="form-group flex-1">
-            <label for="prod-category">Category *</label>
-            <select id="prod-category" required>
-              <option value="tees">Tees (티셔츠)</option>
-              <option value="hoods">Hoods (후드)</option>
-              <option value="sweats">Sweats (스웨트)</option>
-              <option value="bottoms">Bottoms</option>
-              <option value="accessories">Accessories</option>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Font Family</label>
+            <select name="announcement_font" id="ann_font_val">
+              <option value="'Inter', sans-serif">Inter (Minimalist Modern)</option>
+              <option value="'Montserrat', sans-serif">Montserrat (Streetwear Bold)</option>
+              <option value="'Noto Sans KR', sans-serif">Noto Sans KR (Korean Vibe)</option>
             </select>
           </div>
-          <div class="form-group flex-1">
-            <label for="prod-price">Price (₹ INR) *</label>
-            <input type="number" id="prod-price" required min="0" step="1" placeholder="2499">
+          <div class="form-group">
+            <label>Ticker Speed (Seconds)</label>
+            <input type="number" name="announcement_speed" id="ann_speed_val" value="20" min="6" max="60">
           </div>
         </div>
 
         <div class="form-group">
-          <label for="prod-desc">Product Description & Specs</label>
-          <textarea id="prod-desc" rows="3" placeholder="Heavyweight 280 GSM combed cotton. Boxy drop-shoulder cut..."></textarea>
-        </div>
-
-        <label>Size Inventory Allocation</label>
-        <div class="form-row sizes-grid">
-          <div class="form-group">
-            <label class="size-label">Small (S)</label>
-            <input type="number" id="size-s" min="0" value="0">
-          </div>
-          <div class="form-group">
-            <label class="size-label">Medium (M)</label>
-            <input type="number" id="size-m" min="0" value="0">
-          </div>
-          <div class="form-group">
-            <label class="size-label">Large (L)</label>
-            <input type="number" id="size-l" min="0" value="0">
-          </div>
-          <div class="form-group">
-            <label class="size-label">X-Large (XL)</label>
-            <input type="number" id="size-xl" min="0" value="0">
+          <label>Live Interactive Preview</label>
+          <div id="ann_preview_box" class="ann-preview-tray" style="background: #e31b23; color: #ffffff; font-family: 'Inter', sans-serif;">
+            <span id="ann_preview_text">DROP 001 — THIS MONTH &nbsp;•&nbsp; 불꽃 DROP 001 — COMING SOON &nbsp;•&nbsp; JOIN THE VIP WAITLIST</span>
           </div>
         </div>
-
-        <div class="form-group">
-          <label>Product Images (Upload to Supabase Storage)</label>
-          <div class="drop-zone" id="product-drop-zone">
-            <input type="file" id="prod-images-input" multiple accept="image/*" style="display: none;">
-            <p>Click here or drag images to upload directly to <code>product-media</code> bucket</p>
-          </div>
-          <div id="product-images-preview" class="image-previews-tray"></div>
-        </div>
-
-        <div class="form-group">
-          <label class="checkbox-inline">
-            <input type="checkbox" id="prod-is-active" checked>
-            <span>Product is Active and visible on Storefront</span>
-          </label>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-close-modal="product-modal">Cancel</button>
-          <button type="submit" id="save-product-btn" class="btn btn-primary">Save Product</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="order-modal" class="modal-backdrop" style="display: none;">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="order-modal-title">Order #---</h3>
-        <button type="button" class="modal-close" data-close-modal="order-modal">&times;</button>
       </div>
-      <div id="order-modal-body" class="order-detail-content"></div>
-    </div>
+    </form>
   </div>
 
-  <div id="admin-toast" class="admin-toast"></div>
+  <div id="cmsToast" class="toast"></div>
 
-  <!-- EMBEDDED JAVASCRIPT ENGINE (ZERO CACHE DELAYS) -->
   <script>
     const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWJqbHVxZ3F2cnlidmVoemVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxNzg2NjEsImV4cCI6MjA1NTc1NDY2MX0.g9dK_k660u1dM9eMhGvY61fC8w-aMhV19fN3yZ5k7l8";
@@ -389,612 +305,135 @@
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUser = null;
-    let currentProducts = [];
-    let currentOrders = [];
-    let currentWaitlist = [];
-    let currentSiteContent = [];
-    let pendingProductImages = [];
-    let activeContentGroup = "announcement";
-
-    const ANNOUNCEMENT_DEFAULTS = {
-      announcement_1: "DROP 001 — DROPPING SOON",
-      announcement_2: "불꽃 DROP 001 — COMING SOON",
-      announcement_3: "JOIN THE VIP WAITLIST",
-      announcement_bg: "#e31b23",
-      announcement_color: "#ffffff",
-      announcement_font: "'Inter', sans-serif",
-      announcement_speed: "20"
-    };
-
-    const loginScreen = document.getElementById("login-screen");
-    const adminApp = document.getElementById("admin-app");
-    const loginForm = document.getElementById("admin-login-form");
-    const loginError = document.getElementById("login-error");
-    const logoutBtn = document.getElementById("logout-btn");
-    const viewTitle = document.getElementById("view-title");
-
-    function showToast(message, isError = false) {
-      const toast = document.getElementById("admin-toast");
-      toast.textContent = message;
-      toast.style.background = isError ? "#e50914" : "#ffffff";
-      toast.style.color = isError ? "#ffffff" : "#000000";
-      toast.style.display = "block";
-      setTimeout(() => { toast.style.display = "none"; }, 3500);
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('cmsToast');
+      t.textContent = msg;
+      t.style.background = isError ? "#e31b23" : "#ffffff";
+      t.style.color = isError ? "#ffffff" : "#000000";
+      t.style.display = "block";
+      setTimeout(() => { t.style.display = "none"; }, 3000);
     }
 
-    async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && session.user) {
-        currentUser = session.user;
-        loginScreen.style.display = "none";
-        adminApp.style.display = "flex";
-        document.getElementById("current-user-email").textContent = currentUser.email;
-        loadAllAdminData();
-      } else {
-        loginScreen.style.display = "flex";
-        adminApp.style.display = "none";
-      }
-    }
-
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      loginError.style.display = "none";
-      const email = document.getElementById("login-email").value.trim();
-      const password = document.getElementById("login-password").value;
-      const btn = document.getElementById("login-btn");
-      btn.textContent = "VERIFYING...";
-      btn.disabled = true;
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      btn.textContent = "AUTHENTICATE";
-      btn.disabled = false;
-
-      if (error) {
-        loginError.textContent = error.message || "Invalid credentials.";
-        loginError.style.display = "block";
-      } else {
-        currentUser = data.user;
-        loginScreen.style.display = "none";
-        adminApp.style.display = "flex";
-        document.getElementById("current-user-email").textContent = currentUser.email;
-        loadAllAdminData();
-        showToast("Authenticated successfully.");
-      }
-    });
-
-    logoutBtn.addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      currentUser = null;
-      adminApp.style.display = "none";
-      loginScreen.style.display = "flex";
-      showToast("Logged out.");
-    });
-
-    document.querySelectorAll(".sidebar-nav .nav-item").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".sidebar-nav .nav-item").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-pane").forEach(t => t.classList.remove("active"));
-        btn.classList.add("active");
-        const targetTab = btn.getAttribute("data-tab");
-        document.getElementById(`tab-${targetTab}`).classList.add("active");
-        viewTitle.textContent = btn.textContent.trim();
-      });
-    });
-
-    function openModal(id) { document.getElementById(id).style.display = "flex"; }
-    function closeModal(id) { document.getElementById(id).style.display = "none"; }
-    document.querySelectorAll("[data-close-modal]").forEach(btn => {
-      btn.addEventListener("click", () => closeModal(btn.getAttribute("data-close-modal")));
-    });
-
-    async function loadAllAdminData() {
-      await Promise.all([
-        fetchDashboardMetrics(),
-        fetchProducts(),
-        fetchSiteContent(),
-        fetchOrders(),
-        fetchWaitlist(),
-        fetchMediaLibrary()
-      ]);
-    }
-
-    async function fetchDashboardMetrics() {
+    async function loadAllCMSData() {
+      showToast("Loading CMS data...");
       try {
-        const { data: orders } = await supabase.from("orders").select("total_amount, status, created_at, id, customer_name, payment_status").order("created_at", { ascending: false });
-        if (orders) {
-          document.getElementById("stat-total-orders").textContent = orders.length;
-          const rev = orders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
-          document.getElementById("stat-total-revenue").textContent = `₹${rev.toLocaleString("en-IN")}`;
-          const tbody = document.getElementById("dashboard-recent-orders");
-          if (orders.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No orders placed yet.</td></tr>`;
-          } else {
-            tbody.innerHTML = orders.slice(0, 5).map(o => `
-              <tr>
-                <td><strong>#${o.id.toString().slice(0, 8)}</strong></td>
-                <td>${escapeHtml(o.customer_name || "Guest")}</td>
-                <td>₹${o.total_amount}</td>
-                <td><span class="badge ${o.payment_status === 'paid' ? 'badge-success' : 'badge-warning'}">${o.payment_status || 'unpaid'}</span></td>
-                <td><span class="badge badge-success">${o.status || 'Processing'}</span></td>
-                <td>${new Date(o.created_at).toLocaleDateString()}</td>
-              </tr>
-            `).join("");
-          }
-        }
-        const { count: prodCount } = await supabase.from("products").select("*", { count: 'exact', head: true }).eq("is_active", true);
-        document.getElementById("stat-active-products").textContent = prodCount || 0;
-        const { count: waitCount } = await supabase.from("waitlist").select("*", { count: 'exact', head: true });
-        document.getElementById("stat-waitlist-count").textContent = waitCount || 0;
-      } catch (err) { console.error(err); }
-    }
+        const { data, error } = await supabase.from('site_content').select('*');
+        if (error) throw error;
 
-    async function fetchProducts() {
-      const tbody = document.getElementById("products-table-body");
-      const { data, error } = await supabase.from("products").select("*").order("created_at", { ascending: false });
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${error.message}</td></tr>`;
-        return;
-      }
-      currentProducts = data || [];
-      renderProductsTable(currentProducts);
-    }
+        if (data && data.length > 0) {
+          data.forEach(item => {
+            const k = item.content_key || item.key;
+            const v = item.content_value ?? item.value ?? "";
+            const el = document.querySelector(`[name="${k}"]`);
+            if (el) el.value = v;
 
-    function renderProductsTable(products) {
-      const tbody = document.getElementById("products-table-body");
-      if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No products available.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = products.map(p => {
-        const firstImg = (p.images && p.images[0]) ? p.images[0] : 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png';
-        const sizes = p.sizes || { S: 0, M: 0, L: 0, XL: 0 };
-        const stockSummary = `S:${sizes.S || 0} | M:${sizes.M || 0} | L:${sizes.L || 0} | XL:${sizes.XL || 0}`;
-        return `
-          <tr>
-            <td><img src="${firstImg}" class="thumb-preview" alt="Thumb"></td>
-            <td><strong>${escapeHtml(p.name)}</strong></td>
-            <td><span class="badge badge-warning">${(p.category || 'TEES').toUpperCase()}</span></td>
-            <td>₹${p.price}</td>
-            <td><code>${stockSummary}</code></td>
-            <td><span class="badge ${p.is_active ? 'badge-success' : 'badge-danger'}">${p.is_active ? 'ACTIVE' : 'HIDDEN'}</span></td>
-            <td>
-              <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')">Edit</button>
-              <button class="btn btn-outline btn-sm" onclick="toggleProductVisibility('${p.id}', ${!p.is_active})">${p.is_active ? 'Hide' : 'Show'}</button>
-              <button class="btn btn-primary btn-sm" onclick="deleteProduct('${p.id}')">Delete</button>
-            </td>
-          </tr>
-        `;
-      }).join("");
-    }
-
-    document.getElementById("product-search")?.addEventListener("input", (e) => {
-      const q = e.target.value.toLowerCase();
-      const filtered = currentProducts.filter(p => p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q));
-      renderProductsTable(filtered);
-    });
-
-    const openProductModalBtn = document.getElementById("open-product-modal-btn");
-    const productForm = document.getElementById("product-form");
-    const dropZone = document.getElementById("product-drop-zone");
-    const prodImagesInput = document.getElementById("prod-images-input");
-    const imageTray = document.getElementById("product-images-preview");
-
-    openProductModalBtn?.addEventListener("click", () => {
-      document.getElementById("product-modal-title").textContent = "Add New Product";
-      productForm.reset();
-      document.getElementById("prod-id").value = "";
-      pendingProductImages = [];
-      renderPendingImages();
-      openModal("product-modal");
-    });
-
-    dropZone?.addEventListener("click", () => prodImagesInput.click());
-    prodImagesInput?.addEventListener("change", (e) => handleImageUploads(e.target.files));
-
-    async function handleImageUploads(files) {
-      if (!files || files.length === 0) return;
-      showToast("Uploading images...");
-      for (const file of files) {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-        const filePath = `catalog/${fileName}`;
-        const { error } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file);
-        if (!error) {
-          const { data: { publicUrl } } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
-          pendingProductImages.push(publicUrl);
-        }
-      }
-      renderPendingImages();
-      showToast("Uploaded.");
-    }
-
-    function renderPendingImages() {
-      imageTray.innerHTML = pendingProductImages.map((url, index) => `
-        <div class="preview-thumb-wrap">
-          <img src="${url}" alt="Preview">
-          <button type="button" class="preview-remove-btn" onclick="removePendingImage(${index})">&times;</button>
-        </div>
-      `).join("");
-    }
-
-    window.removePendingImage = function(index) {
-      pendingProductImages.splice(index, 1);
-      renderPendingImages();
-    };
-
-    window.editProduct = function(id) {
-      const prod = currentProducts.find(p => p.id === id);
-      if (!prod) return;
-      document.getElementById("product-modal-title").textContent = "Edit Product";
-      document.getElementById("prod-id").value = prod.id;
-      document.getElementById("prod-name").value = prod.name;
-      document.getElementById("prod-category").value = prod.category;
-      document.getElementById("prod-price").value = prod.price;
-      document.getElementById("prod-desc").value = prod.description || "";
-      document.getElementById("prod-is-active").checked = prod.is_active;
-      const sizes = prod.sizes || {};
-      document.getElementById("size-s").value = sizes.S || 0;
-      document.getElementById("size-m").value = sizes.M || 0;
-      document.getElementById("size-l").value = sizes.L || 0;
-      document.getElementById("size-xl").value = sizes.XL || 0;
-      pendingProductImages = Array.isArray(prod.images) ? [...prod.images] : [];
-      renderPendingImages();
-      openModal("product-modal");
-    };
-
-    productForm?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const id = document.getElementById("prod-id").value;
-      const saveBtn = document.getElementById("save-product-btn");
-      saveBtn.disabled = true;
-      saveBtn.textContent = "Saving...";
-
-      const payload = {
-        name: document.getElementById("prod-name").value.trim(),
-        category: document.getElementById("prod-category").value,
-        price: Number(document.getElementById("prod-price").value),
-        description: document.getElementById("prod-desc").value.trim(),
-        is_active: document.getElementById("prod-is-active").checked,
-        images: pendingProductImages,
-        sizes: {
-          S: Number(document.getElementById("size-s").value) || 0,
-          M: Number(document.getElementById("size-m").value) || 0,
-          L: Number(document.getElementById("size-l").value) || 0,
-          XL: Number(document.getElementById("size-xl").value) || 0
-        }
-      };
-
-      const res = id ? await supabase.from("products").update(payload).eq("id", id) : await supabase.from("products").insert([payload]);
-      saveBtn.disabled = false;
-      saveBtn.textContent = "Save Product";
-      if (res.error) showToast(res.error.message, true);
-      else {
-        showToast("Product saved.");
-        closeModal("product-modal");
-        fetchProducts();
-        fetchDashboardMetrics();
-      }
-    });
-
-    window.toggleProductVisibility = async function(id, status) {
-      const { error } = await supabase.from("products").update({ is_active: status }).eq("id", id);
-      if (error) showToast(error.message, true);
-      else { showToast("Visibility updated."); fetchProducts(); }
-    };
-
-    window.deleteProduct = async function(id) {
-      if (!confirm("Are you sure?")) return;
-      const { error } = await supabase.from("products").delete().eq("id", id);
-      if (error) showToast(error.message, true);
-      else { showToast("Deleted."); fetchProducts(); fetchDashboardMetrics(); }
-    };
-
-    // 7. SITE CONTENT (ALWAYS RENDERS ANNOUNCEMENT CONTROLS)
-    async function fetchSiteContent() {
-      try {
-        const { data, error } = await supabase.from("site_content").select("content_key, content_value, key, value");
-        if (!error && data) currentSiteContent = data;
-      } catch (err) {}
-      renderContentSubgroup(activeContentGroup);
-    }
-
-    document.querySelectorAll("#content-sections-tabs .subnav-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll("#content-sections-tabs .subnav-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        activeContentGroup = btn.getAttribute("data-content-group");
-        renderContentSubgroup(activeContentGroup);
-      });
-    });
-
-    function getContentValue(key, fallback = "") {
-      const item = currentSiteContent.find(c => (c.content_key || c.key) === key);
-      const val = item ? (item.content_value ?? item.value ?? "") : "";
-      return (val === "" || val === null || val === undefined) ? fallback : val;
-    }
-
-    function renderContentSubgroup(groupName) {
-      const container = document.getElementById("content-fields-container");
-      if (!container) return;
-
-      if (groupName === "announcement") {
-        const text1 = getContentValue("announcement_1", ANNOUNCEMENT_DEFAULTS.announcement_1);
-        const text2 = getContentValue("announcement_2", ANNOUNCEMENT_DEFAULTS.announcement_2);
-        const text3 = getContentValue("announcement_3", ANNOUNCEMENT_DEFAULTS.announcement_3);
-        const bgColor = getContentValue("announcement_bg", ANNOUNCEMENT_DEFAULTS.announcement_bg);
-        const textColor = getContentValue("announcement_color", ANNOUNCEMENT_DEFAULTS.announcement_color);
-        const font = getContentValue("announcement_font", ANNOUNCEMENT_DEFAULTS.announcement_font);
-        const speed = getContentValue("announcement_speed", ANNOUNCEMENT_DEFAULTS.announcement_speed);
-
-        container.innerHTML = `
-          <div style="margin-bottom: 20px;">
-            <h4 style="margin: 0 0 4px; color:#fff;">Announcement Bar Style & Ticker Controls</h4>
-            <p class="text-muted" style="font-size:12px;">Customize announcements, background colors, font and speed in real-time.</p>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 14px;">
-            <label>Announcement Text 1</label>
-            <input type="text" name="announcement_1" id="ctrl_ann1" value="${escapeHtml(text1)}">
-          </div>
-          <div class="form-group" style="margin-bottom: 14px;">
-            <label>Announcement Text 2 (Hangul / Sub)</label>
-            <input type="text" name="announcement_2" id="ctrl_ann2" value="${escapeHtml(text2)}">
-          </div>
-          <div class="form-group" style="margin-bottom: 14px;">
-            <label>Announcement Text 3</label>
-            <input type="text" name="announcement_3" id="ctrl_ann3" value="${escapeHtml(text3)}">
-          </div>
-
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;">
-            <div class="form-group">
-              <label>Background Color</label>
-              <div class="color-picker-row">
-                <input type="color" id="ctrl_ann_bg_pick" value="${escapeHtml(bgColor)}">
-                <input type="text" name="announcement_bg" id="ctrl_ann_bg" value="${escapeHtml(bgColor)}">
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Text Color</label>
-              <div class="color-picker-row">
-                <input type="color" id="ctrl_ann_color_pick" value="${escapeHtml(textColor)}">
-                <input type="text" name="announcement_color" id="ctrl_ann_color" value="${escapeHtml(textColor)}">
-              </div>
-            </div>
-          </div>
-
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;">
-            <div class="form-group">
-              <label>Font Family</label>
-              <select name="announcement_font" id="ctrl_ann_font">
-                <option value="'Inter', sans-serif" ${font.includes("Inter") ? "selected" : ""}>Inter (Minimalist Modern)</option>
-                <option value="'Montserrat', sans-serif" ${font.includes("Montserrat") ? "selected" : ""}>Montserrat (Streetwear Bold)</option>
-                <option value="'Noto Sans KR', sans-serif" ${font.includes("Noto Sans KR") ? "selected" : ""}>Noto Sans KR (Korean Vibe)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Ticker Speed (Seconds)</label>
-              <input type="number" name="announcement_speed" id="ctrl_ann_speed" value="${escapeHtml(String(speed))}" min="6" max="60">
-            </div>
-          </div>
-
-          <div style="margin-top: 24px;">
-            <label style="font-size:12px; color:#aaa; font-weight:700;">Live Interactive Preview</label>
-            <div class="ann-preview-container" id="ann_live_preview" style="background:${escapeHtml(bgColor)}; color:${escapeHtml(textColor)}; font-family:${font};">
-              <span id="ann_preview_text">${escapeHtml(text1)} &nbsp;•&nbsp; ${escapeHtml(text2)} &nbsp;•&nbsp; ${escapeHtml(text3)}</span>
-            </div>
-          </div>
-        `;
-
-        const previewBox = document.getElementById("ann_live_preview");
-        const previewText = document.getElementById("ann_preview_text");
-
-        function refreshPreview() {
-          const b = document.getElementById("ctrl_ann_bg").value || ANNOUNCEMENT_DEFAULTS.announcement_bg;
-          const c = document.getElementById("ctrl_ann_color").value || ANNOUNCEMENT_DEFAULTS.announcement_color;
-          const f = document.getElementById("ctrl_ann_font").value || ANNOUNCEMENT_DEFAULTS.announcement_font;
-          const t1 = document.getElementById("ctrl_ann1").value;
-          const t2 = document.getElementById("ctrl_ann2").value;
-          const t3 = document.getElementById("ctrl_ann3").value;
-
-          previewBox.style.backgroundColor = b;
-          previewBox.style.color = c;
-          previewBox.style.fontFamily = f;
-          previewText.innerHTML = `${escapeHtml(t1)} &nbsp;•&nbsp; ${escapeHtml(t2)} &nbsp;•&nbsp; ${escapeHtml(t3)}`;
-        }
-
-        ["ctrl_ann1", "ctrl_ann2", "ctrl_ann3", "ctrl_ann_bg", "ctrl_ann_color", "ctrl_ann_font", "ctrl_ann_speed"].forEach(id => {
-          document.getElementById(id)?.addEventListener("input", refreshPreview);
-        });
-
-        document.getElementById("ctrl_ann_bg_pick")?.addEventListener("input", (e) => {
-          document.getElementById("ctrl_ann_bg").value = e.target.value;
-          refreshPreview();
-        });
-        document.getElementById("ctrl_ann_color_pick")?.addEventListener("input", (e) => {
-          document.getElementById("ctrl_ann_color").value = e.target.value;
-          refreshPreview();
-        });
-
-        return;
-      }
-
-      // Other groups
-      const filtered = currentSiteContent.filter(item => {
-        const k = item.content_key || item.key;
-        return k && k.toLowerCase().startsWith(groupName.toLowerCase());
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<p class="text-muted" style="padding:20px;">No keys found for "<code>${escapeHtml(groupName)}</code>".</p>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(item => {
-        const k = item.content_key || item.key;
-        const v = item.content_value || item.value || "";
-        const isImage = k.includes("img") || k.includes("image") || v.startsWith("http");
-        const isLong = v.length > 80;
-
-        return `
-          <div class="form-group" style="border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 16px; margin-bottom:16px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
-              <label style="font-family: monospace; font-size: 13px; color: #fff;">${escapeHtml(k)}</label>
-              <small class="text-muted">${escapeHtml(groupName)}</small>
-            </div>
-            ${
-              isImage ? `
-                <div style="display:flex; gap: 12px; align-items:center;">
-                  <img src="${escapeHtml(v)}" style="width: 60px; height: 60px; object-fit: cover; background: #000;" id="preview-${escapeHtml(k)}">
-                  <input type="text" name="${escapeHtml(k)}" value="${escapeHtml(v)}" style="flex:1;" oninput="document.getElementById('preview-${escapeHtml(k)}').src = this.value">
-                </div>
-              ` : isLong ? `
-                <textarea name="${escapeHtml(k)}" rows="3">${escapeHtml(v)}</textarea>
-              ` : `
-                <input type="text" name="${escapeHtml(k)}" value="${escapeHtml(v)}">
-              `
+            if (k === 'announcement_bg') {
+              document.getElementById('ann_bg_pick').value = v;
             }
-          </div>
-        `;
-      }).join("");
+            if (k === 'announcement_color') {
+              document.getElementById('ann_color_pick').value = v;
+            }
+            if (k === 'hero_img') {
+              document.getElementById('hero_img_preview').src = v;
+            }
+          });
+        }
+        updateAnnouncementPreview();
+        showToast("CMS Loaded.");
+      } catch (err) {
+        showToast("Using default values.", false);
+        updateAnnouncementPreview();
+      }
     }
 
-    document.getElementById("site-content-form")?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const saveBtn = document.getElementById("save-content-btn");
+    function updateAnnouncementPreview() {
+      const bg = document.getElementById('ann_bg_val').value;
+      const tc = document.getElementById('ann_color_val').value;
+      const font = document.getElementById('ann_font_val').value;
+      const t1 = document.getElementById('ann_text1').value;
+      const t2 = document.getElementById('ann_text2').value;
+      const t3 = document.getElementById('ann_text3').value;
+
+      const pBox = document.getElementById('ann_preview_box');
+      const pText = document.getElementById('ann_preview_text');
+
+      if (pBox) {
+        pBox.style.backgroundColor = bg;
+        pBox.style.color = tc;
+        pBox.style.fontFamily = font;
+      }
+      if (pText) {
+        pText.innerHTML = `${t1} &nbsp;•&nbsp; ${t2} &nbsp;•&nbsp; ${t3}`;
+      }
+    }
+
+    ['ann_text1', 'ann_text2', 'ann_text3', 'ann_bg_val', 'ann_color_val', 'ann_font_val'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updateAnnouncementPreview);
+    });
+
+    document.getElementById('ann_bg_pick')?.addEventListener('input', (e) => {
+      document.getElementById('ann_bg_val').value = e.target.value;
+      updateAnnouncementPreview();
+    });
+
+    document.getElementById('ann_color_pick')?.addEventListener('input', (e) => {
+      document.getElementById('ann_color_val').value = e.target.value;
+      updateAnnouncementPreview();
+    });
+
+    document.getElementById('hero_img_input')?.addEventListener('input', (e) => {
+      document.getElementById('hero_img_preview').src = e.target.value;
+    });
+
+    document.getElementById('hero_file_input')?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      showToast("Uploading Hero Image...");
+      const fileExt = file.name.split('.').pop();
+      const fileName = `hero-banner-${Date.now()}.${fileExt}`;
+      const filePath = `site-assets/${fileName}`;
+
+      const { error } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file);
+      if (error) {
+        showToast(`Upload failed: ${error.message}`, true);
+      } else {
+        const { data: { publicUrl } } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+        document.getElementById('hero_img_input').value = publicUrl;
+        document.getElementById('hero_img_preview').src = publicUrl;
+        showToast("Hero Banner Uploaded.");
+      }
+    });
+
+    async function saveCMSForm() {
+      const saveBtn = document.getElementById('saveTopBtn');
       saveBtn.disabled = true;
       saveBtn.textContent = "SAVING...";
 
-      let updates = [];
-      if (activeContentGroup === "announcement") {
-        const payload = {
-          announcement_1: document.getElementById("ctrl_ann1")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_1,
-          announcement_2: document.getElementById("ctrl_ann2")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_2,
-          announcement_3: document.getElementById("ctrl_ann3")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_3,
-          announcement_bg: document.getElementById("ctrl_ann_bg")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_bg,
-          announcement_color: document.getElementById("ctrl_ann_color")?.value.trim() || ANNOUNCEMENT_DEFAULTS.announcement_color,
-          announcement_font: document.getElementById("ctrl_ann_font")?.value || ANNOUNCEMENT_DEFAULTS.announcement_font,
-          announcement_speed: String(document.getElementById("ctrl_ann_speed")?.value || ANNOUNCEMENT_DEFAULTS.announcement_speed)
-        };
+      const form = document.getElementById('cmsForm');
+      const formData = new FormData(form);
+      const updates = [];
 
-        updates = Object.entries(payload).map(([content_key, content_value]) =>
-          supabase.from("site_content").upsert(
-            { content_key, content_value, updated_at: new Date().toISOString() },
-            { onConflict: "content_key" }
+      for (const [key, value] of formData.entries()) {
+        updates.push(
+          supabase.from('site_content').upsert(
+            { content_key: key, content_value: value, updated_at: new Date().toISOString() },
+            { onConflict: 'content_key' }
           )
         );
-      } else {
-        const formData = new FormData(e.target);
-        for (const [key, value] of formData.entries()) {
-          updates.push(
-            supabase.from("site_content").upsert(
-              { content_key: key, content_value: value, updated_at: new Date().toISOString() },
-              { onConflict: "content_key" }
-            )
-          );
-        }
       }
 
       try {
         await Promise.all(updates);
-        await fetchSiteContent();
-        showToast("Synced live to website!");
+        showToast("All CMS Changes Saved & Synced Live!");
       } catch (err) {
-        showToast(err.message, true);
+        showToast(`Failed: ${err.message}`, true);
       } finally {
         saveBtn.disabled = false;
-        saveBtn.textContent = "SAVE ALL CHANGES LIVE";
+        saveBtn.textContent = "SAVE ALL CMS CHANGES";
       }
-    });
-
-    async function fetchOrders() {
-      const tbody = document.getElementById("orders-table-body");
-      const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
-      if (error || !data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No orders found.</td></tr>`;
-        return;
-      }
-      currentOrders = data;
-      tbody.innerHTML = data.map(o => `
-        <tr>
-          <td><strong>#${o.id.toString().slice(0, 8)}</strong></td>
-          <td>${escapeHtml(o.customer_name || 'Guest User')}</td>
-          <td><small>${escapeHtml(o.customer_email || 'N/A')}<br>${o.customer_phone || ''}</small></td>
-          <td>₹${o.total_amount}</td>
-          <td><span class="badge ${o.payment_status === 'paid' ? 'badge-success' : 'badge-warning'}">${o.payment_status || 'unpaid'}</span></td>
-          <td>
-            <select onchange="updateFulfillmentStatus('${o.id}', this.value)" style="padding: 4px 8px; font-size: 11px;">
-              <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
-              <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-              <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-              <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-            </select>
-          </td>
-          <td><button class="btn btn-secondary btn-sm" onclick="viewOrderDetails('${o.id}')">View</button></td>
-        </tr>
-      `).join("");
     }
 
-    window.updateFulfillmentStatus = async function(id, newStatus) {
-      const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", id);
-      if (!error) showToast(`Updated to ${newStatus}`);
-    };
-
-    window.viewOrderDetails = async function(id) {
-      const order = currentOrders.find(o => o.id === id);
-      if (!order) return;
-      document.getElementById("order-modal-title").textContent = `Order #${order.id.toString().slice(0, 8)}`;
-      document.getElementById("order-modal-body").innerHTML = `
-        <p><strong>Customer:</strong> ${escapeHtml(order.customer_name || 'N/A')}</p>
-        <p><strong>Phone:</strong> ${escapeHtml(order.customer_phone || 'N/A')}</p>
-        <p><strong>Total:</strong> ₹${order.total_amount}</p>
-      `;
-      openModal("order-modal");
-    };
-
-    async function fetchWaitlist() {
-      const tbody = document.getElementById("waitlist-table-body");
-      const { data } = await supabase.from("waitlist").select("*").order("created_at", { ascending: false });
-      currentWaitlist = data || [];
-      if (currentWaitlist.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">No waitlist signups.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = currentWaitlist.map((w, idx) => `
-        <tr><td>${idx + 1}</td><td><strong>${escapeHtml(w.email)}</strong></td><td>${new Date(w.created_at).toLocaleDateString()}</td></tr>
-      `).join("");
-    }
-
-    document.getElementById("export-waitlist-csv")?.addEventListener("click", () => {
-      if (currentWaitlist.length === 0) return;
-      let csv = "ID,Email,Date Joined\n";
-      currentWaitlist.forEach(r => { csv += `"${r.id}","${r.email}","${r.created_at}"\n`; });
-      const a = document.createElement("a");
-      a.href = window.URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-      a.download = `Waitlist_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
-    });
-
-    async function fetchMediaLibrary() {
-      const gallery = document.getElementById("media-gallery");
-      const { data: files } = await supabase.storage.from(BUCKET_NAME).list("catalog", { limit: 50 });
-      if (!files) return;
-      gallery.innerHTML = files.map(f => {
-        const { data: { publicUrl } } = supabase.storage.from(BUCKET_NAME).getPublicUrl(`catalog/${f.name}`);
-        return `
-          <div class="media-item">
-            <img src="${publicUrl}">
-            <button type="button" class="media-copy-btn" onclick="navigator.clipboard.writeText('${publicUrl}'); showToast('Copied!');">Copy Link</button>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function escapeHtml(s) {
-      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    checkSession();
+    loadAllCMSData();
   </script>
 </body>
 </html>
