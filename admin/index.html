@@ -12,6 +12,40 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <link rel="stylesheet" href="admin.css">
+  <style>
+    /* Announcement Bar Custom Controller Styles */
+    .ann-preview-container {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 4px;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.3s ease;
+    }
+    .color-picker-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .color-picker-row input[type="color"] {
+      width: 44px;
+      height: 38px;
+      padding: 2px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: #111;
+      cursor: pointer;
+    }
+    .color-picker-row input[type="text"] {
+      flex: 1;
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+  </style>
 </head>
 <body>
 
@@ -168,11 +202,11 @@
 
       <section id="tab-site-content" class="tab-pane">
         <div class="info-banner">
-          <p>Modify live texts, announcement ticker, hero titles and visual URLs instantly. Edits sync dynamically with the live site database without redeploying code.</p>
+          <p>Modify live texts, announcement ticker, colors, typography and hero banners. Changes save directly to database.</p>
         </div>
 
         <div class="tabs-subnav" id="content-sections-tabs">
-          <button class="subnav-btn active" data-content-group="announcement">Announcement</button>
+          <button class="subnav-btn active" data-content-group="announcement">Announcement Bar</button>
           <button class="subnav-btn" data-content-group="hero">Hero Section</button>
           <button class="subnav-btn" data-content-group="drop">Drop 001</button>
           <button class="subnav-btn" data-content-group="about">About Brand</button>
