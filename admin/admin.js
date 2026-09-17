@@ -349,10 +349,9 @@ window.deleteProduct = async function(id) {
     fetchDashboardMetrics();
   }
 };
-
 // 7. SITE CONTENT EDITOR (WITH DEDICATED ANNOUNCEMENT CUSTOMIZER)
 async function fetchSiteContent() {
-  const { data, error } = await supabase.from("site_content").select("*").order("key");
+  const { data, error } = await supabase.from("site_content").select("*");
   if (!error && data) {
     currentSiteContent = data;
     renderContentSubgroup("announcement");
@@ -368,8 +367,8 @@ document.querySelectorAll("#content-sections-tabs .subnav-btn").forEach(btn => {
 });
 
 function getContentValue(key, fallback = "") {
-  const item = currentSiteContent.find(c => c.key === key);
-  return item ? (item.value || "") : fallback;
+  const item = currentSiteContent.find(c => (c.content_key || c.key) === key);
+  return item ? (item.content_value || item.value || "") : fallback;
 }
 
 function renderContentSubgroup(groupName) {
@@ -479,10 +478,11 @@ function renderContentSubgroup(groupName) {
     return;
   }
 
-  // OTHER GENERAL CMS GROUPS (HERO, ABOUT, PHILOSOPHY, ETC.)
+  // OTHER GENERAL CMS GROUPS
   const filtered = currentSiteContent.filter(item => {
-    if (!item.key) return false;
-    return item.key.toLowerCase().startsWith(groupName.toLowerCase());
+    const k = item.content_key || item.key;
+    if (!k) return false;
+    return k.toLowerCase().startsWith(groupName.toLowerCase());
   });
 
   if (filtered.length === 0) {
@@ -493,29 +493,31 @@ function renderContentSubgroup(groupName) {
   }
 
   container.innerHTML = filtered.map(item => {
-    const isImage = item.key.includes("img") || item.key.includes("image") || (item.value || '').startsWith("http");
-    const isLong = (item.value || '').length > 80;
+    const k = item.content_key || item.key;
+    const v = item.content_value || item.value || "";
+    const isImage = k.includes("img") || k.includes("image") || v.startsWith("http");
+    const isLong = v.length > 80;
 
     return `
       <div class="form-group" style="border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 16px;">
         <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
-          <label style="font-family: monospace; font-size: 13px; color: #fff;">${item.key}</label>
-          <small class="text-muted">${item.section || groupName}</small>
+          <label style="font-family: monospace; font-size: 13px; color: #fff;">${k}</label>
+          <small class="text-muted">${groupName}</small>
         </div>
         ${
           isImage ? `
             <div style="display:flex; gap: 12px; align-items:center;">
-              <img src="${item.value}" style="width: 60px; height: 60px; object-fit: cover; background: #000; border: 1px solid var(--border-color);" id="preview-${item.key}">
-              <input type="text" name="${item.key}" value="${escapeHtml(item.value)}" style="flex:1;" oninput="document.getElementById('preview-${item.key}').src = this.value">
+              <img src="${v}" style="width: 60px; height: 60px; object-fit: cover; background: #000; border: 1px solid var(--border-color);" id="preview-${k}">
+              <input type="text" name="${k}" value="${escapeHtml(v)}" style="flex:1;" oninput="document.getElementById('preview-${k}').src = this.value">
               <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
                 Upload
-                <input type="file" accept="image/*" style="display:none;" onchange="uploadSingleContentImage(this.files[0], '${item.key}')">
+                <input type="file" accept="image/*" style="display:none;" onchange="uploadSingleContentImage(this.files[0], '${k}')">
               </label>
             </div>
           ` : isLong ? `
-            <textarea name="${item.key}" rows="3">${escapeHtml(item.value)}</textarea>
+            <textarea name="${k}" rows="3">${escapeHtml(v)}</textarea>
           ` : `
-            <input type="text" name="${item.key}" value="${escapeHtml(item.value)}">
+            <input type="text" name="${k}" value="${escapeHtml(v)}">
           `
         }
       </div>
@@ -550,7 +552,9 @@ document.getElementById("site-content-form").addEventListener("submit", async (e
   const updates = [];
 
   for (const [key, value] of formData.entries()) {
-    updates.push(supabase.from("site_content").upsert({ key, value }, { onConflict: "key" }));
+    updates.push(
+      supabase.from("site_content").upsert({ content_key: key, content_value: value }, { onConflict: "content_key" })
+    );
   }
 
   showToast("Syncing with live website...");
@@ -558,7 +562,6 @@ document.getElementById("site-content-form").addEventListener("submit", async (e
   await fetchSiteContent();
   showToast("All changes synced live to database!");
 });
-
 // 8. ORDERS MODULE
 async function fetchOrders() {
   const tbody = document.getElementById("orders-table-body");
