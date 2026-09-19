@@ -208,7 +208,7 @@
 
     <!-- Product Grid -->
     <div class="products-grid" id="shopGrid">
-      <!-- Injected by JS -->
+      <p style="grid-column: 1/-1; text-align: center; padding: 60px 0; color: #777;">Loading catalogue...</p>
     </div>
   </main>
 
@@ -218,46 +218,14 @@
 
   <script src="js/cart.js"></script>
   <script>
-    const MOCK_PRODUCTS = [
-      {
-        id: "bk-tee-01",
-        name: "HEAVY ARCHITECTURAL BOXY TEE",
-        category: "tees",
-        korean: "오버사이즈 티셔츠",
-        price: 2499,
-        tag: "DROP 001",
-        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"
-      },
-      {
-        id: "bk-hood-01",
-        name: "STRUCTURED LOOPBACK HOODIE",
-        category: "hoods",
-        korean: "헤비웨이트 후드",
-        price: 4499,
-        tag: "LIMITED",
-        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"
-      },
-      {
-        id: "bk-sweat-01",
-        name: "MINIMALIST OVERSIZED SWEATSHIRT",
-        category: "sweats",
-        korean: "미니멀 스웨트",
-        price: 3699,
-        tag: "CORE",
-        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"
-      },
-      {
-        id: "bk-tee-02",
-        name: "SEOUL SILHOUETTE GRAPHIC TEE",
-        category: "tees",
-        korean: "그래픽 티셔츠",
-        price: 2699,
-        tag: "DROP 001",
-        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
-      }
-    ];
+    const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
 
-    let currentProducts = [...MOCK_PRODUCTS];
+    const supabase = window.supabase && typeof window.supabase.createClient === 'function'
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    let liveProducts = [];
     let selectedCat = "all";
 
     // URL Param Check (?category=tees etc.)
@@ -265,15 +233,77 @@
     const catParam = urlParams.get('category');
     if (catParam) selectedCat = catParam.toLowerCase();
 
+    async function initShopCatalog() {
+      const grid = document.getElementById('shopGrid');
+      try {
+        if (!supabase) throw new Error("Supabase client unavailable");
+        
+        // Fetch only active products from Supabase
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("active", true)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          liveProducts = data;
+        } else {
+          // Fallback template if DB is empty
+          liveProducts = getFallbackProducts();
+        }
+      } catch (err) {
+        console.warn("Using fallback products due to fetch error:", err.message);
+        liveProducts = getFallbackProducts();
+      }
+
+      renderShop();
+    }
+
+    function getFallbackProducts() {
+      return [
+        {
+          id: "bk-tee-01",
+          name: "HEAVY ARCHITECTURAL BOXY TEE",
+          category: "tees",
+          price: 2499,
+          image_url: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"
+        },
+        {
+          id: "bk-hood-01",
+          name: "STRUCTURED LOOPBACK HOODIE",
+          category: "hoods",
+          price: 4499,
+          image_url: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"
+        },
+        {
+          id: "bk-sweat-01",
+          name: "MINIMALIST OVERSIZED SWEATSHIRT",
+          category: "sweats",
+          price: 3699,
+          image_url: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"
+        },
+        {
+          id: "bk-tee-02",
+          name: "SEOUL SILHOUETTE GRAPHIC TEE",
+          category: "tees",
+          price: 2699,
+          image_url: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+        }
+      ];
+    }
+
     function renderShop() {
       const grid = document.getElementById('shopGrid');
       let filtered = selectedCat === 'all' 
-        ? [...currentProducts] 
-        : currentProducts.filter(p => p.category === selectedCat);
+        ? [...liveProducts] 
+        : liveProducts.filter(p => String(p.category || "").trim().toLowerCase() === selectedCat);
 
       const sortVal = document.getElementById('shopSort').value;
-      if (sortVal === 'price-low') filtered.sort((a, b) => a.price - b.price);
-      if (sortVal === 'price-high') filtered.sort((a, b) => b.price - a.price);
+      if (sortVal === 'price-low') filtered.sort((a, b) => Number(a.price) - Number(b.price));
+      if (sortVal === 'price-high') filtered.sort((a, b) => Number(b.price) - Number(a.price));
+      if (sortVal === 'newest') filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
       document.getElementById('shopHeading').textContent = selectedCat === 'all' ? 'ALL SILHOUETTES' : selectedCat.toUpperCase() + ' COLLECTION';
       document.getElementById('shopCount').textContent = `${filtered.length} PIECES AVAILABLE`;
@@ -287,24 +317,30 @@
         return;
       }
 
-      grid.innerHTML = filtered.map(p => `
-        <a href="product.html?id=${p.id}" class="p-card">
-          <div class="p-thumb">
-            <span class="p-tag">${p.tag}</span>
-            <img src="${p.image}" alt="${p.name}" loading="lazy">
-          </div>
-          <div class="p-info">
-            <div>
-              <h3>${p.name}</h3>
-              <div class="p-sub">${p.korean}</div>
+      grid.innerHTML = filtered.map(p => {
+        const cat = String(p.category || "tees").toLowerCase();
+        const korean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
+        const images = (Array.isArray(p.images) && p.images.length) ? p.images : [p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
+        
+        return `
+          <a href="product.html?id=${p.id}" class="p-card">
+            <div class="p-thumb">
+              <span class="p-tag">DROP 001</span>
+              <img src="${images[0]}" alt="${p.name}" loading="lazy">
             </div>
-            <div class="p-meta">
-              <span class="p-price">₹${p.price.toLocaleString('en-IN')}</span>
-              <span class="p-btn-view">VIEW DETAILS</span>
+            <div class="p-info">
+              <div>
+                <h3>${p.name}</h3>
+                <div class="p-sub">${korean}</div>
+              </div>
+              <div class="p-meta">
+                <span class="p-price">₹${Number(p.price || 0).toLocaleString('en-IN')}</span>
+                <span class="p-btn-view">VIEW DETAILS</span>
+              </div>
             </div>
-          </div>
-        </a>
-      `).join('');
+          </a>
+        `;
+      }).join('');
     }
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -315,7 +351,9 @@
     });
 
     document.getElementById('shopSort').addEventListener('change', renderShop);
-    renderShop();
+    
+    // Initialize
+    initShopCatalog();
   </script>
 </body>
 </html>
