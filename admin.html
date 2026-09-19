@@ -506,11 +506,10 @@
             </div>
           </div>
 
-          <!-- EDITORIAL SLIDER SECTION (NEWS 01-04) -->
+          <!-- EDITORIAL SLIDER SECTION -->
           <div class="cms-section">
             <div class="cms-section-heading"><h2>EDITORIAL NEWS SLIDER (HOMEPAGE CAROUSEL)</h2></div>
             
-            <!-- Slide 1 -->
             <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
               <strong style="color:var(--red); font-size:12px;">SLIDE 01</strong>
               <div class="cms-grid" style="margin-top:10px;">
@@ -523,7 +522,6 @@
               </div>
             </div>
 
-            <!-- Slide 2 -->
             <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
               <strong style="color:var(--red); font-size:12px;">SLIDE 02</strong>
               <div class="cms-grid" style="margin-top:10px;">
@@ -536,7 +534,6 @@
               </div>
             </div>
 
-            <!-- Slide 3 -->
             <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
               <strong style="color:var(--red); font-size:12px;">SLIDE 03</strong>
               <div class="cms-grid" style="margin-top:10px;">
@@ -549,7 +546,6 @@
               </div>
             </div>
 
-            <!-- Slide 4 -->
             <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px;">
               <strong style="color:var(--red); font-size:12px;">SLIDE 04</strong>
               <div class="cms-grid" style="margin-top:10px;">
@@ -800,13 +796,9 @@
         });
       });
 
-      const ALLOWED_ADMIN_EMAILS = ["bulkkotwear@gmail.com"];
-      const isAuthorizedAdmin = (user) =>
-        !!user?.email && ALLOWED_ADMIN_EMAILS.includes(user.email.trim().toLowerCase());
-
       function showApp(user) {
         state.user = user;
-        $("#userEmail").textContent = user.email || "Admin";
+        $("#userEmail").textContent = user?.email || "Admin";
         $("#loginScreen").classList.add("hidden");
         $("#app").classList.remove("hidden");
         loadAll();
@@ -820,33 +812,25 @@
         if (errBox) errBox.textContent = errorMsg || "";
       }
 
-      async function rejectUnauthorizedSession(email) {
-        try { await supabase.auth.signOut(); } catch (e) {}
-        showLogin(email
-          ? `Account (${email}) is not authorized for admin access.`
-          : "Your session is invalid. Please sign in again.");
-      }
-
       $("#loginForm")?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const email = $("#loginEmail").value.trim().toLowerCase();
+        const email = $("#loginEmail").value.trim();
         const password = $("#loginPassword").value;
         const btn = $("#loginButton");
 
         btn.disabled = true;
         btn.textContent = "VERIFYING...";
         setLoading(true, "AUTHENTICATING...");
+        if ($("#loginError")) $("#loginError").textContent = "";
 
         try {
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
-          if (data.session) await supabase.auth.setSession(data.session);
-
-          if (!isAuthorizedAdmin(data.user)) {
-            await rejectUnauthorizedSession(data.user?.email);
-            return;
+          if (data?.user) {
+            showApp(data.user);
+          } else {
+            throw new Error("Login failed. No user found.");
           }
-          showApp(data.user);
         } catch (err) {
           $("#loginError").textContent = err.message || "Invalid credentials.";
         } finally {
@@ -857,38 +841,45 @@
       });
 
       $("#logoutButton")?.addEventListener("click", async () => {
-        await supabase.auth.signOut();
+        try { await supabase.auth.signOut(); } catch (e) {}
         showLogin();
       });
 
+      // Restore session on load
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          if (isAuthorizedAdmin(session.user)) showApp(session.user);
-          else rejectUnauthorizedSession(session.user.email);
+          showApp(session.user);
         } else {
           showLogin();
         }
-      });
+      }).catch(() => showLogin());
 
       async function loadAll() {
         if (!state.user) return;
         setLoading(true, "SYNCING DATABASE...");
         try {
-          state.orders = await fetchOrdersWithItems();
+          try { state.orders = await fetchOrdersWithItems(); } catch(e) { console.warn(e); }
+          try {
+            const { data: prods } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+            state.products = prods || [];
+          } catch(e) { console.warn(e); }
 
-          const { data: prods } = await supabase.from("products").select("*").order("created_at", { ascending: false });
-          state.products = prods || [];
+          try {
+            const { data: coups } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
+            state.coupons = coups || [];
+          } catch(e) { console.warn(e); }
 
-          const { data: coups } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
-          state.coupons = coups || [];
+          try {
+            const { data: wait } = await supabase.from("waitlist").select("*").order("created_at", { ascending: false });
+            state.waitlist = wait || [];
+          } catch(e) { console.warn(e); }
 
-          const { data: wait } = await supabase.from("waitlist").select("*").order("created_at", { ascending: false });
-          state.waitlist = wait || [];
+          try {
+            const { data: setts } = await supabase.from("store_settings").select("*").eq("id", 1).maybeSingle();
+            state.settings = setts || {};
+          } catch(e) { console.warn(e); }
 
-          const { data: setts } = await supabase.from("store_settings").select("*").eq("id", 1).maybeSingle();
-          state.settings = setts || {};
-
-          await loadCMS();
+          try { await loadCMS(); } catch(e) { console.warn(e); }
 
           computeCustomers();
           renderOrders();
@@ -1025,10 +1016,9 @@
 
       // DELETE ORDER ACTION
       window.deleteOrder = async (id) => {
-        if (!confirm("Are you sure you want to permanently delete this order? This cannot be undone.")) return;
+        if (!confirm("Permanently delete this order from database?")) return;
         setLoading(true, "DELETING ORDER...");
         try {
-          // Delete child line items first if relational table exists
           await supabase.from("order_items").delete().eq("order_id", id);
           const { error } = await supabase.from("orders").delete().eq("id", id);
           if (error) throw error;
@@ -1110,6 +1100,20 @@
           await loadAll();
         } catch (err) {
           showToast(err.message || "Failed to update.", "error");
+        } finally { setLoading(false); }
+      };
+
+      window.cancelOrder = async (id) => {
+        if (!confirm("Cancel this order?")) return;
+        setLoading(true, "CANCELLING...");
+        try {
+          const { error } = await supabase.from("orders").update({ order_status: "CANCELLED" }).eq("id", id);
+          if (error) throw error;
+          showToast("Order cancelled.");
+          $("#orderModal").classList.add("hidden");
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed to cancel.", "error");
         } finally { setLoading(false); }
       };
 
