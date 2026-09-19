@@ -182,6 +182,43 @@
     .cms-field--full { grid-column: 1 / -1; }
     .cms-field span { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
 
+    /* Color picker field: native swatch + synced hex input */
+    .color-field-row { display: flex; align-items: center; gap: 8px; }
+    .color-swatch-input {
+      -webkit-appearance: none; appearance: none;
+      width: 40px; height: 40px; min-height: 40px; padding: 0;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: none; cursor: pointer; flex-shrink: 0;
+    }
+    .color-swatch-input::-webkit-color-swatch-wrapper { padding: 3px; }
+    .color-swatch-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+    .color-hex-input { font-family: monospace; text-transform: uppercase; }
+
+    /* Live preview boxes */
+    .cms-preview-wrap { margin-top: 18px; }
+    .cms-preview-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .cms-preview-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulseDot 1.6s ease-in-out infinite; }
+    @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+    .hero-preview-box {
+      position: relative; height: 220px; border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--border); background: #000 center/cover no-repeat;
+      display: flex; align-items: center;
+    }
+    .hero-preview-overlay { position: absolute; inset: 0; }
+    .hero-preview-content { position: relative; z-index: 2; padding: 20px 26px; max-width: 80%; }
+    .hero-preview-korean { font-family: "Noto Sans KR", sans-serif; font-weight: 800; font-size: 13px; margin: 0 0 4px; color: var(--red); }
+    .hero-preview-title { font-weight: 800; font-size: 28px; letter-spacing: -0.03em; margin: 0; line-height: 1; }
+    .hero-preview-label { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; margin: 8px 0 0; }
+    .hero-preview-desc { font-size: 11px; margin: 8px 0 0; max-width: 260px; line-height: 1.5; opacity: .85; }
+
+    .ticker-preview-box {
+      position: relative; height: 38px; border-radius: 6px; overflow: hidden;
+      border: 1px solid var(--border); display: flex; align-items: center;
+    }
+    .ticker-preview-track { display: flex; gap: 48px; white-space: nowrap; padding-left: 100%; animation: tickerPreviewScroll linear infinite; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+    @keyframes tickerPreviewScroll { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+
     .analytics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px; }
     .analytics-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
     .analytics-card-title { font-size: 13px; font-weight: 800; margin-bottom: 14px; color: #fff; display: flex; justify-content: space-between; }
@@ -445,6 +482,44 @@
               <label class="cms-field"><span>Hero Subtitle</span><input type="text" data-cms="hero_subtitle"></label>
               <label class="cms-field"><span>Button Text</span><input type="text" data-cms="hero_button_text"></label>
               <label class="cms-field cms-field--full"><span>Hero Lead Description</span><textarea data-cms="hero_description" rows="2"></textarea></label>
+
+              <label class="cms-field">
+                <span>Hero Overlay Color</span>
+                <div class="color-field-row">
+                  <input type="color" class="color-swatch-input" id="heroOverlayColorPicker" value="#000000">
+                  <input type="text" data-cms="hero_overlay_color" id="heroOverlayColorHex" class="color-hex-input" value="#000000" maxlength="7" placeholder="#000000">
+                </div>
+              </label>
+              <label class="cms-field">
+                <span>Hero Text Color</span>
+                <div class="color-field-row">
+                  <input type="color" class="color-swatch-input" id="heroTextColorPicker" value="#ffffff">
+                  <input type="text" data-cms="hero_text_color" id="heroTextColorHex" class="color-hex-input" value="#ffffff" maxlength="7" placeholder="#ffffff">
+                </div>
+              </label>
+              <label class="cms-field">
+                <span>Hero Font</span>
+                <select data-cms="hero_font" id="heroFontSelect">
+                  <option value="'Montserrat', sans-serif">Montserrat (Default Heading)</option>
+                  <option value="'Inter', sans-serif">Inter</option>
+                  <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+                  <option value="system-ui, sans-serif">System Sans</option>
+                  <option value="Georgia, serif">Georgia (Serif)</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="cms-preview-wrap">
+              <div class="cms-preview-label">Live Preview</div>
+              <div class="hero-preview-box" id="heroPreviewBox">
+                <div class="hero-preview-overlay" id="heroPreviewOverlay"></div>
+                <div class="hero-preview-content">
+                  <p class="hero-preview-korean" id="heroPreviewKorean">불꽃</p>
+                  <h3 class="hero-preview-title" id="heroPreviewTitle">BULKKOT</h3>
+                  <p class="hero-preview-label" id="heroPreviewLabel">PREMIUM EVERYDAY WEAR</p>
+                  <p class="hero-preview-desc" id="heroPreviewDesc">Korean-inspired minimalist heavyweight essentials.</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -454,6 +529,45 @@
               <label class="cms-field"><span>Ticker Message 1</span><input type="text" data-cms="announcement_1"></label>
               <label class="cms-field"><span>Ticker Message 2</span><input type="text" data-cms="announcement_2"></label>
               <label class="cms-field cms-field--full"><span>Ticker Message 3</span><input type="text" data-cms="announcement_3"></label>
+
+              <label class="cms-field">
+                <span>Background Color</span>
+                <div class="color-field-row">
+                  <input type="color" class="color-swatch-input" id="annBgColorPicker" value="#e31b23">
+                  <input type="text" data-cms="announcement_bg" id="annBgColorHex" class="color-hex-input" value="#e31b23" maxlength="7" placeholder="#e31b23">
+                </div>
+              </label>
+              <label class="cms-field">
+                <span>Text Color</span>
+                <div class="color-field-row">
+                  <input type="color" class="color-swatch-input" id="annTextColorPicker" value="#ffffff">
+                  <input type="text" data-cms="announcement_color" id="annTextColorHex" class="color-hex-input" value="#ffffff" maxlength="7" placeholder="#ffffff">
+                </div>
+              </label>
+              <label class="cms-field">
+                <span>Font</span>
+                <select data-cms="announcement_font" id="annFontSelect">
+                  <option value="'Inter', sans-serif">Inter (Default)</option>
+                  <option value="'Montserrat', sans-serif">Montserrat</option>
+                  <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+                  <option value="system-ui, sans-serif">System Sans</option>
+                </select>
+              </label>
+              <label class="cms-field">
+                <span>Scroll Speed (seconds — lower is faster)</span>
+                <input type="number" data-cms="announcement_speed" id="annSpeedInput" value="20" min="6" max="60">
+              </label>
+            </div>
+
+            <div class="cms-preview-wrap">
+              <div class="cms-preview-label">Live Preview</div>
+              <div class="ticker-preview-box" id="tickerPreviewBox">
+                <div class="ticker-preview-track" id="tickerPreviewTrack">
+                  <span id="tickerPreviewMsg1">DROP 001 — DROPPING SOON</span>
+                  <span id="tickerPreviewMsg2">불꽃 DROP 001 — COMING SOON</span>
+                  <span id="tickerPreviewMsg3">JOIN THE VIP WAITLIST</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1108,15 +1222,130 @@
       };
 
       // CMS
+      const CMS_DEFAULTS = {
+        hero_overlay_color: "#000000",
+        hero_text_color: "#ffffff",
+        hero_font: "'Montserrat', sans-serif",
+        announcement_bg: "#e31b23",
+        announcement_color: "#ffffff",
+        announcement_font: "'Inter', sans-serif",
+        announcement_speed: "20"
+      };
+
       async function loadCMS() {
         const { data } = await supabase.from("site_content").select("*");
         state.cms = {};
         (data || []).forEach(item => {
           state.cms[item.content_key] = item.content_value || item.image_url || "";
-          const input = $(`[data-cms="${item.content_key}"]`);
-          if (input) input.value = item.content_value || item.image_url || "";
+        });
+
+        // Populate every [data-cms] field: DB value first, else the field's
+        // built-in default (keeps color pickers/select/speed pre-filled and
+        // in sync with what the storefront actually falls back to).
+        $$("[data-cms]").forEach(input => {
+          const key = input.dataset.cms;
+          const value = state.cms[key] ?? CMS_DEFAULTS[key] ?? "";
+          if (value !== "") input.value = value;
+        });
+
+        syncColorPairs();
+        updateHeroPreview();
+        updateAnnouncementPreview();
+      }
+
+      // Keep each native <input type="color"> swatch in sync with its
+      // paired hex text input (data-cms field), in both directions.
+      function syncColorPairs() {
+        const pairs = [
+          ["heroOverlayColorPicker", "heroOverlayColorHex"],
+          ["heroTextColorPicker", "heroTextColorHex"],
+          ["annBgColorPicker", "annBgColorHex"],
+          ["annTextColorPicker", "annTextColorHex"]
+        ];
+        pairs.forEach(([pickerId, hexId]) => {
+          const picker = $(`#${pickerId}`);
+          const hex = $(`#${hexId}`);
+          if (!picker || !hex) return;
+
+          // Initial sync: valid hex -> picker.
+          if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) picker.value = hex.value;
+
+          picker.addEventListener("input", () => {
+            hex.value = picker.value;
+            updateHeroPreview();
+            updateAnnouncementPreview();
+          });
+          hex.addEventListener("input", () => {
+            if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) picker.value = hex.value;
+            updateHeroPreview();
+            updateAnnouncementPreview();
+          });
         });
       }
+
+      function updateHeroPreview() {
+        const overlay = $("#heroOverlayColorHex")?.value.trim() || CMS_DEFAULTS.hero_overlay_color;
+        const textColor = $("#heroTextColorHex")?.value.trim() || CMS_DEFAULTS.hero_text_color;
+        const font = $("#heroFontSelect")?.value || CMS_DEFAULTS.hero_font;
+        const heroImg = $("#cmsHeroUrl")?.value.trim();
+
+        const box = $("#heroPreviewBox");
+        if (box && heroImg) box.style.backgroundImage = `url("${heroImg}")`;
+
+        const ov = $("#heroPreviewOverlay");
+        if (ov) {
+          ov.style.background = `linear-gradient(90deg, ${hexToRgba(overlay, 0.76)} 0%, ${hexToRgba(overlay, 0.38)} 42%, ${hexToRgba(overlay, 0.18)} 100%)`;
+        }
+
+        $("#heroPreviewKorean").textContent = $("[data-cms='hero_korean']")?.value.trim() || "불꽃";
+        $("#heroPreviewTitle").textContent = $("[data-cms='hero_title']")?.value.trim() || "BULKKOT";
+        $("#heroPreviewLabel").textContent = $("[data-cms='hero_subtitle']")?.value.trim() || "PREMIUM EVERYDAY WEAR";
+        $("#heroPreviewDesc").textContent = $("[data-cms='hero_description']")?.value.trim() || "Korean-inspired minimalist heavyweight essentials.";
+
+        [$("#heroPreviewTitle"), $("#heroPreviewLabel"), $("#heroPreviewDesc")].forEach(el => {
+          if (!el) return;
+          el.style.color = textColor;
+          el.style.fontFamily = font;
+        });
+      }
+
+      function updateAnnouncementPreview() {
+        const bg = $("#annBgColorHex")?.value.trim() || CMS_DEFAULTS.announcement_bg;
+        const color = $("#annTextColorHex")?.value.trim() || CMS_DEFAULTS.announcement_color;
+        const font = $("#annFontSelect")?.value || CMS_DEFAULTS.announcement_font;
+        const speed = Number($("#annSpeedInput")?.value) || Number(CMS_DEFAULTS.announcement_speed);
+
+        const box = $("#tickerPreviewBox");
+        const track = $("#tickerPreviewTrack");
+        if (box) { box.style.backgroundColor = bg; box.style.color = color; }
+        if (track) { track.style.fontFamily = font; track.style.animationDuration = `${speed}s`; }
+
+        $("#tickerPreviewMsg1").textContent = $("[data-cms='announcement_1']")?.value.trim() || "DROP 001 — DROPPING SOON";
+        $("#tickerPreviewMsg2").textContent = $("[data-cms='announcement_2']")?.value.trim() || "불꽃 DROP 001 — COMING SOON";
+        $("#tickerPreviewMsg3").textContent = $("[data-cms='announcement_3']")?.value.trim() || "JOIN THE VIP WAITLIST";
+      }
+
+      function hexToRgba(hex, alpha) {
+        const clean = (hex || "").replace("#", "");
+        if (!/^[0-9a-fA-F]{6}$/.test(clean)) return `rgba(0,0,0,${alpha})`;
+        const r = parseInt(clean.slice(0, 2), 16);
+        const g = parseInt(clean.slice(2, 4), 16);
+        const b = parseInt(clean.slice(4, 6), 16);
+        return `rgba(${r},${g},${b},${alpha})`;
+      }
+
+      // Live-update the previews as the admin types/edits any CMS field,
+      // not just the color/font controls.
+      ["hero_korean", "hero_title", "hero_subtitle", "hero_description", "hero_image"].forEach(key => {
+        $(`[data-cms="${key}"]`)?.addEventListener("input", updateHeroPreview);
+      });
+      $("#heroFontSelect")?.addEventListener("change", updateHeroPreview);
+      $("#cmsHeroUrl")?.addEventListener("input", updateHeroPreview);
+      ["announcement_1", "announcement_2", "announcement_3"].forEach(key => {
+        $(`[data-cms="${key}"]`)?.addEventListener("input", updateAnnouncementPreview);
+      });
+      $("#annFontSelect")?.addEventListener("change", updateAnnouncementPreview);
+      $("#annSpeedInput")?.addEventListener("input", updateAnnouncementPreview);
 
       $("#saveCmsBtn")?.addEventListener("click", async () => {
         setLoading(true, "SAVING CMS...");
@@ -1132,6 +1361,8 @@
             await supabase.from("site_content").upsert(u, { onConflict: "content_key" });
           }
           showToast("CMS saved successfully!");
+        } catch (err) {
+          showToast(err.message || "Failed to save CMS changes.", "error");
         } finally { setLoading(false); }
       });
 
