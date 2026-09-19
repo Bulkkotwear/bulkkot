@@ -42,6 +42,36 @@
       height: 540px;
       object-fit: cover;
       display: block;
+      transition: opacity 0.2s ease;
+    }
+
+    .pdp-thumbs-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .pdp-thumb-item {
+      width: 72px;
+      height: 72px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #222;
+      background: #111;
+      cursor: pointer;
+      flex-shrink: 0;
+      opacity: 0.6;
+      transition: all 0.2s ease;
+    }
+    .pdp-thumb-item.active, .pdp-thumb-item:hover {
+      border-color: #fff;
+      opacity: 1;
+    }
+    .pdp-thumb-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .pdp-meta-kicker { font-size: 11px; font-weight: 800; color: var(--bk-red, #e31b23); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
@@ -67,10 +97,17 @@
       border-radius: 4px;
       transition: all 0.2s ease;
     }
-    .size-box:hover, .size-box.active {
+    .size-box:hover:not(:disabled), .size-box.active {
       border-color: #fff;
       background: #fff;
       color: #000;
+    }
+    .size-box:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+      text-decoration: line-through;
+      border-color: #222;
+      background: #080808;
     }
 
     /* Actions */
@@ -88,7 +125,8 @@
       border: none;
       transition: opacity 0.2s;
     }
-    .btn-add-bag:hover { opacity: 0.9; }
+    .btn-add-bag:hover:not(:disabled) { opacity: 0.9; }
+    .btn-add-bag:disabled { opacity: 0.45; cursor: not-allowed; background: #333; }
 
     /* Quality Highlights */
     .feature-list {
@@ -140,9 +178,12 @@
     </div>
 
     <div class="pdp-main-grid">
-      <!-- Left: Image -->
-      <div class="pdp-gallery-box">
-        <img id="pdpImg" src="" alt="Product Silhouette">
+      <!-- Left: Image Gallery -->
+      <div>
+        <div class="pdp-gallery-box">
+          <img id="pdpImg" src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="Product Silhouette">
+        </div>
+        <div class="pdp-thumbs-row" id="pdpThumbs"></div>
       </div>
 
       <!-- Right: Details & Variants -->
@@ -158,9 +199,9 @@
         <!-- Size Variant -->
         <div class="opt-label">
           <span>SELECT SIZE (UK/INDIA)</span>
-          <span style="color:#31c48d;">IN STOCK</span>
+          <span id="pdpStockStatus" style="color:#31c48d;">CHECKING AVAILABILITY...</span>
         </div>
-        <div class="size-grid">
+        <div class="size-grid" id="sizeGrid">
           <button type="button" class="size-box" data-size="S">S</button>
           <button type="button" class="size-box active" data-size="M">M</button>
           <button type="button" class="size-box" data-size="L">L</button>
@@ -183,7 +224,9 @@
     <!-- Similar Products Section -->
     <section class="similar-sec">
       <h2 style="font-size: 16px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">SIMILAR SILHOUETTES</h2>
-      <div class="similar-grid" id="similarGrid"></div>
+      <div class="similar-grid" id="similarGrid">
+        <p style="grid-column: 1/-1; color: #666; font-size: 12px;">Loading recommendations...</p>
+      </div>
     </section>
   </main>
 
@@ -193,86 +236,211 @@
 
   <script src="js/cart.js"></script>
   <script>
-    const CATALOG = [
-      {
+    const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+
+    const supabase = window.supabase && typeof window.supabase.createClient === 'function'
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    let currentProduct = null;
+    let selectedSize = 'M';
+    let productImages = [];
+
+    const params = new URLSearchParams(window.location.search);
+    const targetId = params.get('id');
+
+    async function loadProductDetails() {
+      try {
+        if (!supabase) throw new Error("Supabase unavailable");
+
+        let query = supabase.from("products").select("*");
+        if (targetId) {
+          query = query.eq("id", targetId);
+        } else {
+          query = query.eq("active", true).limit(1);
+        }
+
+        const { data, error } = await query.maybeSingle();
+        if (error) throw error;
+
+        if (data) {
+          currentProduct = data;
+        } else {
+          currentProduct = getFallbackPDP();
+        }
+      } catch (err) {
+        console.warn("Using fallback PDP data:", err.message);
+        currentProduct = getFallbackPDP();
+      }
+
+      renderPDP();
+      loadSimilarProducts();
+    }
+
+    function getFallbackPDP() {
+      return {
         id: "bk-tee-01",
         name: "HEAVY ARCHITECTURAL BOXY TEE",
         category: "tees",
-        kicker: "DROP 001 · 280 GSM",
         price: 2499,
-        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"
-      },
-      {
-        id: "bk-hood-01",
-        name: "STRUCTURED LOOPBACK HOODIE",
-        category: "hoods",
-        kicker: "DROP 001 · 450 GSM",
-        price: 4499,
-        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"
-      },
-      {
-        id: "bk-sweat-01",
-        name: "MINIMALIST OVERSIZED SWEATSHIRT",
-        category: "sweats",
-        kicker: "DROP 001 · 380 GSM",
-        price: 3699,
-        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"
-      },
-      {
-        id: "bk-tee-02",
-        name: "SEOUL SILHOUETTE GRAPHIC TEE",
-        category: "tees",
-        kicker: "DROP 001 · 260 GSM",
-        price: 2699,
-        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+        description: "Crafted from 100% heavyweight combed luxury cotton. Engineered with dropped shoulders and architectural volume to maintain clean lines throughout all-day wear.",
+        images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"],
+        stock: { S: 5, M: 10, L: 8, XL: 2 }
+      };
+    }
+
+    function renderPDP() {
+      const p = currentProduct;
+      if (!p) return;
+
+      document.getElementById('pdpTitle').textContent = p.name;
+      document.getElementById('breadName').textContent = p.name;
+      
+      const cat = String(p.category || "tees").toUpperCase();
+      document.getElementById('pdpKicker').textContent = `DROP 001 · ${cat}`;
+      document.getElementById('pdpPrice').textContent = `₹${Number(p.price || 0).toLocaleString('en-IN')}`;
+      if (p.description) document.getElementById('pdpDesc').textContent = p.description;
+
+      productImages = (Array.isArray(p.images) && p.images.length) ? p.images : [p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
+      
+      const mainImg = document.getElementById('pdpImg');
+      mainImg.src = productImages[0];
+
+      // Thumbs
+      const thumbsBox = document.getElementById('pdpThumbs');
+      if (productImages.length > 1) {
+        thumbsBox.innerHTML = productImages.map((url, i) => `
+          <div class="pdp-thumb-item ${i === 0 ? 'active' : ''}" data-index="${i}">
+            <img src="${url}" alt="Thumbnail ${i + 1}">
+          </div>
+        `).join('');
+
+        thumbsBox.querySelectorAll('.pdp-thumb-item').forEach(thumb => {
+          thumb.addEventListener('click', () => {
+            thumbsBox.querySelectorAll('.pdp-thumb-item').forEach(t => t.classList.remove('active'));
+            thumb.classList.add('active');
+            mainImg.src = productImages[thumb.dataset.index];
+          });
+        });
+      } else {
+        thumbsBox.innerHTML = '';
       }
-    ];
 
-    let selectedSize = 'M';
-    const params = new URLSearchParams(window.location.search);
-    const prodId = params.get('id') || "bk-tee-01";
-    const product = CATALOG.find(p => p.id === prodId) || CATALOG[0];
+      // Stock & Sizes
+      const stock = p.stock || { S: 5, M: 5, L: 5, XL: 5 };
+      const sizeBoxes = document.querySelectorAll('.size-box');
+      let firstAvailable = null;
 
-    document.getElementById('pdpTitle').textContent = product.name;
-    document.getElementById('breadName').textContent = product.name;
-    document.getElementById('pdpKicker').textContent = product.kicker;
-    document.getElementById('pdpPrice').textContent = `₹${product.price.toLocaleString('en-IN')}`;
-    document.getElementById('pdpImg').src = product.image;
+      sizeBoxes.forEach(sb => {
+        const s = sb.dataset.size;
+        const qty = Number(stock[s] ?? 0);
+        if (qty <= 0) {
+          sb.disabled = true;
+        } else {
+          sb.disabled = false;
+          if (!firstAvailable) firstAvailable = s;
+        }
+      });
 
-    // Size Selection
+      selectedSize = (stock[selectedSize] > 0) ? selectedSize : (firstAvailable || 'M');
+
+      sizeBoxes.forEach(sb => {
+        sb.classList.toggle('active', sb.dataset.size === selectedSize);
+      });
+
+      updateStockLabel();
+    }
+
+    function updateStockLabel() {
+      const p = currentProduct;
+      const stock = p?.stock || {};
+      const currentStock = Number(stock[selectedSize] ?? 0);
+      const label = document.getElementById('pdpStockStatus');
+      const addBtn = document.getElementById('pdpAddBtn');
+
+      if (currentStock <= 0) {
+        label.textContent = "SOLD OUT";
+        label.style.color = "#ff7777";
+        addBtn.disabled = true;
+        addBtn.textContent = "SOLD OUT";
+      } else if (currentStock <= 3) {
+        label.textContent = `ONLY ${currentStock} LEFT`;
+        label.style.color = "var(--bk-red, #e31b23)";
+        addBtn.disabled = false;
+        addBtn.textContent = "ADD TO BAG";
+      } else {
+        label.textContent = "IN STOCK";
+        label.style.color = "#31c48d";
+        addBtn.disabled = false;
+        addBtn.textContent = "ADD TO BAG";
+      }
+    }
+
+    // Size clicks
     document.querySelectorAll('.size-box').forEach(sb => {
       sb.addEventListener('click', () => {
+        if (sb.disabled) return;
         document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
         sb.classList.add('active');
         selectedSize = sb.dataset.size;
+        updateStockLabel();
       });
     });
 
-    // Add to Cart
+    // Add to Bag Button
     document.getElementById('pdpAddBtn').addEventListener('click', () => {
+      if (!currentProduct) return;
       if (window.BULKKOT_CART?.addItem) {
         window.BULKKOT_CART.addItem({
-          id: product.id,
-          name: product.name,
-          price: product.price,
+          id: currentProduct.id,
+          name: currentProduct.name,
+          price: Number(currentProduct.price || 0),
           size: selectedSize,
-          image: product.image,
+          image: productImages[0],
           quantity: 1
         });
       }
     });
 
-    // Similar Products
-    const similar = CATALOG.filter(p => p.id !== product.id);
-    document.getElementById('similarGrid').innerHTML = similar.map(s => `
-      <a href="product.html?id=${s.id}" style="text-decoration:none; color:inherit; background:#0e0e0e; border:1px solid #1a1a1a; border-radius:4px; overflow:hidden;">
-        <img src="${s.image}" style="width:100%; height:200px; object-fit:cover; display:block;">
-        <div style="padding:10px;">
-          <h4 style="font-size:11px; font-weight:800; margin:0 0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</h4>
-          <span style="font-size:12px; font-weight:900; color:#fff;">₹${s.price.toLocaleString('en-IN')}</span>
-        </div>
-      </a>
-    `).join('');
+    // Similar Products Query
+    async function loadSimilarProducts() {
+      const grid = document.getElementById('similarGrid');
+      if (!supabase) {
+        grid.innerHTML = '';
+        return;
+      }
+
+      try {
+        const { data } = await supabase
+          .from("products")
+          .select("*")
+          .eq("active", true)
+          .neq("id", currentProduct.id)
+          .limit(4);
+
+        if (data && data.length) {
+          grid.innerHTML = data.map(s => {
+            const img = (Array.isArray(s.images) && s.images[0]) ? s.images[0] : (s.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png');
+            return `
+              <a href="product.html?id=${s.id}" style="text-decoration:none; color:inherit; background:#0e0e0e; border:1px solid #1a1a1a; border-radius:4px; overflow:hidden;">
+                <img src="${img}" style="width:100%; height:200px; object-fit:cover; display:block;">
+                <div style="padding:10px;">
+                  <h4 style="font-size:11px; font-weight:800; margin:0 0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</h4>
+                  <span style="font-size:12px; font-weight:900; color:#fff;">₹${Number(s.price || 0).toLocaleString('en-IN')}</span>
+                </div>
+              </a>
+            `;
+          }).join('');
+        } else {
+          grid.parentElement.style.display = 'none';
+        }
+      } catch (e) {
+        grid.parentElement.style.display = 'none';
+      }
+    }
+
+    loadProductDetails();
   </script>
 </body>
 </html>
