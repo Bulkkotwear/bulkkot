@@ -89,6 +89,7 @@
     .btn-primary { background: var(--red); border-color: var(--red); }
     .btn-primary:hover { background: var(--red-dark); }
     .btn-danger { background: rgba(239, 68, 68, .12); border-color: rgba(239, 68, 68, .25); color: #ff7777; }
+    .btn-danger:hover { background: rgba(239, 68, 68, .25); }
     .btn-full { width: 100%; }
     .btn-small { min-height: 30px; padding: 4px 8px; font-size: 10px; }
 
@@ -182,7 +183,7 @@
     .cms-field--full { grid-column: 1 / -1; }
     .cms-field span { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
 
-    /* Color picker field: native swatch + synced hex input */
+    /* Color picker field */
     .color-field-row { display: flex; align-items: center; gap: 8px; }
     .color-swatch-input {
       -webkit-appearance: none; appearance: none;
@@ -222,14 +223,6 @@
     .analytics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px; }
     .analytics-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
     .analytics-card-title { font-size: 13px; font-weight: 800; margin-bottom: 14px; color: #fff; display: flex; justify-content: space-between; }
-    .bar-row { margin-bottom: 12px; }
-    .bar-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
-    .bar-track { width: 100%; height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 4px; }
-    .bar-fill.red { background: var(--red); }
-    .bar-fill.blue { background: var(--blue); }
-    .bar-fill.green { background: var(--green); }
-    .bar-fill.yellow { background: var(--yellow); }
 
     .modal { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 20px; }
     .modal-box { width: min(720px, 100%); max-height: 90vh; overflow-y: auto; background: #101010; border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
@@ -349,7 +342,7 @@
         <section id="page-orders" class="page hidden">
           <div class="panel">
             <div class="panel-header">
-              <div><div class="panel-title">Order Management & Operations</div><div class="panel-subtitle">Search, fulfil, print packing slips, or cancel orders</div></div>
+              <div><div class="panel-title">Order Management & Operations</div><div class="panel-subtitle">Search, fulfil, print packing slips, or cancel/delete orders</div></div>
             </div>
 
             <div class="table-toolbar">
@@ -437,17 +430,6 @@
               <div class="stat"><div class="stat-label">Total Units Sold</div><div id="anaUnitsSold" class="stat-value">—</div></div>
               <div class="stat"><div class="stat-label">Repeat Buyer Ratio</div><div id="anaRepeatRatio" class="stat-value">—</div></div>
             </div>
-
-            <div class="analytics-grid">
-              <div class="analytics-card">
-                <div class="analytics-card-title"><span>Revenue by Silhouette Category</span><small style="color:var(--muted)">Share of Gross</small></div>
-                <div id="categoryBars"></div>
-              </div>
-              <div class="analytics-card">
-                <div class="analytics-card-title"><span>Top Performing Garments</span><small style="color:var(--muted)">By Revenue</small></div>
-                <div id="topProductsList"></div>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -456,7 +438,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
             <div>
               <h2 style="margin:0; font-size:20px;">Site Content & Media CMS</h2>
-              <p style="margin:4px 0 0; color:var(--muted); font-size:12px;">Override storefront copy, announcement tickers, and upload campaign imagery.</p>
+              <p style="margin:4px 0 0; color:var(--muted); font-size:12px;">Override storefront copy, editorial news slider, announcement tickers, and banners.</p>
             </div>
             <div style="display:flex; gap:8px;">
               <a href="index.html" target="_blank" rel="noopener" class="btn btn-small">Preview Live Site ↗</a>
@@ -464,6 +446,7 @@
             </div>
           </div>
 
+          <!-- HERO SECTION -->
           <div class="cms-section">
             <div class="cms-section-heading"><h2>HERO CAMPAIGN & BANNER</h2></div>
             <div class="cms-grid">
@@ -523,6 +506,64 @@
             </div>
           </div>
 
+          <!-- EDITORIAL SLIDER SECTION (NEWS 01-04) -->
+          <div class="cms-section">
+            <div class="cms-section-heading"><h2>EDITORIAL NEWS SLIDER (HOMEPAGE CAROUSEL)</h2></div>
+            
+            <!-- Slide 1 -->
+            <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
+              <strong style="color:var(--red); font-size:12px;">SLIDE 01</strong>
+              <div class="cms-grid" style="margin-top:10px;">
+                <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_1_badge" placeholder="NEWS 01 // DROP 001"></label>
+                <label class="cms-field"><span>Korean Sub</span><input type="text" data-cms="editorial_1_korean" placeholder="불꽃 · 001"></label>
+                <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_1_title" placeholder="LESS NOISE."></label>
+                <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_1_sub" placeholder="MORE PRESENCE."></label>
+                <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_1_desc"></label>
+                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_1_img" placeholder="https://..."></label>
+              </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
+              <strong style="color:var(--red); font-size:12px;">SLIDE 02</strong>
+              <div class="cms-grid" style="margin-top:10px;">
+                <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_2_badge" placeholder="NEWS 02 // CRAFTSMANSHIP"></label>
+                <label class="cms-field"><span>Korean Sub</span><input type="text" data-cms="editorial_2_korean" placeholder="서울에서 영감 · 헤비웨이트"></label>
+                <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_2_title" placeholder="450 GSM"></label>
+                <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_2_sub" placeholder="LOOPBACK FLEECE."></label>
+                <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_2_desc"></label>
+                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_2_img" placeholder="https://..."></label>
+              </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
+              <strong style="color:var(--red); font-size:12px;">SLIDE 03</strong>
+              <div class="cms-grid" style="margin-top:10px;">
+                <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_3_badge" placeholder="NEWS 03 // SILHOUETTES"></label>
+                <label class="cms-field"><span>Korean Sub</span><input type="text" data-cms="editorial_3_korean" placeholder="디자인 미학 · SEOUL TO WORLD"></label>
+                <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_3_title" placeholder="QUIETLY"></label>
+                <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_3_sub" placeholder="DISTINCT."></label>
+                <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_3_desc"></label>
+                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_3_img" placeholder="https://..."></label>
+              </div>
+            </div>
+
+            <!-- Slide 4 -->
+            <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px;">
+              <strong style="color:var(--red); font-size:12px;">SLIDE 04</strong>
+              <div class="cms-grid" style="margin-top:10px;">
+                <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_4_badge" placeholder="NEWS 04 // LIMITED SUPPLY"></label>
+                <label class="cms-field"><span>Korean Sub</span><input type="text" data-cms="editorial_4_korean" placeholder="한정판 수량 · 150 PCS"></label>
+                <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_4_title" placeholder="STRICTLY 150"></label>
+                <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_4_sub" placeholder="PIECES PER CUT."></label>
+                <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_4_desc"></label>
+                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_4_img" placeholder="https://..."></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ANNOUNCEMENT TICKER -->
           <div class="cms-section">
             <div class="cms-section-heading"><h2>ANNOUNCEMENT TICKER</h2></div>
             <div class="cms-grid">
@@ -557,17 +598,6 @@
                 <span>Scroll Speed (seconds — lower is faster)</span>
                 <input type="number" data-cms="announcement_speed" id="annSpeedInput" value="20" min="6" max="60">
               </label>
-            </div>
-
-            <div class="cms-preview-wrap">
-              <div class="cms-preview-label">Live Preview</div>
-              <div class="ticker-preview-box" id="tickerPreviewBox">
-                <div class="ticker-preview-track" id="tickerPreviewTrack">
-                  <span id="tickerPreviewMsg1">DROP 001 — DROPPING SOON</span>
-                  <span id="tickerPreviewMsg2">불꽃 DROP 001 — COMING SOON</span>
-                  <span id="tickerPreviewMsg3">JOIN THE VIP WAITLIST</span>
-                </div>
-              </div>
             </div>
           </div>
         </section>
@@ -770,12 +800,7 @@
         });
       });
 
-      // ── ADMIN WHITELIST ──────────────────────────────────────────────
-      // Only these Supabase Auth accounts may operate the panel. Add more
-      // authorized staff emails here as needed. Comparison is case-insensitive.
-      const ALLOWED_ADMIN_EMAILS = [
-        "bulkkotwear@gmail.com"
-      ];
+      const ALLOWED_ADMIN_EMAILS = ["bulkkotwear@gmail.com"];
       const isAuthorizedAdmin = (user) =>
         !!user?.email && ALLOWED_ADMIN_EMAILS.includes(user.email.trim().toLowerCase());
 
@@ -795,14 +820,11 @@
         if (errBox) errBox.textContent = errorMsg || "";
       }
 
-      // Signs out any session that isn't on the admin whitelist and boots
-      // it back to the login screen with a clear, non-technical error —
-      // used on fresh logins, restored sessions, and auth-state changes.
       async function rejectUnauthorizedSession(email) {
-        try { await supabase.auth.signOut(); } catch (e) { /* already signed out */ }
+        try { await supabase.auth.signOut(); } catch (e) {}
         showLogin(email
-          ? `This account (${email}) is not authorized for admin access. Contact the store owner if you believe this is a mistake.`
-          : "Your session is no longer valid. Please sign in again.");
+          ? `Account (${email}) is not authorized for admin access.`
+          : "Your session is invalid. Please sign in again.");
       }
 
       $("#loginForm")?.addEventListener("submit", async (e) => {
@@ -848,18 +870,6 @@
         }
       });
 
-      // Catches session expiry / token revocation / sign-out from another
-      // tab while the panel is open, and boots back to login cleanly.
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (event === "SIGNED_OUT") {
-          showLogin();
-        } else if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-          if (session?.user && !isAuthorizedAdmin(session.user)) {
-            rejectUnauthorizedSession(session.user.email);
-          }
-        }
-      });
-
       async function loadAll() {
         if (!state.user) return;
         setLoading(true, "SYNCING DATABASE...");
@@ -889,7 +899,6 @@
           populateSettings();
           renderAnalytics();
 
-          // Safe metrics mapping
           const placedCount = state.orders.filter(o => o.order_status === 'PLACED').length;
           if ($("#statPendingOrders")) $("#statPendingOrders").textContent = placedCount;
           if ($("#statCustomersCount")) $("#statCustomersCount").textContent = state.customers.length;
@@ -906,19 +915,12 @@
           const today = state.orders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString());
           if ($("#statTodaySales")) $("#statTodaySales").textContent = "₹" + today.reduce((s, o) => s + Number(o.total || 0), 0).toLocaleString("en-IN");
         } catch (err) {
-          showToast(err.message || "Failed to sync data from database.", "error");
+          showToast(err.message || "Failed to sync data.", "error");
         } finally {
           setLoading(false);
         }
       }
 
-      // Orders fetch, resilient to two possible schema shapes:
-      //  1) a relational `order_items` child table (order_items.order_id -> orders.id)
-      //  2) a denormalized `items` JSONB array column directly on `orders`
-      // We try the relational embed first (the structurally correct shape per
-      // the known order_items table); if that relationship isn't set up in
-      // PostgREST, we transparently fall back to plain orders + the items
-      // column so nothing breaks either way.
       async function fetchOrdersWithItems() {
         const embedded = await supabase
           .from("orders")
@@ -926,16 +928,10 @@
           .order("created_at", { ascending: false });
 
         if (!embedded.error) return embedded.data || [];
-
-        console.warn("order_items relational embed unavailable, falling back to orders.items:", embedded.error.message);
         const plain = await supabase.from("orders").select("*").order("created_at", { ascending: false });
-        if (plain.error) throw plain.error;
         return plain.data || [];
       }
 
-      // Normalizes an order's line items regardless of which schema shape
-      // was available: prefers the joined order_items rows, falls back to
-      // a denormalized `items` JSONB column on the order itself.
       function getOrderLineItems(o) {
         if (Array.isArray(o.order_items) && o.order_items.length) {
           return o.order_items.map(i => ({
@@ -1000,8 +996,9 @@
                 <td>${getStatusBadge(o.order_status)}</td>
                 <td>${o.courier || '—'}<br><small style="color:#777;">${o.tracking_number || ''}</small></td>
                 <td>
-                  <button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">View / Fulfil</button>
-                  <button class="btn btn-small" type="button" onclick="window.printSlip('${o.id}')">Print Slip</button>
+                  <button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">View</button>
+                  <button class="btn btn-small" type="button" onclick="window.printSlip('${o.id}')">Slip</button>
+                  <button class="btn btn-small btn-danger" type="button" onclick="window.deleteOrder('${o.id}')">Delete</button>
                 </td>
               </tr>
             `;
@@ -1026,6 +1023,24 @@
       $("#orderSearchInput")?.addEventListener("input", renderOrders);
       $("#orderStatusFilter")?.addEventListener("change", renderOrders);
 
+      // DELETE ORDER ACTION
+      window.deleteOrder = async (id) => {
+        if (!confirm("Are you sure you want to permanently delete this order? This cannot be undone.")) return;
+        setLoading(true, "DELETING ORDER...");
+        try {
+          // Delete child line items first if relational table exists
+          await supabase.from("order_items").delete().eq("order_id", id);
+          const { error } = await supabase.from("orders").delete().eq("id", id);
+          if (error) throw error;
+          showToast("Order permanently deleted.");
+          await loadAll();
+        } catch (err) {
+          showToast(err.message || "Failed to delete order.", "error");
+        } finally {
+          setLoading(false);
+        }
+      };
+
       window.viewOrder = (id) => {
         const o = state.orders.find(item => item.id === id);
         if (!o) return;
@@ -1036,7 +1051,7 @@
             <span>${i.size ? `[${i.size}]` : ''} ${escapeHtml(getProductName(i.product_id))} × ${i.quantity || 1}</span>
             <strong>₹${((i.price || 0) * (i.quantity || 1)).toLocaleString("en-IN")}</strong>
           </div>
-        `).join('') : `<div style="color:#777; padding:4px 0;">No line items on record for this order.</div>`;
+        `).join('') : `<div style="color:#777; padding:4px 0;">No line items on record.</div>`;
 
         $("#orderModalTitle").textContent = "Order: " + (o.order_number || o.id);
         $("#orderModalBody").innerHTML = `
@@ -1072,7 +1087,7 @@
           <div style="display:flex; gap:10px; margin-top:16px;">
             <button class="btn btn-primary" style="flex:1;" onclick="window.saveOrder('${o.id}')">SAVE FULFILMENT</button>
             <button class="btn btn-danger" onclick="window.cancelOrder('${o.id}')" ${o.order_status === 'CANCELLED' ? 'disabled' : ''}>
-              ${o.order_status === 'CANCELLED' ? 'ALREADY CANCELLED' : 'CANCEL ORDER (RESTORE STOCK)'}
+              ${o.order_status === 'CANCELLED' ? 'ALREADY CANCELLED' : 'CANCEL ORDER'}
             </button>
           </div>
         `;
@@ -1090,87 +1105,13 @@
         try {
           const { error } = await supabase.from("orders").update({ order_status: status, courier, tracking_number: tracking }).eq("id", id);
           if (error) throw error;
-          showToast("Order fulfilment updated!");
+          showToast("Order updated!");
           $("#orderModal").classList.add("hidden");
           await loadAll();
         } catch (err) {
-          showToast(err.message || "Failed to update order. Please try again.", "error");
+          showToast(err.message || "Failed to update.", "error");
         } finally { setLoading(false); }
       };
-
-      // Cancels an order and returns its stock to the catalog. Prefers the
-      // atomic `cancel_order_restore_stock` RPC (single DB transaction —
-      // the safest option). If that function isn't deployed on this project
-      // (PostgREST "function not found", code PGRST202 / 42883), falls back
-      // to a manual, safe rollback: add each line item's quantity back onto
-      // its product's per-size stock, then mark the order CANCELLED.
-      window.cancelOrder = async (id) => {
-        if (!confirm("Cancel this order and restore its size inventory to catalog?")) return;
-
-        setLoading(true, "CANCELLING...");
-        try {
-          const { data, error } = await supabase.rpc("cancel_order_restore_stock", { p_order_id: id });
-
-          if (!error) {
-            if (!data?.success) {
-              showToast(data?.message || "Order already cancelled", "error");
-              return;
-            }
-            showToast("Order cancelled and inventory restored!");
-            $("#orderModal").classList.add("hidden");
-            await loadAll();
-            return;
-          }
-
-          const rpcMissing = error.code === "PGRST202" || error.code === "42883" ||
-            /function .* does not exist/i.test(error.message || "");
-          if (!rpcMissing) throw error;
-
-          console.warn("cancel_order_restore_stock RPC unavailable, using manual stock rollback:", error.message);
-          await manualCancelWithStockRollback(id);
-        } catch (err) {
-          showToast(err.message || "Failed to cancel order.", "error");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      async function manualCancelWithStockRollback(id) {
-        const order = state.orders.find(o => o.id === id);
-        if (!order) throw new Error("Order not found in current view. Refresh and try again.");
-        if (order.order_status === "CANCELLED") {
-          showToast("Order already cancelled", "error");
-          return;
-        }
-
-        const lineItems = getOrderLineItems(order);
-
-        for (const item of lineItems) {
-          if (!item.product_id || !item.size || !item.quantity) continue;
-
-          const { data: product, error: fetchErr } = await supabase
-            .from("products").select("id, stock").eq("id", item.product_id).maybeSingle();
-          if (fetchErr || !product) {
-            console.warn(`Could not restore stock for product ${item.product_id}:`, fetchErr?.message || "not found");
-            continue;
-          }
-
-          const stock = { ...(product.stock || {}) };
-          stock[item.size] = Math.max(0, Number(stock[item.size] || 0)) + Number(item.quantity);
-
-          const { error: updateErr } = await supabase.from("products").update({ stock }).eq("id", item.product_id);
-          if (updateErr) console.warn(`Failed to write restored stock for product ${item.product_id}:`, updateErr.message);
-        }
-
-        const { error: cancelErr } = await supabase.from("orders").update({ order_status: "CANCELLED" }).eq("id", id);
-        if (cancelErr) throw cancelErr;
-
-        showToast(lineItems.length
-          ? "Order cancelled — inventory manually restored (RPC unavailable)."
-          : "Order cancelled. No line items found to restore stock for.");
-        $("#orderModal").classList.add("hidden");
-        await loadAll();
-      }
 
       window.printSlip = (id) => {
         const o = state.orders.find(item => item.id === id);
@@ -1183,20 +1124,16 @@
             <h2>BULKKOT (불꽃) — PACKING SLIP</h2>
             <p><strong>ORDER:</strong> ${o.order_number || o.id} | <strong>DATE:</strong> ${new Date(o.created_at).toLocaleDateString()}</p>
             <hr>
-            <p><strong>SHIP TO:</strong><br>${o.customer_name || 'Guest'}<br>${o.customer_phone || ''}<br>${o.customer_email || ''}<br>${o.shipping_address || 'No address on file'}</p>
+            <p><strong>SHIP TO:</strong><br>${o.customer_name || 'Guest'}<br>${o.customer_phone || ''}<br>${o.shipping_address || 'No address'}</p>
             <hr>
             <h3>ITEMS:</h3>
-            ${items.length
-              ? items.map(i => `<p>• ${escapeHtml(getProductName(i.product_id))} — Size: ${i.size || 'M'} | Qty: ${i.quantity || 1} | ₹${Number(i.price || 0).toLocaleString("en-IN")}</p>`).join('')
-              : '<p>No line items on record for this order.</p>'}
+            ${items.map(i => `<p>• ${escapeHtml(getProductName(i.product_id))} — Size:${i.size || 'M'} | Qty: ${i.quantity \vert{}\vert{} 1} \vert{} ₹${Number(i.price || 0).toLocaleString("en-IN")}</p>`).join('')}
             <hr>
-            <p><strong>COURIER:</strong> ${o.courier || 'Not yet assigned'} &nbsp; <strong>AWB:</strong> ${o.tracking_number || '—'}</p>
-            <h3>TOTAL COLLECTIBLE (${(o.payment_method || 'COD').toUpperCase()}): ₹${Number(o.total || 0).toLocaleString("en-IN")}</h3>
+            <p><strong>COURIER:</strong> ${o.courier || 'Unassigned'} &nbsp; <strong>AWB:</strong> ${o.tracking_number || '—'}</p>
+            <h3>TOTAL COLLECTIBLE: ₹${Number(o.total || 0).toLocaleString("en-IN")}</h3>
           </div>
         `;
 
-        // Reveal the slip only for the print pass, then hide it again once
-        // the print dialog closes so it never reappears in the live UI.
         slip.classList.remove("hidden");
         window.print();
       };
@@ -1258,44 +1195,22 @@
         renderEditingThumbnails();
       };
 
-      const MAX_IMAGE_MB = 8;
-
       $("#prodImagesInput")?.addEventListener("change", async (e) => {
         const files = [...e.target.files];
         if (!files.length) return;
 
-        if (currentEditingImages.length >= 5) {
-          showToast("Maximum 5 photos per product. Remove one before adding more.", "error");
-          $("#prodImagesInput").value = "";
-          return;
-        }
-
         setLoading(true, "UPLOADING...");
         try {
-          let skippedCap = false;
           for (const file of files) {
-            if (currentEditingImages.length >= 5) { skippedCap = true; break; }
-
-            if (!file.type.startsWith("image/")) {
-              showToast(`"${file.name}" was skipped — not a valid image file.`, "error");
-              continue;
-            }
-            if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
-              showToast(`"${file.name}" was skipped — exceeds ${MAX_IMAGE_MB}MB limit.`, "error");
-              continue;
-            }
-
+            if (currentEditingImages.length >= 5) break;
             const ext = file.name.split('.').pop();
             const filePath = `products/${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`;
             const { error } = await supabase.storage.from('product-images').upload(filePath, file);
-            if (error) { showToast(`Upload failed for "${file.name}": ${error.message}`, "error"); continue; }
+            if (error) continue;
             const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
             if (data?.publicUrl) currentEditingImages.push(data.publicUrl);
           }
-          if (skippedCap) showToast("Maximum 5 photos reached — remaining files were not uploaded.", "error");
           renderEditingThumbnails();
-        } catch (err) {
-          showToast(err.message || "Upload error", "error");
         } finally {
           setLoading(false);
           $("#prodImagesInput").value = "";
@@ -1380,90 +1295,15 @@
 
           if (res.error) throw res.error;
           showToast("Product saved successfully!");
-          $("#productModal").classList.add("hidden");
-          await loadAll();
-        } catch (err) {
-          showToast(err.message || "Failed to save product", "error");
-        } finally {
-          setLoading(false);
-        }
-      });
-
-      // Optimistic UI: flip the product locally and re-render immediately
-      // (instant table refresh), then persist to Supabase in the background.
-      // If the write fails, the local change is rolled back and reflected.
-      window.toggleProductVisibility = async (id, newActive) => {
-        const product = state.products.find(p => p.id === id);
-        if (!product) return;
-
-        const previousActive = product.active;
-        product.active = newActive;
-        renderProducts();
-
-        try {
-          const { error } = await supabase.from("products").update({ active: newActive }).eq("id", id);
-          if (error) throw error;
-          showToast(newActive ? "Product is now Live." : "Product hidden from storefront.");
-        } catch (err) {
-          product.active = previousActive;
-          renderProducts();
-          showToast(err.message || "Failed to update visibility.", "error");
-        }
-      };
-
-      window.deleteProduct = async (id) => {
-        if (!confirm("Permanently delete this product?")) return;
-
-        const idx = state.products.findIndex(p => p.id === id);
-        if (idx === -1) return;
-        const [removed] = state.products.splice(idx, 1);
-        renderProducts();
-
-        try {
-          const { error } = await supabase.from("products").delete().eq("id", id);
-          if (error) throw error;
-          showToast("Product deleted.");
-        } catch (err) {
-          state.products.splice(idx, 0, removed);
-          renderProducts();
-          showToast(err.message || "Failed to delete product.", "error");
-        }
-      };
-
-      // CMS
-      const CMS_DEFAULTS = {
-        hero_overlay_color: "#000000",
-        hero_text_color: "#ffffff",
-        hero_font: "'Montserrat', sans-serif",
-        announcement_bg: "#e31b23",
-        announcement_color: "#ffffff",
-        announcement_font: "'Inter', sans-serif",
-        announcement_speed: "20"
-      };
-
-      async function loadCMS() {
-        const { data } = await supabase.from("site_content").select("*");
-        state.cms = {};
-        (data || []).forEach(item => {
-          state.cms[item.content_key] = item.content_value || item.image_url || "";
-        });
-
-        // Populate every [data-cms] field: DB value first, else the field's
-        // built-in default (keeps color pickers/select/speed pre-filled and
-        // in sync with what the storefront actually falls back to).
-        $$("[data-cms]").forEach(input => {
+          $("#productModal").classList.add("hidden");           await loadAll();         } catch (err) {           showToast(err.message \vert{}\vert{} "Failed to save product", "error");         } finally {           setLoading(false);         }       });        window.toggleProductVisibility = async (id, newActive) => {         const product = state.products.find(p => p.id === id);         if (!product) return;         product.active = newActive;         renderProducts();          try {           const { error } = await supabase.from("products").update({ active: newActive }).eq("id", id);           if (error) throw error;           showToast(newActive ? "Product is Live." : "Product is Hidden.");         } catch (err) {           await loadAll();         }       };        window.deleteProduct = async (id) => {         if (!confirm("Permanently delete this product?")) return;         setLoading(true, "DELETING...");         try {           const { error } = await supabase.from("products").delete().eq("id", id);           if (error) throw error;           await loadAll();         } finally { setLoading(false); }       };        // CMS       async function loadCMS() {         const { data } = await supabase.from("site_content").select("*");         state.cms = {};         (data \vert{}\vert{} []).forEach(item => {           state.cms[item.content_key] = item.content_value \vert{}\vert{} item.image_url \vert{}\vert{} "";         });          $$("[data-cms]").forEach(input => {
           const key = input.dataset.cms;
-          const value = state.cms[key] ?? CMS_DEFAULTS[key] ?? "";
-          if (value !== "") input.value = value;
+          if (state.cms[key] !== undefined) input.value = state.cms[key];
         });
 
         syncColorPairs();
         updateHeroPreview();
-        updateAnnouncementPreview();
       }
 
-      // Keep each native <input type="color"> swatch in sync with its
-      // paired hex text input (data-cms field), in both directions.
       function syncColorPairs() {
         const pairs = [
           ["heroOverlayColorPicker", "heroOverlayColorHex"],
@@ -1475,41 +1315,24 @@
           const picker = $(`#${pickerId}`);
           const hex = $(`#${hexId}`);
           if (!picker || !hex) return;
-
-          // Initial sync: valid hex -> picker.
-          if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) picker.value = hex.value;
-
-          picker.addEventListener("input", () => {
-            hex.value = picker.value;
-            updateHeroPreview();
-            updateAnnouncementPreview();
-          });
-          hex.addEventListener("input", () => {
-            if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) picker.value = hex.value;
-            updateHeroPreview();
-            updateAnnouncementPreview();
-          });
+          picker.addEventListener("input", () => { hex.value = picker.value; updateHeroPreview(); });
+          hex.addEventListener("input", () => { if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) picker.value = hex.value; updateHeroPreview(); });
         });
       }
 
       function updateHeroPreview() {
-        const overlay = $("#heroOverlayColorHex")?.value.trim() || CMS_DEFAULTS.hero_overlay_color;
-        const textColor = $("#heroTextColorHex")?.value.trim() || CMS_DEFAULTS.hero_text_color;
-        const font = $("#heroFontSelect")?.value || CMS_DEFAULTS.hero_font;
+        const overlay = $("#heroOverlayColorHex")?.value || "#000000";
+        const textColor = $("#heroTextColorHex")?.value || "#ffffff";
+        const font = $("#heroFontSelect")?.value || "'Montserrat', sans-serif";
         const heroImg = $("#cmsHeroUrl")?.value.trim();
 
         const box = $("#heroPreviewBox");
         if (box && heroImg) box.style.backgroundImage = `url("${heroImg}")`;
 
-        const ov = $("#heroPreviewOverlay");
-        if (ov) {
-          ov.style.background = `linear-gradient(90deg, ${hexToRgba(overlay, 0.76)} 0%, ${hexToRgba(overlay, 0.38)} 42%, ${hexToRgba(overlay, 0.18)} 100%)`;
-        }
-
-        $("#heroPreviewKorean").textContent = $("[data-cms='hero_korean']")?.value.trim() || "불꽃";
-        $("#heroPreviewTitle").textContent = $("[data-cms='hero_title']")?.value.trim() || "BULKKOT";
-        $("#heroPreviewLabel").textContent = $("[data-cms='hero_subtitle']")?.value.trim() || "PREMIUM EVERYDAY WEAR";
-        $("#heroPreviewDesc").textContent = $("[data-cms='hero_description']")?.value.trim() || "Korean-inspired minimalist heavyweight essentials.";
+        $("#heroPreviewKorean").textContent = $("[data-cms='hero_korean']")?.value || "불꽃";
+        $("#heroPreviewTitle").textContent = $("[data-cms='hero_title']")?.value || "BULKKOT";
+        $("#heroPreviewLabel").textContent = $("[data-cms='hero_subtitle']")?.value || "PREMIUM EVERYDAY WEAR";
+        $("#heroPreviewDesc").textContent = $("[data-cms='hero_description']")?.value || "Korean-inspired essentials.";
 
         [$("#heroPreviewTitle"), $("#heroPreviewLabel"), $("#heroPreviewDesc")].forEach(el => {
           if (!el) return;
@@ -1518,48 +1341,7 @@
         });
       }
 
-      function updateAnnouncementPreview() {
-        const bg = $("#annBgColorHex")?.value.trim() || CMS_DEFAULTS.announcement_bg;
-        const color = $("#annTextColorHex")?.value.trim() || CMS_DEFAULTS.announcement_color;
-        const font = $("#annFontSelect")?.value || CMS_DEFAULTS.announcement_font;
-        const speed = Number($("#annSpeedInput")?.value) || Number(CMS_DEFAULTS.announcement_speed);
-
-        const box = $("#tickerPreviewBox");
-        const track = $("#tickerPreviewTrack");
-        if (box) { box.style.backgroundColor = bg; box.style.color = color; }
-        if (track) { track.style.fontFamily = font; track.style.animationDuration = `${speed}s`; }
-
-        $("#tickerPreviewMsg1").textContent = $("[data-cms='announcement_1']")?.value.trim() || "DROP 001 — DROPPING SOON";
-        $("#tickerPreviewMsg2").textContent = $("[data-cms='announcement_2']")?.value.trim() || "불꽃 DROP 001 — COMING SOON";
-        $("#tickerPreviewMsg3").textContent = $("[data-cms='announcement_3']")?.value.trim() || "JOIN THE VIP WAITLIST";
-      }
-
-      function hexToRgba(hex, alpha) {
-        const clean = (hex || "").replace("#", "");
-        if (!/^[0-9a-fA-F]{6}$/.test(clean)) return `rgba(0,0,0,${alpha})`;
-        const r = parseInt(clean.slice(0, 2), 16);
-        const g = parseInt(clean.slice(2, 4), 16);
-        const b = parseInt(clean.slice(4, 6), 16);
-        return `rgba(${r},${g},${b},${alpha})`;
-      }
-
-      // Live-update the previews as the admin types/edits any CMS field,
-      // not just the color/font controls.
-      ["hero_korean", "hero_title", "hero_subtitle", "hero_description", "hero_image"].forEach(key => {
-        $(`[data-cms="${key}"]`)?.addEventListener("input", updateHeroPreview);
-      });
-      $("#heroFontSelect")?.addEventListener("change", updateHeroPreview);
-      $("#cmsHeroUrl")?.addEventListener("input", updateHeroPreview);
-      ["announcement_1", "announcement_2", "announcement_3"].forEach(key => {
-        $(`[data-cms="${key}"]`)?.addEventListener("input", updateAnnouncementPreview);
-      });
-      $("#annFontSelect")?.addEventListener("change", updateAnnouncementPreview);
-      $("#annSpeedInput")?.addEventListener("input", updateAnnouncementPreview);
-
-      $("#saveCmsBtn")?.addEventListener("click", async () => {
-        setLoading(true, "SAVING CMS...");
-        try {
-          const updates = $$("[data-cms]").map(input => ({
+      $("#saveCmsBtn")?.addEventListener("click", async () => {         setLoading(true, "SAVING CMS...");         try {           const updates = $$("[data-cms]").map(input => ({
             content_key: input.dataset.cms,
             content_value: input.value.trim(),
             content_type: "text",
@@ -1571,11 +1353,11 @@
           }
           showToast("CMS saved successfully!");
         } catch (err) {
-          showToast(err.message || "Failed to save CMS changes.", "error");
+          showToast(err.message || "Failed to save CMS", "error");
         } finally { setLoading(false); }
       });
 
-      // CRM (Fixed exact phone-key indexing)
+      // CRM
       function computeCustomers() {
         const map = {};
         state.orders.forEach(o => {
@@ -1635,14 +1417,6 @@
             <strong>Email:</strong> ${c.email}<br>
             <strong>Address:</strong> ${c.shipping_address}<br>
             <strong>Total Spend:</strong> ₹${c.lifetimeSpend.toLocaleString("en-IN")} (${c.totalOrders} orders)
-          </div>
-          <div style="margin-top:14px;">
-            ${c.orders.map(o => `
-              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #222; font-size:12px;">
-                <span>${o.order_number || o.id.slice(0,8)}</span>
-                <strong>₹${o.total}</strong>
-              </div>
-            `).join('')}
           </div>
         `;
         $("#customerModal").classList.remove("hidden");
