@@ -485,6 +485,21 @@
     announcement_speed: "20"
   };
 
+  const HERO_STOREFRONT_DEFAULTS = {
+    hero_overlay_color: "#000000",
+    hero_text_color: "#ffffff",
+    hero_font: "'Montserrat', sans-serif"
+  };
+
+  function hexToRgbaStorefront(hex, alpha) {
+    const clean = String(hex || "").replace("#", "");
+    if (!/^[0-9a-fA-F]{6}$/.test(clean)) return `rgba(0,0,0,${alpha})`;
+    const r = parseInt(clean.slice(0, 2), 16);
+    const g = parseInt(clean.slice(2, 4), 16);
+    const b = parseInt(clean.slice(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
   async function loadCMSContent() {
     if (!supabase) return;
     try {
@@ -519,6 +534,29 @@
       if (track && speed) {
         track.style.animationDuration = `${speed}s`;
       }
+
+      // Hero banner styling (overlay color, text color, font) — admin-controlled,
+      // falls back to the storefront's original design if unset.
+      const heroOverlay = document.querySelector(".hero-overlay");
+      const heroTitle = document.querySelector(".hero-content h1");
+      const heroLabel = document.querySelector(".hero-label");
+      const heroDesc = document.querySelector(".hero-description");
+
+      const heroOverlayColor = lookup.hero_overlay_color || HERO_STOREFRONT_DEFAULTS.hero_overlay_color;
+      const heroTextColor = lookup.hero_text_color || HERO_STOREFRONT_DEFAULTS.hero_text_color;
+      const heroFont = lookup.hero_font || HERO_STOREFRONT_DEFAULTS.hero_font;
+
+      if (heroOverlay) {
+        heroOverlay.style.background = `linear-gradient(90deg, ${hexToRgbaStorefront(heroOverlayColor, 0.76)} 0%, ${hexToRgbaStorefront(heroOverlayColor, 0.38)} 42%, ${hexToRgbaStorefront(heroOverlayColor, 0.18)} 100%)`;
+      }
+      // Korean eyebrow text keeps its brand-red color and Noto Sans KR font
+      // (script legibility), so only the English headline/label/description
+      // pick up the admin's color + font choice.
+      [heroTitle, heroLabel, heroDesc].forEach(el => {
+        if (!el) return;
+        if (lookup.hero_text_color) el.style.color = heroTextColor;
+        if (lookup.hero_font) el.style.fontFamily = heroFont;
+      });
 
       // Ticker texts
       if (lookup.announcement_1 !== undefined) {
