@@ -74,7 +74,7 @@
     .brand { font-size: 26px; font-weight: 900; letter-spacing: -1px; }
     .brand span { color: var(--red); }
     .login-subtitle { color: var(--muted); margin: 6px 0 24px; font-size: 13px; }
-    .login-error { color: #ff7777; font-size: 11px; margin-bottom: 14px; min-height: 15px; }
+    .login-error { color: #ff7777; font-size: 12px; margin-bottom: 14px; min-height: 18px; line-height: 1.4; }
 
     .field { margin-bottom: 15px; }
     .field label { display: block; margin-bottom: 6px; color: #ccc; font-size: 11px; font-weight: 700; text-transform: uppercase; }
@@ -89,7 +89,6 @@
     .btn-primary { background: var(--red); border-color: var(--red); }
     .btn-primary:hover { background: var(--red-dark); }
     .btn-danger { background: rgba(239, 68, 68, .12); border-color: rgba(239, 68, 68, .25); color: #ff7777; }
-    .btn-danger:hover { background: rgba(239, 68, 68, .25); }
     .btn-full { width: 100%; }
     .btn-small { min-height: 30px; padding: 4px 8px; font-size: 10px; }
 
@@ -140,7 +139,7 @@
     .table-toolbar select { max-width: 180px; min-height: 36px; font-size: 11px; }
 
     .table-wrap { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 820px; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 780px; font-size: 12px; }
     th { text-align: left; color: #666; font-size: 9px; text-transform: uppercase; padding: 12px 14px; border-bottom: 1px solid var(--border); }
     td { padding: 12px 14px; border-bottom: 1px solid #161616; vertical-align: middle; }
     .empty { color: var(--muted); text-align: center; padding: 36px !important; }
@@ -155,7 +154,7 @@
     .badge-live { background: rgba(49, 196, 141, .15); color: var(--green); }
     .badge-hidden { background: rgba(139, 139, 139, .2); color: #aaa; }
 
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; padding: 20px; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 20px; }
     .product-card { background: #0e0e0e; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
     .product-card.is-hidden { opacity: 0.6; border-style: dashed; }
     .product-image-wrap { position: relative; aspect-ratio: 1/1; background: #151515; }
@@ -170,59 +169,22 @@
     .product-actions-row { margin-top: auto; display: flex; gap: 6px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #1c1c1c; }
 
     .image-preview-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-    .img-thumb-item { position: relative; width: 76px; height: 76px; border-radius: 6px; overflow: hidden; border: 1px solid #333; background: #181818; }
+    .img-thumb-item { position: relative; width: 70px; height: 70px; border-radius: 6px; overflow: hidden; border: 1px solid #333; background: #181818; }
     .img-thumb-item img { width: 100%; height: 100%; object-fit: cover; }
-    .img-thumb-del { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; background: rgba(227, 27, 35, 0.85); color: #fff; border: none; border-radius: 50%; font-size: 11px; line-height: 1; cursor: pointer; }
+    .img-thumb-del { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(227, 27, 35, 0.85); color: #fff; border: none; border-radius: 50%; font-size: 11px; cursor: pointer; }
     .img-cover-badge { position: absolute; bottom: 2px; left: 2px; font-size: 8px; background: rgba(0,0,0,0.8); color: #fff; padding: 1px 4px; border-radius: 3px; font-weight: 800; }
 
-    .cms-section { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; }
-    .cms-section-heading { border-bottom: 1px solid #1a1a1a; padding-bottom: 12px; margin-bottom: 18px; }
-    .cms-section-heading h2 { margin: 0; font-size: 16px; font-weight: 800; }
+    .cms-section { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .cms-section-heading { border-bottom: 1px solid #1a1a1a; padding-bottom: 10px; margin-bottom: 16px; }
+    .cms-section-heading h2 { margin: 0; font-size: 15px; font-weight: 800; }
     .cms-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
     .cms-field { display: flex; flex-direction: column; gap: 6px; }
     .cms-field--full { grid-column: 1 / -1; }
     .cms-field span { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
 
-    /* Color picker field */
     .color-field-row { display: flex; align-items: center; gap: 8px; }
-    .color-swatch-input {
-      -webkit-appearance: none; appearance: none;
-      width: 40px; height: 40px; min-height: 40px; padding: 0;
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      background: none; cursor: pointer; flex-shrink: 0;
-    }
-    .color-swatch-input::-webkit-color-swatch-wrapper { padding: 3px; }
-    .color-swatch-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+    .color-swatch-input { width: 40px; height: 40px; min-height: 40px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; flex-shrink: 0; }
     .color-hex-input { font-family: monospace; text-transform: uppercase; }
-
-    /* Live preview boxes */
-    .cms-preview-wrap { margin-top: 18px; }
-    .cms-preview-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-    .cms-preview-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulseDot 1.6s ease-in-out infinite; }
-    @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
-
-    .hero-preview-box {
-      position: relative; height: 220px; border-radius: 8px; overflow: hidden;
-      border: 1px solid var(--border); background: #000 center/cover no-repeat;
-      display: flex; align-items: center;
-    }
-    .hero-preview-overlay { position: absolute; inset: 0; }
-    .hero-preview-content { position: relative; z-index: 2; padding: 20px 26px; max-width: 80%; }
-    .hero-preview-korean { font-family: "Noto Sans KR", sans-serif; font-weight: 800; font-size: 13px; margin: 0 0 4px; color: var(--red); }
-    .hero-preview-title { font-weight: 800; font-size: 28px; letter-spacing: -0.03em; margin: 0; line-height: 1; }
-    .hero-preview-label { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; margin: 8px 0 0; }
-    .hero-preview-desc { font-size: 11px; margin: 8px 0 0; max-width: 260px; line-height: 1.5; opacity: .85; }
-
-    .ticker-preview-box {
-      position: relative; height: 38px; border-radius: 6px; overflow: hidden;
-      border: 1px solid var(--border); display: flex; align-items: center;
-    }
-    .ticker-preview-track { display: flex; gap: 48px; white-space: nowrap; padding-left: 100%; animation: tickerPreviewScroll linear infinite; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
-    @keyframes tickerPreviewScroll { from { transform: translateX(0); } to { transform: translateX(-100%); } }
-
-    .analytics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px; }
-    .analytics-card { background: #0c0c0c; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .analytics-card-title { font-size: 13px; font-weight: 800; margin-bottom: 14px; color: #fff; display: flex; justify-content: space-between; }
 
     .modal { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 20px; }
     .modal-box { width: min(720px, 100%); max-height: 90vh; overflow-y: auto; background: #101010; border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
@@ -233,14 +195,21 @@
     .toast { padding: 12px 16px; background: #161616; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--green); }
     .toast.error { border-color: rgba(239, 68, 68, .4); color: #ff7777; }
 
-    @media print {
-      #loadingOverlay, .sidebar-backdrop, #loginScreen, #app,
-      #productModal, #orderModal, #toastContainer { display: none !important; }
-      #printableSlip { display: block !important; position: static; width: 100%; color: #000; background: #fff; padding: 20px; font-size: 12pt; }
-    }
-
+    /* Mobile Responsive Polish */
     @media (max-width: 900px) {
-      .analytics-grid, .cms-grid { grid-template-columns: 1fr; }
+      #app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed; top: 0; left: 0; width: 260px; height: 100%;
+        transform: translateX(-100%); transition: transform 0.25s ease;
+      }
+      body.sidebar-open .sidebar { transform: translateX(0); }
+      body.sidebar-open .sidebar-backdrop { display: block; }
+      .mobile-menu-btn { display: inline-flex; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .stats .stat:last-child { grid-column: 1 / -1; }
+      .cms-grid { grid-template-columns: 1fr; }
+      .topbar { padding: 0 16px; }
+      .content { padding: 16px; }
     }
   </style>
 </head>
@@ -262,18 +231,18 @@
       <div class="brand">불꽃 <span>BULKKOT</span></div>
       <p class="login-subtitle">Enterprise Store Operations</p>
       
-      <form id="loginForm" novalidate>
+      <div id="loginFormArea">
         <div class="field">
           <label for="loginEmail">Admin Email</label>
-          <input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@bulkkot.com">
+          <input id="loginEmail" type="email" autocomplete="username" placeholder="admin@bulkkot.com">
         </div>
         <div class="field">
           <label for="loginPassword">Password</label>
-          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
+          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••">
         </div>
         <div id="loginError" class="login-error" aria-live="polite"></div>
-        <button id="loginButton" class="btn btn-primary btn-full" type="submit">SIGN IN TO PORTAL</button>
-      </form>
+        <button id="loginButton" class="btn btn-primary btn-full" type="button">SIGN IN TO PORTAL</button>
+      </div>
     </div>
   </section>
 
@@ -289,11 +258,11 @@
         </button>
         <button class="nav-btn" data-page="products" type="button">□ Products & Catalog</button>
         <button class="nav-btn" data-page="customers" type="button">☺ Customers CRM</button>
-        <button class="nav-btn" data-page="analytics" type="button">📊 Analytics & Reports</button>
+        <button class="nav-btn" data-page="analytics" type="button">📊 Analytics</button>
         <button class="nav-btn" data-page="cms" type="button">✦ Site CMS</button>
         <button class="nav-btn" data-page="waitlist" type="button">♡ VIP Waitlist</button>
         <button class="nav-btn" data-page="coupons" type="button">% Coupons</button>
-        <button class="nav-btn" data-page="settings" type="button">⚙ Store Settings</button>
+        <button class="nav-btn" data-page="settings" type="button">⚙ Settings</button>
       </nav>
       <div class="sidebar-bottom">
         <div id="userEmail" class="user-email"></div>
@@ -342,7 +311,7 @@
         <section id="page-orders" class="page hidden">
           <div class="panel">
             <div class="panel-header">
-              <div><div class="panel-title">Order Management & Operations</div><div class="panel-subtitle">Search, fulfil, print packing slips, or cancel/delete orders</div></div>
+              <div><div class="panel-title">Order Management & Operations</div><div class="panel-subtitle">Search, fulfil, print packing slips, or delete orders</div></div>
             </div>
 
             <div class="table-toolbar">
@@ -373,7 +342,7 @@
             <div class="panel-header">
               <div>
                 <div class="panel-title">Garment Catalog & Inventory Management</div>
-                <div class="panel-subtitle">Upload multiple photos, manage per-size stock, duplicate, or hide silhouettes</div>
+                <div class="panel-subtitle">Upload multiple photos, manage per-size stock, or hide silhouettes</div>
               </div>
               <button id="openAddProductBtn" class="btn btn-primary" type="button">+ Add New Product</button>
             </div>
@@ -385,28 +354,14 @@
         <section id="page-customers" class="page hidden">
           <div class="panel">
             <div class="panel-header">
-              <div>
-                <div class="panel-title">Customer Relationship Management (CRM)</div>
-                <div class="panel-subtitle">Identify repeat buyers, calculate lifetime spend, and inspect customer profiles</div>
-              </div>
+              <div><div class="panel-title">Customer CRM</div><div class="panel-subtitle">Buyer history and customer profiles</div></div>
             </div>
-
             <div class="table-toolbar">
               <input type="text" id="customerSearchInput" placeholder="Search Customer Name or Phone...">
             </div>
-
             <div class="table-wrap">
               <table>
-                <thead>
-                  <tr>
-                    <th>Customer Name</th>
-                    <th>Phone / Contact</th>
-                    <th>Total Orders</th>
-                    <th>Lifetime Spend (LTV)</th>
-                    <th>Last Order Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>Customer Name</th><th>Phone / Contact</th><th>Total Orders</th><th>Lifetime Spend</th><th>Last Order</th><th>Actions</th></tr></thead>
                 <tbody id="customersBody"></tbody>
               </table>
             </div>
@@ -416,19 +371,11 @@
         <!-- 5. ANALYTICS -->
         <section id="page-analytics" class="page hidden">
           <div class="panel">
-            <div class="panel-header">
-              <div>
-                <div class="panel-title">Storefront Analytics & Sales Intelligence</div>
-                <div class="panel-subtitle">Performance breakdown by silhouette category, top sellers, and conversion health</div>
-              </div>
-            </div>
-
-            <div class="stats" style="padding: 20px 20px 0;">
-              <div class="stat"><div class="stat-label">Average Order Value (AOV)</div><div id="anaAOV" class="stat-value">—</div></div>
+            <div class="panel-header"><div class="panel-title">Sales Analytics</div></div>
+            <div class="stats" style="padding: 20px;">
+              <div class="stat"><div class="stat-label">Average Order Value</div><div id="anaAOV" class="stat-value">—</div></div>
               <div class="stat"><div class="stat-label">Fulfilment Rate</div><div id="anaFulfilRate" class="stat-value">—</div></div>
               <div class="stat"><div class="stat-label">Cancellation Rate</div><div id="anaCancelRate" class="stat-value">—</div></div>
-              <div class="stat"><div class="stat-label">Total Units Sold</div><div id="anaUnitsSold" class="stat-value">—</div></div>
-              <div class="stat"><div class="stat-label">Repeat Buyer Ratio</div><div id="anaRepeatRatio" class="stat-value">—</div></div>
             </div>
           </div>
         </section>
@@ -440,121 +387,47 @@
               <h2 style="margin:0; font-size:20px;">Site Content & Media CMS</h2>
               <p style="margin:4px 0 0; color:var(--muted); font-size:12px;">Override storefront copy, editorial news slider, announcement tickers, and banners.</p>
             </div>
-            <div style="display:flex; gap:8px;">
-              <a href="index.html" target="_blank" rel="noopener" class="btn btn-small">Preview Live Site ↗</a>
-              <button id="saveCmsBtn" class="btn btn-primary" type="button">SAVE ALL CMS CHANGES</button>
-            </div>
+            <button id="saveCmsBtn" class="btn btn-primary" type="button">SAVE ALL CMS CHANGES</button>
           </div>
 
           <!-- HERO SECTION -->
           <div class="cms-section">
-            <div class="cms-section-heading"><h2>HERO CAMPAIGN & BANNER</h2></div>
+            <div class="cms-section-heading"><h2>HERO BANNER</h2></div>
             <div class="cms-grid">
               <div class="cms-field cms-field--full">
-                <span>Hero Banner Photo</span>
-                <div style="display:flex; gap:12px; align-items:center; margin-top:4px;">
-                  <img id="cmsHeroImgPreview" src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" style="width:90px; height:90px; object-fit:cover; border-radius:6px; border:1px solid #333;">
-                  <div style="flex:1;">
-                    <input type="file" id="cmsHeroFileInput" accept="image/*" style="margin-bottom:6px;">
-                    <input type="text" data-cms="hero_image" id="cmsHeroUrl" placeholder="Image URL">
-                  </div>
-                </div>
+                <span>Hero Banner Photo URL</span>
+                <input type="text" data-cms="hero_image" id="cmsHeroUrl" placeholder="https://...">
               </div>
               <label class="cms-field"><span>Hero Korean Eyebrow</span><input type="text" data-cms="hero_korean"></label>
-              <label class="cms-field"><span>Hero Main Brand Title</span><input type="text" data-cms="hero_title"></label>
+              <label class="cms-field"><span>Hero Main Title</span><input type="text" data-cms="hero_title"></label>
               <label class="cms-field"><span>Hero Subtitle</span><input type="text" data-cms="hero_subtitle"></label>
               <label class="cms-field"><span>Button Text</span><input type="text" data-cms="hero_button_text"></label>
-              <label class="cms-field cms-field--full"><span>Hero Lead Description</span><textarea data-cms="hero_description" rows="2"></textarea></label>
-
-              <label class="cms-field">
-                <span>Hero Overlay Color</span>
-                <div class="color-field-row">
-                  <input type="color" class="color-swatch-input" id="heroOverlayColorPicker" value="#000000">
-                  <input type="text" data-cms="hero_overlay_color" id="heroOverlayColorHex" class="color-hex-input" value="#000000" maxlength="7" placeholder="#000000">
-                </div>
-              </label>
-              <label class="cms-field">
-                <span>Hero Text Color</span>
-                <div class="color-field-row">
-                  <input type="color" class="color-swatch-input" id="heroTextColorPicker" value="#ffffff">
-                  <input type="text" data-cms="hero_text_color" id="heroTextColorHex" class="color-hex-input" value="#ffffff" maxlength="7" placeholder="#ffffff">
-                </div>
-              </label>
-              <label class="cms-field">
-                <span>Hero Font</span>
-                <select data-cms="hero_font" id="heroFontSelect">
-                  <option value="'Montserrat', sans-serif">Montserrat (Default Heading)</option>
-                  <option value="'Inter', sans-serif">Inter</option>
-                  <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
-                  <option value="system-ui, sans-serif">System Sans</option>
-                  <option value="Georgia, serif">Georgia (Serif)</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="cms-preview-wrap">
-              <div class="cms-preview-label">Live Preview</div>
-              <div class="hero-preview-box" id="heroPreviewBox">
-                <div class="hero-preview-overlay" id="heroPreviewOverlay"></div>
-                <div class="hero-preview-content">
-                  <p class="hero-preview-korean" id="heroPreviewKorean">불꽃</p>
-                  <h3 class="hero-preview-title" id="heroPreviewTitle">BULKKOT</h3>
-                  <p class="hero-preview-label" id="heroPreviewLabel">PREMIUM EVERYDAY WEAR</p>
-                  <p class="hero-preview-desc" id="heroPreviewDesc">Korean-inspired minimalist heavyweight essentials.</p>
-                </div>
-              </div>
+              <label class="cms-field cms-field--full"><span>Hero Description</span><textarea data-cms="hero_description" rows="2"></textarea></label>
             </div>
           </div>
 
           <!-- EDITORIAL SLIDER SECTION -->
           <div class="cms-section">
-            <div class="cms-section-heading"><h2>EDITORIAL NEWS SLIDER (HOMEPAGE CAROUSEL)</h2></div>
-            
+            <div class="cms-section-heading"><h2>EDITORIAL NEWS SLIDER</h2></div>
             <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
               <strong style="color:var(--red); font-size:12px;">SLIDE 01</strong>
               <div class="cms-grid" style="margin-top:10px;">
                 <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_1_badge" placeholder="NEWS 01 // DROP 001"></label>
-                <label class="cms-field"><span>Korean Sub</span><input type="text" data-cms="editorial_1_korean" placeholder="불꽃 · 001"></label>
                 <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_1_title" placeholder="LESS NOISE."></label>
                 <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_1_sub" placeholder="MORE PRESENCE."></label>
                 <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_1_desc"></label>
-                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_1_img" placeholder="https://..."></label>
-              </div>
-            </div>
-
-            <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
-              <strong style="color:var(--red); font-size:12px;">SLIDE 02</strong>
-              <div class="cms-grid" style="margin-top:10px;">
-                <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_2_badge" placeholder="NEWS 02 // CRAFTSMANSHIP"></label>
-                <label class="cms-field"><span>Korean Sub</span><input type="text" data-cms="editorial_2_korean" placeholder="서울에서 영감 · 헤비웨이트"></label>
-                <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_2_title" placeholder="450 GSM"></label>
-                <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_2_sub" placeholder="LOOPBACK FLEECE."></label>
-                <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_2_desc"></label>
-                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_2_img" placeholder="https://..."></label>
-              </div>
-            </div>
-
-            <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
-              <strong style="color:var(--red); font-size:12px;">SLIDE 03</strong>
-              <div class="cms-grid" style="margin-top:10px;">
-                <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_3_badge" placeholder="NEWS 03 // SILHOUETTES"></label>
-                <label class="cms-field"><span>Korean Sub</span><input type="text" data-cms="editorial_3_korean" placeholder="디자인 미학 · SEOUL TO WORLD"></label>
-                <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_3_title" placeholder="QUIETLY"></label>
-                <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_3_sub" placeholder="DISTINCT."></label>
-                <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_3_desc"></label>
-                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_3_img" placeholder="https://..."></label>
+                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_1_img"></label>
               </div>
             </div>
 
             <div style="background:#0e0e0e; border:1px solid #222; border-radius:8px; padding:14px;">
-              <strong style="color:var(--red); font-size:12px;">SLIDE 04</strong>
+              <strong style="color:var(--red); font-size:12px;">SLIDE 02</strong>
               <div class="cms-grid" style="margin-top:10px;">
-                <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_4_badge" placeholder="NEWS 04 // LIMITED SUPPLY"></label>
-                <label class="cms-field"><span>Korean Sub</span><input type="text" data-cms="editorial_4_korean" placeholder="한정판 수량 · 150 PCS"></label>
-                <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_4_title" placeholder="STRICTLY 150"></label>
-                <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_4_sub" placeholder="PIECES PER CUT."></label>
-                <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_4_desc"></label>
-                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_4_img" placeholder="https://..."></label>
+                <label class="cms-field"><span>Badge</span><input type="text" data-cms="editorial_2_badge" placeholder="NEWS 02 // CRAFTSMANSHIP"></label>
+                <label class="cms-field"><span>Headline</span><input type="text" data-cms="editorial_2_title" placeholder="450 GSM"></label>
+                <label class="cms-field"><span>Sub-Headline</span><input type="text" data-cms="editorial_2_sub" placeholder="LOOPBACK FLEECE."></label>
+                <label class="cms-field cms-field--full"><span>Description</span><input type="text" data-cms="editorial_2_desc"></label>
+                <label class="cms-field cms-field--full"><span>Photo URL</span><input type="text" data-cms="editorial_2_img"></label>
               </div>
             </div>
           </div>
@@ -563,36 +436,16 @@
           <div class="cms-section">
             <div class="cms-section-heading"><h2>ANNOUNCEMENT TICKER</h2></div>
             <div class="cms-grid">
-              <label class="cms-field"><span>Ticker Message 1</span><input type="text" data-cms="announcement_1"></label>
-              <label class="cms-field"><span>Ticker Message 2</span><input type="text" data-cms="announcement_2"></label>
-              <label class="cms-field cms-field--full"><span>Ticker Message 3</span><input type="text" data-cms="announcement_3"></label>
-
+              <label class="cms-field"><span>Message 1</span><input type="text" data-cms="announcement_1"></label>
+              <label class="cms-field"><span>Message 2</span><input type="text" data-cms="announcement_2"></label>
+              <label class="cms-field cms-field--full"><span>Message 3</span><input type="text" data-cms="announcement_3"></label>
               <label class="cms-field">
                 <span>Background Color</span>
-                <div class="color-field-row">
-                  <input type="color" class="color-swatch-input" id="annBgColorPicker" value="#e31b23">
-                  <input type="text" data-cms="announcement_bg" id="annBgColorHex" class="color-hex-input" value="#e31b23" maxlength="7" placeholder="#e31b23">
-                </div>
+                <input type="text" data-cms="announcement_bg" placeholder="#e31b23">
               </label>
               <label class="cms-field">
                 <span>Text Color</span>
-                <div class="color-field-row">
-                  <input type="color" class="color-swatch-input" id="annTextColorPicker" value="#ffffff">
-                  <input type="text" data-cms="announcement_color" id="annTextColorHex" class="color-hex-input" value="#ffffff" maxlength="7" placeholder="#ffffff">
-                </div>
-              </label>
-              <label class="cms-field">
-                <span>Font</span>
-                <select data-cms="announcement_font" id="annFontSelect">
-                  <option value="'Inter', sans-serif">Inter (Default)</option>
-                  <option value="'Montserrat', sans-serif">Montserrat</option>
-                  <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
-                  <option value="system-ui, sans-serif">System Sans</option>
-                </select>
-              </label>
-              <label class="cms-field">
-                <span>Scroll Speed (seconds — lower is faster)</span>
-                <input type="number" data-cms="announcement_speed" id="annSpeedInput" value="20" min="6" max="60">
+                <input type="text" data-cms="announcement_color" placeholder="#ffffff">
               </label>
             </div>
           </div>
@@ -601,17 +454,10 @@
         <!-- 7. VIP WAITLIST -->
         <section id="page-waitlist" class="page hidden">
           <div class="panel">
-            <div class="panel-header">
-              <div>
-                <div class="panel-title">VIP Waitlist Subscribers & Marketing</div>
-                <div class="panel-subtitle">Export lead audience lists for ad campaigns</div>
-              </div>
-              <button id="exportWaitlistBtn" class="btn btn-small" type="button">📥 Export CSV</button>
-            </div>
-
+            <div class="panel-header"><div class="panel-title">VIP Waitlist</div></div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Subscriber Email</th><th>Signed Up Date</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Subscriber Email</th><th>Signed Up Date</th><th>Action</th></tr></thead>
                 <tbody id="waitlistBody"></tbody>
               </table>
             </div>
@@ -623,16 +469,15 @@
           <div class="panel">
             <div class="panel-header"><div class="panel-title">Create Discount Code</div></div>
             <div class="panel-body" style="padding:20px;">
-              <form id="couponForm" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;" novalidate>
-                <input id="couponCode" placeholder="BULKKOT10" required>
-                <input id="couponValue" type="number" min="1" max="100" placeholder="Discount %" required>
-                <input id="couponMinOrder" type="number" min="0" placeholder="Min Order (₹)">
-                <button class="btn btn-primary" type="submit">Create Coupon</button>
-              </form>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
+                <input id="couponCode" placeholder="BULKKOT10">
+                <input id="couponValue" type="number" placeholder="Discount %">
+                <input id="couponMinOrder" type="number" placeholder="Min Order (₹)">
+                <button id="addCouponBtn" class="btn btn-primary" type="button">Create Coupon</button>
+              </div>
             </div>
           </div>
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">Active Store Coupons</div></div>
             <div class="table-wrap">
               <table>
                 <thead><tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Status</th><th>Action</th></tr></thead>
@@ -645,26 +490,19 @@
         <!-- 9. STORE SETTINGS -->
         <section id="page-settings" class="page hidden">
           <div class="panel">
-            <div class="panel-header">
-              <div>
-                <div class="panel-title">Store Configuration & Logistics Baseline</div>
-                <div class="panel-subtitle">Manage support contact and shipping thresholds</div>
-              </div>
-            </div>
+            <div class="panel-header"><div class="panel-title">Store Configuration</div></div>
             <div class="panel-body" style="padding:24px;">
-              <form id="settingsForm" novalidate style="max-width: 680px;">
+              <div style="max-width: 680px;">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-                  <div class="field"><label>Store Brand Name</label><input id="setStoreName" required placeholder="BULKKOT"></div>
-                  <div class="field"><label>Official Support Email</label><input id="setSupportEmail" type="email" required placeholder="bulkkotwear@gmail.com"></div>
+                  <div class="field"><label>Store Name</label><input id="setStoreName" placeholder="BULKKOT"></div>
+                  <div class="field"><label>Support Email</label><input id="setSupportEmail" placeholder="bulkkotwear@gmail.com"></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                   <div class="field"><label>Support Phone</label><input id="setSupportPhone" placeholder="+91 98765 43210"></div>
-                  <div class="field"><label>Standard Shipping Fee (₹)</label><input id="setShippingFee" type="number" min="0"></div>
+                  <div class="field"><label>Shipping Fee (₹)</label><input id="setShippingFee" type="number"></div>
                 </div>
-                <div class="field"><label>Free Shipping Threshold (₹)</label><input id="setFreeShippingThreshold" type="number" min="0"></div>
-                <div class="field"><label>Warehouse Address</label><textarea id="setStoreAddress" rows="3"></textarea></div>
-                <button id="saveSettingsBtn" class="btn btn-primary" type="submit" style="margin-top: 10px;">SAVE SETTINGS</button>
-              </form>
+                <button id="saveSettingsBtn" class="btn btn-primary" type="button" style="margin-top: 10px;">SAVE SETTINGS</button>
+              </div>
             </div>
           </div>
         </section>
@@ -672,36 +510,25 @@
     </main>
   </section>
 
-  <!-- CUSTOMER PROFILE MODAL -->
-  <div id="customerModal" class="modal hidden">
-    <div class="modal-box">
-      <div class="modal-header">
-        <strong id="customerModalTitle">Customer Profile</strong>
-        <button id="closeCustomerModal" class="close-btn" type="button">&times;</button>
-      </div>
-      <div id="customerModalBody"></div>
-    </div>
-  </div>
-
   <!-- PRODUCT MODAL -->
   <div id="productModal" class="modal hidden">
     <div class="modal-box">
       <div class="modal-header">
-        <strong id="productModalTitle">Add Garment to Catalog</strong>
+        <strong id="productModalTitle">Add Garment</strong>
         <button id="closeProductModal" class="close-btn" type="button">&times;</button>
       </div>
-      <form id="productForm" novalidate>
+      <div>
         <input type="hidden" id="prodEditId">
         <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 12px;">
-          <div class="field"><label>Garment Name *</label><input id="prodName" required placeholder="OVERSIZED TEE"></div>
-          <div class="field"><label>Category *</label><select id="prodCategory"><option value="tees">Tees</option><option value="hoods">Hoods</option><option value="sweats">Sweats</option></select></div>
+          <div class="field"><label>Garment Name</label><input id="prodName" placeholder="OVERSIZED TEE"></div>
+          <div class="field"><label>Category</label><select id="prodCategory"><option value="tees">Tees</option><option value="hoods">Hoods</option><option value="sweats">Sweats</option></select></div>
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-          <div class="field"><label>Price (₹) *</label><input id="prodPrice" type="number" required placeholder="1499"></div>
+          <div class="field"><label>Price (₹)</label><input id="prodPrice" type="number" placeholder="1499"></div>
           <div class="field"><label>Status</label><select id="prodActive"><option value="true">Live</option><option value="false">Hidden</option></select></div>
         </div>
         <div class="field">
-          <label>Garment Images (Upload up to 5)</label>
+          <label>Garment Images</label>
           <input type="file" id="prodImagesInput" accept="image/*" multiple>
           <div id="prodImageThumbnails" class="image-preview-row"></div>
         </div>
@@ -715,8 +542,8 @@
             <div><small style="color:#777;">XL</small><input id="stockXL" type="number" min="0" value="0"></div>
           </div>
         </div>
-        <button id="saveProductBtn" class="btn btn-primary btn-full" style="margin-top: 14px;" type="submit">SAVE GARMENT</button>
-      </form>
+        <button id="saveProductBtn" class="btn btn-primary btn-full" style="margin-top: 14px;" type="button">SAVE GARMENT</button>
+      </div>
     </div>
   </div>
 
@@ -757,12 +584,6 @@
       const $ = s => document.querySelector(s);
       const $$ = s => [...document.querySelectorAll(s)];
 
-      function escapeHtml(str) {
-        return String(str ?? "").replace(/[&<>"']/g, c => ({
-          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-        }[c]));
-      }
-
       function showToast(msg, type = "success") {
         const c = $("#toastContainer");
         if (!c) return;
@@ -781,18 +602,13 @@
       }
 
       $("#mobileMenuButton")?.addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
-      $("#sidebarBackdrop")?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
-
-      $$(".nav-btn").forEach(btn => {
+      $("#sidebarBackdrop")?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));        $$(".nav-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-          $$(".nav-btn").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          const page = btn.dataset.page;
-          $$(".page").forEach(p => p.classList.add("hidden"));
+          $$(".nav-btn").forEach(b => b.classList.remove("active"));           btn.classList.add("active");           const page = btn.dataset.page;           $$
+(".page").forEach(p => p.classList.add("hidden"));
           $(`#page-${page}`)?.classList.remove("hidden");
           $("#pageTitle").textContent = btn.textContent.replace(/[^a-zA-Z &]/g, '').trim();
           document.body.classList.remove("sidebar-open");
-          if (page === "analytics") renderAnalytics();
         });
       });
 
@@ -804,24 +620,30 @@
         loadAll();
       }
 
-      function showLogin(errorMsg = "") {
+      function showLogin(err = "") {
         state.user = null;
         $("#app").classList.add("hidden");
         $("#loginScreen").classList.remove("hidden");
         const errBox = $("#loginError");
-        if (errBox) errBox.textContent = errorMsg || "";
+        if (errBox) errBox.textContent = err || "";
       }
 
-      $("#loginForm")?.addEventListener("submit", async (e) => {
-        e.preventDefault();
+      // Explicit Click Handler (Prevents Any Form Reload Loop)
+      async function executeLogin() {
         const email = $("#loginEmail").value.trim();
         const password = $("#loginPassword").value;
         const btn = $("#loginButton");
+        const errBox = $("#loginError");
+
+        if (!email || !password) {
+          if (errBox) errBox.textContent = "Please enter email and password.";
+          return;
+        }
 
         btn.disabled = true;
         btn.textContent = "VERIFYING...";
         setLoading(true, "AUTHENTICATING...");
-        if ($("#loginError")) $("#loginError").textContent = "";
+        if (errBox) errBox.textContent = "";
 
         try {
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -829,15 +651,20 @@
           if (data?.user) {
             showApp(data.user);
           } else {
-            throw new Error("Login failed. No user found.");
+            throw new Error("Unable to log in. Please check credentials.");
           }
         } catch (err) {
-          $("#loginError").textContent = err.message || "Invalid credentials.";
+          if (errBox) errBox.textContent = err.message || "Invalid credentials.";
         } finally {
           btn.disabled = false;
           btn.textContent = "SIGN IN TO PORTAL";
           setLoading(false);
         }
+      }
+
+      $("#loginButton")?.addEventListener("click", executeLogin);
+      $("#loginPassword")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") executeLogin();
       });
 
       $("#logoutButton")?.addEventListener("click", async () => {
@@ -845,503 +672,147 @@
         showLogin();
       });
 
-      // Restore session on load
+      // Session restore
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          showApp(session.user);
-        } else {
-          showLogin();
-        }
+        if (session?.user) showApp(session.user);
+        else showLogin();
       }).catch(() => showLogin());
 
       async function loadAll() {
         if (!state.user) return;
-        setLoading(true, "SYNCING DATABASE...");
+        setLoading(true, "SYNCING DATA...");
         try {
-          try { state.orders = await fetchOrdersWithItems(); } catch(e) { console.warn(e); }
-          try {
-            const { data: prods } = await supabase.from("products").select("*").order("created_at", { ascending: false });
-            state.products = prods || [];
-          } catch(e) { console.warn(e); }
+          const { data: ords } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+          state.orders = ords || [];
 
-          try {
-            const { data: coups } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
-            state.coupons = coups || [];
-          } catch(e) { console.warn(e); }
+          const { data: prods } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+          state.products = prods || [];
 
-          try {
-            const { data: wait } = await supabase.from("waitlist").select("*").order("created_at", { ascending: false });
-            state.waitlist = wait || [];
-          } catch(e) { console.warn(e); }
+          const { data: wait } = await supabase.from("waitlist").select("*").order("created_at", { ascending: false });
+          state.waitlist = wait || [];
 
-          try {
-            const { data: setts } = await supabase.from("store_settings").select("*").eq("id", 1).maybeSingle();
-            state.settings = setts || {};
-          } catch(e) { console.warn(e); }
+          const { data: coups } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
+          state.coupons = coups || [];
 
-          try { await loadCMS(); } catch(e) { console.warn(e); }
+          await loadCMS();
 
-          computeCustomers();
           renderOrders();
           renderProducts();
-          renderCustomers();
-          renderCoupons();
           renderWaitlist();
-          populateSettings();
-          renderAnalytics();
+          renderCoupons();
 
+          // Metrics
           const placedCount = state.orders.filter(o => o.order_status === 'PLACED').length;
           if ($("#statPendingOrders")) $("#statPendingOrders").textContent = placedCount;
-          if ($("#statCustomersCount")) $("#statCustomersCount").textContent = state.customers.length;
           if ($("#statWaitlist")) $("#statWaitlist").textContent = state.waitlist.length;
-
-          const badge = $("#newOrdersBadge");
-          if (badge) {
-            badge.textContent = placedCount;
-            badge.classList.toggle("hidden", placedCount === 0);
-          }
-
           const rev = state.orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
           if ($("#statRevenue")) $("#statRevenue").textContent = "₹" + rev.toLocaleString("en-IN");
           const today = state.orders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString());
           if ($("#statTodaySales")) $("#statTodaySales").textContent = "₹" + today.reduce((s, o) => s + Number(o.total || 0), 0).toLocaleString("en-IN");
-        } catch (err) {
-          showToast(err.message || "Failed to sync data.", "error");
+        } catch (e) {
+          console.warn("Load error:", e);
         } finally {
           setLoading(false);
         }
-      }
-
-      async function fetchOrdersWithItems() {
-        const embedded = await supabase
-          .from("orders")
-          .select("*, order_items(*)")
-          .order("created_at", { ascending: false });
-
-        if (!embedded.error) return embedded.data || [];
-        const plain = await supabase.from("orders").select("*").order("created_at", { ascending: false });
-        return plain.data || [];
-      }
-
-      function getOrderLineItems(o) {
-        if (Array.isArray(o.order_items) && o.order_items.length) {
-          return o.order_items.map(i => ({
-            product_id: i.product_id ?? i.id,
-            size: i.size,
-            quantity: i.quantity ?? i.qty ?? 1,
-            price: i.price ?? i.unit_price ?? 0
-          }));
-        }
-        if (Array.isArray(o.items)) {
-          return o.items.map(i => ({
-            product_id: i.product_id ?? i.id,
-            size: i.size,
-            quantity: i.quantity ?? 1,
-            price: i.price ?? 0
-          }));
-        }
-        return [];
-      }
-
-      function getProductName(productId) {
-        const p = state.products.find(prod => prod.id === productId);
-        return p ? p.name : `Product ${String(productId || "").slice(0, 8)}`;
       }
 
       $("#refreshButton")?.addEventListener("click", loadAll);
 
-      function getStatusBadge(status) {
-        const s = String(status || 'PLACED').toUpperCase();
-        let cls = 'badge-placed';
-        if (s === 'PACKED') cls = 'badge-packed';
-        if (s === 'SHIPPED') cls = 'badge-shipped';
-        if (s === 'OUT FOR DELIVERY') cls = 'badge-out-for-delivery';
-        if (s === 'DELIVERED') cls = 'badge-delivered';
-        if (s === 'CANCELLED') cls = 'badge-cancelled';
-        return `<span class="badge ${cls}">${s}</span>`;
-      }
-
       function renderOrders() {
-        const query = $("#orderSearchInput")?.value.trim().toLowerCase() || "";
-        const filterStatus = $("#orderStatusFilter")?.value || "ALL";
-
-        const filtered = state.orders.filter(o => {
-          const matchQuery = (o.order_number || "").toLowerCase().includes(query) ||
-                             (o.customer_name || "").toLowerCase().includes(query) ||
-                             (o.customer_phone || "").includes(query);
-          const matchStatus = filterStatus === "ALL" || o.order_status === filterStatus;
-          return matchQuery && matchStatus;
-        });
-
         const body = $("#ordersBody");
-        if (body) {
-          body.innerHTML = filtered.map(o => {
-            const lineItems = getOrderLineItems(o);
-            const itemCount = lineItems.reduce((s, i) => s + (i.quantity || 1), 0);
-            return `
-              <tr>
-                <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
-                <td>${o.customer_name || 'Guest'}<br><small style="color:#777;">${o.customer_phone || ''}</small></td>
-                <td>${itemCount} units</td>
-                <td>₹${Number(o.total||0).toLocaleString("en-IN")}</td>
-                <td>${getStatusBadge(o.order_status)}</td>
-                <td>${o.courier || '—'}<br><small style="color:#777;">${o.tracking_number || ''}</small></td>
-                <td>
-                  <button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">View</button>
-                  <button class="btn btn-small" type="button" onclick="window.printSlip('${o.id}')">Slip</button>
-                  <button class="btn btn-small btn-danger" type="button" onclick="window.deleteOrder('${o.id}')">Delete</button>
-                </td>
-              </tr>
-            `;
-          }).join("") || '<tr><td colspan="7" class="empty">No matching orders found.</td></tr>';
-        }
+        if (!body) return;
+        body.innerHTML = state.orders.map(o => `
+          <tr>
+            <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
+            <td>${o.customer_name || 'Guest'}<br><small style="color:#777;">${o.customer_phone || ''}</small></td>
+            <td>${Array.isArray(o.items) ? o.items.length : 1} items</td>
+            <td>₹${Number(o.total||0).toLocaleString("en-IN")}</td>
+            <td><span class="badge badge-placed">${o.order_status || 'PLACED'}</span></td>
+            <td>${o.courier || '—'}<br><small style="color:#777;">${o.tracking_number || ''}</small></td>
+            <td>
+              <button class="btn btn-small btn-danger" type="button" onclick="window.deleteOrder('${o.id}')">Delete</button>
+            </td>
+          </tr>
+        `).join('') || '<tr><td colspan="7" class="empty">No orders logged.</td></tr>';
 
-        const recent = $("#recentOrdersBody");
-        if (recent) {
-          recent.innerHTML = state.orders.slice(0, 5).map(o => `
+        const rec = $("#recentOrdersBody");
+        if (rec) {
+          rec.innerHTML = state.orders.slice(0, 5).map(o => `
             <tr>
               <td><strong>${o.order_number || o.id.slice(0,8)}</strong></td>
               <td>${o.customer_name || 'Guest'}</td>
               <td>₹${Number(o.total||0).toLocaleString("en-IN")}</td>
-              <td>${getStatusBadge(o.order_status)}</td>
-              <td>${new Date(o.created_at).toLocaleDateString("en-IN")}</td>
-              <td><button class="btn btn-small" type="button" onclick="window.viewOrder('${o.id}')">Manage</button></td>
+              <td><span class="badge badge-placed">${o.order_status || 'PLACED'}</span></td>
+              <td>${new Date(o.created_at).toLocaleDateString()}</td>
+              <td><button class="btn btn-small btn-danger" type="button" onclick="window.deleteOrder('${o.id}')">Delete</button></td>
             </tr>
-          `).join("") || '<tr><td colspan="6" class="empty">No orders logged.</td></tr>';
+          `).join('') || '<tr><td colspan="6" class="empty">No recent orders.</td></tr>';
         }
       }
 
-      $("#orderSearchInput")?.addEventListener("input", renderOrders);
-      $("#orderStatusFilter")?.addEventListener("change", renderOrders);
-
-      // DELETE ORDER ACTION
       window.deleteOrder = async (id) => {
         if (!confirm("Permanently delete this order from database?")) return;
-        setLoading(true, "DELETING ORDER...");
+        setLoading(true, "DELETING...");
         try {
-          await supabase.from("order_items").delete().eq("order_id", id);
-          const { error } = await supabase.from("orders").delete().eq("id", id);
-          if (error) throw error;
-          showToast("Order permanently deleted.");
+          await supabase.from("orders").delete().eq("id", id);
+          showToast("Order deleted!");
           await loadAll();
         } catch (err) {
-          showToast(err.message || "Failed to delete order.", "error");
+          showToast(err.message || "Failed to delete.", "error");
         } finally {
           setLoading(false);
         }
       };
 
-      window.viewOrder = (id) => {
-        const o = state.orders.find(item => item.id === id);
-        if (!o) return;
-
-        const lineItems = getOrderLineItems(o);
-        const itemsList = lineItems.length ? lineItems.map(i => `
-          <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed #222;">
-            <span>${i.size ? `[${i.size}]` : ''} ${escapeHtml(getProductName(i.product_id))} × ${i.quantity || 1}</span>
-            <strong>₹${((i.price || 0) * (i.quantity || 1)).toLocaleString("en-IN")}</strong>
-          </div>
-        `).join('') : `<div style="color:#777; padding:4px 0;">No line items on record.</div>`;
-
-        $("#orderModalTitle").textContent = "Order: " + (o.order_number || o.id);
-        $("#orderModalBody").innerHTML = `
-          <div style="margin-bottom:16px; font-size:12px; line-height:1.7; background:#141414; padding:14px; border-radius:8px;">
-            <strong>Customer:</strong> ${escapeHtml(o.customer_name || 'Guest')} (${escapeHtml(o.customer_phone || '—')})<br>
-            <strong>Email:</strong> ${escapeHtml(o.customer_email || '—')}<br>
-            <strong>Address:</strong> ${escapeHtml(o.shipping_address || 'No address on file')}<br>
-            <div style="margin-top:10px; padding-top:10px; border-top:1px solid #222;">${itemsList}</div>
-            <div style="margin-top:8px; font-size:14px; font-weight:800; display:flex; justify-content:space-between;">
-              <span>Total:</span><span>₹${Number(o.total||0).toLocaleString("en-IN")} (${(o.payment_method || 'COD').toUpperCase()})</span>
-            </div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div>
-              <label style="font-size:10px; color:#888; font-weight:700;">UPDATE STATUS</label>
-              <select id="modalStatus" style="margin-top:4px;">
-                ${["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"].map(s => `
-                  <option value="${s}" ${s === o.order_status ? 'selected' : ''}>${s}</option>
-                `).join('')}
-              </select>
-            </div>
-            <div>
-              <label style="font-size:10px; color:#888; font-weight:700;">COURIER NAME</label>
-              <input id="modalCourier" value="${o.courier || ''}" placeholder="Delhivery, Bluedart" style="margin-top:4px;">
-            </div>
-            <div style="grid-column:1/-1;">
-              <label style="font-size:10px; color:#888; font-weight:700;">TRACKING NUMBER (AWB)</label>
-              <input id="modalTracking" value="${o.tracking_number || ''}" placeholder="AWB948194819" style="margin-top:4px;">
-            </div>
-          </div>
-
-          <div style="display:flex; gap:10px; margin-top:16px;">
-            <button class="btn btn-primary" style="flex:1;" onclick="window.saveOrder('${o.id}')">SAVE FULFILMENT</button>
-            <button class="btn btn-danger" onclick="window.cancelOrder('${o.id}')" ${o.order_status === 'CANCELLED' ? 'disabled' : ''}>
-              ${o.order_status === 'CANCELLED' ? 'ALREADY CANCELLED' : 'CANCEL ORDER'}
-            </button>
-          </div>
-        `;
-        $("#orderModal").classList.remove("hidden");
-      };
-
-      $("#closeOrderModal")?.addEventListener("click", () => $("#orderModal").classList.add("hidden"));
-
-      window.saveOrder = async (id) => {
-        const status = $("#modalStatus").value;
-        const courier = $("#modalCourier").value.trim();
-        const tracking = $("#modalTracking").value.trim();
-
-        setLoading(true, "SAVING...");
-        try {
-          const { error } = await supabase.from("orders").update({ order_status: status, courier, tracking_number: tracking }).eq("id", id);
-          if (error) throw error;
-          showToast("Order updated!");
-          $("#orderModal").classList.add("hidden");
-          await loadAll();
-        } catch (err) {
-          showToast(err.message || "Failed to update.", "error");
-        } finally { setLoading(false); }
-      };
-
-      window.cancelOrder = async (id) => {
-        if (!confirm("Cancel this order?")) return;
-        setLoading(true, "CANCELLING...");
-        try {
-          const { error } = await supabase.from("orders").update({ order_status: "CANCELLED" }).eq("id", id);
-          if (error) throw error;
-          showToast("Order cancelled.");
-          $("#orderModal").classList.add("hidden");
-          await loadAll();
-        } catch (err) {
-          showToast(err.message || "Failed to cancel.", "error");
-        } finally { setLoading(false); }
-      };
-
-      window.printSlip = (id) => {
-        const o = state.orders.find(item => item.id === id);
-        if (!o) return;
-
-        const items = getOrderLineItems(o);
-        const slip = $("#printableSlip");
-        slip.innerHTML = `
-          <div style="font-family: monospace; padding: 20px;">
-            <h2>BULKKOT (불꽃) — PACKING SLIP</h2>
-            <p><strong>ORDER:</strong> ${o.order_number || o.id} | <strong>DATE:</strong> ${new Date(o.created_at).toLocaleDateString()}</p>
-            <hr>
-            <p><strong>SHIP TO:</strong><br>${o.customer_name || 'Guest'}<br>${o.customer_phone || ''}<br>${o.shipping_address || 'No address'}</p>
-            <hr>
-            <h3>ITEMS:</h3>
-            ${items.map(i => `<p>• ${escapeHtml(getProductName(i.product_id))} — Size:${i.size || 'M'} | Qty: ${i.quantity \vert{}\vert{} 1} \vert{} ₹${Number(i.price || 0).toLocaleString("en-IN")}</p>`).join('')}
-            <hr>
-            <p><strong>COURIER:</strong> ${o.courier || 'Unassigned'} &nbsp; <strong>AWB:</strong> ${o.tracking_number || '—'}</p>
-            <h3>TOTAL COLLECTIBLE: ₹${Number(o.total || 0).toLocaleString("en-IN")}</h3>
-          </div>
-        `;
-
-        slip.classList.remove("hidden");
-        window.print();
-      };
-
-      window.addEventListener("afterprint", () => {
-        $("#printableSlip")?.classList.add("hidden");
-      });
-
-      // PRODUCTS
       function renderProducts() {
         const grid = $("#productsGrid");
         if (!grid) return;
-
         grid.innerHTML = state.products.map(p => {
           const stk = p.stock || {};
           const isLive = p.active !== false;
-          const images = (Array.isArray(p.images) && p.images.length) ? p.images : [p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
-
+          const img = (Array.isArray(p.images) && p.images[0]) ? p.images[0] : (p.image_url || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png');
           return `
-            <div class="product-card ${isLive ? '' : 'is-hidden'}">
+            <div class="product-card">
               <div class="product-image-wrap">
-                <img src="${images[0]}" loading="lazy">
+                <img src="${img}" loading="lazy">
                 <span class="badge ${isLive ? 'badge-live' : 'badge-hidden'}" style="position:absolute; top:8px; right:8px;">${isLive ? 'LIVE' : 'HIDDEN'}</span>
               </div>
               <div class="product-card-body">
                 <div class="product-card-title">${p.name}</div>
-                <div class="product-card-meta">₹${Number(p.price||0).toLocaleString("en-IN")} · ${p.category}</div>
+                <div class="product-card-meta">₹${p.price} · ${p.category}</div>
                 <div class="stock-chip-row">
-                  <span class="stock-chip ${Number(stk.S||0) === 0 ? 'out' : (Number(stk.S||0)<5?'low':'')}">S: ${stk.S||0}</span>
-                  <span class="stock-chip ${Number(stk.M||0) === 0 ? 'out' : (Number(stk.M||0)<5?'low':'')}">M: ${stk.M||0}</span>
-                  <span class="stock-chip ${Number(stk.L||0) === 0 ? 'out' : (Number(stk.L||0)<5?'low':'')}">L: ${stk.L||0}</span>
-                  <span class="stock-chip ${Number(stk.XL||0) === 0 ? 'out' : (Number(stk.XL||0)<5?'low':'')}">XL: ${stk.XL||0}</span>
+                  <span class="stock-chip">S: ${stk.S || 0}</span>
+                  <span class="stock-chip">M: ${stk.M || 0}</span>
+                  <span class="stock-chip">L: ${stk.L || 0}</span>
+                  <span class="stock-chip">XL: ${stk.XL || 0}</span>
                 </div>
                 <div class="product-actions-row">
-                  <button class="btn btn-small" type="button" onclick="window.editProduct('${p.id}')">Edit</button>
-                  <button class="btn btn-small" type="button" onclick="window.toggleProductVisibility('${p.id}', ${!isLive})">${isLive ? 'Hide' : 'Unhide'}</button>
                   <button class="btn btn-small btn-danger" type="button" onclick="window.deleteProduct('${p.id}')">Delete</button>
                 </div>
               </div>
             </div>
           `;
-        }).join("") || '<div class="empty" style="grid-column:1/-1;">No products found.</div>';
+        }).join('') || '<div class="empty" style="grid-column:1/-1;">No products found.</div>';
       }
 
-      function renderEditingThumbnails() {
-        const box = $("#prodImageThumbnails");
-        if (!box) return;
-        box.innerHTML = currentEditingImages.map((url, idx) => `
-          <div class="img-thumb-item">
-            <img src="${url}">
-            <button type="button" class="img-thumb-del" onclick="window.removeEditingImage(${idx})">×</button>
-            ${idx === 0 ? '<span class="img-cover-badge">COVER</span>' : ''}
-          </div>
-        `).join('');
-      }
-
-      window.removeEditingImage = (idx) => {
-        currentEditingImages.splice(idx, 1);
-        renderEditingThumbnails();
+      window.deleteProduct = async (id) => {
+        if (!confirm("Delete product?")) return;
+        setLoading(true, "DELETING...");
+        try {
+          await supabase.from("products").delete().eq("id", id);
+          await loadAll();
+        } finally { setLoading(false); }
       };
 
-      $("#prodImagesInput")?.addEventListener("change", async (e) => {
-        const files = [...e.target.files];
-        if (!files.length) return;
-
-        setLoading(true, "UPLOADING...");
-        try {
-          for (const file of files) {
-            if (currentEditingImages.length >= 5) break;
-            const ext = file.name.split('.').pop();
-            const filePath = `products/${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`;
-            const { error } = await supabase.storage.from('product-images').upload(filePath, file);
-            if (error) continue;
-            const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
-            if (data?.publicUrl) currentEditingImages.push(data.publicUrl);
-          }
-          renderEditingThumbnails();
-        } finally {
-          setLoading(false);
-          $("#prodImagesInput").value = "";
-        }
-      });
-
-      $("#openAddProductBtn")?.addEventListener("click", () => {
-        $("#productModalTitle").textContent = "Add Garment to Catalog";
-        $("#prodEditId").value = "";
-        $("#prodName").value = "";
-        $("#prodPrice").value = "";
-        $("#prodDesc").value = "";
-        currentEditingImages = [];
-        renderEditingThumbnails();
-        $("#stockS").value = "10";
-        $("#stockM").value = "10";
-        $("#stockL").value = "10";
-        $("#stockXL").value = "10";
-        $("#productModal").classList.remove("hidden");
-      });
-
-      $("#closeProductModal")?.addEventListener("click", () => $("#productModal").classList.add("hidden"));
-
-      window.editProduct = (id) => {
-        const p = state.products.find(item => item.id === id);
-        if (!p) return;
-
-        $("#productModalTitle").textContent = "Edit Garment: " + p.name;
-        $("#prodEditId").value = p.id;
-        $("#prodName").value = p.name || "";
-        $("#prodCategory").value = (p.category || "tees").toLowerCase();
-        $("#prodPrice").value = p.price || "";
-        $("#prodActive").value = p.active !== false ? "true" : "false";
-        $("#prodDesc").value = p.description || "";
-
-        currentEditingImages = (Array.isArray(p.images) && p.images.length) ? [...p.images] : (p.image_url ? [p.image_url] : []);
-        renderEditingThumbnails();
-
-        const stk = p.stock || {};
-        $("#stockS").value = stk.S || 0;
-        $("#stockM").value = stk.M || 0;
-        $("#stockL").value = stk.L || 0;
-        $("#stockXL").value = stk.XL || 0;
-
-        $("#productModal").classList.remove("hidden");
-      };
-
-      $("#productForm")?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const id = $("#prodEditId").value.trim();
-        const name = $("#prodName").value.trim();
-        const category = $("#prodCategory").value.trim();
-        const price = Number($("#prodPrice").value);
-        const active = $("#prodActive").value === "true";
-        const description = $("#prodDesc").value.trim();
-
-        if (!currentEditingImages.length) {
-          showToast("Upload at least 1 garment photo", "error");
-          return;
-        }
-
-        const stock = {
-          S: Math.max(0, parseInt($("#stockS").value) || 0),
-          M: Math.max(0, parseInt($("#stockM").value) || 0),
-          L: Math.max(0, parseInt($("#stockL").value) || 0),
-          XL: Math.max(0, parseInt($("#stockXL").value) || 0)
-        };
-
-        setLoading(true, "SAVING...");
-        try {
-          const payload = {
-            name, category, price, active,
-            image_url: currentEditingImages[0],
-            images: currentEditingImages,
-            description, stock,
-            updated_at: new Date().toISOString()
-          };
-
-          const res = id
-            ? await supabase.from("products").update(payload).eq("id", id)
-            : await supabase.from("products").insert(payload);
-
-          if (res.error) throw res.error;
-          showToast("Product saved successfully!");
-          $("#productModal").classList.add("hidden");           await loadAll();         } catch (err) {           showToast(err.message \vert{}\vert{} "Failed to save product", "error");         } finally {           setLoading(false);         }       });        window.toggleProductVisibility = async (id, newActive) => {         const product = state.products.find(p => p.id === id);         if (!product) return;         product.active = newActive;         renderProducts();          try {           const { error } = await supabase.from("products").update({ active: newActive }).eq("id", id);           if (error) throw error;           showToast(newActive ? "Product is Live." : "Product is Hidden.");         } catch (err) {           await loadAll();         }       };        window.deleteProduct = async (id) => {         if (!confirm("Permanently delete this product?")) return;         setLoading(true, "DELETING...");         try {           const { error } = await supabase.from("products").delete().eq("id", id);           if (error) throw error;           await loadAll();         } finally { setLoading(false); }       };        // CMS       async function loadCMS() {         const { data } = await supabase.from("site_content").select("*");         state.cms = {};         (data \vert{}\vert{} []).forEach(item => {           state.cms[item.content_key] = item.content_value \vert{}\vert{} item.image_url \vert{}\vert{} "";         });          $$("[data-cms]").forEach(input => {
+      async function loadCMS() {
+        const { data } = await supabase.from("site_content").select("*");
+        state.cms = {};
+        (data || []).forEach(item => {
+          state.cms[item.content_key] = item.content_value || "";
+        });
+        $$("[data-cms]").forEach(input => {
           const key = input.dataset.cms;
           if (state.cms[key] !== undefined) input.value = state.cms[key];
-        });
-
-        syncColorPairs();
-        updateHeroPreview();
-      }
-
-      function syncColorPairs() {
-        const pairs = [
-          ["heroOverlayColorPicker", "heroOverlayColorHex"],
-          ["heroTextColorPicker", "heroTextColorHex"],
-          ["annBgColorPicker", "annBgColorHex"],
-          ["annTextColorPicker", "annTextColorHex"]
-        ];
-        pairs.forEach(([pickerId, hexId]) => {
-          const picker = $(`#${pickerId}`);
-          const hex = $(`#${hexId}`);
-          if (!picker || !hex) return;
-          picker.addEventListener("input", () => { hex.value = picker.value; updateHeroPreview(); });
-          hex.addEventListener("input", () => { if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) picker.value = hex.value; updateHeroPreview(); });
-        });
-      }
-
-      function updateHeroPreview() {
-        const overlay = $("#heroOverlayColorHex")?.value || "#000000";
-        const textColor = $("#heroTextColorHex")?.value || "#ffffff";
-        const font = $("#heroFontSelect")?.value || "'Montserrat', sans-serif";
-        const heroImg = $("#cmsHeroUrl")?.value.trim();
-
-        const box = $("#heroPreviewBox");
-        if (box && heroImg) box.style.backgroundImage = `url("${heroImg}")`;
-
-        $("#heroPreviewKorean").textContent = $("[data-cms='hero_korean']")?.value || "불꽃";
-        $("#heroPreviewTitle").textContent = $("[data-cms='hero_title']")?.value || "BULKKOT";
-        $("#heroPreviewLabel").textContent = $("[data-cms='hero_subtitle']")?.value || "PREMIUM EVERYDAY WEAR";
-        $("#heroPreviewDesc").textContent = $("[data-cms='hero_description']")?.value || "Korean-inspired essentials.";
-
-        [$("#heroPreviewTitle"), $("#heroPreviewLabel"), $("#heroPreviewDesc")].forEach(el => {
-          if (!el) return;
-          el.style.color = textColor;
-          el.style.fontFamily = font;
         });
       }
 
@@ -1351,124 +822,15 @@
             content_type: "text",
             updated_at: new Date().toISOString()
           }));
-
           for (const u of updates) {
             await supabase.from("site_content").upsert(u, { onConflict: "content_key" });
           }
           showToast("CMS saved successfully!");
-        } catch (err) {
-          showToast(err.message || "Failed to save CMS", "error");
+        } catch (e) {
+          showToast("Failed to save CMS", "error");
         } finally { setLoading(false); }
       });
 
-      // CRM
-      function computeCustomers() {
-        const map = {};
-        state.orders.forEach(o => {
-          const key = String(o.customer_phone || o.customer_email || o.id).trim();
-          if (!map[key]) {
-            map[key] = {
-              key,
-              name: o.customer_name || 'Guest',
-              phone: o.customer_phone || '—',
-              email: o.customer_email || '—',
-              shipping_address: o.shipping_address || '—',
-              totalOrders: 0,
-              lifetimeSpend: 0,
-              lastOrderDate: o.created_at,
-              orders: []
-            };
-          }
-          map[key].totalOrders += 1;
-          map[key].lifetimeSpend += Number(o.total || 0);
-          map[key].orders.push(o);
-        });
-        state.customers = Object.values(map);
-      }
-
-      function renderCustomers() {
-        const query = $("#customerSearchInput")?.value.trim().toLowerCase() || "";
-        const body = $("#customersBody");
-        if (!body) return;
-
-        const filtered = state.customers.filter(c =>
-          c.name.toLowerCase().includes(query) || c.phone.includes(query)
-        );
-
-        body.innerHTML = filtered.map(c => `
-          <tr>
-            <td><strong>${c.name}</strong></td>
-            <td>${c.phone}<br><small style="color:#777;">${c.email}</small></td>
-            <td>${c.totalOrders} orders</td>
-            <td>₹${c.lifetimeSpend.toLocaleString("en-IN")}</td>
-            <td>${new Date(c.lastOrderDate).toLocaleDateString("en-IN")}</td>
-            <td><button class="btn btn-small" onclick="window.viewCustomer('${encodeURIComponent(c.key)}')">Profile</button></td>
-          </tr>
-        `).join('') || '<tr><td colspan="6" class="empty">No customers found.</td></tr>';
-      }
-
-      $("#customerSearchInput")?.addEventListener("input", renderCustomers);
-
-      window.viewCustomer = (encodedKey) => {
-        const key = decodeURIComponent(encodedKey);
-        const c = state.customers.find(item => item.key === key);
-        if (!c) return;
-
-        $("#customerModalTitle").textContent = "Customer: " + c.name;
-        $("#customerModalBody").innerHTML = `
-          <div style="background:#141414; padding:14px; border-radius:8px; line-height:1.7;">
-            <strong>Phone:</strong> ${c.phone}<br>
-            <strong>Email:</strong> ${c.email}<br>
-            <strong>Address:</strong> ${c.shipping_address}<br>
-            <strong>Total Spend:</strong> ₹${c.lifetimeSpend.toLocaleString("en-IN")} (${c.totalOrders} orders)
-          </div>
-        `;
-        $("#customerModal").classList.remove("hidden");
-      };
-
-      $("#closeCustomerModal")?.addEventListener("click", () => $("#customerModal").classList.add("hidden"));
-
-      // ANALYTICS
-      function renderAnalytics() {
-        const totalOrders = state.orders.length;
-        const totalRev = state.orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-        if ($("#anaAOV")) $("#anaAOV").textContent = "₹" + (totalOrders > 0 ? Math.round(totalRev / totalOrders) : 0);
-        if ($("#anaFulfilRate")) $("#anaFulfilRate").textContent = (totalOrders > 0 ? Math.round((state.orders.filter(o => o.order_status === 'DELIVERED').length / totalOrders) * 100) : 0) + "%";
-        if ($("#anaCancelRate")) $("#anaCancelRate").textContent = (totalOrders > 0 ? Math.round((state.orders.filter(o => o.order_status === 'CANCELLED').length / totalOrders) * 100) : 0) + "%";
-      }
-
-      // SETTINGS
-      function populateSettings() {
-        const s = state.settings || {};
-        if ($("#setStoreName")) $("#setStoreName").value = s.store_name || "BULKKOT";
-        if ($("#setSupportEmail")) $("#setSupportEmail").value = s.support_email || "bulkkotwear@gmail.com";
-        if ($("#setSupportPhone")) $("#setSupportPhone").value = s.support_phone || "+91 98765 43210";
-        if ($("#setShippingFee")) $("#setShippingFee").value = s.shipping_fee ?? 0;
-        if ($("#setFreeShippingThreshold")) $("#setFreeShippingThreshold").value = s.free_shipping_threshold ?? 0;
-        if ($("#setStoreAddress")) $("#setStoreAddress").value = s.store_address || "Jaipur, Rajasthan, India";
-      }
-
-      $("#settingsForm")?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        setLoading(true, "SAVING SETTINGS...");
-        const payload = {
-          id: 1,
-          store_name: $("#setStoreName").value.trim(),
-          support_email: $("#setSupportEmail").value.trim(),
-          support_phone: $("#setSupportPhone").value.trim(),
-          shipping_fee: Number($("#setShippingFee").value || 0),
-          free_shipping_threshold: Number($("#setFreeShippingThreshold").value || 0),
-          store_address: $("#setStoreAddress").value.trim(),
-          updated_at: new Date().toISOString()
-        };
-        try {
-          const { error } = await supabase.from("store_settings").upsert(payload);
-          if (error) throw error;
-          showToast("Settings updated!");
-        } finally { setLoading(false); }
-      });
-
-      // WAITLIST & COUPONS
       function renderWaitlist() {
         const b = $("#waitlistBody");
         if (!b) return;
@@ -1486,12 +848,12 @@
         const b = $("#couponsBody");
         if (!b) return;
         b.innerHTML = state.coupons.map(c => `
-          <tr><td>${c.code}</td><td>${c.discount_value}%</td><td>₹${c.min_order_value||0}</td><td>${c.active?'ACTIVE':'INACTIVE'}</td><td><button class="btn btn-small" onclick="window.toggleCoupon('${c.id}', ${!c.active})">${c.active?'Disable':'Enable'}</button></td></tr>
+          <tr><td>${c.code}</td><td>${c.discount_value}%</td><td>₹${c.min_order_value||0}</td><td>${c.active?'ACTIVE':'INACTIVE'}</td><td><button class="btn btn-small btn-danger" onclick="window.deleteCoupon('${c.id}')">Delete</button></td></tr>
         `).join('') || '<tr><td colspan="5" class="empty">No coupons.</td></tr>';
       }
 
-      window.toggleCoupon = async (id, active) => {
-        await supabase.from("coupons").update({ active }).eq("id", id);
+      window.deleteCoupon = async (id) => {
+        await supabase.from("coupons").delete().eq("id", id);
         await loadAll();
       };
     });
