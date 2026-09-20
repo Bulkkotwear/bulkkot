@@ -587,74 +587,37 @@
   }
 
   /* =========================================================
-     CATALOGUE & FALLBACK PRODUCTS
+     CATALOGUE
      ========================================================= */
-  const COMING_SOON_TEMPLATES = [
-    {
-      id: "mock-tee-01",
-      name: "ARCHITECTURAL BOXY TEE",
-      category: "tees",
-      price: 2499,
-      description: "280 GSM heavyweight combed luxury cotton. Custom boxy fall tailored with Korean minimalist drop-shoulder proportions.",
-      stock: { S: 10, M: 15, L: 8, XL: 4 },
-      active: true,
-      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"]
-    },
-    {
-      id: "mock-hood-01",
-      name: "STRUCTURED HEAVYWEIGHT HOODIE",
-      category: "hoods",
-      price: 4499,
-      description: "450 GSM diagonal loopback fleece. Double-layered hood without drawstrings for an uncompromising, clean silhouette.",
-      stock: { S: 5, M: 8, L: 10, XL: 2 },
-      active: true,
-      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"]
-    },
-    {
-      id: "mock-sweat-01",
-      name: "MINIMALIST OVERSIZED SWEAT",
-      category: "sweats",
-      price: 3699,
-      description: "380 GSM brushed interior cotton. High-density ribbing that retains volume even after extensive everyday wear.",
-      stock: { S: 6, M: 12, L: 9, XL: 5 },
-      active: true,
-      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"]
-    },
-    {
-      id: "mock-tee-02",
-      name: "SEOUL EDITION GRAPHIC TEE",
-      category: "tees",
-      price: 2699,
-      description: "High-density screen print with subtle Korean Hangul accents. Built with zero-compromise streetwear architecture.",
-      stock: { S: 8, M: 14, L: 12, XL: 3 },
-      active: true,
-      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"]
-    }
-  ];
-
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
     if (!grid) return;
 
     try {
       let data = [];
+      let fetchFailed = false;
       if (supabase) {
         const res = await supabase.from("products").select("*").eq("active", true).order("created_at", { ascending: false });
-        if (!res.error && res.data && res.data.length > 0) {
-          data = res.data;
-        }
+        if (res.error) fetchFailed = true;
+        else data = res.data || [];
+      } else {
+        fetchFailed = true;
       }
 
-      liveProducts = data.length > 0 ? data : COMING_SOON_TEMPLATES;
+      liveProducts = data;
 
       liveProducts.forEach(p => {
         selectedSizes[p.id] = ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
       });
 
-      renderProducts(getFilteredProducts());
+      if (!liveProducts.length) {
+        renderCatalogEmptyState(fetchFailed);
+      } else {
+        renderProducts(getFilteredProducts());
+      }
     } catch (err) {
-      liveProducts = COMING_SOON_TEMPLATES;
-      renderProducts(getFilteredProducts());
+      liveProducts = [];
+      renderCatalogEmptyState(true);
     }
 
     const sortSelect = document.getElementById('shop-sort');
@@ -662,6 +625,23 @@
       activeSort = e.target.value;
       renderProducts(getFilteredProducts());
     });
+  }
+
+  // Genuine empty/offline state for the homepage catalogue — never
+  // substitutes fake, non-purchasable placeholder products for real ones.
+  function renderCatalogEmptyState(isError) {
+    const grid = document.getElementById("products-grid");
+    if (!grid) return;
+    grid.innerHTML = isError
+      ? `<div class="catalog-message" style="grid-column:1/-1; text-align:center; padding:60px 20px;">
+          <strong style="display:block; color:#fff; font-size:15px; margin-bottom:8px;">Unable to load the catalogue</strong>
+          <p style="color:#888; font-size:12px; margin-bottom:16px;">Please check your connection and try again.</p>
+          <button type="button" onclick="location.reload()" style="background:transparent; border:1px solid #333; color:#ccc; font-size:11px; font-weight:700; padding:8px 18px; border-radius:4px; cursor:pointer;">RETRY</button>
+        </div>`
+      : `<div class="catalog-message" style="grid-column:1/-1; text-align:center; padding:60px 20px;">
+          <strong style="display:block; color:#fff; font-size:15px; margin-bottom:8px;">New styles dropping soon</strong>
+          <p style="color:#888; font-size:12px;">Join the waitlist below to be first to know when Drop 001 goes live.</p>
+        </div>`;
   }
 
   function getFilteredProducts() {
