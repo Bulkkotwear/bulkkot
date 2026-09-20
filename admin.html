@@ -266,7 +266,7 @@
 
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-  <!-- LOGIN SCREEN (NO FORM SUBMIT RELOAD LOOP) -->
+  <!-- LOGIN SCREEN (NO FORM, DIRECT RELOAD-SAFE DIV) -->
   <section id="loginScreen">
     <div class="login-card">
       <div class="brand">불꽃 <span>BULKKOT</span></div>
@@ -456,7 +456,6 @@
             </div>
           </div>
 
-          <!-- HERO SECTION -->
           <div class="cms-section">
             <div class="cms-section-heading"><h2>HERO CAMPAIGN & BANNER</h2></div>
             <div class="cms-grid">
@@ -516,7 +515,6 @@
             </div>
           </div>
 
-          <!-- ANNOUNCEMENT TICKER -->
           <div class="cms-section">
             <div class="cms-section-heading"><h2>ANNOUNCEMENT TICKER</h2></div>
             <div class="cms-grid">
@@ -565,7 +563,6 @@
             </div>
           </div>
 
-          <!-- CLAUDE'S EDITORIAL NEWS SLIDER BLOCK -->
           <div class="cms-section">
             <div class="cms-section-heading"><h2>EDITORIAL NEWS SLIDER</h2></div>
             <p style="font-size:11px; color:var(--muted); margin:-6px 0 16px;">Leave any field blank to keep the homepage's current default copy for that slide — nothing gets blanked out.</p>
@@ -830,7 +827,7 @@
         if (errBox) errBox.textContent = errorMsg || "";
       }
 
-      // Safe Direct Login Handler
+      // Safe Direct Login Handler (No Form Refresh)
       async function executeLogin() {
         const email = $("#loginEmail").value.trim().toLowerCase();
         const password = $("#loginPassword").value;
@@ -874,7 +871,7 @@
         showLogin();
       });
 
-      // Restore session
+      // Restore session without kicking out
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) showApp(session.user);
         else showLogin();
@@ -1034,7 +1031,6 @@
       $("#orderSearchInput")?.addEventListener("input", renderOrders);
       $("#orderStatusFilter")?.addEventListener("change", renderOrders);
 
-      // DELETE ORDER ACTION
       window.deleteOrder = async (id) => {
         if (!confirm("Are you sure you want to permanently delete this order?")) return;
         setLoading(true, "DELETING ORDER...");
@@ -1168,7 +1164,6 @@
         $("#printableSlip")?.classList.add("hidden");
       });
 
-      // PRODUCTS
       function renderProducts() {
         const grid = $("#productsGrid");
         if (!grid) return;
@@ -1343,7 +1338,7 @@
 
           if (res.error) throw res.error;
           showToast("Product saved successfully!");
-          $("#productModal").classList.add("hidden");           await loadAll();         } catch (err) {           showToast(err.message \vert{}\vert{} "Failed to save product", "error");         } finally {           setLoading(false);         }       });        window.toggleProductVisibility = async (id, newActive) => {         const product = state.products.find(p => p.id === id);         if (!product) return;          const previousActive = product.active;         product.active = newActive;         renderProducts();          try {           const { error } = await supabase.from("products").update({ active: newActive }).eq("id", id);           if (error) throw error;           showToast(newActive ? "Product is now Live." : "Product hidden from storefront.");         } catch (err) {           product.active = previousActive;           renderProducts();           showToast(err.message \vert{}\vert{} "Failed to update visibility.", "error");         }       };        window.deleteProduct = async (id) => {         if (!confirm("Permanently delete this product?")) return;          const idx = state.products.findIndex(p => p.id === id);         if (idx === -1) return;         const [removed] = state.products.splice(idx, 1);         renderProducts();          try {           const { error } = await supabase.from("products").delete().eq("id", id);           if (error) throw error;           showToast("Product deleted.");         } catch (err) {           state.products.splice(idx, 0, removed);           renderProducts();           showToast(err.message \vert{}\vert{} "Failed to delete product.", "error");         }       };        // CMS       const CMS_DEFAULTS = {         hero_overlay_color: "#000000",         hero_text_color: "#ffffff",         hero_font: "'Montserrat', sans-serif",         announcement_bg: "#e31b23",         announcement_color: "#ffffff",         announcement_font: "'Inter', sans-serif",         announcement_speed: "20"       };        async function loadCMS() {         const { data } = await supabase.from("site_content").select("*");         state.cms = {};         (data \vert{}\vert{} []).forEach(item => {           state.cms[item.content_key] = item.content_value \vert{}\vert{} item.image_url \vert{}\vert{} "";         });          $$("[data-cms]").forEach(input => {
+          $("#productModal").classList.add("hidden");           await loadAll();         } catch (err) {           showToast(err.message \vert{}\vert{} "Failed to save product", "error");         } finally {           setLoading(false);         }       });        window.toggleProductVisibility = async (id, newActive) => {         const product = state.products.find(p => p.id === id);         if (!product) return;          const previousActive = product.active;         product.active = newActive;         renderProducts();          try {           const { error } = await supabase.from("products").update({ active: newActive }).eq("id", id);           if (error) throw error;           showToast(newActive ? "Product is now Live." : "Product hidden from storefront.");         } catch (err) {           product.active = previousActive;           renderProducts();           showToast(err.message \vert{}\vert{} "Failed to update visibility.", "error");         }       };        window.deleteProduct = async (id) => {         if (!confirm("Permanently delete this product?")) return;          const idx = state.products.findIndex(p => p.id === id);         if (idx === -1) return;         const [removed] = state.products.splice(idx, 1);         renderProducts();          try {           const { error } = await supabase.from("products").delete().eq("id", id);           if (error) throw error;           showToast("Product deleted.");         } catch (err) {           state.products.splice(idx, 0, removed);           renderProducts();           showToast(err.message \vert{}\vert{} "Failed to delete product.", "error");         }       };        const CMS_DEFAULTS = {         hero_overlay_color: "#000000",         hero_text_color: "#ffffff",         hero_font: "'Montserrat', sans-serif",         announcement_bg: "#e31b23",         announcement_color: "#ffffff",         announcement_font: "'Inter', sans-serif",         announcement_speed: "20"       };        async function loadCMS() {         const { data } = await supabase.from("site_content").select("*");         state.cms = {};         (data \vert{}\vert{} []).forEach(item => {           state.cms[item.content_key] = item.content_value \vert{}\vert{} item.image_url \vert{}\vert{} "";         });          $$("[data-cms]").forEach(input => {
           const key = input.dataset.cms;
           const value = state.cms[key] ?? CMS_DEFAULTS[key] ?? "";
           if (value !== "") input.value = value;
@@ -1459,7 +1454,6 @@
         } finally { setLoading(false); }
       });
 
-      // CRM
       function computeCustomers() {
         const map = {};
         state.orders.forEach(o => {
@@ -1534,7 +1528,6 @@
 
       $("#closeCustomerModal")?.addEventListener("click", () => $("#customerModal").classList.add("hidden"));
 
-      // ANALYTICS
       function renderAnalytics() {
         const totalOrders = state.orders.length;
         const totalRev = state.orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
@@ -1543,7 +1536,6 @@
         if ($("#anaCancelRate")) $("#anaCancelRate").textContent = (totalOrders > 0 ? Math.round((state.orders.filter(o => o.order_status === 'CANCELLED').length / totalOrders) * 100) : 0) + "%";
       }
 
-      // SETTINGS
       function populateSettings() {
         const s = state.settings || {};
         if ($("#setStoreName")) $("#setStoreName").value = s.store_name || "BULKKOT";
@@ -1574,7 +1566,6 @@
         } finally { setLoading(false); }
       });
 
-      // WAITLIST & COUPONS
       function renderWaitlist() {
         const b = $("#waitlistBody");
         if (!b) return;
