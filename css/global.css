@@ -2790,3 +2790,75 @@ main, .shop-container, .pdp-wrapper {
   display: block !important;
   visibility: visible !important;
 }
+/* =========================================================
+   BULKKOT — FINAL DOCUMENT SCROLL / FOOTER FIX
+   ========================================================= */
+
+/*
+ * The document itself must always grow naturally with content.
+ * Viewport-height constraints are reserved for isolated UI
+ * such as hero sections, modals and drawers.
+ */
+
+html {
+  width: 100%;
+  min-width: 0;
+  height: auto !important;
+  min-height: 100%;
+  max-height: none !important;
+
+  overflow-x: clip !important;
+  overflow-y: auto !important;
+
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  min-width: 320px;
+  height: auto !important;
+  min-height: 100%;
+  max-height: none !important;
+
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}
+
+/*
+ * Never lock the storefront document to viewport height.
+ */
+main,
+#top,
+.shop-container,
+.pdp-wrapper,
+.page-wrapper,
+.page-content,
+.site-main,
+.content-wrapper {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/*
+ * Footer remains part of the natural document flow.
+ */
+.site-footer {
+  position: relative !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  visibility: visible !important;
+}
+
+/*
+ * Horizontal overflow protection only.
+ * Never use overflow:hidden on the document vertically.
+ */
+html,
+body {
+  overflow-x: clip !important;
+  overflow-y: auto !important;
+}
