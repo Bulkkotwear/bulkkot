@@ -1037,6 +1037,14 @@
           >XL</button>
         </div>
 
+        <p
+          id="pdpSizePrompt"
+          class="pdp-size-prompt"
+          hidden
+          role="alert"
+          aria-live="polite"
+        ></p>
+
         <!-- CTA -->
         <div class="cta-row">
           <button
@@ -1821,10 +1829,16 @@
       addBtn.addEventListener(
         "click",
         () => {
-          if (
-            !product ||
-            !selectedSize
-          ) {
+          if (!product) {
+            return;
+          }
+
+          if (!selectedSize) {
+            const prompt = document.getElementById("pdpSizePrompt");
+            if (prompt) {
+              prompt.textContent = "SELECT A SIZE TO CONTINUE.";
+              prompt.hidden = false;
+            }
             return;
           }
 
@@ -1853,6 +1867,8 @@
             );
             return;
           }
+
+          document.getElementById("pdpSizePrompt")?.setAttribute("hidden", "");
 
           cart.addItem({
             id: product.id,
