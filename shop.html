@@ -2135,6 +2135,22 @@
          SEARCH EVENTS
          ===================================================== */
 
+      document.addEventListener(
+        "bulkkot:search-change",
+        (event) => {
+          const query = normalizeSearch(
+            event.detail?.query || ""
+          );
+
+          if (searchInput && searchInput.value !== query) {
+            searchInput.value = query;
+          }
+
+          clearTimeout(searchDebounce);
+          setSearch(query);
+        }
+      );
+
       searchInput.addEventListener(
         "input",
         (event) => {
