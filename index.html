@@ -801,6 +801,94 @@
         scroll-behavior: auto !important;
       }
     }
+
+    /* =========================================================
+       FINAL LAUNCH SAFETY — DOCUMENT FLOW + TOUCH TARGETS
+       ========================================================= */
+
+    html,
+    body {
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      height: auto !important;
+      min-height: 100%;
+      max-height: none !important;
+    }
+
+    html {
+      overflow-x: clip !important;
+      overflow-y: auto !important;
+    }
+
+    body {
+      overflow-x: clip !important;
+      overflow-y: auto !important;
+    }
+
+    main,
+    #top {
+      position: relative;
+      width: 100%;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+
+    .site-footer {
+      position: relative !important;
+      width: 100%;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: visible;
+    }
+
+    /* Overlay state is the only intentional document scroll lock. */
+    body.modal-open,
+    body.drawer-open {
+      overflow: hidden !important;
+    }
+
+    /* Reliable touch targets without changing visual identity. */
+    .drawer-close,
+    [data-open-drawer],
+    [data-close-drawer],
+    #headerSearchToggle,
+    #headerSearchClose,
+    [data-open-account],
+    [data-account-close],
+    [data-open-track-order],
+    [data-track-order-close],
+    [data-size-guide-open],
+    [data-size-guide-close],
+    [data-open-policy],
+    [data-close-policy],
+    [data-open-about],
+    [data-close-about],
+    [data-open-cart],
+    [data-cart-open],
+    [data-close-cart],
+    .carousel-control,
+    .carousel-indicator,
+    .size-guide-trigger,
+    .p-size-chip,
+    .size-box,
+    [data-action="select-size"],
+    [data-action="add-to-bag"] {
+      min-width: 44px;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .p-size-chip,
+    .size-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
   </style>
 </head>
 
