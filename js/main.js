@@ -1,1270 +1,2892 @@
 /**
- * BULKKOT — Production Main Storefront Engine
- * Version: 13.1 (Clean Editorial Slider, Mobile Drawer, PDP & Full Storefront Logic, Hardened Announcement CMS Sync)
+ * BULKKOT — Main Storefront Engine
+ * Production Hardened
+ *
+ * Responsibilities:
+ * - Global storefront state
+ * - Mobile drawer
+ * - Header/search interactions
+ * - Editorial carousel
+ * - Auth/account UI
+ * - Customer profile/order history
+ * - CMS/store settings sync
+ * - Policy/About/Size Guide/Tracking modals
+ * - Keyboard + accessibility handling
+ * - Global scroll-lock safety
+ *
+ * Product/catalog/cart ownership:
+ * - shop.html owns its catalogue renderer
+ * - product.html owns its PDP
+ * - js/cart.js owns cart state
+ *
+ * Visual identity intentionally preserved.
  */
+
 (function () {
-  'use strict';
+  "use strict";
 
-  const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+  /* =========================================================
+     CONFIG
+     ========================================================= */
 
-  const supabase = window.supabase && typeof window.supabase.createClient === 'function'
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+  const SUPABASE_URL =
+    "https://pgubjluqgqvrybvehzeh.supabase.co";
+
+  const SUPABASE_ANON_KEY =
+    "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+
+  const FALLBACK_IMAGE =
+    "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
+
+  const STORAGE_KEYS = {
+    welcomeSeen: "bulkkot_welcome_seen"
+  };
+
+  const supabase =
+    window.supabase &&
+    typeof window.supabase.createClient === "function"
+      ? window.supabase.createClient(
+          SUPABASE_URL,
+          SUPABASE_ANON_KEY
+        )
+      : null;
 
   window.bulkkotSupabase = supabase;
 
-  let liveProducts = [];
-  const selectedSizes = {};
-  let activeCategory = "all";
-  let activeSearch = "";
-  let activeSort = "featured";
+  /* =========================================================
+     GLOBAL STATE
+     ========================================================= */
 
-  function escapeHTML(str) {
-    return String(str ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
-  function formatPrice(val) {
-    return "₹" + Number(val || 0).toLocaleString("en-IN");
-  }
-
-  function getStock(product, size) {
-    return Math.max(0, Number(product?.stock?.[size] || 0));
-  }
-
-  function getTotalStock(product) {
-    const stock = product?.stock || {};
-    return ["S", "M", "L", "XL"].reduce((tot, s) => tot + Number(stock[s] || 0), 0);
-  }
-
-  function getCategory(product) {
-    return String(product?.category || "tees").trim().toLowerCase();
-  }
-
-  function getStockBadge(product, size) {
-    const stock = getStock(product, size);
-    if (stock <= 0) return { text: "SOLD OUT", cls: "is-sold-out", disabled: true };
-    if (stock <= 2) return { text: `ONLY ${stock} LEFT`, cls: "is-low", disabled: false };
-    return { text: "", cls: "", disabled: false };
-  }
-
-  function getProductImages(product) {
-    if (Array.isArray(product?.images) && product.images.length > 0) {
-      return product.images.filter(Boolean);
-    }
-    if (product?.image_url) {
-      return [product.image_url];
-    }
-    return ['https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
-  }
+  const state = {
+    initialized: false,
+    drawerOpen: false,
+    activeModal: null,
+    searchOpen: false,
+    editorialIndex: 0,
+    editorialTimer: null,
+    authSubscription: null,
+    bodyLockCount: 0
+  };
 
   /* =========================================================
-     LUXURY EDITORIAL NEWS CAROUSEL CONTROLLER
+     CONSTANTS
      ========================================================= */
-  function initEditorialCarousel() {
-    const container = document.getElementById('editorialCarousel');
-    if (!container) return;
 
-    const slides = container.querySelectorAll('[data-slide]');
-    const indicators = container.querySelectorAll('[data-slide-indicator]');
-    const prevBtn = container.querySelector('[data-carousel-prev]');
-    const nextBtn = container.querySelector('[data-carousel-next]');
+  const SIZES = ["S", "M", "L", "XL"];
 
-    if (!slides.length) return;
-
-    let currentIndex = 0;
-    let autoPlayTimer = null;
-    const TOTAL = slides.length;
-
-    function goToSlide(index) {
-      currentIndex = (index + TOTAL) % TOTAL;
-
-      slides.forEach((slide, i) => {
-        slide.classList.toggle('is-active', i === currentIndex);
-      });
-
-      indicators.forEach((ind, i) => {
-        ind.classList.toggle('is-active', i === currentIndex);
-        ind.setAttribute('aria-selected', i === currentIndex ? 'true' : 'false');
-      });
-    }
-
-    function nextSlide() { goToSlide(currentIndex + 1); }
-    function prevSlide() { goToSlide(currentIndex - 1); }
-
-    function startAutoPlay() {
-      stopAutoPlay();
-      autoPlayTimer = setInterval(nextSlide, 5000);
-    }
-
-    function stopAutoPlay() {
-      if (autoPlayTimer) clearInterval(autoPlayTimer);
-    }
-
-    prevBtn?.addEventListener('click', (e) => {
-      e.preventDefault();
-      prevSlide();
-      startAutoPlay();
-    });
-
-    nextBtn?.addEventListener('click', (e) => {
-      e.preventDefault();
-      nextSlide();
-      startAutoPlay();
-    });
-
-    indicators.forEach((ind, idx) => {
-      ind.addEventListener('click', (e) => {
-        e.preventDefault();
-        goToSlide(idx);
-        startAutoPlay();
-      });
-    });
-
-    // Touch Swipe Support for Mobile Screens
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    container.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-      stopAutoPlay();
-    }, { passive: true });
-
-    container.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      if (touchStartX - touchEndX > 50) nextSlide();
-      if (touchEndX - touchStartX > 50) prevSlide();
-      startAutoPlay();
-    }, { passive: true });
-
-    container.addEventListener('mouseenter', stopAutoPlay);
-    container.addEventListener('mouseleave', startAutoPlay);
-
-    // Initial Start
-    goToSlide(0);
-    startAutoPlay();
-  }
-
-  /* =========================================================
-     FIRST-VISIT WELCOME POP-UP
-     ========================================================= */
-  function initWelcomePopup() {
-    const popup = document.getElementById('welcomePopupModal');
-    const closeBtn = document.getElementById('welcomePopupClose');
-    const googleBtn = document.getElementById('welcomeGoogleBtn');
-    const emailBtn = document.getElementById('welcomeEmailBtn');
-
-    if (!popup) return;
-
-    const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
-    if (!hasSeen) {
-      setTimeout(() => {
-        popup.classList.add('is-open');
-        popup.setAttribute('aria-hidden', 'false');
-      }, 1500);
-    }
-
-    function dismissPopup() {
-      popup.classList.remove('is-open');
-      popup.setAttribute('aria-hidden', 'true');
-      localStorage.setItem('bulkkot_welcome_seen', 'true');
-    }
-
-    closeBtn?.addEventListener('click', dismissPopup);
-    popup.addEventListener('click', (e) => {
-      if (e.target === popup) dismissPopup();
-    });
-
-    googleBtn?.addEventListener('click', async () => {
-      dismissPopup();
-      if (!supabase) return;
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
-    });
-
-    emailBtn?.addEventListener('click', () => {
-      dismissPopup();
-      const accountModal = document.querySelector('[data-account-modal]');
-      accountModal?.classList.add('is-open');
-      document.body.classList.add('modal-open');
-    });
-  }
-
-  /* =========================================================
-     INLINE EXPANDABLE HEADER SEARCH
-     ========================================================= */
-  function initInlineSearch() {
-    const toggleBtn = document.getElementById('headerSearchToggle');
-    const searchBar = document.getElementById('headerSearchBar');
-    const closeBtn = document.getElementById('headerSearchClose');
-    const input = document.getElementById('liveSearchInput');
-
-    toggleBtn?.addEventListener('click', (e) => {
-      e.preventDefault();
-      searchBar?.classList.toggle('is-active');
-      if (searchBar?.classList.contains('is-active')) {
-        setTimeout(() => input?.focus(), 60);
-      }
-    });
-
-    closeBtn?.addEventListener('click', () => {
-      searchBar?.classList.remove('is-active');
-      activeSearch = "";
-      if (input) input.value = "";
-      renderProducts(getFilteredProducts());
-    });
-
-    input?.addEventListener('input', (e) => {
-      activeSearch = e.target.value.trim().toLowerCase();
-      renderProducts(getFilteredProducts());
-    });
-
-    document.querySelectorAll('[data-search-tag]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tag = btn.dataset.searchTag.toLowerCase();
-        if (input) input.value = tag;
-        activeSearch = tag;
-        renderProducts(getFilteredProducts());
-        document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
-      });
-    });
-  }
-
-  /* =========================================================
-     AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP)
-     ========================================================= */
-  async function initAuth() {
-    if (!supabase) return;
-
-    async function updateAuthUI() {
-      const { data: { user } } = await supabase.auth.getUser();
-      const accountLabel = document.querySelector('[data-account-label]');
-      const authView = document.querySelector('[data-account-auth]');
-      const userView = document.querySelector('[data-account-user]');
-      const userEmailEl = document.querySelector('[data-account-user-email]');
-
-      if (user) {
-        const displayName = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
-        if (accountLabel) accountLabel.textContent = displayName;
-        if (authView) authView.hidden = true;
-        if (userView) userView.hidden = false;
-        if (userEmailEl) userEmailEl.textContent = user.email;
-        loadCustomerProfile(user.id);
-        loadCustomerOrders(user.id);
-      } else {
-        if (accountLabel) accountLabel.textContent = 'ACCOUNT';
-        if (authView) authView.hidden = false;
-        if (userView) userView.hidden = true;
-      }
-    }
-
-    supabase.auth.onAuthStateChange(() => {
-      updateAuthUI();
-      if (window.BULKKOT_CART?.renderCart) window.BULKKOT_CART.renderCart();
-    });
-
-    updateAuthUI();
-
-    const loginForm = document.querySelector('[data-account-login-form]');
-    const msgEl = document.getElementById('authInlineError');
-    const signupToggle = document.querySelector('[data-account-signup-toggle]');
-    const modeText = document.getElementById('auth-mode-text');
-    const nameField = document.getElementById('account-name-field');
-    const nameInput = document.getElementById('account-name-input');
-
-    signupToggle?.addEventListener('click', () => {
-      const isSignUp = loginForm.dataset.mode === 'signup';
-      const submitBtn = loginForm.querySelector('.account-submit');
-      if (msgEl) msgEl.textContent = '';
-
-      if (isSignUp) {
-        loginForm.dataset.mode = 'signin';
-        if (nameField) nameField.style.display = 'none';
-        nameInput?.removeAttribute('required');
-        if (modeText) modeText.innerHTML = 'Login <span style="font-weight:400; font-size:18px;">or</span> Signup';
-        if (submitBtn) submitBtn.textContent = 'CONTINUE';
-        signupToggle.innerHTML = 'New to BULKKOT? <strong>Create an account</strong>';
-      } else {
-        loginForm.dataset.mode = 'signup';
-        if (nameField) nameField.style.display = 'flex';
-        nameInput?.setAttribute('required', 'true');
-        if (modeText) modeText.innerHTML = 'Create Account';
-        if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
-        signupToggle.innerHTML = 'Already have an account? <strong>Login here</strong>';
-      }
-    });
-
-    loginForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = loginForm.querySelector('#account-email')?.value.trim();
-      const password = loginForm.querySelector('#account-password')?.value;
-      const fullName = nameInput?.value.trim();
-      const submitBtn = loginForm.querySelector('.account-submit');
-      const isSignUp = loginForm.dataset.mode === 'signup';
-
-      if (!email || !password || (isSignUp && !fullName)) {
-        if (msgEl) msgEl.textContent = 'Please fill in all required fields.';
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'PROCESSING...';
-      if (msgEl) msgEl.textContent = '';
-
-      try {
-        if (isSignUp) {
-          const { data, error } = await supabase.auth.signUp({
-            email, 
-            password,
-            options: { data: { full_name: fullName } }
-          });
-          if (error) throw error;
-          
-          if (data?.user) {
-            await supabase.from('customer_profiles').upsert({
-              id: data.user.id,
-              full_name: fullName,
-              updated_at: new Date().toISOString()
-            });
-          }
-          if (msgEl) {
-            msgEl.style.color = '#31c48d';
-            msgEl.textContent = 'Account created successfully!';
-          }
-        } else {
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-        }
-      } catch (err) {
-        if (msgEl) {
-          msgEl.style.color = '#ff7777';
-          msgEl.textContent = err.message || 'Authentication failed.';
-        }
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'CONTINUE';
-      }
-    });
-
-    document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
-    });
-
-    const signoutBtn = document.querySelector('[data-account-signout]');
-    signoutBtn?.addEventListener('click', async () => {
-      signoutBtn.textContent = 'SIGNING OUT...';
-      await supabase.auth.signOut();
-      signoutBtn.textContent = 'SIGN OUT';
-    });
-
-    const profileForm = document.querySelector('[data-account-profile-form]');
-    profileForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const profileData = {
-        id: user.id,
-        full_name: profileForm.querySelector('#account-name')?.value.trim(),
-        phone: profileForm.querySelector('#account-phone')?.value.trim(),
-        shipping_address: profileForm.querySelector('#account-address')?.value.trim(),
-        shipping_city: profileForm.querySelector('#account-city')?.value.trim(),
-        shipping_state: profileForm.querySelector('#account-state')?.value.trim(),
-        shipping_pincode: profileForm.querySelector('#account-pincode')?.value.trim(),
-        updated_at: new Date().toISOString()
-      };
-
-      const profMsg = document.querySelector('[data-profile-message]');
-      const btn = profileForm.querySelector('button');
-      btn.disabled = true;
-      btn.textContent = 'SAVING...';
-
-      try {
-        const { error } = await supabase.from('customer_profiles').upsert(profileData);
-        if (error) throw error;
-        if (profMsg) profMsg.textContent = 'Profile saved successfully!';
-        setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
-      } catch (err) {
-        if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'SAVE PROFILE';
-      }
-    });
-  }
-
-  async function loadCustomerProfile(userId) {
-    if (!supabase) return;
-    try {
-      const { data } = await supabase.from('customer_profiles').select('*').eq('id', userId).maybeSingle();
-      if (!data) return;
-      const f = document.querySelector('[data-account-profile-form]');
-      if (!f) return;
-      if (f.querySelector('#account-name')) f.querySelector('#account-name').value = data.full_name || '';
-      if (f.querySelector('#account-phone')) f.querySelector('#account-phone').value = data.phone || '';
-      if (f.querySelector('#account-address')) f.querySelector('#account-address').value = data.shipping_address || '';
-      if (f.querySelector('#account-city')) f.querySelector('#account-city').value = data.shipping_city || '';
-      if (f.querySelector('#account-state')) f.querySelector('#account-state').value = data.shipping_state || '';
-      if (f.querySelector('#account-pincode')) f.querySelector('#account-pincode').value = data.shipping_pincode || '';
-    } catch (e) {}
-  }
-
-  async function loadCustomerOrders(userId) {
-    const ordersBox = document.querySelector('[data-account-orders]');
-    if (!ordersBox || !supabase) return;
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error || !data || !data.length) {
-        ordersBox.innerHTML = '<p style="color:#777; font-size:12px; margin:10px 0;">No past orders found.</p>';
-        return;
-      }
-
-      ordersBox.innerHTML = data.map(o => `
-        <div style="border: 1px solid #222; border-radius:6px; padding:10px; margin-bottom:8px; background:#0c0c0c;">
-          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
-            <span>${escapeHTML(o.order_number || o.id.slice(0, 8))}</span>
-            <span style="color:var(--bk-red, #e31b23);">${escapeHTML(o.order_status || 'PLACED')}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:4px;">
-            <span>${new Date(o.created_at).toLocaleDateString()}</span>
-            <strong>${formatPrice(o.total)}</strong>
-          </div>
-        </div>
-      `).join('');
-    } catch (e) {
-      ordersBox.innerHTML = '<p style="color:#777; font-size:12px;">Failed to load order history.</p>';
-    }
-  }
-
-  /* =========================================================
-     DYNAMIC STORE SETTINGS
-     ========================================================= */
-  async function syncStoreSettings() {
-    if (!supabase) return;
-    try {
-      const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
-      if (!data) return;
-
-      const rawPhone = String(data.support_phone || '').replace(/\D/g, '');
-      const whatsappBtn = document.querySelector('.whatsapp-float');
-      if (whatsappBtn && rawPhone) {
-        whatsappBtn.href = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hi BULKKOT, I have an inquiry about Drop 001.')}`;
-      }
-
-      const email = data.support_email;
-      if (email) {
-        document.querySelectorAll('a[href^="mailto:"]').forEach(a => {
-          a.href = `mailto:${email}`;
-        });
-      }
-    } catch (e) {}
-  }
-
-  /* =========================================================
-     READ-ONLY CMS LOADER & DYNAMIC ANNOUNCEMENT SYNC
-     ========================================================= */
-  const ANNOUNCEMENT_STOREFRONT_DEFAULTS = {
+  const ANNOUNCEMENT_DEFAULTS = {
     announcement_bg: "#e31b23",
     announcement_color: "#ffffff",
     announcement_font: "'Inter', sans-serif",
     announcement_speed: "20"
   };
 
-  const HERO_STOREFRONT_DEFAULTS = {
+  const HERO_DEFAULTS = {
     hero_overlay_color: "#000000",
     hero_text_color: "#ffffff",
     hero_font: "'Montserrat', sans-serif"
   };
 
-  function hexToRgbaStorefront(hex, alpha) {
-    const clean = String(hex || "").replace("#", "");
-    if (!/^[0-9a-fA-F]{6}$/.test(clean)) return `rgba(0,0,0,${alpha})`;
-    const r = parseInt(clean.slice(0, 2), 16);
-    const g = parseInt(clean.slice(2, 4), 16);
-    const b = parseInt(clean.slice(4, 6), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
-
-  async function loadCMSContent() {
-    if (!supabase) return;
-    try {
-      const { data, error } = await supabase
-        .from("site_content")
-        .select("key, value, content_key, content_value");
-
-      const bar = document.querySelector('.announcement-bar');
-      const track = document.querySelector('.announcement-track');
-
-      // Normalize rows regardless of which column pair actually holds data
-      // (defends against older rows written with key/value vs content_key/content_value).
-      const rows = (!error && data) ? data.map(r => ({
-        key: r.content_key || r.key,
-        value: (r.content_value ?? r.value ?? "")
-      })).filter(r => r.key) : [];
-
-      // Build a lookup with safe fallbacks so styling never breaks if a key is missing.
-      const lookup = {};
-      rows.forEach(r => { lookup[r.key] = r.value; });
-
-      const bg = lookup.announcement_bg || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_bg;
-      const color = lookup.announcement_color || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_color;
-      const font = lookup.announcement_font || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_font;
-      const speed = lookup.announcement_speed || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_speed;
-
-      if (bar) {
-        bar.style.backgroundColor = bg;
-        bar.style.color = color;
-        bar.style.fontFamily = font;
-      }
-      if (track && speed) {
-        track.style.animationDuration = `${speed}s`;
-      }
-
-      // Hero banner styling (overlay color, text color, font) — admin-controlled,
-      // falls back to the storefront's original design if unset.
-      const heroOverlay = document.querySelector(".hero-overlay");
-      const heroTitle = document.querySelector(".hero-content h1");
-      const heroLabel = document.querySelector(".hero-label");
-      const heroDesc = document.querySelector(".hero-description");
-
-      const heroOverlayColor = lookup.hero_overlay_color || HERO_STOREFRONT_DEFAULTS.hero_overlay_color;
-      const heroTextColor = lookup.hero_text_color || HERO_STOREFRONT_DEFAULTS.hero_text_color;
-      const heroFont = lookup.hero_font || HERO_STOREFRONT_DEFAULTS.hero_font;
-
-      if (heroOverlay) {
-        heroOverlay.style.background = `linear-gradient(90deg, ${hexToRgbaStorefront(heroOverlayColor, 0.76)} 0%, ${hexToRgbaStorefront(heroOverlayColor, 0.38)} 42%, ${hexToRgbaStorefront(heroOverlayColor, 0.18)} 100%)`;
-      }
-      // Korean eyebrow text keeps its brand-red color and Noto Sans KR font
-      // (script legibility), so only the English headline/label/description
-      // pick up the admin's color + font choice.
-      [heroTitle, heroLabel, heroDesc].forEach(el => {
-        if (!el) return;
-        if (lookup.hero_text_color) el.style.color = heroTextColor;
-        if (lookup.hero_font) el.style.fontFamily = heroFont;
-      });
-
-      // Ticker texts
-      if (lookup.announcement_1 !== undefined) {
-        document.querySelectorAll('[data-cms-key="announcement_1"]').forEach(el => el.textContent = lookup.announcement_1);
-      }
-      if (lookup.announcement_2 !== undefined) {
-        document.querySelectorAll('[data-cms-key="announcement_2"]').forEach(el => el.textContent = lookup.announcement_2);
-      }
-      if (lookup.announcement_3 !== undefined) {
-        document.querySelectorAll('[data-cms-key="announcement_3"]').forEach(el => el.textContent = lookup.announcement_3);
-      }
-
-      // General tags (hero, about, philosophy, contact, etc.)
-      rows.forEach(({ key, value }) => {
-        if (["announcement_1", "announcement_2", "announcement_3"].includes(key)) return;
-        document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
-          if (el.tagName === "IMG") {
-            el.src = value;
-          } else {
-            el.textContent = value;
-          }
-        });
-      });
-    } catch (e) {
-      // Silent fail — storefront keeps its CSS-defined defaults (which already
-      // match ANNOUNCEMENT_STOREFRONT_DEFAULTS above), so the bar never breaks.
-    }
-  }
-
-  /* =========================================================
-     CATALOGUE
-     ========================================================= */
-  async function initCatalog() {
-    const grid = document.getElementById("products-grid");
-    if (!grid) return;
-
-    try {
-      let data = [];
-      let fetchFailed = false;
-      if (supabase) {
-        const res = await supabase.from("products").select("*").eq("active", true).order("created_at", { ascending: false });
-        if (res.error) fetchFailed = true;
-        else data = res.data || [];
-      } else {
-        fetchFailed = true;
-      }
-
-      liveProducts = data;
-
-      liveProducts.forEach(p => {
-        selectedSizes[p.id] = ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
-      });
-
-      if (!liveProducts.length) {
-        renderCatalogEmptyState(fetchFailed);
-      } else {
-        renderProducts(getFilteredProducts());
-      }
-    } catch (err) {
-      liveProducts = [];
-      renderCatalogEmptyState(true);
-    }
-
-    const sortSelect = document.getElementById('shop-sort');
-    sortSelect?.addEventListener('change', (e) => {
-      activeSort = e.target.value;
-      renderProducts(getFilteredProducts());
-    });
-  }
-
-  // Genuine empty/offline state for the homepage catalogue — never
-  // substitutes fake, non-purchasable placeholder products for real ones.
-  function renderCatalogEmptyState(isError) {
-    const grid = document.getElementById("products-grid");
-    if (!grid) return;
-    grid.innerHTML = isError
-      ? `<div class="catalog-message" style="grid-column:1/-1; text-align:center; padding:60px 20px;">
-          <strong style="display:block; color:#fff; font-size:15px; margin-bottom:8px;">Unable to load the catalogue</strong>
-          <p style="color:#888; font-size:12px; margin-bottom:16px;">Please check your connection and try again.</p>
-          <button type="button" onclick="location.reload()" style="background:transparent; border:1px solid #333; color:#ccc; font-size:11px; font-weight:700; padding:8px 18px; border-radius:4px; cursor:pointer;">RETRY</button>
-        </div>`
-      : `<div class="catalog-message" style="grid-column:1/-1; text-align:center; padding:60px 20px;">
-          <strong style="display:block; color:#fff; font-size:15px; margin-bottom:8px;">New styles dropping soon</strong>
-          <p style="color:#888; font-size:12px;">Join the waitlist below to be first to know when Drop 001 goes live.</p>
-        </div>`;
-  }
-
-  function getFilteredProducts() {
-    let list = [...liveProducts];
-    if (activeCategory !== "all") list = list.filter(p => getCategory(p) === activeCategory.toLowerCase());
-    if (activeSearch) list = list.filter(p => (p.name || '').toLowerCase().includes(activeSearch));
-    if (activeSort === "price-low") list.sort((a, b) => Number(a.price) - Number(b.price));
-    if (activeSort === "price-high") list.sort((a, b) => Number(b.price) - Number(a.price));
-    if (activeSort === "newest") list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    return list;
-  }
-
-  function renderProducts(items) {
-    const grid = document.getElementById("products-grid");
-    if (!grid) return;
-
-    if (!items.length) {
-      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No garments found matching your filter.</p>';
-      return;
-    }
-
-    grid.innerHTML = items.map(p => {
-      const cat = getCategory(p);
-      const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
-      const totalStock = getTotalStock(p);
-      const curSize = selectedSizes[p.id] || "M";
-      const badge = getStockBadge(p, curSize);
-      const images = getProductImages(p);
-      const coverImage = images[0];
-
-      const sizePills = ["S", "M", "L", "XL"].map(s => {
-        const qty = getStock(p, s);
-        const sel = curSize === s;
-        return `<button type="button" class="product-size-btn ${sel ? 'is-selected' : ''} ${qty <= 0 ? 'is-disabled' : ''}" data-action="size" data-id="${p.id}" data-size="${s}">${s}</button>`;
-      }).join('');
-
-     return `
-        <article class="product-card" data-product-card data-category="${cat}">
-          <a href="product.html?id=${p.id}" class="product-card__thumb" style="display:block; text-decoration:none;">
-            <img src="${escapeHTML(coverImage)}" alt="${escapeHTML(p.name)}" loading="lazy">
-            <span class="product-status">${totalStock <= 0 ? 'SOLD OUT' : 'DROP 001'}</span>
-          </a>
-          <div class="product-information">
-            <a href="product.html?id=${p.id}" class="product-information__header" style="display:flex; text-decoration:none; color:inherit;">
-              <div>
-                <h3>${escapeHTML(p.name)}</h3>
-                <p class="product-category">${catKorean}</p>
-              </div>
-              <span class="product-price">${formatPrice(p.price)}</span>
-            </a>
-            <button type="button" class="button button--primary product-add-button" data-action="add" data-id="${p.id}" ${badge.disabled ? 'disabled' : ''}>
-              ${badge.disabled ? 'SOLD OUT' : 'ADD TO BAG'}
-            </button>
-          </div>
-        </article>
-      `;
-    }).join('');
-  }
-
-  /* =========================================================
-     PRODUCT DETAIL POP-UP (PDP)
-     ========================================================= */
-  let currentPdpProduct = null;
-  let currentPdpSize = 'M';
-  let currentPdpQty = 1;
-
-  function openPdpModal(productId) {
-    const p = liveProducts.find(item => String(item.id) === String(productId));
-    if (!p) return;
-
-    currentPdpProduct = p;
-    currentPdpSize = selectedSizes[p.id] || ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
-    currentPdpQty = 1;
-
-    renderPdpView();
-
-    const modal = document.getElementById('pdpModal');
-    modal?.classList.add('is-open');
-    modal?.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
-  }
-
-  function closePdpModal() {
-    const modal = document.getElementById('pdpModal');
-    modal?.classList.remove('is-open');
-    modal?.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('modal-open');
-  }
-
-  function renderPdpView() {
-    const container = document.getElementById('pdpContent');
-    const p = currentPdpProduct;
-    if (!container || !p) return;
-
-    const images = getProductImages(p);
-    const cat = getCategory(p);
-    const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
-    const stockCurSize = getStock(p, currentPdpSize);
-
-    let related = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) === cat);
-    if (related.length < 4) {
-      const rest = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) !== cat);
-      related = [...related, ...rest].slice(0, 4);
-    } else {
-      related = related.slice(0, 4);
-    }
-
-    const thumbsHtml = images.map((img, i) => `
-      <div class="pdp-thumb ${i === 0 ? 'is-active' : ''}" data-pdp-thumb="${i}">
-        <img src="${escapeHTML(img)}" alt="Thumbnail ${i + 1}">
-      </div>
-    `).join('');
-
-    const sizeButtons = ["S", "M", "L", "XL"].map(s => {
-      const st = getStock(p, s);
-      const isSelected = currentPdpSize === s;
-      const isOut = st <= 0;
-      return `
-        <button type="button" class="pdp-size-btn ${isSelected ? 'is-selected' : ''} ${isOut ? 'is-sold-out' : ''}"
-                data-pdp-size="${s}" ${isOut ? 'disabled' : ''}>
-          ${s}
-        </button>
-      `;
-    }).join('');
-
-    const relatedHtml = related.map(rel => {
-      const rImages = getProductImages(rel);
-      return `
-        <div class="pdp-related-card" data-action="quickview" data-id="${rel.id}">
-          <img src="${escapeHTML(rImages[0])}" alt="${escapeHTML(rel.name)}">
-          <div class="pdp-related-meta">
-            <strong>${escapeHTML(rel.name)}</strong>
-            <span>${formatPrice(rel.price)}</span>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    container.innerHTML = `
-      <div class="pdp-grid">
-        <div class="pdp-gallery">
-          <div class="pdp-main-image-wrap">
-            <img src="${escapeHTML(images[0])}" id="pdpMainImage" class="pdp-main-image" alt="${escapeHTML(p.name)}">
-          </div>
-          ${images.length > 1 ? `<div class="pdp-thumbnails">${thumbsHtml}</div>` : ''}
-        </div>
-
-        <div class="pdp-info">
-          <span class="pdp-korean">${catKorean} · DROP 001</span>
-          <h2 class="pdp-title">${escapeHTML(p.name)}</h2>
-          <div class="pdp-price">${formatPrice(p.price)}</div>
-
-          <p class="pdp-desc">${escapeHTML(p.description || 'Constructed from heavyweight luxury combed cotton. Tailored with architectural restraint for an elevated, relaxed drape.')}</p>
-
-          <div class="pdp-option-title">
-            <span>SELECT SIZE</span>
-            <span style="color: ${stockCurSize <= 2 && stockCurSize > 0 ? 'var(--bk-yellow, #f5c542)' : '#777'};">
-              ${stockCurSize <= 0 ? 'SOLD OUT' : (stockCurSize <= 4 ? `ONLY ${stockCurSize} LEFT` : 'IN STOCK')}
-            </span>
-          </div>
-          <div class="pdp-sizes">${sizeButtons}</div>
-
-          <div class="pdp-option-title"><span>QUANTITY</span></div>
-          <div class="pdp-qty-row">
-            <div class="pdp-qty-box">
-              <button type="button" id="pdpQtyMinus">-</button>
-              <span id="pdpQtyVal">${currentPdpQty}</span>
-              <button type="button" id="pdpQtyPlus">+</button>
-            </div>
-            <button type="button" class="button button--primary pdp-add-btn" id="pdpAddBtn" ${stockCurSize <= 0 ? 'disabled' : ''}>
-              ${stockCurSize <= 0 ? 'SOLD OUT' : 'ADD TO BAG'}
-            </button>
-          </div>
-
-          <div style="font-size:11px; color:#777; line-height:1.6; border-top:1px solid #1a1a1a; padding-top:14px;">
-            ✓ 100% Heavyweight Cotton • Relaxed Drop-Shoulder Fit<br>
-            ✓ Complimentary Express Shipping across India<br>
-            ✓ 7-Day Easy Exchange Policy
-          </div>
-        </div>
-      </div>
-
-      ${related.length > 0 ? `
-        <div class="pdp-related">
-          <div class="pdp-related-title">SIMILAR SILHOUETTES</div>
-          <div class="pdp-related-grid">${relatedHtml}</div>
-        </div>
-      ` : ''}
-    `;
-
-    container.querySelectorAll('[data-pdp-thumb]').forEach(tb => {
-      tb.addEventListener('click', () => {
-        container.querySelectorAll('[data-pdp-thumb]').forEach(t => t.classList.remove('is-active'));
-        tb.classList.add('is-active');
-        const idx = Number(tb.dataset.pdpThumb);
-        const mainImg = document.getElementById('pdpMainImage');
-        if (mainImg && images[idx]) mainImg.src = images[idx];
-      });
-    });
-
-    container.querySelectorAll('[data-pdp-size]').forEach(sb => {
-      sb.addEventListener('click', () => {
-        currentPdpSize = sb.dataset.pdpSize;
-        renderPdpView();
-      });
-    });
-
-    container.querySelector('#pdpQtyMinus')?.addEventListener('click', () => {
-      if (currentPdpQty > 1) {
-        currentPdpQty -= 1;
-        container.querySelector('#pdpQtyVal').textContent = currentPdpQty;
-      }
-    });
-
-    container.querySelector('#pdpQtyPlus')?.addEventListener('click', () => {
-      if (currentPdpQty < stockCurSize) {
-        currentPdpQty += 1;
-        container.querySelector('#pdpQtyVal').textContent = currentPdpQty;
-      }
-    });
-
-    container.querySelector('#pdpAddBtn')?.addEventListener('click', () => {
-      if (stockCurSize <= 0) return;
-      if (window.BULKKOT_CART?.addItem) {
-        window.BULKKOT_CART.addItem({
-          id: p.id,
-          name: p.name,
-          price: Number(p.price || 0),
-          size: currentPdpSize,
-          image: images[0],
-          quantity: currentPdpQty
-        });
-      }
-      closePdpModal();
-    });
-  }
-
-  /* =========================================================
-     POLICY DATA
-     ========================================================= */
   const POLICY_DATA = {
     faq: {
       title: "FREQUENTLY ASKED QUESTIONS",
       content: `
         <h3>HOW DOES DROP 001 WORK?</h3>
-        <p>Drop 001 consists of limited-quantity heavyweight silhouettes. Once sold out, silhouettes will not be restocked immediately.</p>
+        <p>
+          Drop 001 consists of limited-quantity heavyweight
+          silhouettes. Once sold out, silhouettes may not be
+          restocked immediately.
+        </p>
+
         <h3>WHAT ARE THE SHIPPING CHARGES?</h3>
-        <p>Standard shipping across India is calculated at checkout based on current promotions and cart value.</p>
+        <p>
+          Shipping charges are calculated at checkout based
+          on the current order value and available promotions.
+        </p>
+
         <h3>WHAT PAYMENT METHODS DO YOU ACCEPT?</h3>
-        <p>We accept Cash on Delivery (COD) across all serviceable pin codes in India.</p>
+        <p>
+          Available payment methods are shown during checkout.
+        </p>
       `
     },
+
     shipping: {
       title: "SHIPPING POLICY",
       content: `
         <h3>DISPATCH TIMELINE</h3>
-        <p>All orders are confirmed, packed, and handed over to logistics within 24 to 48 hours.</p>
+        <p>
+          Orders are prepared for dispatch according to
+          current fulfilment availability.
+        </p>
+
         <h3>DELIVERY TIMELINE</h3>
-        <p>Metros: 3–5 business days. Rest of India: 5–7 business days.</p>
+        <p>
+          Delivery timelines depend on destination,
+          courier service and serviceability.
+        </p>
+
         <h3>REAL-TIME TRACKING</h3>
-        <p>Use the 'Track Order' option in our header or footer anytime using your Order Number.</p>
+        <p>
+          Use the Track Order option with your Order Number
+          and registered phone number.
+        </p>
       `
     },
+
     returns: {
       title: "RETURNS & EXCHANGES",
       content: `
-        <h3>7-DAY EXCHANGE WINDOW</h3>
-        <p>We provide a 7-day size exchange window from the day of delivery, subject to inventory availability.</p>
+        <h3>EXCHANGE WINDOW</h3>
+        <p>
+          Size exchanges are subject to the current
+          exchange policy and stock availability.
+        </p>
+
         <h3>CONDITION</h3>
-        <p>Garments must be unworn, unwashed, with all original tags and packaging intact.</p>
+        <p>
+          Items must satisfy the applicable return/exchange
+          conditions and retain their original tags and packaging.
+        </p>
+
         <h3>HOW TO INITIATE</h3>
-        <p>Reach out through the email address or WhatsApp channel listed in our contact section with your Order Number.</p>
+        <p>
+          Contact BULKKOT through the support channel listed
+          on the website with your Order Number.
+        </p>
       `
     },
+
     privacy: {
       title: "PRIVACY POLICY",
       content: `
         <h3>DATA COLLECTION</h3>
-        <p>We only collect name, phone, email, and shipping address details to process orders and track deliveries.</p>
+        <p>
+          Information such as name, phone, email and shipping
+          details may be collected when required to provide
+          store services.
+        </p>
+
         <h3>SECURITY</h3>
-        <p>All records are encrypted through Supabase Row-Level Security and are never sold or rented to third parties.</p>
+        <p>
+          Store data is handled through the configured
+          Supabase infrastructure and applicable security rules.
+        </p>
       `
     },
+
     terms: {
       title: "TERMS & CONDITIONS",
       content: `
-        <h3>PRODUCT AUTHENTICITY</h3>
-        <p>All products sold on bulkkot.com are authentic, heavyweight streetwear crafted under strict quality protocols.</p>
+        <h3>PRODUCTS</h3>
+        <p>
+          Product availability, pricing and specifications
+          are subject to the information displayed on the store.
+        </p>
+
         <h3>CANCELLATION</h3>
-        <p>Orders can be cancelled before dispatch directly by reaching our team with your Order ID.</p>
+        <p>
+          Cancellation availability depends on the current
+          order fulfilment status.
+        </p>
       `
     }
   };
 
   /* =========================================================
-     UNIVERSAL MODAL & NAVIGATION
+     DOM HELPERS
      ========================================================= */
-  function initModalsAndNavigation() {
-    const mobileDrawer = document.querySelector("[data-mobile-drawer]");
-    const mobileOverlay = document.querySelector("[data-mobile-overlay]");
-    const openDrawerBtn = document.querySelector("[data-open-drawer]");
-    const closeDrawerBtns = document.querySelectorAll("[data-close-drawer]");
 
-    function openMobileMenu() {
-      mobileDrawer?.classList.add("is-open");
-      mobileDrawer?.setAttribute("aria-hidden", "false");
-      mobileOverlay?.classList.add("is-active");
-      document.body.classList.add("modal-open");
+  const $ = (selector, root = document) =>
+    root.querySelector(selector);
+
+  const $$ = (selector, root = document) =>
+    Array.from(root.querySelectorAll(selector));
+
+  function on(element, event, handler, options) {
+    if (!element) return;
+    element.addEventListener(event, handler, options);
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function formatPrice(value) {
+    return (
+      "₹" +
+      Number(value || 0).toLocaleString("en-IN")
+    );
+  }
+
+  function getStock(product, size) {
+    return Math.max(
+      0,
+      Number(product?.stock?.[size] || 0)
+    );
+  }
+
+  function getTotalStock(product) {
+    return SIZES.reduce(
+      (total, size) =>
+        total + getStock(product, size),
+      0
+    );
+  }
+
+  function getProductImages(product) {
+    if (
+      Array.isArray(product?.images) &&
+      product.images.length
+    ) {
+      const images = product.images.filter(Boolean);
+
+      if (images.length) return images;
     }
 
-    function closeMobileMenu() {
-      mobileDrawer?.classList.remove("is-open");
-      mobileDrawer?.setAttribute("aria-hidden", "true");
-      mobileOverlay?.classList.remove("is-active");
+    if (product?.image_url) {
+      return [product.image_url];
+    }
+
+    return [FALLBACK_IMAGE];
+  }
+
+  function safeLocalStorageGet(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  function safeLocalStorageSet(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      /* Storage may be unavailable/private mode. */
+    }
+  }
+
+  /* =========================================================
+     BODY SCROLL LOCK
+     ========================================================= */
+
+  function lockBodyScroll() {
+    state.bodyLockCount += 1;
+
+    document.body.classList.add("modal-open");
+  }
+
+  function unlockBodyScroll() {
+    state.bodyLockCount =
+      Math.max(0, state.bodyLockCount - 1);
+
+    if (state.bodyLockCount === 0) {
       document.body.classList.remove("modal-open");
     }
+  }
 
-    openDrawerBtn?.addEventListener("click", (e) => {
-      e.preventDefault();
-      openMobileMenu();
-    });
+  function forceUnlockBodyScroll() {
+    state.bodyLockCount = 0;
+    document.body.classList.remove("modal-open");
+  }
 
-    closeDrawerBtns.forEach(btn => btn.addEventListener("click", closeMobileMenu));
-    mobileOverlay?.addEventListener("click", closeMobileMenu);
+  /* =========================================================
+     MOBILE DRAWER
+     ========================================================= */
 
-    // Policy Modal
-    const policyModal = document.querySelector("[data-policy-modal]");
-    const policyTitle = policyModal?.querySelector("[data-policy-title]");
-    const policyContent = policyModal?.querySelector("[data-policy-content]");
-    const closePolicyBtn = policyModal?.querySelector("[data-close-policy]");
+  function initMobileDrawer() {
+    const drawer =
+      $("[data-mobile-drawer]");
 
-    function openPolicy(type) {
-      if (!policyModal) return;
-      const data = POLICY_DATA[type] || { title: "INFORMATION", content: "<p>Information coming soon.</p>" };
-      if (policyTitle) policyTitle.textContent = data.title;
-      if (policyContent) policyContent.innerHTML = data.content;
-      policyModal.classList.add("is-open");
-      policyModal.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
+    const overlay =
+      $("[data-mobile-overlay]");
+
+    const openButtons =
+      $$("[data-open-drawer]");
+
+    const closeButtons =
+      $$("[data-close-drawer]");
+
+    if (
+      !drawer &&
+      !overlay &&
+      !openButtons.length
+    ) {
+      return;
     }
 
-    function closePolicy() {
-      if (!policyModal) return;
-      policyModal.classList.remove("is-open");
-      policyModal.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
+    function openDrawer() {
+      if (state.drawerOpen) return;
+
+      state.drawerOpen = true;
+
+      drawer?.classList.add("is-open");
+      drawer?.setAttribute("aria-hidden", "false");
+
+      overlay?.classList.add("is-active");
+      overlay?.setAttribute("aria-hidden", "false");
+
+      lockBodyScroll();
     }
 
-    document.querySelectorAll("[data-open-policy]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        openPolicy(btn.dataset.openPolicy);
+    function closeDrawer() {
+      if (!state.drawerOpen) return;
+
+      state.drawerOpen = false;
+
+      drawer?.classList.remove("is-open");
+      drawer?.setAttribute("aria-hidden", "true");
+
+      overlay?.classList.remove("is-active");
+      overlay?.setAttribute("aria-hidden", "true");
+
+      unlockBodyScroll();
+    }
+
+    window.BULKKOT_UI = window.BULKKOT_UI || {};
+
+    window.BULKKOT_UI.openDrawer = openDrawer;
+    window.BULKKOT_UI.closeDrawer = closeDrawer;
+
+    openButtons.forEach((button) => {
+      on(button, "click", (event) => {
+        event.preventDefault();
+        openDrawer();
       });
     });
 
-    closePolicyBtn?.addEventListener("click", closePolicy);
-    policyModal?.addEventListener("click", (e) => {
-      if (e.target === policyModal) closePolicy();
+    closeButtons.forEach((button) => {
+      on(button, "click", (event) => {
+        event.preventDefault();
+        closeDrawer();
+      });
     });
 
-    // About Modal
-    const aboutModal = document.querySelector("[data-about-modal]");
-    const openAboutBtns = document.querySelectorAll("[data-open-about]");
-    const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
+    on(overlay, "click", closeDrawer);
 
-    function openAbout() {
-      aboutModal?.classList.add("is-open");
-      aboutModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-    }
-
-    function closeAbout() {
-      aboutModal?.classList.remove("is-open");
-      aboutModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-    }
-
-    openAboutBtns.forEach(btn => btn.addEventListener("click", openAbout));
-    closeAboutBtn?.addEventListener("click", closeAbout);
-    aboutModal?.addEventListener("click", (e) => {
-      if (e.target === aboutModal) closeAbout();
+    /* Close drawer after navigation. */
+    $$("[data-mobile-drawer] a").forEach((link) => {
+      on(link, "click", () => {
+        closeDrawer();
+      });
     });
 
-    // Size Guide Modal
-    const sizeModal = document.querySelector("[data-size-guide-modal]");
-    const openSizeBtns = document.querySelectorAll("[data-size-guide-open]");
-    const closeSizeBtns = sizeModal?.querySelectorAll("[data-size-guide-close]");
-    const sizeTabs = sizeModal?.querySelectorAll("[data-size-tab]");
-    const sizePanels = sizeModal?.querySelectorAll("[data-size-panel]");
+    /* Keep drawer sane if viewport changes to desktop. */
+    let lastDesktopState =
+      window.matchMedia("(min-width: 768px)").matches;
 
-    function openSizeGuide() {
-      sizeModal?.classList.add("is-open");
-      sizeModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
+    const handleResize = () => {
+      const desktop =
+        window.matchMedia("(min-width: 768px)").matches;
+
+      if (desktop && !lastDesktopState) {
+        closeDrawer();
+      }
+
+      lastDesktopState = desktop;
+    };
+
+    on(window, "resize", handleResize, {
+      passive: true
+    });
+  }
+
+  /* =========================================================
+     HEADER SEARCH
+     ========================================================= */
+
+  function initHeaderSearch() {
+    const toggle =
+      $("#headerSearchToggle");
+
+    const bar =
+      $("#headerSearchBar");
+
+    const close =
+      $("#headerSearchClose");
+
+    const input =
+      $("#liveSearchInput");
+
+    if (!toggle && !bar && !input) {
+      return;
     }
 
-    function closeSizeGuide() {
-      sizeModal?.classList.remove("is-open");
-      sizeModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
+    function openSearch() {
+      if (!bar) return;
+
+      state.searchOpen = true;
+
+      bar.classList.add("is-active");
+      bar.setAttribute("aria-hidden", "false");
+
+      window.setTimeout(() => {
+        input?.focus();
+      }, 50);
     }
 
-    openSizeBtns.forEach(btn => btn.addEventListener("click", openSizeGuide));
-    closeSizeBtns?.forEach(btn => btn.addEventListener("click", closeSizeGuide));
+    function closeSearch(clear = true) {
+      state.searchOpen = false;
 
-    sizeTabs?.forEach(tab => {
-      tab.addEventListener("click", () => {
-        sizeTabs.forEach(t => {
-          t.classList.remove("is-active");
-          t.setAttribute("aria-selected", "false");
-        });
-        tab.classList.add("is-active");
-        tab.setAttribute("aria-selected", "true");
+      bar?.classList.remove("is-active");
+      bar?.setAttribute("aria-hidden", "true");
 
-        const target = tab.dataset.sizeTab;
-        sizePanels?.forEach(p => {
-          if (p.dataset.sizePanel === target) {
-            p.classList.add("is-active");
-            p.hidden = false;
-          } else {
-            p.classList.remove("is-active");
-            p.hidden = true;
+      if (clear && input) {
+        input.value = "";
+      }
+
+      document.dispatchEvent(
+        new CustomEvent("bulkkot:search-change", {
+          detail: {
+            query: clear ? "" : input?.value || ""
           }
+        })
+      );
+    }
+
+    on(toggle, "click", (event) => {
+      event.preventDefault();
+
+      if (state.searchOpen) {
+        closeSearch(false);
+      } else {
+        openSearch();
+      }
+    });
+
+    on(close, "click", (event) => {
+      event.preventDefault();
+      closeSearch(true);
+    });
+
+    on(input, "input", (event) => {
+      const query =
+        String(event.target.value || "")
+          .trim();
+
+      document.dispatchEvent(
+        new CustomEvent("bulkkot:search-change", {
+          detail: {
+            query
+          }
+        })
+      );
+    });
+
+    on(input, "keydown", (event) => {
+      if (event.key !== "Escape") return;
+
+      event.preventDefault();
+      closeSearch(false);
+    });
+
+    $$("[data-search-tag]").forEach((button) => {
+      on(button, "click", () => {
+        const value =
+          String(
+            button.dataset.searchTag || ""
+          ).trim();
+
+        if (input) {
+          input.value = value;
+        }
+
+        if (!state.searchOpen) {
+          openSearch();
+        }
+
+        document.dispatchEvent(
+          new CustomEvent("bulkkot:search-change", {
+            detail: {
+              query: value
+            }
+          })
+        );
+
+        $("#shop")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
         });
       });
     });
 
-    // Guest Order Tracking
-    const trackModal = document.querySelector("[data-track-order-modal]");
-    const openTrackBtns = document.querySelectorAll("[data-open-track-order]");
-    const closeTrackBtns = trackModal?.querySelectorAll("[data-track-order-close]");
-    const trackForm = trackModal?.querySelector("[data-track-order-form]");
-    const trackMsg = trackModal?.querySelector("[data-track-order-message]");
-    const trackResult = trackModal?.querySelector("[data-track-order-result]");
-    const trackAgainBtn = trackModal?.querySelector("[data-track-again]");
+    window.BULKKOT_UI =
+      window.BULKKOT_UI || {};
 
-    function openTracking() {
-      trackModal?.classList.add("is-open");
-      trackModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
+    window.BULKKOT_UI.openSearch = openSearch;
+    window.BULKKOT_UI.closeSearch = closeSearch;
+  }
+
+  /* =========================================================
+     EDITORIAL CAROUSEL
+     ========================================================= */
+
+  function initEditorialCarousel() {
+    const container =
+      $("#editorialCarousel");
+
+    if (!container) return;
+
+    const slides =
+      $$("[data-slide]", container);
+
+    const indicators =
+      $$("[data-slide-indicator]", container);
+
+    const prev =
+      $("[data-carousel-prev]", container);
+
+    const next =
+      $("[data-carousel-next]", container);
+
+    if (!slides.length) return;
+
+    let current = 0;
+
+    function normalize(index) {
+      return (
+        (index + slides.length) %
+        slides.length
+      );
     }
 
-    function closeTracking() {
-      trackModal?.classList.remove("is-open");
-      trackModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
+    function render(index) {
+      current = normalize(index);
+
+      slides.forEach((slide, index) => {
+        const active =
+          index === current;
+
+        slide.classList.toggle(
+          "is-active",
+          active
+        );
+
+        slide.setAttribute(
+          "aria-hidden",
+          active ? "false" : "true"
+        );
+      });
+
+      indicators.forEach((indicator, index) => {
+        const active =
+          index === current;
+
+        indicator.classList.toggle(
+          "is-active",
+          active
+        );
+
+        indicator.setAttribute(
+          "aria-selected",
+          active ? "true" : "false"
+        );
+
+        indicator.setAttribute(
+          "tabindex",
+          active ? "0" : "-1"
+        );
+      });
     }
 
-    openTrackBtns.forEach(btn => btn.addEventListener("click", openTracking));
-    closeTrackBtns?.forEach(btn => btn.addEventListener("click", closeTracking));
+    function stop() {
+      if (state.editorialTimer) {
+        window.clearInterval(
+          state.editorialTimer
+        );
 
-    trackAgainBtn?.addEventListener("click", () => {
-      if (trackResult) trackResult.hidden = true;
-      if (trackForm) trackForm.hidden = false;
-      if (trackMsg) trackMsg.textContent = "";
-    });
+        state.editorialTimer = null;
+      }
+    }
 
-    trackForm?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const orderNumber = trackModal.querySelector("#track-order-number")?.value.trim().toUpperCase();
-      const rawInputPhone = trackModal.querySelector("#track-order-phone")?.value.trim().replace(/\D/g, '');
+    function start() {
+      stop();
 
-      if (!orderNumber || !rawInputPhone) {
-        if (trackMsg) trackMsg.textContent = "Please provide both Order Number and Phone Number.";
+      if (
+        slides.length < 2 ||
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches
+      ) {
         return;
       }
 
-      const submitBtn = trackForm.querySelector(".track-order-submit");
-      submitBtn.disabled = true;
-      submitBtn.textContent = "LOCATING SHIPMENT...";
-      if (trackMsg) trackMsg.textContent = "";
+      state.editorialTimer =
+        window.setInterval(() => {
+          render(current + 1);
+        }, 5000);
+    }
 
-      try {
-        if (!supabase) throw new Error("Database offline. Please try again.");
+    function goNext() {
+      render(current + 1);
+      start();
+    }
 
-        const { data, error } = await supabase
-          .from("orders")
-          .select("*")
-          .eq("order_number", orderNumber)
-          .maybeSingle();
+    function goPrev() {
+      render(current - 1);
+      start();
+    }
 
-        if (error || !data) {
-          throw new Error("No shipment found matching that Order Number.");
-        }
+    on(next, "click", (event) => {
+      event.preventDefault();
+      goNext();
+    });
 
-        const dbPhone = String(data.customer_phone || '').replace(/\D/g, '');
-        if (!dbPhone.endsWith(rawInputPhone.slice(-10))) {
-          throw new Error("Phone number does not match order records.");
-        }
+    on(prev, "click", (event) => {
+      event.preventDefault();
+      goPrev();
+    });
 
-        trackForm.hidden = true;
-        trackResult.hidden = false;
-
-        trackResult.querySelector("[data-track-result-number]").textContent = data.order_number;
-        const statusEl = trackResult.querySelector("[data-track-result-status]");
-        statusEl.textContent = data.order_status || "PLACED";
-
-        const courierEl = trackResult.querySelector("[data-track-result-courier]");
-        const trackingNoEl = trackResult.querySelector("[data-track-result-tracking]");
-
-        courierEl.textContent = data.courier || "In Dispatch Preparation";
-        trackingNoEl.textContent = data.tracking_number || "Will update upon courier pickup";
-
-        const steps = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED"];
-        const curIdx = steps.indexOf((data.order_status || "PLACED").toUpperCase());
-        const fillPct = Math.max(15, Math.min(100, ((curIdx + 1) / steps.length) * 100));
-
-        const line = trackResult.querySelector("[data-track-progress-line]");
-        if (line) line.style.width = `${fillPct}%`;
-
-        trackResult.querySelectorAll(".track-step").forEach(stepEl => {
-          const sName = stepEl.dataset.trackStep;
-          const sIdx = steps.indexOf(sName);
-          stepEl.classList.toggle("is-active", sIdx <= curIdx);
-          stepEl.classList.toggle("is-current", sIdx === curIdx);
+    indicators.forEach(
+      (indicator, index) => {
+        on(indicator, "click", (event) => {
+          event.preventDefault();
+          render(index);
+          start();
         });
+      }
+    );
 
-      } catch (err) {
-        if (trackMsg) trackMsg.textContent = err.message || "Failed to find order.";
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "LOOKUP SHIPMENT";
+    let startX = 0;
+    let startY = 0;
+
+    on(
+      container,
+      "touchstart",
+      (event) => {
+        const touch =
+          event.changedTouches?.[0];
+
+        if (!touch) return;
+
+        startX = touch.clientX;
+        startY = touch.clientY;
+
+        stop();
+      },
+      { passive: true }
+    );
+
+    on(
+      container,
+      "touchend",
+      (event) => {
+        const touch =
+          event.changedTouches?.[0];
+
+        if (!touch) return;
+
+        const dx =
+          touch.clientX - startX;
+
+        const dy =
+          touch.clientY - startY;
+
+        /* Ignore vertical scrolling gestures. */
+        if (
+          Math.abs(dx) > 50 &&
+          Math.abs(dx) > Math.abs(dy)
+        ) {
+          if (dx < 0) {
+            render(current + 1);
+          } else {
+            render(current - 1);
+          }
+        }
+
+        start();
+      },
+      { passive: true }
+    );
+
+    on(container, "mouseenter", stop);
+    on(container, "mouseleave", start);
+    on(container, "focusin", stop);
+    on(container, "focusout", () => {
+      window.setTimeout(() => {
+        if (
+          !container.contains(
+            document.activeElement
+          )
+        ) {
+          start();
+        }
+      }, 0);
+    });
+
+    render(0);
+    start();
+  }
+
+  /* =========================================================
+     WELCOME POPUP
+     ========================================================= */
+
+  function initWelcomePopup() {
+    const popup =
+      $("#welcomePopupModal");
+
+    if (!popup) return;
+
+    const close =
+      $("#welcomePopupClose");
+
+    const google =
+      $("#welcomeGoogleBtn");
+
+    const email =
+      $("#welcomeEmailBtn");
+
+    let timer = null;
+
+    const alreadySeen =
+      safeLocalStorageGet(
+        STORAGE_KEYS.welcomeSeen
+      );
+
+    function closePopup() {
+      popup.classList.remove(
+        "is-open"
+      );
+
+      popup.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+
+      safeLocalStorageSet(
+        STORAGE_KEYS.welcomeSeen,
+        "true"
+      );
+    }
+
+    if (!alreadySeen) {
+      timer = window.setTimeout(() => {
+        popup.classList.add(
+          "is-open"
+        );
+
+        popup.setAttribute(
+          "aria-hidden",
+          "false"
+        );
+      }, 1500);
+    }
+
+    on(close, "click", closePopup);
+
+    on(popup, "click", (event) => {
+      if (event.target === popup) {
+        closePopup();
       }
     });
 
-    // Account Modal
-    const accountModal = document.querySelector("[data-account-modal]");
-    const openAccountBtns = document.querySelectorAll("[data-open-account]");
-    const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
+    on(google, "click", async () => {
+      closePopup();
 
-    function openAccount() {
-      accountModal?.classList.add("is-open");
-      accountModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-    }
+      if (!supabase) return;
 
-    function closeAccount() {
-      accountModal?.classList.remove("is-open");
-      accountModal?.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-    }
-
-    openAccountBtns.forEach(btn => btn.addEventListener("click", openAccount));
-    closeAccountBtns?.forEach(btn => btn.addEventListener("click", closeAccount));
-
-    // PDP Modal Dismissal Listeners
-    document.querySelectorAll('[data-pdp-close]').forEach(el => {
-      el.addEventListener('click', closePdpModal);
+      try {
+        await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo:
+              window.location.origin +
+              window.location.pathname
+          }
+        });
+      } catch (error) {
+        console.error(
+          "BULKKOT Google auth failed:",
+          error
+        );
+      }
     });
 
-    // Global ESC Key Dismiss
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        closeMobileMenu();
-        closePolicy();
-        closeAbout();
-        closeSizeGuide();
-        closeTracking();
-        closeAccount();
-        closePdpModal();
-        document.getElementById('headerSearchBar')?.classList.remove('is-active');
-        document.getElementById('welcomePopupModal')?.classList.remove('is-open');
-        if (window.BULKKOT_CART?.closeCart) window.BULKKOT_CART.closeCart();
-        document.body.classList.remove("modal-open");
+    on(email, "click", () => {
+      closePopup();
+
+      const account =
+        $("[data-account-modal]");
+
+      if (!account) return;
+
+      account.classList.add(
+        "is-open"
+      );
+
+      account.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+
+      lockBodyScroll();
+    });
+
+    window.addEventListener(
+      "beforeunload",
+      () => {
+        if (timer) {
+          window.clearTimeout(timer);
+        }
+      },
+      { once: true }
+    );
+  }
+
+  /* =========================================================
+     AUTH
+     ========================================================= */
+
+  async function initAuth() {
+    if (!supabase) return;
+
+    const accountModal =
+      $("[data-account-modal]");
+
+    const loginForm =
+      $("[data-account-login-form]");
+
+    const signupToggle =
+      $("[data-account-signup-toggle]");
+
+    const googleButton =
+      $("[data-google-login]");
+
+    const signoutButton =
+      $("[data-account-signout]");
+
+    const profileForm =
+      $("[data-account-profile-form]");
+
+    const authMessage =
+      $("#authInlineError");
+
+    const modeText =
+      $("#auth-mode-text");
+
+    const nameField =
+      $("#account-name-field");
+
+    const nameInput =
+      $("#account-name-input");
+
+    function setAuthMessage(
+      message,
+      type = "error"
+    ) {
+      if (!authMessage) return;
+
+      authMessage.textContent =
+        message || "";
+
+      authMessage.style.color =
+        type === "success"
+          ? "#31c48d"
+          : "#ff7777";
+    }
+
+    function setLoginMode(mode) {
+      if (!loginForm) return;
+
+      const signup =
+        mode === "signup";
+
+      loginForm.dataset.mode =
+        signup
+          ? "signup"
+          : "signin";
+
+      if (nameField) {
+        nameField.style.display =
+          signup ? "flex" : "none";
+      }
+
+      if (nameInput) {
+        if (signup) {
+          nameInput.setAttribute(
+            "required",
+            "true"
+          );
+        } else {
+          nameInput.removeAttribute(
+            "required"
+          );
+        }
+      }
+
+      const submit =
+        $(".account-submit", loginForm);
+
+      if (modeText) {
+        modeText.innerHTML =
+          signup
+            ? "Create Account"
+            : 'Login <span style="font-weight:400;font-size:18px;">or</span> Signup';
+      }
+
+      if (submit) {
+        submit.textContent =
+          signup
+            ? "CREATE ACCOUNT"
+            : "CONTINUE";
+      }
+
+      if (signupToggle) {
+        signupToggle.innerHTML =
+          signup
+            ? "Already have an account? <strong>Login here</strong>"
+            : "New to BULKKOT? <strong>Create an account</strong>";
+      }
+
+      setAuthMessage("");
+    }
+
+    async function updateAuthUI(user) {
+      const accountLabel =
+        $("[data-account-label]");
+
+      const authView =
+        $("[data-account-auth]");
+
+      const userView =
+        $("[data-account-user]");
+
+      const emailView =
+        $("[data-account-user-email]");
+
+      if (!user) {
+        if (accountLabel) {
+          accountLabel.textContent =
+            "ACCOUNT";
+        }
+
+        if (authView) {
+          authView.hidden = false;
+        }
+
+        if (userView) {
+          userView.hidden = true;
+        }
+
+        if (emailView) {
+          emailView.textContent = "";
+        }
+
+        return;
+      }
+
+      const metadata =
+        user.user_metadata || {};
+
+      const displayName =
+        metadata.full_name ||
+        user.email?.split("@")[0] ||
+        "ACCOUNT";
+
+      if (accountLabel) {
+        accountLabel.textContent =
+          String(displayName).toUpperCase();
+      }
+
+      if (authView) {
+        authView.hidden = true;
+      }
+
+      if (userView) {
+        userView.hidden = false;
+      }
+
+      if (emailView) {
+        emailView.textContent =
+          user.email || "";
+      }
+
+      await Promise.allSettled([
+        loadCustomerProfile(user.id),
+        loadCustomerOrders(user.id)
+      ]);
+    }
+
+    async function refreshAuthUI() {
+      try {
+        const {
+          data,
+          error
+        } = await supabase.auth.getUser();
+
+        if (error) {
+          throw error;
+        }
+
+        await updateAuthUI(
+          data?.user || null
+        );
+      } catch (error) {
+        console.warn(
+          "BULKKOT auth state refresh failed:",
+          error
+        );
+
+        await updateAuthUI(null);
+      }
+    }
+
+    /* Supabase auth subscription. */
+    const subscription =
+      supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          /*
+           * Do not perform heavy Supabase queries
+           * synchronously inside the auth callback.
+           */
+          window.setTimeout(() => {
+            updateAuthUI(
+              session?.user || null
+            );
+
+            if (
+              window.BULKKOT_CART &&
+              typeof window.BULKKOT_CART.renderCart ===
+                "function"
+            ) {
+              window.BULKKOT_CART.renderCart();
+            }
+          }, 0);
+        }
+      );
+
+    state.authSubscription =
+      subscription?.data?.subscription ||
+      null;
+
+    on(
+      signupToggle,
+      "click",
+      (event) => {
+        event.preventDefault();
+
+        const mode =
+          loginForm?.dataset.mode ||
+          "signin";
+
+        setLoginMode(
+          mode === "signup"
+            ? "signin"
+            : "signup"
+        );
+      }
+    );
+
+    on(
+      loginForm,
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        if (!supabase || !loginForm) {
+          return;
+        }
+
+        const email =
+          $("#account-email", loginForm)
+            ?.value
+            .trim();
+
+        const password =
+          $("#account-password", loginForm)
+            ?.value || "";
+
+        const fullName =
+          nameInput?.value.trim() || "";
+
+        const isSignup =
+          loginForm.dataset.mode ===
+          "signup";
+
+        if (
+          !email ||
+          !password ||
+          (isSignup && !fullName)
+        ) {
+          setAuthMessage(
+            "Please fill in all required fields."
+          );
+          return;
+        }
+
+        const submit =
+          $(".account-submit", loginForm);
+
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent =
+            "PROCESSING...";
+        }
+
+        setAuthMessage("");
+
+        try {
+          if (isSignup) {
+            const {
+              data,
+              error
+            } = await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                data: {
+                  full_name: fullName
+                }
+              }
+            });
+
+            if (error) {
+              throw error;
+            }
+
+            if (data?.user) {
+              /*
+               * Profile creation is best-effort.
+               * Auth creation should not be reported
+               * as failed merely because profile RLS
+               * blocks this optional write.
+               */
+              try {
+                await supabase
+                  .from("customer_profiles")
+                  .upsert({
+                    id: data.user.id,
+                    full_name: fullName,
+                    updated_at:
+                      new Date().toISOString()
+                  });
+              } catch (profileError) {
+                console.warn(
+                  "Customer profile creation skipped:",
+                  profileError
+                );
+              }
+            }
+
+            setAuthMessage(
+              data?.session
+                ? "Account created successfully!"
+                : "Account created. Check your email if verification is required.",
+              "success"
+            );
+
+            if (data?.session) {
+              window.setTimeout(
+                () => {
+                  closeModal(
+                    accountModal
+                  );
+                },
+                500
+              );
+            }
+          } else {
+            const {
+              error
+            } =
+              await supabase.auth.signInWithPassword({
+                email,
+                password
+              });
+
+            if (error) {
+              throw error;
+            }
+
+            closeModal(accountModal);
+          }
+        } catch (error) {
+          setAuthMessage(
+            error?.message ||
+              "Authentication failed."
+          );
+        } finally {
+          if (submit) {
+            submit.disabled = false;
+            submit.textContent =
+              isSignup
+                ? "CREATE ACCOUNT"
+                : "CONTINUE";
+          }
+        }
+      }
+    );
+
+    on(
+      googleButton,
+      "click",
+      async (event) => {
+        event.preventDefault();
+
+        if (!supabase) return;
+
+        try {
+          await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo:
+                window.location.origin +
+                window.location.pathname
+            }
+          });
+        } catch (error) {
+          setAuthMessage(
+            error?.message ||
+              "Google sign-in failed."
+          );
+        }
+      }
+    );
+
+    on(
+      signoutButton,
+      "click",
+      async (event) => {
+        event.preventDefault();
+
+        if (!supabase) return;
+
+        const originalText =
+          signoutButton.textContent;
+
+        signoutButton.disabled = true;
+        signoutButton.textContent =
+          "SIGNING OUT...";
+
+        try {
+          const {
+            error
+          } =
+            await supabase.auth.signOut();
+
+          if (error) {
+            throw error;
+          }
+
+          closeModal(accountModal);
+        } catch (error) {
+          setAuthMessage(
+            error?.message ||
+              "Unable to sign out."
+          );
+        } finally {
+          signoutButton.disabled =
+            false;
+
+          signoutButton.textContent =
+            originalText || "SIGN OUT";
+        }
+      }
+    );
+
+    on(
+      profileForm,
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        if (!supabase || !profileForm) {
+          return;
+        }
+
+        try {
+          const {
+            data
+          } =
+            await supabase.auth.getUser();
+
+          const user =
+            data?.user;
+
+          if (!user) {
+            return;
+          }
+
+          const button =
+            $("button[type='submit']", profileForm) ||
+            $("button", profileForm);
+
+          const message =
+            $("[data-profile-message]");
+
+          if (button) {
+            button.disabled = true;
+            button.textContent =
+              "SAVING...";
+          }
+
+          const profileData = {
+            id: user.id,
+            full_name:
+              $("#account-name", profileForm)
+                ?.value.trim() || "",
+            phone:
+              $("#account-phone", profileForm)
+                ?.value.trim() || "",
+            shipping_address:
+              $("#account-address", profileForm)
+                ?.value.trim() || "",
+            shipping_city:
+              $("#account-city", profileForm)
+                ?.value.trim() || "",
+            shipping_state:
+              $("#account-state", profileForm)
+                ?.value.trim() || "",
+            shipping_pincode:
+              $("#account-pincode", profileForm)
+                ?.value.trim() || "",
+            updated_at:
+              new Date().toISOString()
+          };
+
+          const {
+            error
+          } = await supabase
+            .from("customer_profiles")
+            .upsert(profileData);
+
+          if (error) {
+            throw error;
+          }
+
+          if (message) {
+            message.textContent =
+              "Profile saved successfully!";
+            message.style.color =
+              "#31c48d";
+          }
+
+          window.setTimeout(() => {
+            if (message) {
+              message.textContent = "";
+            }
+          }, 3000);
+        } catch (error) {
+          const message =
+            $("[data-profile-message]");
+
+          if (message) {
+            message.textContent =
+              error?.message ||
+              "Failed to save profile.";
+            message.style.color =
+              "#ff7777";
+          }
+        } finally {
+          const button =
+            $("button[type='submit']", profileForm) ||
+            $("button", profileForm);
+
+          if (button) {
+            button.disabled = false;
+            button.textContent =
+              "SAVE PROFILE";
+          }
+        }
+      }
+    );
+
+    await refreshAuthUI();
+  }
+
+  /* =========================================================
+     CUSTOMER PROFILE
+     ========================================================= */
+
+  async function loadCustomerProfile(userId) {
+    if (!supabase || !userId) return;
+
+    try {
+      const {
+        data,
+        error
+      } = await supabase
+        .from("customer_profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (error || !data) return;
+
+      const form =
+        $("[data-account-profile-form]");
+
+      if (!form) return;
+
+      const fields = {
+        "#account-name":
+          data.full_name || "",
+
+        "#account-phone":
+          data.phone || "",
+
+        "#account-address":
+          data.shipping_address || "",
+
+        "#account-city":
+          data.shipping_city || "",
+
+        "#account-state":
+          data.shipping_state || "",
+
+        "#account-pincode":
+          data.shipping_pincode || ""
+      };
+
+      Object.entries(fields).forEach(
+        ([selector, value]) => {
+          const field =
+            $(selector, form);
+
+          if (field) {
+            field.value = value;
+          }
+        }
+      );
+    } catch (error) {
+      console.warn(
+        "BULKKOT profile load failed:",
+        error
+      );
+    }
+  }
+
+  /* =========================================================
+     CUSTOMER ORDERS
+     ========================================================= */
+
+  async function loadCustomerOrders(userId) {
+    const box =
+      $("[data-account-orders]");
+
+    if (!supabase || !box || !userId) {
+      return;
+    }
+
+    try {
+      const {
+        data,
+        error
+      } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("user_id", userId)
+        .order(
+          "created_at",
+          { ascending: false }
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      if (!Array.isArray(data) || !data.length) {
+        box.innerHTML = `
+          <p style="
+            color:#777;
+            font-size:12px;
+            margin:10px 0;
+          ">
+            No past orders found.
+          </p>
+        `;
+        return;
+      }
+
+      box.innerHTML =
+        data.map((order) => {
+          const id =
+            order.order_number ||
+            order.id?.slice?.(0, 8) ||
+            "ORDER";
+
+          const status =
+            order.order_status ||
+            "PLACED";
+
+          return `
+            <div
+              style="
+                border:1px solid #222;
+                border-radius:6px;
+                padding:10px;
+                margin-bottom:8px;
+                background:#0c0c0c;
+              "
+            >
+              <div
+                style="
+                  display:flex;
+                  justify-content:space-between;
+                  gap:10px;
+                  font-size:12px;
+                  font-weight:700;
+                "
+              >
+                <span>
+                  ${escapeHTML(id)}
+                </span>
+
+                <span
+                  style="
+                    color:var(--bk-red,#e31b23);
+                  "
+                >
+                  ${escapeHTML(status)}
+                </span>
+              </div>
+
+              <div
+                style="
+                  display:flex;
+                  justify-content:space-between;
+                  gap:10px;
+                  font-size:11px;
+                  color:#888;
+                  margin-top:4px;
+                "
+              >
+                <span>
+                  ${
+                    order.created_at
+                      ? new Date(
+                          order.created_at
+                        ).toLocaleDateString(
+                          "en-IN"
+                        )
+                      : ""
+                  }
+                </span>
+
+                <strong>
+                  ${formatPrice(order.total)}
+                </strong>
+              </div>
+            </div>
+          `;
+        }).join("");
+    } catch (error) {
+      console.warn(
+        "BULKKOT order history load failed:",
+        error
+      );
+
+      box.innerHTML = `
+        <p style="
+          color:#777;
+          font-size:12px;
+        ">
+          Failed to load order history.
+        </p>
+      `;
+    }
+  }
+
+  /* =========================================================
+     STORE SETTINGS
+     ========================================================= */
+
+  async function syncStoreSettings() {
+    if (!supabase) return;
+
+    try {
+      const {
+        data,
+        error
+      } = await supabase
+        .from("store_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (error || !data) return;
+
+      const phone =
+        String(
+          data.support_phone || ""
+        ).replace(/\D/g, "");
+
+      if (phone) {
+        $$(".whatsapp-float").forEach(
+          (button) => {
+            button.href =
+              `https://wa.me/${phone}?text=${encodeURIComponent(
+                "Hi BULKKOT, I have an inquiry about Drop 001."
+              )}`;
+          }
+        );
+      }
+
+      if (data.support_email) {
+        $$('a[href^="mailto:"]').forEach(
+          (link) => {
+            link.href =
+              `mailto:${data.support_email}`;
+          }
+        );
+      }
+    } catch (error) {
+      console.warn(
+        "BULKKOT store settings sync failed:",
+        error
+      );
+    }
+  }
+
+  /* =========================================================
+     CMS CONTENT
+     ========================================================= */
+
+  function hexToRgba(hex, alpha) {
+    const clean =
+      String(hex || "")
+        .replace("#", "")
+        .trim();
+
+    if (
+      !/^[0-9a-fA-F]{6}$/.test(clean)
+    ) {
+      return `rgba(0,0,0,${alpha})`;
+    }
+
+    const r =
+      parseInt(
+        clean.slice(0, 2),
+        16
+      );
+
+    const g =
+      parseInt(
+        clean.slice(2, 4),
+        16
+      );
+
+    const b =
+      parseInt(
+        clean.slice(4, 6),
+        16
+      );
+
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  async function loadCMSContent() {
+    if (!supabase) return;
+
+    try {
+      const {
+        data,
+        error
+      } = await supabase
+        .from("site_content")
+        .select(
+          "key,value,content_key,content_value"
+        );
+
+      if (error || !Array.isArray(data)) {
+        return;
+      }
+
+      const lookup = {};
+
+      data.forEach((row) => {
+        const key =
+          row.content_key ||
+          row.key;
+
+        if (!key) return;
+
+        lookup[key] =
+          row.content_value ??
+          row.value ??
+          "";
+      });
+
+      /* -----------------------------------------------------
+         Announcement
+         ----------------------------------------------------- */
+
+      const announcementBar =
+        $(".announcement-bar");
+
+      const announcementTrack =
+        $(".announcement-track");
+
+      const announcementBg =
+        lookup.announcement_bg ||
+        ANNOUNCEMENT_DEFAULTS.announcement_bg;
+
+      const announcementColor =
+        lookup.announcement_color ||
+        ANNOUNCEMENT_DEFAULTS.announcement_color;
+
+      const announcementFont =
+        lookup.announcement_font ||
+        ANNOUNCEMENT_DEFAULTS.announcement_font;
+
+      const announcementSpeed =
+        lookup.announcement_speed ||
+        ANNOUNCEMENT_DEFAULTS.announcement_speed;
+
+      if (announcementBar) {
+        announcementBar.style.backgroundColor =
+          announcementBg;
+
+        announcementBar.style.color =
+          announcementColor;
+
+        announcementBar.style.fontFamily =
+          announcementFont;
+      }
+
+      if (announcementTrack) {
+        const numericSpeed =
+          Number(announcementSpeed);
+
+        if (
+          Number.isFinite(numericSpeed) &&
+          numericSpeed > 0
+        ) {
+          announcementTrack.style.animationDuration =
+            `${numericSpeed}s`;
+        }
+      }
+
+      /* -----------------------------------------------------
+         Hero
+         ----------------------------------------------------- */
+
+      const hero =
+        $(".hero");
+
+      if (hero) {
+        const overlayColor =
+          lookup.hero_overlay_color ||
+          HERO_DEFAULTS.hero_overlay_color;
+
+        const heroTextColor =
+          lookup.hero_text_color ||
+          HERO_DEFAULTS.hero_text_color;
+
+        const heroFont =
+          lookup.hero_font ||
+          HERO_DEFAULTS.hero_font;
+
+        hero.style.setProperty(
+          "--hero-overlay-color",
+          overlayColor
+        );
+
+        hero.style.setProperty(
+          "--hero-overlay",
+          hexToRgba(
+            overlayColor,
+            0.42
+          )
+        );
+
+        hero.style.setProperty(
+          "--hero-text-color",
+          heroTextColor
+        );
+
+        hero.style.setProperty(
+          "--hero-font",
+          heroFont
+        );
+      }
+
+      /*
+       * Generic text/content CMS hooks.
+       * Existing HTML can opt into these without
+       * requiring another JS bundle.
+       */
+      $$("[data-cms-key]").forEach(
+        (element) => {
+          const key =
+            element.dataset.cmsKey;
+
+          if (!key) return;
+
+          if (
+            Object.prototype.hasOwnProperty.call(
+              lookup,
+              key
+            )
+          ) {
+            const value =
+              String(
+                lookup[key] ?? ""
+              );
+
+            if (
+              element.dataset.cmsHtml ===
+              "true"
+            ) {
+              element.innerHTML = value;
+            } else {
+              element.textContent = value;
+            }
+          }
+        }
+      );
+    } catch (error) {
+      console.warn(
+        "BULKKOT CMS sync failed:",
+        error
+      );
+    }
+  }
+
+  /* =========================================================
+     MODAL CORE
+     ========================================================= */
+
+  function openModal(modal) {
+    if (!modal) return;
+
+    if (
+      modal.classList.contains(
+        "is-open"
+      )
+    ) {
+      return;
+    }
+
+    modal.classList.add(
+      "is-open"
+    );
+
+    modal.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    state.activeModal = modal;
+
+    lockBodyScroll();
+  }
+
+  function closeModal(modal) {
+    if (!modal) return;
+
+    if (
+      !modal.classList.contains(
+        "is-open"
+      )
+    ) {
+      return;
+    }
+
+    modal.classList.remove(
+      "is-open"
+    );
+
+    modal.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    if (state.activeModal === modal) {
+      state.activeModal = null;
+    }
+
+    unlockBodyScroll();
+  }
+
+  function bindModalBackdrop(
+    modal,
+    closeHandler
+  ) {
+    on(modal, "click", (event) => {
+      if (event.target === modal) {
+        closeHandler();
       }
     });
   }
 
-  // Delegated Clicks (PDP, Size & Add to Bag)
-  document.addEventListener("click", e => {
-    const btn = e.target.closest("[data-action]");
-    if (!btn) return;
-    const action = btn.dataset.action;
-    const id = btn.dataset.id;
-    const p = liveProducts.find(item => String(item.id) === String(id));
+  /* =========================================================
+     POLICY MODAL
+     ========================================================= */
 
-    if (action === "quickview" && p) {
-      openPdpModal(p.id);
-    } else if (action === "size" && p) {
-      selectedSizes[id] = btn.dataset.size;
-      renderProducts(getFilteredProducts());
-    } else if (action === "add" && p) {
-      const size = selectedSizes[id] || "M";
-      if (getStock(p, size) <= 0) return;
-      const images = getProductImages(p);
-      if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
-        window.BULKKOT_CART.addItem({
-          id: p.id,
-          name: p.name,
-          price: Number(p.price || 0),
-          size: size,
-          image: images[0]
+  function initPolicyModal() {
+    const modal =
+      $("[data-policy-modal]");
+
+    if (!modal) return;
+
+    const title =
+      $("[data-policy-title]", modal);
+
+    const content =
+      $("[data-policy-content]", modal);
+
+    const closeButtons =
+      $$("[data-close-policy]", modal);
+
+    function close() {
+      closeModal(modal);
+    }
+
+    function open(type) {
+      const policy =
+        POLICY_DATA[type] ||
+        {
+          title: "INFORMATION",
+          content:
+            "<p>Information coming soon.</p>"
+        };
+
+      if (title) {
+        title.textContent =
+          policy.title;
+      }
+
+      if (content) {
+        content.innerHTML =
+          policy.content;
+      }
+
+      openModal(modal);
+    }
+
+    $$("[data-open-policy]").forEach(
+      (button) => {
+        on(button, "click", (event) => {
+          event.preventDefault();
+
+          open(
+            button.dataset.openPolicy
+          );
         });
       }
+    );
+
+    closeButtons.forEach(
+      (button) => {
+        on(button, "click", close);
+      }
+    );
+
+    bindModalBackdrop(
+      modal,
+      close
+    );
+  }
+
+  /* =========================================================
+     ABOUT MODAL
+     ========================================================= */
+
+  function initAboutModal() {
+    const modal =
+      $("[data-about-modal]");
+
+    if (!modal) return;
+
+    const openButtons =
+      $$("[data-open-about]");
+
+    const closeButtons =
+      $$("[data-close-about]", modal);
+
+    const close = () =>
+      closeModal(modal);
+
+    openButtons.forEach(
+      (button) => {
+        on(button, "click", (event) => {
+          event.preventDefault();
+          openModal(modal);
+        });
+      }
+    );
+
+    closeButtons.forEach(
+      (button) => {
+        on(button, "click", close);
+      }
+    );
+
+    bindModalBackdrop(
+      modal,
+      close
+    );
+  }
+
+  /* =========================================================
+     SIZE GUIDE
+     ========================================================= */
+
+  function initSizeGuide() {
+    const modal =
+      $("[data-size-guide-modal]");
+
+    if (!modal) return;
+
+    const openButtons =
+      $$("[data-size-guide-open]");
+
+    const closeButtons =
+      $$("[data-size-guide-close]", modal);
+
+    const tabs =
+      $$("[data-size-tab]", modal);
+
+    const panels =
+      $$("[data-size-panel]", modal);
+
+    function close() {
+      closeModal(modal);
     }
-  });
 
-  window.addEventListener('bulkkot:order-completed', () => {
-    initCatalog();
-  });
+    function activateTab(
+      target
+    ) {
+      tabs.forEach((tab) => {
+        const active =
+          tab.dataset.sizeTab ===
+          target;
 
-  function initStorefront() {
-    initModalsAndNavigation();
-    initCatalog();
-    initEditorialCarousel();
-    loadCMSContent();
-    syncStoreSettings();
-    initAuth();
-    initInlineSearch();
-    initWelcomePopup();
+        tab.classList.toggle(
+          "is-active",
+          active
+        );
 
-    document.querySelectorAll("[data-shop-category]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll("[data-shop-category]").forEach(b => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-        activeCategory = btn.dataset.shopCategory;
-        renderProducts(getFilteredProducts());
+        tab.setAttribute(
+          "aria-selected",
+          active ? "true" : "false"
+        );
+      });
+
+      panels.forEach((panel) => {
+        const active =
+          panel.dataset.sizePanel ===
+          target;
+
+        panel.classList.toggle(
+          "is-active",
+          active
+        );
+
+        panel.hidden = !active;
+      });
+    }
+
+    openButtons.forEach(
+      (button) => {
+        on(button, "click", (event) => {
+          event.preventDefault();
+          openModal(modal);
+        });
+      }
+    );
+
+    closeButtons.forEach(
+      (button) => {
+        on(button, "click", close);
+      }
+    );
+
+    tabs.forEach(
+      (tab) => {
+        on(tab, "click", () => {
+          activateTab(
+            tab.dataset.sizeTab
+          );
+        });
+      }
+    );
+
+    bindModalBackdrop(
+      modal,
+      close
+    );
+
+    const initial =
+      tabs.find(
+        (tab) =>
+          tab.classList.contains(
+            "is-active"
+          )
+      )?.dataset.sizeTab ||
+      tabs[0]?.dataset.sizeTab;
+
+    if (initial) {
+      activateTab(initial);
+    }
+  }
+
+  /* =========================================================
+     ORDER TRACKING
+     ========================================================= */
+
+  function initOrderTracking() {
+    const modal =
+      $("[data-track-order-modal]");
+
+    if (!modal) return;
+
+    const openButtons =
+      $$("[data-open-track-order]");
+
+    const closeButtons =
+      $$("[data-track-order-close]", modal);
+
+    const form =
+      $("[data-track-order-form]", modal);
+
+    const message =
+      $("[data-track-order-message]", modal);
+
+    const result =
+      $("[data-track-order-result]", modal);
+
+    const again =
+      $("[data-track-again]", modal);
+
+    function close() {
+      closeModal(modal);
+    }
+
+    function reset() {
+      if (result) {
+        result.hidden = true;
+      }
+
+      if (form) {
+        form.hidden = false;
+      }
+
+      if (message) {
+        message.textContent = "";
+      }
+    }
+
+    openButtons.forEach(
+      (button) => {
+        on(button, "click", (event) => {
+          event.preventDefault();
+          reset();
+          openModal(modal);
+        });
+      }
+    );
+
+    closeButtons.forEach(
+      (button) => {
+        on(button, "click", close);
+      }
+    );
+
+    on(again, "click", reset);
+
+    on(
+      form,
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        if (!supabase) {
+          if (message) {
+            message.textContent =
+              "Store connection unavailable. Please try again.";
+          }
+
+          return;
+        }
+
+        const orderNumber =
+          $(
+            "#track-order-number",
+            form
+          )?.value
+            .trim()
+            .toUpperCase();
+
+        const phone =
+          $(
+            "#track-order-phone",
+            form
+          )?.value
+            .trim()
+            .replace(/\D/g, "");
+
+        if (!orderNumber || !phone) {
+          if (message) {
+            message.textContent =
+              "Please provide both Order Number and Phone Number.";
+          }
+
+          return;
+        }
+
+        const submit =
+          $(".track-order-submit", form);
+
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent =
+            "LOCATING SHIPMENT...";
+        }
+
+        if (message) {
+          message.textContent = "";
+        }
+
+        try {
+          const {
+            data,
+            error
+          } = await supabase
+            .from("orders")
+            .select("*")
+            .eq(
+              "order_number",
+              orderNumber
+            )
+            .maybeSingle();
+
+          if (error || !data) {
+            throw new Error(
+              "No shipment found matching that Order Number."
+            );
+          }
+
+          const dbPhone =
+            String(
+              data.customer_phone || ""
+            ).replace(/\D/g, "");
+
+          const inputLast10 =
+            phone.slice(-10);
+
+          const dbLast10 =
+            dbPhone.slice(-10);
+
+          if (
+            !inputLast10 ||
+            inputLast10 !== dbLast10
+          ) {
+            throw new Error(
+              "Phone number does not match order records."
+            );
+          }
+
+          if (form) {
+            form.hidden = true;
+          }
+
+          if (result) {
+            result.hidden = false;
+          }
+
+          const numberEl =
+            $(
+              "[data-track-result-number]",
+              result
+            );
+
+          const statusEl =
+            $(
+              "[data-track-result-status]",
+              result
+            );
+
+          const courierEl =
+            $(
+              "[data-track-result-courier]",
+              result
+            );
+
+          const trackingEl =
+            $(
+              "[data-track-result-tracking]",
+              result
+            );
+
+          if (numberEl) {
+            numberEl.textContent =
+              data.order_number ||
+              orderNumber;
+          }
+
+          const status =
+            String(
+              data.order_status ||
+                "PLACED"
+            )
+              .trim()
+              .toUpperCase();
+
+          if (statusEl) {
+            statusEl.textContent =
+              status;
+          }
+
+          if (courierEl) {
+            courierEl.textContent =
+              data.courier ||
+              "In Dispatch Preparation";
+          }
+
+          if (trackingEl) {
+            trackingEl.textContent =
+              data.tracking_number ||
+              "Will update upon courier pickup";
+          }
+
+          updateTrackingProgress(
+            result,
+            status
+          );
+        } catch (error) {
+          if (message) {
+            message.textContent =
+              error?.message ||
+              "Failed to find order.";
+          }
+        } finally {
+          if (submit) {
+            submit.disabled = false;
+            submit.textContent =
+              "LOOKUP SHIPMENT";
+          }
+        }
+      }
+    );
+
+    bindModalBackdrop(
+      modal,
+      close
+    );
+  }
+
+  function updateTrackingProgress(
+    result,
+    status
+  ) {
+    if (!result) return;
+
+    const steps = [
+      "PLACED",
+      "PACKED",
+      "SHIPPED",
+      "OUT FOR DELIVERY",
+      "DELIVERED"
+    ];
+
+    /*
+     * Handle common alternate status names
+     * without changing the database value.
+     */
+    const normalized =
+      {
+        PROCESSING: "PLACED",
+        CONFIRMED: "PLACED",
+        DISPATCHED: "SHIPPED",
+        OUT_FOR_DELIVERY:
+          "OUT FOR DELIVERY"
+      }[status] || status;
+
+    let index =
+      steps.indexOf(normalized);
+
+    if (index < 0) {
+      index = 0;
+    }
+
+    const percentage =
+      Math.max(
+        15,
+        Math.min(
+          100,
+          ((index + 1) /
+            steps.length) *
+            100
+        )
+      );
+
+    const line =
+      $(
+        "[data-track-progress-line]",
+        result
+      );
+
+    if (line) {
+      line.style.width =
+        `${percentage}%`;
+    }
+
+    $$(".track-step", result)
+      .forEach((step) => {
+        const stepName =
+          step.dataset.trackStep;
+
+        const stepIndex =
+          steps.indexOf(stepName);
+
+        step.classList.toggle(
+          "is-active",
+          stepIndex >= 0 &&
+            stepIndex <= index
+        );
+
+        step.classList.toggle(
+          "is-current",
+          stepIndex === index
+        );
+      });
+  }
+
+  /* =========================================================
+     ACCOUNT MODAL OPEN/CLOSE
+     ========================================================= */
+
+  function initAccountModal() {
+    const modal =
+      $("[data-account-modal]");
+
+    if (!modal) return;
+
+    const openButtons =
+      $$("[data-open-account]");
+
+    const closeButtons =
+      $$("[data-account-close]", modal);
+
+    openButtons.forEach(
+      (button) => {
+        on(button, "click", (event) => {
+          event.preventDefault();
+          openModal(modal);
+        });
+      }
+    );
+
+    closeButtons.forEach(
+      (button) => {
+        on(button, "click", () => {
+          closeModal(modal);
+        });
+      }
+    );
+
+    bindModalBackdrop(
+      modal,
+      () => closeModal(modal)
+    );
+  }
+
+  /* =========================================================
+     CART OPENERS
+     ========================================================= */
+
+  function initCartTriggers() {
+    /*
+     * cart.js remains the single owner of cart state.
+     * main.js only forwards UI intent when a cart API exists.
+     */
+
+    $$(
+      "[data-open-cart], [data-cart-open]"
+    ).forEach((button) => {
+      on(button, "click", (event) => {
+        event.preventDefault();
+
+        if (
+          window.BULKKOT_CART &&
+          typeof window.BULKKOT_CART.openCart ===
+            "function"
+        ) {
+          window.BULKKOT_CART.openCart();
+        }
       });
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener("DOMContentLoaded", initStorefront);
+  /* =========================================================
+     GLOBAL CLICK BEHAVIOUR
+     ========================================================= */
+
+  function initGlobalClicks() {
+    /*
+     * Delegated PDP / cart / navigation actions.
+     * Only actions explicitly exposed by other modules
+     * are forwarded.
+     */
+
+    on(document, "click", (event) => {
+      const target =
+        event.target instanceof Element
+          ? event.target
+          : null;
+
+      if (!target) return;
+
+      /*
+       * Close modal when a generic backdrop
+       * carries data-modal-close.
+       */
+      const modalClose =
+        target.closest(
+          "[data-modal-close]"
+        );
+
+      if (modalClose) {
+        const modal =
+          modalClose.closest(
+            ".modal, [role='dialog'], [data-modal]"
+          );
+
+        if (modal) {
+          closeModal(modal);
+        }
+      }
+    });
+  }
+
+  /* =========================================================
+     ESCAPE KEY
+     ========================================================= */
+
+  function initKeyboardControls() {
+    on(document, "keydown", (event) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      /*
+       * Close cart first because cart is an
+       * independent module.
+       */
+      if (
+        window.BULKKOT_CART &&
+        typeof window.BULKKOT_CART.closeCart ===
+          "function"
+      ) {
+        window.BULKKOT_CART.closeCart();
+      }
+
+      /* Close drawer. */
+      if (window.BULKKOT_UI?.closeDrawer) {
+        window.BULKKOT_UI.closeDrawer();
+      }
+
+      /* Close active generic modal. */
+      if (state.activeModal) {
+        closeModal(
+          state.activeModal
+        );
+      }
+
+      /* Close header search. */
+      if (window.BULKKOT_UI?.closeSearch) {
+        window.BULKKOT_UI.closeSearch(
+          false
+        );
+      }
+
+      /*
+       * Welcome popup is not managed by
+       * generic modal locking.
+       */
+      const welcome =
+        $("#welcomePopupModal");
+
+      if (welcome) {
+        welcome.classList.remove(
+          "is-open"
+        );
+
+        welcome.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+      }
+
+      /*
+       * Final safety against stale body-lock
+       * state after multiple overlays.
+       */
+      if (
+        !$(".is-open[data-account-modal], .is-open[data-policy-modal], .is-open[data-about-modal], .is-open[data-size-guide-modal], .is-open[data-track-order-modal], [data-mobile-drawer].is-open")
+      ) {
+        forceUnlockBodyScroll();
+      }
+    });
+  }
+
+  /* =========================================================
+     FOCUS MANAGEMENT
+     ========================================================= */
+
+  function initAccessibilityGuards() {
+    /*
+     * Prevent accidental interaction with hidden
+     * mobile drawer content when closed.
+     */
+    const drawer =
+      $("[data-mobile-drawer]");
+
+    if (drawer) {
+      const observer =
+        new MutationObserver(() => {
+          const open =
+            drawer.classList.contains(
+              "is-open"
+            );
+
+          drawer.setAttribute(
+            "aria-hidden",
+            open
+              ? "false"
+              : "true"
+          );
+        });
+
+      observer.observe(drawer, {
+        attributes: true,
+        attributeFilter: [
+          "class"
+        ]
+      });
+    }
+
+    /*
+     * Make images resilient without touching
+     * existing image styling.
+     */
+    $$("img").forEach((image) => {
+      on(
+        image,
+        "error",
+        () => {
+          if (
+            image.dataset.fallbackApplied ===
+            "true"
+          ) {
+            return;
+          }
+
+          image.dataset.fallbackApplied =
+            "true";
+
+          image.src =
+            FALLBACK_IMAGE;
+        },
+        { once: true }
+      );
+    });
+  }
+
+  /* =========================================================
+     ORDER COMPLETION REFRESH
+     ========================================================= */
+
+  function initStoreEvents() {
+    on(
+      window,
+      "bulkkot:order-completed",
+      () => {
+        /*
+         * Let cart.js remain responsible for
+         * cart clearing/rendering.
+         */
+        if (
+          window.BULKKOT_CART &&
+          typeof window.BULKKOT_CART.renderCart ===
+            "function"
+        ) {
+          window.BULKKOT_CART.renderCart();
+        }
+
+        /*
+         * Refresh account order history if
+         * a logged-in account is open.
+         */
+        refreshCurrentUserOrders();
+      }
+    );
+  }
+
+  async function refreshCurrentUserOrders() {
+    if (!supabase) return;
+
+    try {
+      const {
+        data
+      } = await supabase.auth.getUser();
+
+      if (data?.user) {
+        await loadCustomerOrders(
+          data.user.id
+        );
+      }
+    } catch {
+      /* Non-critical refresh. */
+    }
+  }
+
+  /* =========================================================
+     PAGE VISIBILITY
+     ========================================================= */
+
+  function initVisibilityHandling() {
+    on(
+      document,
+      "visibilitychange",
+      () => {
+        if (
+          document.visibilityState ===
+          "hidden"
+        ) {
+          /*
+           * Stop editorial timer while page
+           * isn't visible.
+           */
+          if (
+            state.editorialTimer
+          ) {
+            clearInterval(
+              state.editorialTimer
+            );
+
+            state.editorialTimer = null;
+          }
+        } else {
+          /*
+           * Reinitializeing the carousel isn't
+           * necessary; simply let its own
+           * controller continue on next user
+           * interaction.
+           */
+        }
+      }
+    );
+  }
+
+  /* =========================================================
+     INIT
+     ========================================================= */
+
+  function initStorefront() {
+    if (state.initialized) {
+      return;
+    }
+
+    state.initialized = true;
+
+    initMobileDrawer();
+    initHeaderSearch();
+    initEditorialCarousel();
+    initWelcomePopup();
+
+    initPolicyModal();
+    initAboutModal();
+    initSizeGuide();
+    initOrderTracking();
+    initAccountModal();
+
+    initCartTriggers();
+    initGlobalClicks();
+    initKeyboardControls();
+    initAccessibilityGuards();
+
+    initStoreEvents();
+    initVisibilityHandling();
+
+    /*
+     * Backend-dependent systems are intentionally
+     * isolated so a failed Supabase request cannot
+     * break the storefront UI.
+     */
+    void initAuth();
+    void loadCMSContent();
+    void syncStoreSettings();
+
+    /*
+     * Signal that the global storefront engine
+     * is ready. Other page modules can listen
+     * without depending on execution order.
+     */
+    window.dispatchEvent(
+      new CustomEvent(
+        "bulkkot:storefront-ready"
+      )
+    );
+  }
+
+  /* =========================================================
+     PUBLIC API
+     * ========================================================= */
+
+  window.BULKKOT_MAIN = {
+    version: "production-hardened",
+
+    openModal,
+    closeModal,
+
+    refreshAuthUI:
+      async function () {
+        if (!supabase) return;
+
+        try {
+          const {
+            data
+          } =
+            await supabase.auth.getUser();
+
+          /*
+           * Account UI can be refreshed by
+           * triggering the same public auth
+           * event path.
+           */
+          window.dispatchEvent(
+            new CustomEvent(
+              "bulkkot:auth-refresh",
+              {
+                detail: {
+                  user:
+                    data?.user || null
+                }
+              }
+            )
+          );
+        } catch {
+          /* Non-critical. */
+        }
+      },
+
+    getSupabase: () =>
+      supabase
+  };
+
+  /* =========================================================
+     BOOT
+     ========================================================= */
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initStorefront,
+      { once: true }
+    );
   } else {
     initStorefront();
   }
