@@ -2862,3 +2862,65 @@ body {
   overflow-x: clip !important;
   overflow-y: auto !important;
 }
+
+
+/* =========================================================
+   BULKKOT — FINAL DOCUMENT FLOW SAFETY
+   Page-level scrolling must remain natural. Viewport-height
+   sizing is reserved for isolated UI such as drawers/modals.
+   ========================================================= */
+
+html {
+  width: 100%;
+  min-width: 0;
+  height: auto !important;
+  min-height: 100%;
+  max-height: none !important;
+  overflow-x: clip !important;
+  overflow-y: auto !important;
+}
+
+body {
+  width: 100%;
+  min-width: 320px;
+  height: auto !important;
+  min-height: 100%;
+  max-height: none !important;
+  overflow-x: clip !important;
+  overflow-y: auto !important;
+}
+
+/*
+ * Only page-level flow containers are normalized here.
+ * Component-level overflow (hero/media/cards) is intentionally
+ * left untouched so the visual design is not changed.
+ */
+main,
+#top,
+.page-wrapper,
+.page-content,
+.site-main,
+.content-wrapper,
+.shop-container,
+.pdp-wrapper {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.site-footer {
+  position: relative !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  visibility: visible !important;
+}
+
+/*
+ * Intentional exception:
+ * body.modal-open / body.drawer-open may lock the document while
+ * an overlay is actually open. These are UI-state locks, not page
+ * layout constraints.
+ */
