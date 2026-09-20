@@ -734,6 +734,30 @@
      STOCK VALIDATION
      ========================================================= */
 
+  /* =========================================================
+     ASYNC SAFETY
+     ========================================================= */
+
+  function withTimeout(
+    promise,
+    ms = 12000,
+    message = "Request timed out. Please try again."
+  ) {
+    let timer = null;
+
+    const timeout = new Promise((_, reject) => {
+      timer = window.setTimeout(() => {
+        reject(new Error(message));
+      }, ms);
+    });
+
+    return Promise.race([promise, timeout]).finally(() => {
+      if (timer) {
+        window.clearTimeout(timer);
+      }
+    });
+  }
+
   async function validateCartStock() {
     const client =
       getSupabase();
@@ -761,12 +785,16 @@
     const {
       data,
       error
-    } = await client
-      .from("products")
-      .select(
-        "id,name,price,stock,stock_s,stock_m,stock_l,stock_xl,image_url,images,active"
-      )
-      .in("id", ids);
+    } = await withTimeout(
+      client
+        .from("products")
+        .select(
+          "id,name,price,stock,stock_s,stock_m,stock_l,stock_xl,image_url,images,active"
+        )
+        .in("id", ids),
+      12000,
+      "Unable to verify availability right now. Please try again."
+    );
 
     if (error) {
       throw error;
@@ -1881,13 +1909,17 @@
 
       try {
         const rpc =
-          await client.rpc(
-            "validate_coupon",
-            {
-              p_code: code,
-              p_order_value:
-                subtotal
-            }
+          await withTimeout(
+            client.rpc(
+              "validate_coupon",
+              {
+                p_code: code,
+                p_order_value:
+                  subtotal
+              }
+            ),
+            10000,
+            "Coupon validation timed out. Please try again."
           );
 
         if (
@@ -1909,18 +1941,22 @@
         const {
           data,
           error
-        } = await client
-          .from("coupons")
-          .select("*")
-          .eq(
-            "code",
-            code
-          )
-          .eq(
-            "active",
-            true
-          )
-          .maybeSingle();
+        } = await withTimeout(
+          client
+            .from("coupons")
+            .select("*")
+            .eq(
+              "code",
+              code
+            )
+            .eq(
+              "active",
+              true
+            )
+            .maybeSingle(),
+          10000,
+          "Coupon validation timed out. Please try again."
+        );
 
         if (
           error ||
@@ -2835,29 +2871,31 @@
     }
 
     /*
-     * Current BULKKOT installations have used
-     * different create_order signatures over time.
-     *
-     * First try the current structured signature.
+     * Current production RPC uses ten explicit arguments.
+     * Keep the database parameter names explicit so checkout
+     * matches the live create_order function.
      */
     const attempts = [
       {
-        p_items:
-          rpcItems,
-
-        p_customer:
-          customerPayload,
-
-        p_user_id:
-          userId
+        p_items: rpcItems,
+        p_customer_name: fields.name,
+        p_customer_email: fields.email,
+        p_customer_phone: normalizePhone(fields.phone),
+        p_shipping_address: fields.address,
+        p_shipping_city: fields.city,
+        p_shipping_state: fields.state,
+        p_shipping_pincode: fields.pincode,
+        p_payment_method: selectedPayment,
+        p_user_id: userId
       },
-
       {
-        p_items:
-          rpcItems,
-
-        p_customer:
-          customerPayload
+        p_items: rpcItems,
+        p_customer: customerPayload,
+        p_user_id: userId
+      },
+      {
+        p_items: rpcItems,
+        p_customer: customerPayload
       }
     ];
 
@@ -3040,7 +3078,7 @@
        * refresh so stale localStorage price data
        * cannot be used for display.
        */
-      const totals =
+      let totals =
         getTotals();
 
       if (
@@ -3056,6 +3094,8 @@
         ) {
           appliedCoupon =
             null;
+          totals =
+            getTotals();
         }
       }
 
