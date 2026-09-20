@@ -3,101 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="BULKKOT (불꽃) — Korean-inspired premium everyday wear. Drop 001 coming soon.">
+
+  <meta
+    name="description"
+    content="BULKKOT (불꽃) — Korean-inspired premium everyday wear. Drop 001."
+  >
+
   <meta name="theme-color" content="#000000">
 
   <title>BULKKOT (불꽃) — Premium Everyday Wear</title>
 
-  <!-- OpenGraph / Social Share Preview -->
+  <!-- =====================================================
+       OPEN GRAPH
+  ====================================================== -->
+
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="BULKKOT (불꽃)">
-  <meta property="og:title" content="BULKKOT (불꽃) — Premium Everyday Wear">
-  <meta property="og:description" content="Korean-inspired premium everyday wear. Heavyweight oversized essentials, engineered for elevated movement. Drop 001 — coming soon.">
-  <meta property="og:url" content="https://bulkkot.com/">
-  <meta property="og:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png">
+  <meta property="og:title" id="ogTitleMeta" content="BULKKOT (불꽃) — Premium Everyday Wear">
+  <meta
+    property="og:description"
+    id="ogDescMeta"
+    content="Korean-inspired premium everyday wear. Heavyweight oversized essentials, engineered for elevated movement."
+  >
+  <meta property="og:url" id="ogUrlMeta" content="https://bulkkot.com/">
+  <meta
+    property="og:image"
+    id="ogImageMeta"
+    content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+  >
   <meta property="og:image:width" content="541">
   <meta property="og:image:height" content="359">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="BULKKOT (불꽃) — Premium Everyday Wear">
-  <meta name="twitter:description" content="Korean-inspired premium everyday wear. Drop 001 — coming soon.">
-  <meta name="twitter:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png">
+  <meta
+    name="twitter:title"
+    id="twTitleMeta"
+    content="BULKKOT (불꽃) — Premium Everyday Wear"
+  >
+  <meta
+    name="twitter:description"
+    id="twDescMeta"
+    content="Korean-inspired premium everyday wear."
+  >
+  <meta
+    name="twitter:image"
+    id="twImageMeta"
+    content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+  >
 
-  <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
+  <link
+    rel="icon"
+    href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"
+  >
 
-  <!-- Google Fonts -->
+  <!-- =====================================================
+       FONTS
+  ====================================================== -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 
-  <!-- Core Styles -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- =====================================================
+       CORE CSS
+  ====================================================== -->
+
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
 
-  <!-- Supabase CDN -->
+  <!-- =====================================================
+       SUPABASE
+  ====================================================== -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    /* =========================================================
-       BULKKOT STOREFRONT HARDENING LAYER
-       Design intentionally preserved.
-       This layer fixes responsive math, containment,
-       accessibility sizing and interaction stability.
-       ========================================================= */
+  <!-- =====================================================
+       STOREFRONT HARDENING
+  ====================================================== -->
 
+  <style>
     :root {
       --bk-red: #e31b23;
       --bk-black: #070707;
       --bk-panel: #0c0c0c;
       --bk-line: #1a1a1a;
+
       --bk-safe-top: env(safe-area-inset-top, 0px);
       --bk-safe-right: env(safe-area-inset-right, 0px);
       --bk-safe-bottom: env(safe-area-inset-bottom, 0px);
       --bk-safe-left: env(safe-area-inset-left, 0px);
     }
 
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
     html {
       width: 100%;
       min-width: 0;
       max-width: 100%;
-      height: auto;
+      height: auto !important;
       min-height: 100%;
-      overflow-x: clip;
-      overflow-y: auto;
+      max-height: none !important;
+
+      overflow-x: clip !important;
+      overflow-y: auto !important;
+
       scroll-behavior: smooth;
       -webkit-text-size-adjust: 100%;
     }
 
     body {
       width: 100%;
-      min-width: 0;
-      max-width: 100%;
-      height: auto;
+      min-width: 320px;
+      max-width: none;
+
+      height: auto !important;
       min-height: 100%;
-      overflow-x: clip;
-      overflow-y: visible;
+      max-height: none !important;
+
+      overflow-x: clip !important;
+      overflow-y: auto !important;
+
       overscroll-behavior-x: none;
+    }
+
+    body.modal-open,
+    body.drawer-open {
+      overflow: hidden !important;
     }
 
     main,
     #top {
-      height: auto;
-      min-height: 0;
-      max-height: none;
-      overflow: visible;
+      position: relative;
+
+      width: 100%;
+      height: auto !important;
+
+      min-height: 0 !important;
+      max-height: none !important;
+
+      overflow: visible !important;
     }
 
     .site-footer {
-      position: relative;
-      height: auto;
-      min-height: 0;
-      max-height: none;
-    }
+      position: relative !important;
 
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
+      width: 100%;
+      height: auto !important;
+
+      min-height: 0 !important;
+      max-height: none !important;
+
+      overflow: visible !important;
+      visibility: visible !important;
     }
 
     img,
@@ -119,17 +184,20 @@
       touch-action: manipulation;
     }
 
-    /* ---------------------------------------------------------
-       STICKY HEADER
-       --------------------------------------------------------- */
+    /* =====================================================
+       HEADER
+    ====================================================== */
 
     .site-header {
       position: sticky !important;
       top: 0 !important;
+
       z-index: 900 !important;
+
       width: 100%;
+
       isolation: isolate;
-      padding-top: 0;
+
       padding-left: var(--bk-safe-left);
       padding-right: var(--bk-safe-right);
     }
@@ -137,21 +205,20 @@
     .site-header .header-inner {
       position: relative;
       z-index: 2;
-      min-width: 0;
+
       width: 100%;
+      min-width: 0;
     }
 
     .announcement-bar {
       position: relative;
       z-index: 910;
+
       width: 100%;
       max-width: 100%;
+
       overflow: hidden;
     }
-
-    /* ---------------------------------------------------------
-       HEADER CONTAINMENT
-       --------------------------------------------------------- */
 
     .header-actions {
       min-width: 0;
@@ -176,30 +243,35 @@
       min-width: 0;
     }
 
-    /* ---------------------------------------------------------
-       INLINE SEARCH — CONTAINED / MOBILE SAFE
-       --------------------------------------------------------- */
+    /* =====================================================
+       HEADER SEARCH
+    ====================================================== */
 
     .header-search-bar {
+      position: relative;
+      z-index: 3;
+
       width: 100%;
       max-width: 100%;
       min-width: 0;
+
       overflow: hidden;
-      position: relative;
-      z-index: 3;
     }
 
     .header-search-input-wrap {
       width: min(100%, 1100px);
       max-width: calc(100% - 32px);
+
       min-width: 0;
+
       margin-inline: auto;
     }
 
     .header-search-input-wrap input {
-      min-width: 0;
       width: 100%;
       max-width: 100%;
+      min-width: 0;
+
       text-overflow: ellipsis;
     }
 
@@ -210,13 +282,19 @@
     .search-trending-tags {
       width: min(100%, 1100px);
       max-width: calc(100% - 32px);
-      margin-inline: auto;
+
       min-width: 0;
+
+      margin-inline: auto;
+
       overflow-x: auto;
       overflow-y: hidden;
+
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
+
       white-space: nowrap;
+
       padding-bottom: 2px;
     }
 
@@ -229,9 +307,9 @@
       flex: 0 0 auto;
     }
 
-    /* ---------------------------------------------------------
+    /* =====================================================
        MOBILE DRAWER
-       --------------------------------------------------------- */
+    ====================================================== */
 
     .drawer-overlay,
     .mobile-drawer,
@@ -242,8 +320,10 @@
     .mobile-drawer {
       width: min(88vw, 390px);
       max-width: calc(100vw - 20px);
+
       padding-left: max(0px, var(--bk-safe-left));
       padding-bottom: max(0px, var(--bk-safe-bottom));
+
       z-index: 1200 !important;
     }
 
@@ -259,9 +339,12 @@
     .mobile-drawer .drawer-close {
       width: 44px;
       min-width: 44px;
+
       height: 44px;
       min-height: 44px;
+
       display: inline-flex;
+
       align-items: center;
       justify-content: center;
     }
@@ -271,9 +354,9 @@
       min-height: 52px;
     }
 
-    /* ---------------------------------------------------------
-       MODAL STACKING / VIEWPORT CONTAINMENT
-       --------------------------------------------------------- */
+    /* =====================================================
+       MODALS
+    ====================================================== */
 
     .pdp-modal,
     .welcome-popup-modal,
@@ -283,6 +366,12 @@
     .size-guide-modal {
       isolation: isolate;
       overscroll-behavior: contain;
+
+      padding:
+        max(12px, var(--bk-safe-top))
+        max(12px, var(--bk-safe-right))
+        max(12px, var(--bk-safe-bottom))
+        max(12px, var(--bk-safe-left));
     }
 
     .pdp-container,
@@ -292,36 +381,25 @@
     .content-modal__panel,
     .size-guide-panel {
       max-width: calc(100vw - 24px);
-      max-height: calc(100dvh - 24px - var(--bk-safe-top) - var(--bk-safe-bottom));
-      max-height: calc(100svh - 24px - var(--bk-safe-top) - var(--bk-safe-bottom));
+
+      max-height:
+        calc(
+          100dvh -
+          24px -
+          var(--bk-safe-top) -
+          var(--bk-safe-bottom)
+        );
+
       overflow-y: auto;
       overflow-x: hidden;
+
       overscroll-behavior: contain;
+
       -webkit-overflow-scrolling: touch;
-    }
 
-    .pdp-modal,
-    .welcome-popup-modal,
-    .account-modal,
-    .track-order-modal,
-    .content-modal,
-    .size-guide-modal {
-      padding:
-        max(12px, var(--bk-safe-top))
-        max(12px, var(--bk-safe-right))
-        max(12px, var(--bk-safe-bottom))
-        max(12px, var(--bk-safe-left));
-    }
-
-    .account-panel,
-    .track-order-panel,
-    .size-guide-panel,
-    .content-modal__panel,
-    .pdp-container {
       scrollbar-width: thin;
     }
 
-    /* Prevent modal children from creating horizontal overflow. */
     .account-panel *,
     .track-order-panel *,
     .size-guide-panel *,
@@ -330,28 +408,43 @@
       max-width: 100%;
     }
 
-    /* ---------------------------------------------------------
-       3 CIRCLES — DESIGN LOCK
-       ALWAYS ONE HORIZONTAL ROW.
-       --------------------------------------------------------- */
+    /* =====================================================
+       3 CIRCLES
+       DESIGN LOCK:
+       ALWAYS ONE HORIZONTAL ROW
+    ====================================================== */
 
     .circle-collections-section {
-      padding: 38px 0 34px !important;
-      background: radial-gradient(circle at 50% 10%, #150708 0%, #070707 75%);
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
       width: 100%;
       max-width: 100%;
+
+      padding: 38px 0 34px !important;
+
       overflow: hidden;
+
+      background:
+        radial-gradient(
+          circle at 50% 10%,
+          #150708 0%,
+          #070707 75%
+        );
+
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
     }
 
     .circle-collections-inner {
       width: 100%;
       max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 16px;
-      text-align: center;
+
       min-width: 0;
+
+      margin: 0 auto;
+
+      padding:
+        0 16px;
+
+      text-align: center;
     }
 
     .circle-collections-head {
@@ -359,47 +452,68 @@
     }
 
     .circle-collections-head .eyebrow {
-      color: var(--bk-red, #e31b23);
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      font-weight: 800;
       margin-bottom: 4px;
+
+      color: var(--bk-red);
+
+      font-size: 10px;
+      font-weight: 800;
+
+      letter-spacing: 0.2em;
+
       text-transform: uppercase;
     }
 
     .circle-collections-head h2 {
+      margin: 0;
+
+      color: #fff;
+
       font-size: clamp(20px, 3.5vw, 30px);
       font-weight: 900;
+
       letter-spacing: -0.01em;
-      margin: 0;
-      color: #fff;
     }
 
     .circle-items-row {
       display: flex;
+
       flex-direction: row;
       flex-wrap: nowrap !important;
-      justify-content: center;
+
       align-items: flex-start;
+      justify-content: center;
+
       gap: clamp(10px, 3vw, 40px);
-      margin-top: 10px;
+
       width: 100%;
       min-width: 0;
+
+      margin-top: 10px;
     }
 
     .collection-circle-card {
       display: flex;
+
       flex: 1 1 0;
+
       flex-direction: column;
+
       align-items: center;
       justify-content: flex-start;
-      text-decoration: none;
+
       width: auto;
+
       min-width: 0;
       max-width: 170px;
       min-height: 44px;
-      transition: transform 0.25s ease;
+
       outline: none;
+
+      text-decoration: none;
+
+      transition:
+        transform 0.25s ease;
     }
 
     .collection-circle-card:hover {
@@ -409,36 +523,56 @@
     .collection-circle-card:focus-visible {
       outline: 1px solid rgba(227, 27, 35, 0.9);
       outline-offset: 5px;
+
       border-radius: 10px;
     }
 
     .circle-frame {
       width: clamp(78px, 11vw, 150px);
       height: clamp(78px, 11vw, 150px);
+
       flex: 0 0 auto;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 2px solid #222;
-      background: #111;
+
       padding: 3px;
+
       position: relative;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-      transition: all 0.25s ease;
+
+      overflow: hidden;
+
+      border: 2px solid #222;
+      border-radius: 50%;
+
+      background: #111;
+
+      box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.6);
+
+      transition:
+        all 0.25s ease;
     }
 
     .circle-frame img {
+      display: block;
+
       width: 100%;
       height: 100%;
+
       object-fit: cover;
+
       border-radius: 50%;
-      display: block;
-      transition: transform 0.4s ease, filter 0.3s ease;
+
       filter: brightness(0.9);
+
+      transition:
+        transform 0.4s ease,
+        filter 0.3s ease;
     }
 
     .collection-circle-card:hover .circle-frame {
-      border-color: var(--bk-red, #e31b23);
-      box-shadow: 0 0 20px rgba(227, 27, 35, 0.35);
+      border-color: var(--bk-red);
+
+      box-shadow:
+        0 0 20px rgba(227, 27, 35, 0.35);
     }
 
     .collection-circle-card:hover .circle-frame img {
@@ -447,72 +581,102 @@
     }
 
     .circle-meta {
-      margin-top: 14px;
       display: flex;
+
       flex-direction: column;
+
       align-items: center;
+
       gap: 6px;
+
       width: 100%;
       min-width: 0;
+
+      margin-top: 14px;
     }
 
     .circle-label,
     .circle-korean {
       max-width: 100%;
+
       overflow: hidden;
+
       text-overflow: ellipsis;
+
       white-space: nowrap;
     }
 
     .circle-label {
+      color: #fff;
+
       font-size: 12px;
       font-weight: 900;
-      color: #fff;
+
       letter-spacing: 0.12em;
+
       text-transform: uppercase;
     }
 
     .circle-korean {
+      color: var(--bk-red);
+
+      font-family: "Noto Sans KR", sans-serif;
+
       font-size: 11px;
       font-weight: 700;
-      color: var(--bk-red, #e31b23);
-      font-family: 'Noto Sans KR', sans-serif;
     }
 
     .circle-action-btn {
       display: inline-flex;
+
       align-items: center;
       justify-content: center;
-      min-height: 40px;
+
       min-width: 44px;
+      min-height: 40px;
+
       max-width: 100%;
+
+      margin-top: 2px;
+
+      padding: 6px 14px;
+
+      overflow: hidden;
+
       white-space: nowrap;
-      background: #131313;
+
       border: 1px solid #2a2a2a;
+      border-radius: 999px;
+
+      background: #131313;
+
       color: #ccc;
+
       font-size: 10px;
       font-weight: 800;
+
       letter-spacing: 0.08em;
-      padding: 6px 14px;
-      border-radius: 999px;
+
       transition: all 0.2s;
-      margin-top: 2px;
     }
 
     .collection-circle-card:hover .circle-action-btn,
     .collection-circle-card:focus-visible .circle-action-btn {
-      background: #fff;
-      color: #000;
       border-color: #fff;
+
+      background: #fff;
+
+      color: #000;
     }
 
-    /* ---------------------------------------------------------
-       HERO — preserve composition, stabilize dimensions
-       --------------------------------------------------------- */
+    /* =====================================================
+       HERO
+    ====================================================== */
 
     .hero {
       width: 100%;
       max-width: 100%;
+
       overflow: hidden;
     }
 
@@ -526,9 +690,9 @@
       display: block;
     }
 
-    /* ---------------------------------------------------------
-       EDITORIAL — preserve visual composition, stop leakage
-       --------------------------------------------------------- */
+    /* =====================================================
+       EDITORIAL
+    ====================================================== */
 
     .editorial-section,
     .editorial-carousel,
@@ -536,40 +700,51 @@
     .editorial-slide {
       width: 100%;
       max-width: 100%;
+
       min-width: 0;
+
       overflow: hidden;
     }
 
     .editorial-slide img {
       display: block;
+
       width: 100%;
       max-width: 100%;
       height: 100%;
+
       object-fit: cover;
     }
 
     .editorial-slide__content {
-      max-width: min(620px, calc(100% - 32px));
+      max-width:
+        min(
+          620px,
+          calc(100% - 32px)
+        );
     }
 
     .carousel-control {
       width: 44px;
       height: 44px;
+
       min-width: 44px;
       min-height: 44px;
     }
 
     .carousel-indicator {
-      min-width: 44px;
-      min-height: 44px;
       display: inline-flex;
+
       align-items: center;
       justify-content: center;
+
+      min-width: 44px;
+      min-height: 44px;
     }
 
-    /* ---------------------------------------------------------
-       SHOP / PRODUCT AREA
-       --------------------------------------------------------- */
+    /* =====================================================
+       SHOP / PRODUCT
+    ====================================================== */
 
     .shop-section,
     .product-grid,
@@ -584,8 +759,10 @@
 
     .product-card__thumb img {
       display: block;
+
       width: 100%;
       max-width: 100%;
+
       object-fit: cover;
     }
 
@@ -600,14 +777,15 @@
       min-height: 44px;
     }
 
-    /* ---------------------------------------------------------
-       FORMS — MOBILE KEYBOARD FRIENDLY
-       --------------------------------------------------------- */
+    /* =====================================================
+       FORMS
+    ====================================================== */
 
     input,
     textarea,
     select {
       max-width: 100%;
+
       font-size: 16px;
     }
 
@@ -633,26 +811,38 @@
       min-height: 48px;
     }
 
-    /* ---------------------------------------------------------
-       FOOTER / FLOATING UI
-       --------------------------------------------------------- */
+    /* =====================================================
+       FOOTER / FLOATING
+    ====================================================== */
 
     .site-footer {
       max-width: 100%;
+
       overflow: hidden;
     }
 
     .whatsapp-float {
       max-width: calc(100vw - 24px);
-      right: max(12px, var(--bk-safe-right));
-      bottom: max(12px, var(--bk-safe-bottom));
+
+      right:
+        max(
+          12px,
+          var(--bk-safe-right)
+        );
+
+      bottom:
+        max(
+          12px,
+          var(--bk-safe-bottom)
+        );
     }
 
-    /* ---------------------------------------------------------
-       COMPACT MOBILE — 360–430px
-       --------------------------------------------------------- */
+    /* =====================================================
+       MOBILE 360–768
+    ====================================================== */
 
     @media (max-width: 768px) {
+
       .site-header {
         top: 0 !important;
       }
@@ -682,52 +872,92 @@
         padding-right: 16px;
       }
 
+      /*
+       * HARD LOCK:
+       * 3 circles ALWAYS stay on ONE ROW.
+       */
       .circle-items-row {
-        /*
-         * Exact 3-column math:
-         * available width = viewport - 32px
-         * two gaps remain
-         * each card = (available - gaps) / 3
-         */
         gap: 12px !important;
+
         justify-content: space-between !important;
+
+        flex-wrap: nowrap !important;
       }
 
       .collection-circle-card {
         flex: 1 1 0 !important;
-        width: calc((100% - 24px) / 3) !important;
+
+        width:
+          calc(
+            (100% - 24px) / 3
+          ) !important;
+
         max-width: none !important;
       }
 
       .circle-frame {
-        width: clamp(78px, 23vw, 100px) !important;
-        height: clamp(78px, 23vw, 100px) !important;
+        width: clamp(
+          78px,
+          23vw,
+          100px
+        ) !important;
+
+        height: clamp(
+          78px,
+          23vw,
+          100px
+        ) !important;
+
         padding: 2px !important;
       }
 
       .circle-meta {
         margin-top: 10px;
+
         gap: 4px;
       }
 
       .circle-label {
-        font-size: clamp(9px, 2.7vw, 11px) !important;
-        letter-spacing: 0.045em !important;
+        font-size:
+          clamp(
+            9px,
+            2.7vw,
+            11px
+          ) !important;
+
+        letter-spacing:
+          0.045em !important;
       }
 
       .circle-korean {
-        font-size: clamp(8px, 2.4vw, 10px) !important;
+        font-size:
+          clamp(
+            8px,
+            2.4vw,
+            10px
+          ) !important;
       }
 
       .circle-action-btn {
-        font-size: clamp(7px, 2.1vw, 9px) !important;
-        letter-spacing: 0.045em;
-        padding: 3px 7px !important;
         min-height: 36px;
+
+        padding:
+          3px 7px !important;
+
+        font-size:
+          clamp(
+            7px,
+            2.1vw,
+            9px
+          ) !important;
+
+        letter-spacing:
+          0.045em;
       }
 
       .editorial-slide__content {
-        max-width: calc(100% - 32px);
+        max-width:
+          calc(100% - 32px);
       }
 
       .carousel-control {
@@ -747,8 +977,10 @@
       .size-guide-table-scroll {
         width: 100%;
         max-width: 100%;
+
         overflow-x: auto;
         overflow-y: hidden;
+
         -webkit-overflow-scrolling: touch;
       }
 
@@ -757,8 +989,12 @@
       }
     }
 
-    /* 360px safety floor. */
+    /* =====================================================
+       360px FLOOR
+    ====================================================== */
+
     @media (max-width: 374px) {
+
       .circle-items-row {
         gap: 8px !important;
       }
@@ -769,7 +1005,10 @@
       }
 
       .collection-circle-card {
-        width: calc((100% - 16px) / 3) !important;
+        width:
+          calc(
+            (100% - 16px) / 3
+          ) !important;
       }
 
       .circle-frame {
@@ -779,40 +1018,27 @@
 
       .circle-action-btn {
         padding-inline: 5px !important;
+
         font-size: 7px !important;
       }
     }
 
-    /* ---------------------------------------------------------
-       REDUCED MOTION
-       --------------------------------------------------------- */
-
-    @media (prefers-reduced-motion: reduce) {
-      html {
-        scroll-behavior: auto;
-      }
-
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
-      }
-    }
-
-    /* =========================================================
-       FINAL LAUNCH SAFETY — DOCUMENT FLOW + TOUCH TARGETS
-       ========================================================= */
+    /* =====================================================
+       FINAL DOCUMENT FLOW SAFETY
+    ====================================================== */
 
     html,
     body {
       width: 100%;
+
       min-width: 0;
+
       max-width: none;
+
       height: auto !important;
+
       min-height: 100%;
+
       max-height: none !important;
     }
 
@@ -829,29 +1055,38 @@
     main,
     #top {
       position: relative;
+
       width: 100%;
+
       height: auto !important;
+
       min-height: 0 !important;
+
       max-height: none !important;
+
       overflow: visible !important;
     }
 
     .site-footer {
       position: relative !important;
+
       width: 100%;
+
       height: auto !important;
+
       min-height: 0 !important;
+
       max-height: none !important;
-      overflow: visible;
+
+      overflow: visible !important;
+
+      visibility: visible !important;
     }
 
-    /* Overlay state is the only intentional document scroll lock. */
-    body.modal-open,
-    body.drawer-open {
-      overflow: hidden !important;
-    }
+    /* =====================================================
+       TOUCH TARGETS
+    ====================================================== */
 
-    /* Reliable touch targets without changing visual identity. */
     .drawer-close,
     [data-open-drawer],
     [data-close-drawer],
@@ -870,8 +1105,6 @@
     [data-open-cart],
     [data-cart-open],
     [data-close-cart],
-    .carousel-control,
-    .carousel-indicator,
     .size-guide-trigger,
     .p-size-chip,
     .size-box,
@@ -879,1236 +1112,2054 @@
     [data-action="add-to-bag"] {
       min-width: 44px;
       min-height: 44px;
+
       touch-action: manipulation;
     }
 
     .p-size-chip,
     .size-box {
       display: inline-flex;
+
       align-items: center;
       justify-content: center;
     }
 
+    /* =====================================================
+       REDUCED MOTION
+    ====================================================== */
+
+    @media (prefers-reduced-motion: reduce) {
+
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+
+        animation-iteration-count: 1 !important;
+
+        transition-duration: 0.001ms !important;
+
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
-
-    /* =========================================================
-       BULKKOT FINAL ROOT SAFETY — FLOW / FOOTER / TOUCH
-       ========================================================= */
-    html, body { width:100%; min-width:0; max-width:none; height:auto !important; min-height:100%; max-height:none !important; }
-    html { overflow-x:clip !important; overflow-y:auto !important; }
-    body { overflow-x:clip !important; overflow-y:auto !important; }
-    body.modal-open, body.drawer-open { overflow:hidden !important; }
-    main, #top { width:100%; height:auto !important; min-height:0 !important; max-height:none !important; overflow:visible !important; }
-    .site-footer { position:relative !important; width:100%; height:auto !important; min-height:0 !important; max-height:none !important; overflow:visible !important; display:grid !important; }
-    .drawer-close, [data-open-drawer], [data-close-drawer], #headerSearchToggle, #headerSearchClose,
-    [data-open-account], [data-account-close], [data-open-track-order], [data-track-order-close],
-    [data-size-guide-open], [data-size-guide-close], [data-open-policy], [data-close-policy],
-    [data-open-about], [data-close-about], [data-open-cart], [data-cart-open], [data-close-cart],
-    .carousel-control, .carousel-indicator, .size-guide-trigger, .shop-filter, .filter-btn,
-    .p-size-chip, .size-box, [data-action="select-size"], [data-action="add-to-bag"] {
-      min-width:44px; min-height:44px; touch-action:manipulation;
-    }
-    @media (max-width:640px) {
-      .site-footer { grid-template-columns:repeat(2,minmax(0,1fr)) !important; column-gap:20px !important; row-gap:40px !important; }
-      .footer-brand, .footer-bottom { grid-column:1 / -1 !important; }
-      .footer-column { min-width:0; }
-      .footer-column a, .footer-column button { max-width:100%; overflow-wrap:anywhere; }
-      .footer-bottom { flex-direction:column; align-items:flex-start; gap:8px; }
-    }
-    @media (max-width:380px) {
-      .site-footer { padding-left:12px !important; padding-right:12px !important; column-gap:14px !important; }
-      .footer-column a, .footer-column button { font-size:9px; }
-    }
-
 </head>
 
 <body>
 
-  <!-- ANNOUNCEMENT TICKER -->
-  <div class="announcement-bar" aria-label="Announcement">
-    <div class="announcement-track">
-      <div class="announcement-content">
-        <span>DROP 001 — DROPPING SOON</span>
-        <span>불꽃 DROP 001 — COMING SOON</span>
-        <span>JOIN THE VIP WAITLIST</span>
-      </div>
-      <div class="announcement-content" aria-hidden="true">
-        <span>DROP 001 — DROPPING SOON</span>
-        <span>불꽃 DROP 001 — COMING SOON</span>
-        <span>JOIN THE VIP WAITLIST</span>
-      </div>
-    </div>
-  </div>
+  <!-- =====================================================
+       TOP
+  ====================================================== -->
 
-  <!-- HEADER -->
-  <header class="site-header">
-    <div class="header-inner">
-      <button
-        class="header-menu"
-        type="button"
-        aria-label="Open menu"
-        aria-controls="mobile-drawer"
-        aria-expanded="false"
-        data-open-drawer>
-        <span></span>
-        <span></span>
-      </button>
+  <div id="top">
 
-      <a href="#top" class="brand" aria-label="BULKKOT home">
-        <img
-          src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"
-          alt="BULKKOT logo"
-          class="brand-logo"
-          onerror="this.style.display='none'">
-        <span class="brand-name">
-          <span class="brand-korean">불꽃</span>
-          <span class="brand-english">BULKKOT</span>
-        </span>
-      </a>
+    <!-- ===================================================
+         ANNOUNCEMENT BAR
+    ==================================================== -->
 
-      <nav class="desktop-navigation" aria-label="Primary navigation">
-        <a href="#top">HOME</a>
-        <a href="shop.html">SHOP</a>
-        <a href="#drop-001">DROP 001</a>
-        <a href="#collections">COLLECTIONS</a>
-        <a href="#about">ABOUT</a>
-      </nav>
-
-      <div class="header-actions">
-        <button
-          type="button"
-          class="header-track-order"
-          data-open-track-order
-          aria-label="Track your order">
-          TRACK ORDER
-        </button>
-
-        <button
-          type="button"
-          class="header-account"
-          data-open-account
-          aria-label="Open account"
-          style="display:inline-flex; align-items:center; gap:6px;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-          </svg>
-          <span data-account-label>ACCOUNT</span>
-        </button>
-
-        <button
-          type="button"
-          class="header-action"
-          aria-label="Search"
-          aria-expanded="false"
-          aria-controls="headerSearchBar"
-          id="headerSearchToggle">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="10.8" cy="10.8" r="6.8"/>
-            <path d="M16 16L21 21"/>
-          </svg>
-        </button>
-
-        <a
-          href="https://www.instagram.com/bulkkot.wear/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="header-action instagram-action"
-          aria-label="BULKKOT Instagram">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="none" stroke="currentColor" stroke-width="2"/>
-            <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/>
-          </svg>
-        </a>
-
-        <button
-          type="button"
-          class="header-action cart-action"
-          aria-label="Open cart"
-          data-open-cart>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 5h2l1.7 11h9.8L20 8H7"/>
-            <circle cx="10" cy="20" r="1"/>
-            <circle cx="17" cy="20" r="1"/>
-          </svg>
-          <span class="cart-count" data-cart-count hidden>0</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- INLINE SEARCH -->
-    <div
-      class="header-search-bar"
-      id="headerSearchBar"
-      aria-hidden="true">
-      <div class="header-search-input-wrap">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#777" stroke-width="2" aria-hidden="true">
-          <circle cx="10.8" cy="10.8" r="6.8"/>
-          <path d="M16 16L21 21"/>
-        </svg>
-
-        <input
-          type="search"
-          id="liveSearchInput"
-          placeholder="SEARCH HEAVYWEIGHT TEES, HOODIES, SILHOUETTES..."
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          enterkeyhint="search"
-          aria-label="Search BULKKOT products">
-
-        <button
-          type="button"
-          class="header-search-close"
-          id="headerSearchClose"
-          aria-label="Close search">
-          ×
-        </button>
-      </div>
-
-      <div class="search-trending-tags">
-        <span>TRENDING:</span>
-        <button type="button" class="search-tag-btn" data-search-tag="OVERSIZED">OVERSIZED</button>
-        <button type="button" class="search-tag-btn" data-search-tag="HEAVYWEIGHT">HEAVYWEIGHT</button>
-        <button type="button" class="search-tag-btn" data-search-tag="TEE">TEES</button>
-        <button type="button" class="search-tag-btn" data-search-tag="HOOD">HOODIES</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- MOBILE DRAWER -->
-  <div class="drawer-overlay" data-mobile-overlay></div>
-
-  <aside
-    class="mobile-drawer"
-    id="mobile-drawer"
-    data-mobile-drawer
-    aria-hidden="true"
-    aria-label="Mobile navigation">
-
-    <div class="mobile-drawer__header">
-      <a href="#top" class="brand">
-        <span class="brand-name">
-          <span class="brand-korean">불꽃</span>
-          <span class="brand-english">BULKKOT</span>
-        </span>
-      </a>
-
-      <button
-        type="button"
-        class="drawer-close"
-        aria-label="Close menu"
-        data-close-drawer>
-        ×
-      </button>
-    </div>
-
-    <nav class="mobile-navigation" aria-label="Mobile navigation">
-      <a href="#top" data-close-drawer>
-        <span>HOME</span>
-        <small>홈</small>
-      </a>
-
-      <a href="shop.html" data-close-drawer>
-        <span>SHOP</span>
-        <small>쇼핑</small>
-      </a>
-
-      <a href="#drop-001" data-close-drawer>
+    <div class="announcement-bar">
+      <div class="announcement-track">
+        <span>BULKKOT — LESS NOISE. MORE PRESENCE.</span>
+        <span aria-hidden="true">•</span>
         <span>DROP 001</span>
-        <small>첫 번째 드롭</small>
-      </a>
-
-      <a href="#collections" data-close-drawer>
-        <span>COLLECTIONS</span>
-        <small>컬렉션</small>
-      </a>
-
-      <a href="#about" data-close-drawer>
-        <span>ABOUT</span>
-        <small>브랜드 소개</small>
-      </a>
-
-      <button
-        type="button"
-        class="mobile-nav-track"
-        data-size-guide-open
-        data-close-drawer>
-        <span>SIZE GUIDE</span>
-        <small>사이즈 가이드</small>
-      </button>
-
-      <button
-        type="button"
-        class="mobile-nav-track"
-        data-open-track-order
-        data-close-drawer>
-        <span>TRACK ORDER</span>
-        <small>주문 배송 조회</small>
-      </button>
-
-      <button
-        type="button"
-        class="mobile-nav-track"
-        data-open-account
-        data-close-drawer>
-        <span>ACCOUNT</span>
-        <small>계정 및 로그인</small>
-      </button>
-
-      <a href="#contact" data-close-drawer>
-        <span>CONTACT</span>
-        <small>문의</small>
-      </a>
-    </nav>
-
-    <div class="mobile-drawer__footer">
-      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">@bulkkot.wear</a>
-      <a href="mailto:bulkkotwear@gmail.com">bulkkotwear@gmail.com</a>
+        <span aria-hidden="true">•</span>
+        <span>PREMIUM OVERSIZED ESSENTIALS</span>
+      </div>
     </div>
-  </aside>
 
-  <main id="top">
+    <!-- ===================================================
+         HEADER
+    ==================================================== -->
 
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-media">
-        <img
-          src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
-          alt="BULKKOT Campaign"
-          class="hero-image"
-          data-cms-key="hero_image">
-      </div>
+    <header class="site-header" id="siteHeader">
 
-      <div class="hero-overlay"></div>
+      <div class="header-inner">
 
-      <div class="hero-content">
-        <p class="hero-korean" data-cms-key="hero_korean">불꽃</p>
-        <h1 data-cms-key="hero_title">BULKKOT</h1>
-        <p class="hero-label" data-cms-key="hero_subtitle">PREMIUM EVERYDAY WEAR</p>
-        <p class="hero-description" data-cms-key="hero_description">
-          Korean-inspired minimalist heavyweight essentials.
-        </p>
-        <a href="#drop-001" class="button button--primary" data-cms-key="hero_button_text">
-          EXPLORE DROP 001
-        </a>
-      </div>
-    </section>
-
-    <!-- 3 CIRCLES COLLECTION GATEWAY -->
-    <section class="circle-collections-section" id="collections">
-      <div class="circle-collections-inner">
-
-        <div class="circle-collections-head">
-          <p class="eyebrow">DROP 001 LINEUP</p>
-          <h2>THE SILHOUETTES</h2>
-        </div>
-
-        <div class="circle-items-row">
-
-          <!-- TEES -->
-          <a href="shop.html?category=tees" class="collection-circle-card">
-            <div class="circle-frame">
-              <img
-                src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"
-                alt="Oversized Tees"
-                loading="lazy">
-            </div>
-
-            <div class="circle-meta">
-              <span class="circle-label">TEES</span>
-              <span class="circle-korean">티셔츠</span>
-              <span class="circle-action-btn">VIEW ALL →</span>
-            </div>
-          </a>
-
-          <!-- HOODIES -->
-          <a href="shop.html?category=hoods" class="collection-circle-card">
-            <div class="circle-frame">
-              <img
-                src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"
-                alt="Oversized Hoods"
-                loading="lazy">
-            </div>
-
-            <div class="circle-meta">
-              <span class="circle-label">HOODIES</span>
-              <span class="circle-korean">헤비 후드</span>
-              <span class="circle-action-btn">VIEW ALL →</span>
-            </div>
-          </a>
-
-          <!-- SWEATS -->
-          <a href="shop.html?category=sweats" class="collection-circle-card">
-            <div class="circle-frame">
-              <img
-                src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"
-                alt="Oversized Sweats"
-                loading="lazy">
-            </div>
-
-            <div class="circle-meta">
-              <span class="circle-label">SWEATS</span>
-              <span class="circle-korean">스웨트</span>
-              <span class="circle-action-btn">VIEW ALL →</span>
-            </div>
-          </a>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- EDITORIAL / LATEST NEWS -->
-    <section class="editorial-section" aria-label="Latest News & Editorial">
-
-      <div
-        class="editorial-carousel"
-        data-carousel
-        id="editorialCarousel">
-
-        <div class="editorial-track" data-carousel-track>
-
-          <!-- SLIDE 1 -->
-          <article class="editorial-slide is-active" data-slide="0">
-            <img
-              src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
-              alt="BULKKOT Drop 001 Editorial"
-              loading="lazy"
-              data-cms-key="editorial_1_img">
-
-            <div class="editorial-slide__overlay"></div>
-
-            <div class="editorial-slide__content">
-              <span class="slide-badge" data-cms-key="editorial_1_badge">
-                NEWS 01 // DROP 001
-              </span>
-
-              <p class="slide-korean">불꽃 · 001</p>
-
-              <h2 data-cms-key="editorial_1_title">LESS NOISE.</h2>
-
-              <span class="slide-sub" data-cms-key="editorial_1_sub">
-                MORE PRESENCE.
-              </span>
-
-              <p class="slide-desc" data-cms-key="editorial_1_desc">
-                Architectural drop shoulders with pure matte combed yarn.
-                Engineered for elevated movement.
-              </p>
-
-              <a href="#drop-001" class="slide-cta">
-                DISCOVER DROP 001 →
-              </a>
-            </div>
-          </article>
-
-          <!-- SLIDE 2 -->
-          <article class="editorial-slide" data-slide="1">
-            <img
-              src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"
-              alt="BULKKOT Heavy Fleece"
-              loading="lazy"
-              data-cms-key="editorial_2_img">
-
-            <div class="editorial-slide__overlay"></div>
-
-            <div class="editorial-slide__content">
-              <span class="slide-badge" data-cms-key="editorial_2_badge">
-                NEWS 02 // CRAFTSMANSHIP
-              </span>
-
-              <p class="slide-korean">
-                서울에서 영감 · 헤비웨이트
-              </p>
-
-              <h2 data-cms-key="editorial_2_title">450 GSM</h2>
-
-              <span class="slide-sub" data-cms-key="editorial_2_sub">
-                LOOPBACK FLEECE.
-              </span>
-
-              <p class="slide-desc" data-cms-key="editorial_2_desc">
-                Double-density weave built to retain structure through
-                repeated washes without loss of drape.
-              </p>
-
-              <a href="shop.html?category=hoods" class="slide-cta">
-                EXPLORE HOODS →
-              </a>
-            </div>
-          </article>
-
-          <!-- SLIDE 3 -->
-          <article class="editorial-slide" data-slide="2">
-            <img
-              src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"
-              alt="BULKKOT Silhouette"
-              loading="lazy"
-              data-cms-key="editorial_3_img">
-
-            <div class="editorial-slide__overlay"></div>
-
-            <div class="editorial-slide__content">
-              <span class="slide-badge" data-cms-key="editorial_3_badge">
-                NEWS 03 // SILHOUETTES
-              </span>
-
-              <p class="slide-korean">
-                디자인 미학 · SEOUL TO WORLD
-              </p>
-
-              <h2 data-cms-key="editorial_3_title">QUIETLY</h2>
-
-              <span class="slide-sub" data-cms-key="editorial_3_sub">
-                DISTINCT.
-              </span>
-
-              <p class="slide-desc" data-cms-key="editorial_3_desc">
-                No loud exterior billboards. The garment commands attention
-                through silhouette and proportion.
-              </p>
-
-              <a href="shop.html?category=sweats" class="slide-cta">
-                EXPLORE SWEATS →
-              </a>
-            </div>
-          </article>
-
-          <!-- SLIDE 4 -->
-          <article class="editorial-slide" data-slide="3">
-            <img
-              src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"
-              alt="BULKKOT Limited Tees"
-              loading="lazy"
-              data-cms-key="editorial_4_img">
-
-            <div class="editorial-slide__overlay"></div>
-
-            <div class="editorial-slide__content">
-              <span class="slide-badge" data-cms-key="editorial_4_badge">
-                NEWS 04 // LIMITED SUPPLY
-              </span>
-
-              <p class="slide-korean">
-                한정판 수량 · 150 PCS
-              </p>
-
-              <h2 data-cms-key="editorial_4_title">
-                STRICTLY 150
-              </h2>
-
-              <span class="slide-sub" data-cms-key="editorial_4_sub">
-                PIECES PER CUT.
-              </span>
-
-              <p class="slide-desc" data-cms-key="editorial_4_desc">
-                Zero mass-production restocking. Every unit serialized and
-                dispatched in custom matte black boxing.
-              </p>
-
-              <a href="shop.html?category=tees" class="slide-cta">
-                EXPLORE TEES →
-              </a>
-            </div>
-          </article>
-
-        </div>
-
+        <!-- MOBILE MENU -->
         <button
           type="button"
-          class="carousel-control carousel-control--prev"
-          aria-label="Previous slide"
-          data-carousel-prev>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
+          class="header-menu"
+          id="headerMenu"
+          data-open-drawer
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="mobileDrawer"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
 
-        <button
-          type="button"
-          class="carousel-control carousel-control--next"
-          aria-label="Next slide"
-          data-carousel-next>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </button>
-
-        <div class="carousel-indicators" role="tablist" aria-label="Slider Indicators">
-          <button
-            type="button"
-            class="carousel-indicator is-active"
-            data-slide-indicator="0"
-            aria-label="Slide 1"
-            aria-selected="true"
-            role="tab">
-            <span class="indicator-bar"></span>
-          </button>
-
-          <button
-            type="button"
-            class="carousel-indicator"
-            data-slide-indicator="1"
-            aria-label="Slide 2"
-            aria-selected="false"
-            role="tab">
-            <span class="indicator-bar"></span>
-          </button>
-
-          <button
-            type="button"
-            class="carousel-indicator"
-            data-slide-indicator="2"
-            aria-label="Slide 3"
-            aria-selected="false"
-            role="tab">
-            <span class="indicator-bar"></span>
-          </button>
-
-          <button
-            type="button"
-            class="carousel-indicator"
-            data-slide-indicator="3"
-            aria-label="Slide 4"
-            aria-selected="false"
-            role="tab">
-            <span class="indicator-bar"></span>
-          </button>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- DROP BANNER -->
-    <section class="drop-section" id="drop-001">
-      <div class="drop-content">
-        <p class="eyebrow">DROP 001 · 첫 번째 드롭</p>
-        <h2>COMING SOON</h2>
-        <p>
-          The first BULKKOT collection. Heavyweight oversized silhouettes
-          constructed with architectural restraint.
-        </p>
-        <a href="#waitlist" class="button button--outline">
-          JOIN WAITLIST
-        </a>
-      </div>
-    </section>
-
-    <!-- SHOP / PRODUCTS -->
-    <section class="shop-section" id="shop">
-
-      <div class="section-heading section-heading--split">
-        <div>
-          <p class="eyebrow">SHOP · 쇼핑</p>
-          <h2>LATEST RELEASES</h2>
-        </div>
-
+        <!-- BRAND -->
         <a
-          href="shop.html"
-          class="section-status"
-          style="color:var(--bk-red); text-decoration:none; font-weight:800;">
-          OPEN FULL CATALOGUE →
+          href="index.html"
+          class="brand"
+          aria-label="BULKKOT home"
+        >
+
+          <span class="brand-logo-wrap">
+            <img
+              class="brand-logo"
+              src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"
+              alt="BULKKOT"
+              width="30"
+              height="30"
+              decoding="async"
+            >
+          </span>
+
+          <span class="brand-name">
+
+            <span class="brand-korean">
+              불꽃
+            </span>
+
+            <span class="brand-english">
+              BULKKOT
+            </span>
+
+          </span>
+
         </a>
-      </div>
 
-      <div class="shop-toolbar">
+        <!-- DESKTOP NAV -->
+        <nav
+          class="desktop-navigation"
+          aria-label="Primary navigation"
+        >
 
-        <div
-          class="shop-filters"
-          role="group"
-          aria-label="Product categories">
+          <a href="index.html">
+            HOME
+          </a>
 
+          <a href="shop.html">
+            SHOP
+          </a>
+
+          <a
+            href="#collections"
+            data-scroll-target="collections"
+          >
+            COLLECTIONS
+          </a>
+
+          <a
+            href="#about"
+            data-scroll-target="about"
+          >
+            ABOUT
+          </a>
+
+        </nav>
+
+        <!-- HEADER ACTIONS -->
+        <div class="header-actions">
+
+          <!-- SEARCH -->
           <button
             type="button"
-            class="shop-filter is-active"
-            data-shop-category="all">
-            ALL
+            class="header-action"
+            id="headerSearchToggle"
+            aria-label="Search"
+            aria-expanded="false"
+            aria-controls="headerSearchBar"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="6.5"
+              ></circle>
+
+              <path
+                d="M16 16l5 5"
+              ></path>
+            </svg>
           </button>
 
+          <!-- ACCOUNT -->
           <button
             type="button"
-            class="shop-filter"
-            data-shop-category="tees">
-            TEES
+            class="header-account"
+            data-open-account
+            aria-label="Account"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              aria-hidden="true"
+            >
+              <circle
+                cx="12"
+                cy="8"
+                r="3.5"
+              ></circle>
+
+              <path
+                d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6"
+              ></path>
+            </svg>
+
+            <span>
+              ACCOUNT
+            </span>
+
           </button>
 
+          <!-- TRACK ORDER -->
           <button
             type="button"
-            class="shop-filter"
-            data-shop-category="hoods">
-            HOODS
+            class="header-track-order"
+            data-open-track-order
+          >
+            TRACK ORDER
           </button>
 
+          <!-- CART -->
           <button
             type="button"
-            class="shop-filter"
-            data-shop-category="sweats">
-            SWEATS
+            class="header-action header-cart"
+            data-open-cart
+            aria-label="Open shopping bag"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              width="19"
+              height="19"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 8h14l-1 12H6L5 8Z"
+              ></path>
+
+              <path
+                d="M9 8V6a3 3 0 0 1 6 0v2"
+              ></path>
+            </svg>
+
+            <span
+              class="cart-count"
+              data-cart-count
+              aria-live="polite"
+            >
+              0
+            </span>
+
           </button>
 
         </div>
 
-        <div class="shop-toolbar__actions">
-
-          <button
-            type="button"
-            class="size-guide-trigger"
-            data-size-guide-open>
-            SIZE GUIDE
-          </button>
-
-          <label class="shop-sort">
-            <span class="sr-only">Sort products</span>
-
-            <select
-              id="shop-sort"
-              aria-label="Sort products">
-              <option value="featured">FEATURED</option>
-              <option value="newest">NEWEST</option>
-              <option value="price-low">PRICE: LOW TO HIGH</option>
-              <option value="price-high">PRICE: HIGH TO LOW</option>
-            </select>
-          </label>
-
-        </div>
       </div>
+
+      <!-- =================================================
+           INLINE SEARCH
+      ================================================== -->
 
       <div
-        class="product-grid"
-        id="products-grid"
-        aria-live="polite">
-        <p class="catalog-message">Loading catalog...</p>
-      </div>
-
-    </section>
-
-    <!-- VALUES -->
-    <section class="values-section">
-      <div class="section-heading">
-        <p class="eyebrow">WHY BULKKOT · 왜 불꽃인가</p>
-        <h2>BUILT WITH INTENT.</h2>
-      </div>
-
-      <div class="values-grid">
-        <article class="value-block">
-          <span>01</span>
-          <h3>PREMIUM QUALITY</h3>
-          <p>프리미엄 퀄리티</p>
-          <small>Heavyweight combed cotton and custom drapes.</small>
-        </article>
-
-        <article class="value-block">
-          <span>02</span>
-          <h3>OVERSIZED FIT</h3>
-          <p>오버사이즈 핏</p>
-          <small>Relaxed drop-shoulder cuts for modern comfort.</small>
-        </article>
-
-        <article class="value-block">
-          <span>03</span>
-          <h3>CLEAN DESIGN</h3>
-          <p>클린 디자인</p>
-          <small>Zero unnecessary noise. Pure timeless silhouette.</small>
-        </article>
-
-        <article class="value-block">
-          <span>04</span>
-          <h3>EVERYDAY ESSENTIAL</h3>
-          <p>데일리 에센셜</p>
-          <small>Garments crafted to live beyond seasonal trends.</small>
-        </article>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section class="about-section" id="about">
-      <div class="about-grid">
-
-        <div class="about-intro">
-          <p class="eyebrow">THE BRAND · 브랜드</p>
-          <h2>불꽃</h2>
-          <span>THE SPARK</span>
-        </div>
-
-        <div class="about-copy">
-          <p class="about-lead">
-            Premium clothing shouldn't feel unreachable.
-          </p>
-
-          <p>
-            BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand
-            built for the new generation in India.
-          </p>
-
-          <p>
-            We blend Seoul's minimal streetwear sensibility with elevated
-            fabric architecture — creating pieces that command presence silently.
-          </p>
-
-          <p class="about-signature">
-            Less noise. More presence.
-          </p>
-
-          <button
-            type="button"
-            class="text-button"
-            data-open-about>
-            READ OUR STORY →
-          </button>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- PHILOSOPHY -->
-    <section class="philosophy-section">
-      <p class="philosophy-korean">불꽃의 철학</p>
-      <h2>LESS NOISE.</h2>
-      <h3>MORE PRESENCE.</h3>
-      <p>Quiet design. Strong identity.</p>
-    </section>
-
-    <!-- INSTAGRAM -->
-    <section class="instagram-section">
-      <div class="section-heading section-heading--center">
-        <p class="eyebrow">SOCIAL · 소셜</p>
-        <h2>FOLLOW BULKKOT</h2>
-        <span>불꽃을 팔로우하세요</span>
-      </div>
-
-      <a
-        href="https://www.instagram.com/bulkkot.wear/"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="instagram-handle">
-        @bulkkot.wear
-      </a>
-    </section>
-
-    <!-- WAITLIST -->
-    <section class="waitlist-section" id="waitlist">
-      <div class="waitlist-inner">
-
-        <div class="waitlist-copy">
-          <p class="eyebrow">DROP 001</p>
-          <h2>BE FIRST TO KNOW</h2>
-          <span>가장 먼저 만나보세요</span>
-          <p>
-            Join the VIP waitlist to receive access before Drop 001 goes live.
-          </p>
-        </div>
+        class="header-search-bar"
+        id="headerSearchBar"
+        hidden
+      >
 
         <form
-          class="waitlist-form"
-          data-waitlist-form
-          novalidate>
+          class="header-search-form"
+          id="headerSearchForm"
+          role="search"
+        >
 
-          <label for="waitlist-email">EMAIL ADDRESS</label>
+          <div class="header-search-input-wrap">
 
-          <div class="waitlist-input-row">
             <input
-              id="waitlist-email"
-              name="email"
-              type="email"
-              autocomplete="email"
-              inputmode="email"
-              enterkeyhint="done"
-              placeholder="your@email.com"
-              required>
+              type="search"
+              id="headerSearchInput"
+              name="q"
+              autocomplete="off"
+              placeholder="SEARCH THE COLLECTION"
+              aria-label="Search products"
+            >
 
             <button
               type="submit"
-              class="button button--primary">
-              JOIN
+              class="header-search-submit"
+              aria-label="Submit search"
+            >
+              SEARCH
             </button>
+
+            <button
+              type="button"
+              id="headerSearchClose"
+              class="header-search-close"
+              aria-label="Close search"
+            >
+              ×
+            </button>
+
           </div>
 
           <div
-            class="waitlist-message"
-            data-waitlist-message
-            aria-live="polite">
+            class="search-trending-tags"
+            aria-label="Popular searches"
+          >
+
+            <button
+              type="button"
+              class="search-tag-btn"
+              data-search-term="oversized"
+            >
+              OVERSIZED
+            </button>
+
+            <button
+              type="button"
+              class="search-tag-btn"
+              data-search-term="t-shirt"
+            >
+              T-SHIRTS
+            </button>
+
+            <button
+              type="button"
+              class="search-tag-btn"
+              data-search-term="hoodie"
+            >
+              HOODIES
+            </button>
+
+            <button
+              type="button"
+              class="search-tag-btn"
+              data-search-term="black"
+            >
+              BLACK
+            </button>
+
           </div>
 
         </form>
 
       </div>
-    </section>
 
-    <!-- CONTACT -->
-    <section class="contact-section" id="contact">
-      <div class="section-heading">
-        <p class="eyebrow">CONTACT · 문의</p>
-        <h2>GET IN TOUCH</h2>
+    </header>
+
+    <!-- ===================================================
+         MOBILE DRAWER
+    ==================================================== -->
+
+    <div
+      class="drawer-overlay"
+      id="drawerOverlay"
+      data-close-drawer
+      aria-hidden="true"
+    ></div>
+
+    <aside
+      class="mobile-drawer"
+      id="mobileDrawer"
+      aria-hidden="true"
+      aria-label="Mobile navigation"
+    >
+
+      <div class="mobile-drawer__header">
+
+        <a
+          href="index.html"
+          class="brand"
+          aria-label="BULKKOT home"
+        >
+
+          <span class="brand-logo-wrap">
+            <img
+              class="brand-logo"
+              src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"
+              alt=""
+              width="28"
+              height="28"
+              decoding="async"
+            >
+          </span>
+
+          <span class="brand-name">
+
+            <span class="brand-korean">
+              불꽃
+            </span>
+
+            <span class="brand-english">
+              BULKKOT
+            </span>
+
+          </span>
+
+        </a>
+
+        <button
+          type="button"
+          class="drawer-close"
+          data-close-drawer
+          aria-label="Close menu"
+        >
+          ×
+        </button>
+
       </div>
 
-      <div class="contact-list">
+      <nav
+        class="mobile-navigation"
+        aria-label="Mobile navigation"
+      >
+
+        <a href="index.html">
+          <span>HOME</span>
+          <small>홈</small>
+        </a>
+
+        <a href="shop.html">
+          <span>SHOP</span>
+          <small>쇼핑</small>
+        </a>
+
+        <a
+          href="index.html#collections"
+          data-scroll-target="collections"
+        >
+          <span>COLLECTIONS</span>
+          <small>컬렉션</small>
+        </a>
+
+        <a
+          href="index.html#about"
+          data-scroll-target="about"
+        >
+          <span>ABOUT</span>
+          <small>브랜드</small>
+        </a>
+
+        <a
+          href="#"
+          data-open-account
+        >
+          <span>ACCOUNT</span>
+          <small>계정</small>
+        </a>
+
+        <a
+          href="#"
+          data-open-track-order
+        >
+          <span>TRACK ORDER</span>
+          <small>주문조회</small>
+        </a>
+
+        <a
+          href="#"
+          data-open-cart
+        >
+          <span>SHOPPING BAG</span>
+          <small>
+            BAG
+            <span data-cart-count>0</span>
+          </small>
+        </a>
+
+      </nav>
+
+      <div class="mobile-drawer__footer">
+
+        <a
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          INSTAGRAM
+        </a>
+
         <a
           href="mailto:bulkkotwear@gmail.com"
-          class="contact-item">
-          <span>GENERAL ENQUIRIES</span>
-          <strong>bulkkotwear@gmail.com</strong>
+        >
+          CONTACT
+        </a>
+
+      </div>
+
+    </aside>
+
+    <!-- ===================================================
+         HERO
+    ==================================================== -->
+
+    <main>
+
+      <section
+        class="hero"
+        aria-label="BULKKOT Drop 001"
+      >
+
+        <div class="hero-media">
+
+          <img
+            class="hero-image"
+            src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+            alt="BULKKOT Drop 001"
+            fetchpriority="high"
+            decoding="async"
+          >
+
+          <div class="hero-overlay"></div>
+
+        </div>
+
+        <div class="hero-content">
+
+          <span class="hero-label">
+            DROP 001 · BULKKOT
+          </span>
+
+          <h1>
+            SILHOUETTE
+          </h1>
+
+          <p class="hero-description">
+            Heavyweight oversized essentials.
+            Designed for presence, movement,
+            and everyday wear.
+          </p>
+
+          <a
+            href="shop.html"
+            class="button button--primary"
+          >
+            EXPLORE THE COLLECTION
+          </a>
+
+        </div>
+
+        <div
+          class="hero-scroll"
+          aria-hidden="true"
+        >
+          SCROLL
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           COLLECTIONS
+      ================================================== -->
+
+      <section
+        class="circle-collections-section"
+        id="collections"
+        aria-labelledby="collectionsHeading"
+      >
+
+        <div class="circle-collections-inner">
+
+          <div class="circle-collections-head">
+
+            <span class="eyebrow">
+              DROP 001
+            </span>
+
+            <h2 id="collectionsHeading">
+              THE COLLECTION
+            </h2>
+
+          </div>
+
+          <div class="circle-items-row">
+
+            <!-- CIRCLE 1 -->
+            <a
+              href="shop.html?category=t-shirts"
+              class="collection-circle-card"
+            >
+
+              <div class="circle-frame">
+
+                <img
+                  src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+                  alt="BULKKOT T-Shirts"
+                  loading="lazy"
+                  decoding="async"
+                >
+
+              </div>
+
+              <div class="circle-meta">
+
+                <span class="circle-label">
+                  T-SHIRTS
+                </span>
+
+                <span class="circle-korean">
+                  티셔츠
+                </span>
+
+                <span class="circle-action-btn">
+                  EXPLORE
+                </span>
+
+              </div>
+
+            </a>
+
+            <!-- CIRCLE 2 -->
+            <a
+              href="shop.html?category=hoodies"
+              class="collection-circle-card"
+            >
+
+              <div class="circle-frame">
+
+                <img
+                  src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+                  alt="BULKKOT Hoodies"
+                  loading="lazy"
+                  decoding="async"
+                >
+
+              </div>
+
+              <div class="circle-meta">
+
+                <span class="circle-label">
+                  HOODIES
+                </span>
+
+                <span class="circle-korean">
+                  후드
+                </span>
+
+                <span class="circle-action-btn">
+                  EXPLORE
+                </span>
+
+              </div>
+
+            </a>
+
+            <!-- CIRCLE 3 -->
+            <a
+              href="shop.html?category=sweats"
+              class="collection-circle-card"
+            >
+
+              <div class="circle-frame">
+
+                <img
+                  src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+                  alt="BULKKOT Sweatshirts"
+                  loading="lazy"
+                  decoding="async"
+                >
+
+              </div>
+
+              <div class="circle-meta">
+
+                <span class="circle-label">
+                  SWEATS
+                </span>
+
+                <span class="circle-korean">
+                  스웻
+                </span>
+
+                <span class="circle-action-btn">
+                  EXPLORE
+                </span>
+
+              </div>
+
+            </a>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           EDITORIAL
+      ================================================== -->
+
+      <section
+        class="editorial-section"
+        aria-label="BULKKOT editorial"
+      >
+
+        <div class="editorial-carousel">
+
+          <div
+            class="editorial-track"
+            data-editorial-track
+          >
+
+            <article
+              class="editorial-slide is-active"
+              data-editorial-slide="0"
+            >
+
+              <img
+                src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+                alt="BULKKOT editorial campaign"
+                loading="lazy"
+                decoding="async"
+              >
+
+              <div class="editorial-slide__content">
+
+                <span class="eyebrow">
+                  001 / FORM
+                </span>
+
+                <h2>
+                  LESS NOISE.
+                </h2>
+
+                <p>
+                  More presence.
+                </p>
+
+              </div>
+
+            </article>
+
+            <article
+              class="editorial-slide"
+              data-editorial-slide="1"
+              aria-hidden="true"
+            >
+
+              <img
+                src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+                alt="BULKKOT heavyweight essentials"
+                loading="lazy"
+                decoding="async"
+              >
+
+              <div class="editorial-slide__content">
+
+                <span class="eyebrow">
+                  001 / WEIGHT
+                </span>
+
+                <h2>
+                  BUILT TO LAST.
+                </h2>
+
+                <p>
+                  Heavyweight essentials,
+                  stripped back to what matters.
+                </p>
+
+              </div>
+
+            </article>
+
+            <article
+              class="editorial-slide"
+              data-editorial-slide="2"
+              aria-hidden="true"
+            >
+
+              <img
+                src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+                alt="BULKKOT everyday silhouette"
+                loading="lazy"
+                decoding="async"
+              >
+
+              <div class="editorial-slide__content">
+
+                <span class="eyebrow">
+                  001 / SILHOUETTE
+                </span>
+
+                <h2>
+                  MADE FOR MOVEMENT.
+                </h2>
+
+                <p>
+                  Relaxed proportions.
+                  Intentional structure.
+                </p>
+
+              </div>
+
+            </article>
+
+          </div>
+
+          <div class="editorial-controls">
+
+            <button
+              type="button"
+              class="carousel-control"
+              data-editorial-prev
+              aria-label="Previous editorial"
+            >
+              ←
+            </button>
+
+            <div
+              class="editorial-indicators"
+              aria-label="Editorial slides"
+            >
+
+              <button
+                type="button"
+                class="carousel-indicator is-active"
+                data-editorial-indicator="0"
+                aria-label="Go to editorial slide 1"
+                aria-current="true"
+              >
+                01
+              </button>
+
+              <button
+                type="button"
+                class="carousel-indicator"
+                data-editorial-indicator="1"
+                aria-label="Go to editorial slide 2"
+                aria-current="false"
+              >
+                02
+              </button>
+
+              <button
+                type="button"
+                class="carousel-indicator"
+                data-editorial-indicator="2"
+                aria-label="Go to editorial slide 3"
+                aria-current="false"
+              >
+                03
+              </button>
+
+            </div>
+
+            <button
+              type="button"
+              class="carousel-control"
+              data-editorial-next
+              aria-label="Next editorial"
+            >
+              →
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           SHOP PREVIEW
+      ================================================== -->
+
+      <section
+        class="shop-section"
+        id="shop"
+        aria-labelledby="shopHeading"
+      >
+
+        <div class="section-heading section-heading--split">
+
+          <div>
+
+            <span class="eyebrow">
+              DROP 001
+            </span>
+
+            <h2 id="shopHeading">
+              ESSENTIALS
+            </h2>
+
+          </div>
+
+          <a
+            href="shop.html"
+            class="section-status"
+          >
+            VIEW ALL →
+          </a>
+
+        </div>
+
+        <div
+          class="product-grid"
+          id="homeProductGrid"
+          aria-live="polite"
+        >
+
+          <!-- Products are injected by main.js -->
+
+          <div
+            class="product-grid-loading"
+            data-home-products-loading
+          >
+
+            <span>
+              LOADING COLLECTION…
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           VALUES
+      ================================================== -->
+
+      <section
+        class="values-section"
+        aria-labelledby="valuesHeading"
+      >
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            THE STANDARD
+          </span>
+
+          <h2 id="valuesHeading">
+            MADE WITH INTENT.
+          </h2>
+
+        </div>
+
+        <div class="values-grid">
+
+          <article class="value-block">
+
+            <span class="value-number">
+              01
+            </span>
+
+            <h3>
+              WEIGHT
+            </h3>
+
+            <p>
+              Substantial fabrics and considered
+              proportions designed for everyday
+              structure.
+            </p>
+
+          </article>
+
+          <article class="value-block">
+
+            <span class="value-number">
+              02
+            </span>
+
+            <h3>
+              SILHOUETTE
+            </h3>
+
+            <p>
+              Relaxed oversized fits with clean,
+              deliberate lines.
+            </p>
+
+          </article>
+
+          <article class="value-block">
+
+            <span class="value-number">
+              03
+            </span>
+
+            <h3>
+              PRESENCE
+            </h3>
+
+            <p>
+              Minimal design that does not need
+              to shout to be noticed.
+            </p>
+
+          </article>
+
+          <article class="value-block">
+
+            <span class="value-number">
+              04
+            </span>
+
+            <h3>
+              PURPOSE
+            </h3>
+
+            <p>
+              Every element earns its place.
+              Nothing added without reason.
+            </p>
+
+          </article>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           ABOUT
+      ================================================== -->
+
+      <section
+        class="about-section"
+        id="about"
+        aria-labelledby="aboutHeading"
+      >
+
+        <div class="about-grid">
+
+          <div class="about-intro">
+
+            <span class="eyebrow">
+              ABOUT BULKKOT
+            </span>
+
+            <h2>
+              불꽃
+            </h2>
+
+          </div>
+
+          <div class="about-copy">
+
+            <h2 id="aboutHeading">
+              LESS NOISE.
+              MORE PRESENCE.
+            </h2>
+
+            <p class="about-lead">
+              BULKKOT is a Korean-inspired
+              premium everyday wear label built
+              around proportion, weight and
+              restraint.
+            </p>
+
+            <p>
+              We believe clothing does not need
+              excessive graphics or unnecessary
+              noise to create an impression.
+              The silhouette does the talking.
+            </p>
+
+            <p>
+              Every collection is developed around
+              pieces that can live beyond a single
+              trend — heavyweight essentials,
+              relaxed proportions and a visual
+              language that stays intentional.
+            </p>
+
+            <p class="about-signature">
+              BULKKOT — 불꽃
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           PHILOSOPHY
+      ================================================== -->
+
+      <section
+        class="philosophy-section"
+        aria-labelledby="philosophyHeading"
+      >
+
+        <div class="philosophy-inner">
+
+          <span class="eyebrow">
+            PHILOSOPHY
+          </span>
+
+          <h2 id="philosophyHeading">
+            LESS
+          </h2>
+
+          <h3>
+            NOISE.
+          </h3>
+
+          <p>
+            MORE PRESENCE.
+          </p>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           INSTAGRAM
+      ================================================== -->
+
+      <section
+        class="instagram-section"
+        aria-labelledby="instagramHeading"
+      >
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            FOLLOW THE WORLD OF BULKKOT
+          </span>
+
+          <h2 id="instagramHeading">
+            @BULKKOT.WEAR
+          </h2>
+
+          <span>
+            불꽃
+          </span>
+
+        </div>
+
+        <a
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="instagram-handle"
+        >
+          OPEN INSTAGRAM →
+        </a>
+
+      </section>
+
+      <!-- =================================================
+           WAITLIST
+      ================================================== -->
+
+      <section
+        class="waitlist-section"
+        id="waitlist"
+        aria-labelledby="waitlistHeading"
+      >
+
+        <div class="waitlist-inner">
+
+          <div class="waitlist-copy">
+
+            <span class="eyebrow">
+              DROP 001
+            </span>
+
+            <h2 id="waitlistHeading">
+              BE FIRST.
+            </h2>
+
+            <span>
+              먼저 만나보세요
+            </span>
+
+            <p>
+              Join the BULKKOT list for collection
+              updates, early access and important
+              drop announcements.
+            </p>
+
+          </div>
+
+          <form
+            class="waitlist-form"
+            id="waitlistForm"
+            novalidate
+          >
+
+            <label for="waitlistEmail">
+              EMAIL ADDRESS
+            </label>
+
+            <div class="waitlist-input-row">
+
+              <input
+                type="email"
+                id="waitlistEmail"
+                name="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              >
+
+              <button
+                type="submit"
+                class="button button--primary"
+              >
+                JOIN
+              </button>
+
+            </div>
+
+            <div
+              class="waitlist-message"
+              id="waitlistMessage"
+              role="status"
+              aria-live="polite"
+            ></div>
+
+          </form>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           CONTACT
+      ================================================== -->
+
+      <section
+        class="contact-section"
+        id="contact"
+        aria-labelledby="contactHeading"
+      >
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            GET IN TOUCH
+          </span>
+
+          <h2 id="contactHeading">
+            CONTACT
+          </h2>
+
+        </div>
+
+        <div class="contact-list">
+
+          <a
+            href="mailto:bulkkotwear@gmail.com"
+            class="contact-item"
+          >
+
+            <span>
+              EMAIL
+            </span>
+
+            <strong>
+              bulkkotwear@gmail.com
+            </strong>
+
+          </a>
+
+          <a
+            href="https://www.instagram.com/bulkkot.wear/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="contact-item"
+          >
+
+            <span>
+              INSTAGRAM
+            </span>
+
+            <strong>
+              @bulkkot.wear
+            </strong>
+
+          </a>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ===================================================
+         FOOTER
+    ==================================================== -->
+
+    <footer class="site-footer">
+
+      <div class="footer-brand">
+
+        <a
+          href="index.html"
+          class="brand"
+          aria-label="BULKKOT home"
+        >
+
+          <span class="brand-logo-wrap">
+
+            <img
+              class="brand-logo"
+              src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"
+              alt=""
+              width="30"
+              height="30"
+              loading="lazy"
+              decoding="async"
+            >
+
+          </span>
+
+          <span class="brand-name">
+
+            <span class="brand-korean">
+              불꽃
+            </span>
+
+            <span class="brand-english">
+              BULKKOT
+            </span>
+
+          </span>
+
+        </a>
+
+        <p>
+          Korean-inspired premium everyday wear
+          built around weight, silhouette and
+          presence.
+        </p>
+
+        <p class="footer-tagline">
+          LESS NOISE. MORE PRESENCE.
+        </p>
+
+      </div>
+
+      <!-- SHOP -->
+      <div class="footer-column">
+
+        <h3>
+          SHOP
+        </h3>
+
+        <a href="shop.html">
+          ALL PRODUCTS
+        </a>
+
+        <a href="shop.html?category=t-shirts">
+          T-SHIRTS
+        </a>
+
+        <a href="shop.html?category=hoodies">
+          HOODIES
+        </a>
+
+        <a href="shop.html?category=sweats">
+          SWEATS
+        </a>
+
+      </div>
+
+      <!-- HELP -->
+      <div class="footer-column">
+
+        <h3>
+          HELP
+        </h3>
+
+        <button
+          type="button"
+          data-size-guide-open
+        >
+          SIZE GUIDE
+        </button>
+
+        <button
+          type="button"
+          data-open-policy
+          data-policy="shipping"
+        >
+          SHIPPING
+        </button>
+
+        <button
+          type="button"
+          data-open-policy
+          data-policy="returns"
+        >
+          RETURNS
+        </button>
+
+        <button
+          type="button"
+          data-open-track-order
+        >
+          TRACK ORDER
+        </button>
+
+      </div>
+
+      <!-- COMPANY -->
+      <div class="footer-column">
+
+        <h3>
+          COMPANY
+        </h3>
+
+        <button
+          type="button"
+          data-open-about
+        >
+          ABOUT BULKKOT
+        </button>
+
+        <a
+          href="index.html#collections"
+        >
+          COLLECTION
         </a>
 
         <a
-          href="mailto:bulkkotwear@gmail.com?subject=BULKKOT%20Collaboration"
-          class="contact-item">
-          <span>COLLABORATIONS</span>
-          <strong>CONTACT US →</strong>
+          href="index.html#contact"
+        >
+          CONTACT
         </a>
+
+        <a
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          INSTAGRAM
+        </a>
+
       </div>
-    </section>
 
-  </main>
+      <!-- LEGAL -->
+      <div class="footer-column">
 
-  <!-- FOOTER -->
-  <footer class="site-footer">
+        <h3>
+          LEGAL
+        </h3>
 
-    <div class="footer-brand">
-      <a href="#top" class="brand">
-        <span class="brand-name">
-          <span class="brand-korean">불꽃</span>
-          <span class="brand-english">BULKKOT</span>
+        <button
+          type="button"
+          data-open-policy
+          data-policy="privacy"
+        >
+          PRIVACY
+        </button>
+
+        <button
+          type="button"
+          data-open-policy
+          data-policy="terms"
+        >
+          TERMS
+        </button>
+
+        <button
+          type="button"
+          data-open-policy
+          data-policy="refund"
+        >
+          REFUND POLICY
+        </button>
+
+      </div>
+
+      <!-- SOCIAL -->
+      <div class="footer-column">
+
+        <h3>
+          SOCIAL
+        </h3>
+
+        <a
+          href="https://www.instagram.com/bulkkot.wear/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          INSTAGRAM
+        </a>
+
+        <a
+          href="mailto:bulkkotwear@gmail.com"
+        >
+          EMAIL
+        </a>
+
+      </div>
+
+      <!-- FOOTER BOTTOM -->
+      <div class="footer-bottom">
+
+        <span>
+          © <span data-current-year></span>
+          BULKKOT. ALL RIGHTS RESERVED.
         </span>
-      </a>
 
-      <p>Korean-inspired premium everyday wear.</p>
-      <p class="footer-tagline">Less noise. More presence.</p>
-    </div>
+        <span>
+          불꽃 · INDIA
+        </span>
 
-    <div class="footer-column">
-      <h3>SHOP</h3>
-      <a href="shop.html?category=tees">Tees</a>
-      <a href="shop.html?category=hoods">Hoods</a>
-      <a href="shop.html?category=sweats">Sweats</a>
-      <a href="#drop-001">Drop 001</a>
-    </div>
+      </div>
 
-    <div class="footer-column">
-      <h3>ABOUT</h3>
-      <a href="#about">About BULKKOT</a>
-      <button type="button" data-open-about>Brand Story</button>
-    </div>
+    </footer>
 
-    <div class="footer-column">
-      <h3>HELP</h3>
-      <button type="button" data-open-track-order>Track Order</button>
-      <button type="button" data-open-account>My Account</button>
-      <button type="button" data-open-policy="faq">FAQ</button>
-      <button type="button" data-size-guide-open>Size Guide</button>
-      <button type="button" data-open-policy="shipping">Shipping Policy</button>
-      <button type="button" data-open-policy="returns">Returns & Exchange</button>
-    </div>
+  </div>
 
-    <div class="footer-column">
-      <h3>LEGAL</h3>
-      <button type="button" data-open-policy="privacy">Privacy Policy</button>
-      <button type="button" data-open-policy="terms">Terms & Conditions</button>
-    </div>
+  <!-- =====================================================
+       ACCOUNT MODAL
+  ====================================================== -->
 
-    <div class="footer-column">
-      <h3>CONNECT</h3>
-      <a
-        href="https://www.instagram.com/bulkkot.wear/"
-        target="_blank"
-        rel="noopener noreferrer">
-        Instagram
-      </a>
-      <a href="mailto:bulkkotwear@gmail.com">Email</a>
-    </div>
-
-    <div class="footer-bottom">
-      <span>© 2026 BULKKOT (불꽃). ALL RIGHTS RESERVED.</span>
-      <span>INDIA</span>
-    </div>
-
-  </footer>
-
-  <!-- WHATSAPP FLOAT -->
-  <a
-    href="https://wa.me/919876543210"
-    class="whatsapp-float"
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label="Chat with BULKKOT on WhatsApp">
-
-    <span class="whatsapp-float__icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path
-          d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.53 0 .2 5.32.2 11.88c0 2.1.55 4.15 1.6 5.96L.1 24l6.3-1.65a11.87 11.87 0 0 0 5.67 1.44h.01c6.55 0 11.88-5.33 11.88-11.89 0-3.17-1.23-6.15-3.44-8.42ZM12.08 21.76h-.01a9.85 9.85 0 0 1-5.02-1.37l-.36-.21-3.74.98 1-3.65-.23-.37a9.86 9.86 0 1 1 8.36 4.62Zm5.41-7.39c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.21 5.08 4.5.71.31 1.26.49 1.69.63.71.23 1.35.2 1.86.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.28.17-1.41-.07-.12-.27-.2-.57-.35Z"
-          fill="currentColor"/>
-      </svg>
-    </span>
-
-    <span class="whatsapp-float__text">
-      <strong>CHAT WITH US</strong>
-      <small>Need help?</small>
-    </span>
-  </a>
-
-  <!-- FIRST-VISIT WELCOME -->
   <div
-    class="welcome-popup-modal"
-    id="welcomePopupModal"
-    aria-hidden="true">
+    class="account-modal"
+    id="accountModal"
+    hidden
+    aria-hidden="true"
+  >
 
-    <div class="welcome-card">
+    <div
+      class="account-modal__backdrop"
+      data-account-close
+    ></div>
+
+    <section
+      class="account-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="accountModalTitle"
+    >
 
       <button
         type="button"
-        class="welcome-close"
-        id="welcomePopupClose"
-        aria-label="Close welcome message">
+        class="modal-close"
+        data-account-close
+        aria-label="Close account"
+      >
         ×
       </button>
 
-      <p
-        class="eyebrow"
-        style="color:var(--bk-red, #e31b23); margin-bottom:8px;">
-        불꽃 · EXCLUSIVE ACCESS
-      </p>
+      <span class="eyebrow">
+        BULKKOT ACCOUNT
+      </span>
 
-      <h2
-        style="font-size:22px; font-weight:900; margin:0 0 10px; color:#fff;">
-        WELCOME TO BULKKOT
+      <h2 id="accountModalTitle">
+        ACCOUNT
       </h2>
 
-      <p
-        style="font-size:12px; color:#aaa; line-height:1.6; margin:0 0 20px;">
-        Sign in to save shipping addresses, track drop shipments in real time,
-        and unlock Drop 001.
-      </p>
+      <div
+        id="accountLoggedOut"
+        class="account-state"
+      >
 
-      <button
-        type="button"
-        class="button button--primary"
-        style="width:100%; margin-bottom:10px;"
-        id="welcomeGoogleBtn">
-        CONTINUE WITH GOOGLE
-      </button>
+        <p>
+          Sign in to view your orders and
+          account details.
+        </p>
 
-      <button
-        type="button"
-        class="text-button"
-        id="welcomeEmailBtn"
-        style="font-size:11px; color:#888;">
-        Or sign in with Email →
-      </button>
+        <form
+          id="accountAuthForm"
+          novalidate
+        >
 
-    </div>
+          <label for="accountEmail">
+            EMAIL
+          </label>
+
+          <input
+            type="email"
+            id="accountEmail"
+            name="email"
+            autocomplete="email"
+            required
+          >
+
+          <label for="accountPassword">
+            PASSWORD
+          </label>
+
+          <input
+            type="password"
+            id="accountPassword"
+            name="password"
+            autocomplete="current-password"
+            required
+          >
+
+          <button
+            type="submit"
+            class="button button--primary"
+          >
+            SIGN IN
+          </button>
+
+          <button
+            type="button"
+            class="button button--secondary"
+            id="accountCreateBtn"
+          >
+            CREATE ACCOUNT
+          </button>
+
+          <div
+            id="accountAuthMessage"
+            class="form-message"
+            role="status"
+            aria-live="polite"
+          ></div>
+
+        </form>
+
+      </div>
+
+      <div
+        id="accountLoggedIn"
+        class="account-state"
+        hidden
+      >
+
+        <div class="account-profile">
+
+          <span class="account-profile-label">
+            SIGNED IN AS
+          </span>
+
+          <strong id="accountUserEmail">
+            —
+          </strong>
+
+        </div>
+
+        <a
+          href="shop.html"
+          class="button button--primary"
+        >
+          CONTINUE SHOPPING
+        </a>
+
+        <button
+          type="button"
+          class="button button--secondary"
+          id="accountSignOutBtn"
+        >
+          SIGN OUT
+        </button>
+
+      </div>
+
+    </section>
+
   </div>
 
-  <!-- PRODUCT DETAIL MODAL -->
+  <!-- =====================================================
+       TRACK ORDER MODAL
+  ====================================================== -->
+
+  <div
+    class="track-order-modal"
+    id="trackOrderModal"
+    hidden
+    aria-hidden="true"
+  >
+
+    <div
+      class="track-order-modal__backdrop"
+      data-track-order-close
+    ></div>
+
+    <section
+      class="track-order-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="trackOrderTitle"
+    >
+
+      <button
+        type="button"
+        class="modal-close"
+        data-track-order-close
+        aria-label="Close tracking"
+      >
+        ×
+      </button>
+
+      <span class="eyebrow">
+        ORDER STATUS
+      </span>
+
+      <h2 id="trackOrderTitle">
+        TRACK ORDER
+      </h2>
+
+      <p>
+        Enter your order number and email
+        address to view your order status.
+      </p>
+
+      <form
+        id="trackOrderForm"
+        novalidate
+      >
+
+        <div class="track-order-field">
+
+          <label for="trackOrderNumber">
+            ORDER NUMBER
+          </label>
+
+          <input
+            type="text"
+            id="trackOrderNumber"
+            name="order_number"
+            autocomplete="off"
+            required
+            placeholder="BK-000000"
+          >
+
+        </div>
+
+        <div class="track-order-field">
+
+          <label for="trackOrderEmail">
+            EMAIL
+          </label>
+
+          <input
+            type="email"
+            id="trackOrderEmail"
+            name="email"
+            autocomplete="email"
+            required
+          >
+
+        </div>
+
+        <button
+          type="submit"
+          class="button button--primary"
+        >
+          CHECK STATUS
+        </button>
+
+        <div
+          id="trackOrderMessage"
+          class="form-message"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+      </form>
+
+      <div
+        id="trackOrderResult"
+        class="track-order-result"
+        hidden
+      ></div>
+
+    </section>
+
+  </div>
+
+  <!-- =====================================================
+       CONTENT MODAL
+  ====================================================== -->
+
+  <div
+    class="content-modal"
+    id="contentModal"
+    hidden
+    aria-hidden="true"
+  >
+
+    <div
+      class="content-modal__backdrop"
+      data-close-content-modal
+    ></div>
+
+    <section
+      class="content-modal__panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="contentModalTitle"
+    >
+
+      <button
+        type="button"
+        class="modal-close"
+        data-close-content-modal
+        aria-label="Close information"
+      >
+        ×
+      </button>
+
+      <span
+        class="eyebrow"
+        id="contentModalEyebrow"
+      >
+        BULKKOT
+      </span>
+
+      <h2 id="contentModalTitle">
+        INFORMATION
+      </h2>
+
+      <div
+        id="contentModalBody"
+        class="content-modal__body"
+      ></div>
+
+    </section>
+
+  </div>
+
+  <!-- =====================================================
+       SIZE GUIDE MODAL
+  ====================================================== -->
+
+  <div
+    class="size-guide-modal"
+    id="sizeGuideModal"
+    hidden
+    aria-hidden="true"
+  >
+
+    <div
+      class="size-guide-modal__backdrop"
+      data-size-guide-close
+    ></div>
+
+    <section
+      class="size-guide-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sizeGuideTitle"
+    >
+
+      <button
+        type="button"
+        class="modal-close"
+        data-size-guide-close
+        aria-label="Close size guide"
+      >
+        ×
+      </button>
+
+      <span class="eyebrow">
+        FIT GUIDE
+      </span>
+
+      <h2 id="sizeGuideTitle">
+        SIZE GUIDE
+      </h2>
+
+      <p>
+        BULKKOT is designed around a relaxed
+        oversized silhouette. Use the product
+        measurements shown on each product page
+        where available.
+      </p>
+
+      <div class="size-guide-table-scroll">
+
+        <table class="size-guide-table">
+
+          <thead>
+
+            <tr>
+              <th>SIZE</th>
+              <th>CHEST</th>
+              <th>LENGTH</th>
+              <th>SHOULDER</th>
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr>
+              <td>S</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+
+            <tr>
+              <td>M</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+
+            <tr>
+              <td>L</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+
+            <tr>
+              <td>XL</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      <p class="size-guide-note">
+        Product-specific measurements take
+        priority over this general guide.
+      </p>
+
+    </section>
+
+  </div>
+
+  <!-- =====================================================
+       PDP MODAL
+  ====================================================== -->
+
   <div
     class="pdp-modal"
     id="pdpModal"
-    aria-hidden="true">
-
-    <div class="pdp-backdrop" data-pdp-close></div>
+    hidden
+    aria-hidden="true"
+  >
 
     <div
+      class="pdp-modal__backdrop"
+      data-pdp-close
+    ></div>
+
+    <section
       class="pdp-container"
       role="dialog"
       aria-modal="true"
-      aria-label="Product details">
+      aria-labelledby="pdpModalTitle"
+    >
 
       <button
         type="button"
-        class="pdp-close-btn"
+        class="modal-close"
         data-pdp-close
-        aria-label="Close product view">
+        aria-label="Close product preview"
+      >
         ×
       </button>
 
-      <div id="pdpContent"></div>
-    </div>
-  </div>
+      <div
+        id="pdpModalContent"
+      ></div>
 
-  <!-- CART DRAWER -->
-  <div class="drawer-overlay" data-cart-overlay></div>
-  <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
-    <div class="cart-drawer__header">
-      <div><p class="eyebrow">BULKKOT</p><h2>YOUR CART</h2></div>
-      <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
-    </div>
-    <div class="drawer__body" id="cart-content"></div>
-  </aside>
-
-  <!-- ACCOUNT MODAL -->
-  <div class="account-modal" data-account-modal aria-hidden="true">
-    <div class="account-backdrop" data-account-close></div>
-    <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
-      <button type="button" class="account-close" data-account-close aria-label="Close account">×</button>
-
-      <div class="account-user-view" data-account-user>
-        <div class="account-header" style="margin-bottom:24px;">
-          <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">AUTHENTICATED</p>
-          <h2 style="font-size:24px; margin:0 0 4px;" data-account-name-heading>MY PROFILE</h2>
-          <p data-account-user-email style="color:#888; font-size:12px; margin:0;">—</p>
-        </div>
-
-        <section class="account-section" style="margin-bottom:32px;">
-          <div class="account-section-head" style="margin-bottom:16px;">
-            <div><span class="eyebrow" style="color:#888; font-size:10px;">SAVED DETAILS</span><h3 style="font-size:14px; margin:2px 0 0;">SHIPPING ADDRESS</h3></div>
-          </div>
-
-          <form class="account-profile-form" id="profileAddressForm" data-account-profile-form>
-            <div class="bk-input-group">
-              <input id="account-name" name="full_name" type="text" class="bk-input" autocomplete="name" placeholder="Full Name">
-            </div>
-            <div class="bk-input-group">
-              <input id="account-phone" name="phone" type="tel" class="bk-input" autocomplete="tel" placeholder="Phone Number">
-            </div>
-            <div class="bk-input-group">
-              <textarea id="account-address" name="shipping_address" class="bk-input" autocomplete="street-address" placeholder="House / street / area" rows="3"></textarea>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-              <input id="account-city" name="shipping_city" type="text" class="bk-input" autocomplete="address-level2" placeholder="City">
-              <input id="account-state" name="shipping_state" type="text" class="bk-input" autocomplete="address-level1" placeholder="State">
-              <input id="account-pincode" name="shipping_pincode" type="text" class="bk-input" inputmode="numeric" autocomplete="postal-code" placeholder="Pincode">
-            </div>
-            <button type="submit" class="bk-btn-primary" style="margin-top:16px;">SAVE PROFILE</button>
-            <p class="account-message" data-profile-message aria-live="polite" style="color:#31c48d; font-size:11px; margin-top:8px; text-align:center; min-height:16px;"></p>
-          </form>
-        </section>
-
-        <section class="account-section">
-          <div class="account-section-head" style="margin-bottom:16px;"><div><span class="eyebrow" style="color:#888; font-size:10px;">LOG</span><h3 style="font-size:14px; margin:2px 0 0;">PAST ORDERS</h3></div></div>
-          <div class="account-orders" data-account-orders><div class="account-orders-loading" style="color:#666; font-size:11px;">Loading orders...</div></div>
-        </section>
-
-        <button type="button" class="account-signout" data-account-signout style="width:100%; padding:14px; background:none; border:1px solid #333; color:#888; border-radius:4px; font-size:11px; font-weight:800; cursor:pointer; margin-top:32px; transition:all 0.2s;">SIGN OUT</button>
-      </div>
     </section>
+
   </div>
 
-  <!-- TRACK ORDER MODAL -->
-  <div class="track-order-modal" data-track-order-modal aria-hidden="true">
-    <div class="track-order-backdrop" data-track-order-close></div>
-    <section class="track-order-panel" role="dialog" aria-modal="true" aria-labelledby="track-order-title">
-      <button type="button" class="track-order-close" data-track-order-close aria-label="Close order tracking">×</button>
-      <div class="track-order-header">
-        <p class="eyebrow">BULKKOT · FULFILMENT TRACKING</p>
-        <h2 id="track-order-title">TRACK YOUR ORDER</h2>
-        <p>Enter your Order Number and phone provided at checkout.</p>
-      </div>
+  <!-- =====================================================
+       WELCOME POPUP
+  ====================================================== -->
 
-      <form class="track-order-form" data-track-order-form novalidate>
-        <div class="track-order-field">
-          <label for="track-order-number">ORDER NUMBER</label>
-          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="e.g. BK-260909-A1B2" maxlength="24" required>
-        </div>
-        <div class="track-order-field">
-          <label for="track-order-phone">PHONE NUMBER</label>
-          <input id="track-order-phone" name="phone" type="tel" autocomplete="tel" placeholder="10-digit mobile number" maxlength="15" required>
-        </div>
-        <button type="submit" class="button button--primary track-order-submit">LOOKUP SHIPMENT</button>
-        <p class="track-order-message" data-track-order-message aria-live="polite"></p>
-      </form>
+  <div
+    class="welcome-popup-modal"
+    id="welcomePopupModal"
+    hidden
+    aria-hidden="true"
+  >
 
-      <div class="track-order-result" data-track-order-result hidden>
-        <div class="track-order-result-head">
-          <div><p class="eyebrow">ORDER REFERENCE</p><strong data-track-result-number>—</strong></div>
-          <span class="track-order-status-badge" data-track-result-status>PLACED</span>
-        </div>
-        <div class="track-progress">
-          <div class="track-progress-line" aria-hidden="true"><span data-track-progress-line></span></div>
-          <div class="track-progress-steps">
-            <div class="track-step" data-track-step="PLACED"><span class="track-step-dot"></span><strong>PLACED</strong></div>
-            <div class="track-step" data-track-step="PACKED"><span class="track-step-dot"></span><strong>PACKED</strong></div>
-            <div class="track-step" data-track-step="SHIPPED"><span class="track-step-dot"></span><strong>SHIPPED</strong></div>
-            <div class="track-step" data-track-step="OUT FOR DELIVERY"><span class="track-step-dot"></span><strong>OUT FOR DELIVERY</strong></div>
-            <div class="track-step" data-track-step="DELIVERED"><span class="track-step-dot"></span><strong>DELIVERED</strong></div>
-          </div>
-        </div>
-        <div class="track-shipping-card">
-          <div class="track-info-row"><span>PAYMENT METHOD</span><strong data-track-result-payment>CASH ON DELIVERY</strong></div>
-          <div class="track-info-row"><span>COURIER PARTNER</span><strong data-track-result-courier>In Preparation</strong></div>
-          <div class="track-info-row"><span>AWB / TRACKING NO.</span><strong data-track-result-tracking>Will update on dispatch</strong></div>
-        </div>
-        <div class="track-order-footer">
-          <button type="button" class="button button--outline" data-track-again>LOOKUP ANOTHER ORDER</button>
-        </div>
-      </div>
+    <div
+      class="welcome-popup-modal__backdrop"
+      data-welcome-close
+    ></div>
+
+    <section
+      class="welcome-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcomeTitle"
+    >
+
+      <button
+        type="button"
+        class="modal-close"
+        data-welcome-close
+        aria-label="Close welcome message"
+      >
+        ×
+      </button>
+
+      <span class="eyebrow">
+        BULKKOT
+      </span>
+
+      <h2 id="welcomeTitle">
+        LESS NOISE.
+      </h2>
+
+      <p>
+        MORE PRESENCE.
+      </p>
+
+      <a
+        href="shop.html"
+        class="button button--primary"
+        data-welcome-close
+      >
+        EXPLORE DROP 001
+      </a>
+
     </section>
+
   </div>
 
-  <!-- ABOUT MODAL -->
-  <div class="content-modal" data-about-modal aria-hidden="true">
-    <div class="content-modal__panel">
-      <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
-      <p class="eyebrow">BULKKOT · 불꽃</p>
-      <h2>OUR STORY</h2>
-      <div class="modal-copy">
-        <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
-        <p>We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
-        <p class="modal-signature">Less noise. More presence.</p>
-      </div>
-    </div>
-  </div>
+  <!-- =====================================================
+       WHATSAPP
+  ====================================================== -->
 
-  <!-- POLICY MODAL (FAQ / SHIPPING / RETURNS / PRIVACY / TERMS) -->
-  <div class="content-modal" data-policy-modal aria-hidden="true">
-    <div class="content-modal__panel">
-      <button type="button" class="drawer-close" data-close-policy aria-label="Close information">×</button>
-      <p class="eyebrow" data-policy-eyebrow>BULKKOT</p>
-      <h2 data-policy-title>INFORMATION</h2>
-      <div class="modal-copy" data-policy-content></div>
-    </div>
-  </div>
+  <a
+    href="https://wa.me/"
+    class="whatsapp-float"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Contact BULKKOT on WhatsApp"
+  >
+    <span>
+      WhatsApp
+    </span>
+  </a>
 
-  <!-- SIZE GUIDE MODAL -->
-  <div class="size-guide-modal" data-size-guide-modal aria-hidden="true">
-    <div class="size-guide-backdrop" data-size-guide-close></div>
-    <div class="size-guide-panel" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
-      <button type="button" class="size-guide-close" data-size-guide-close aria-label="Close size guide">×</button>
-      <div class="size-guide-header">
-        <span class="size-guide-eyebrow">BULKKOT / ARCHITECTURAL FIT</span>
-        <h2 id="size-guide-title">SIZE GUIDE</h2>
-        <p>Garment measurements in inches. Oversized drop-shoulder aesthetic.</p>
-      </div>
+  <!-- =====================================================
+       MAIN STOREFRONT JS
+  ====================================================== -->
 
-      <div class="size-guide-tabs" role="tablist" aria-label="Size categories">
-        <button type="button" class="size-guide-tab is-active" data-size-tab="tees" role="tab" aria-selected="true">TEES</button>
-        <button type="button" class="size-guide-tab" data-size-tab="hoodies" role="tab" aria-selected="false">HOODS & SWEATS</button>
-      </div>
-
-      <div class="size-guide-table-wrap is-active" data-size-panel="tees">
-        <div class="size-guide-table-scroll">
-          <table class="size-guide-table">
-            <thead>
-              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
-            </thead>
-            <tbody>
-              <tr><th>S</th><td>42"</td><td>28.5"</td><td>20.5"</td><td>8.5"</td></tr>
-              <tr><th>M</th><td>44"</td><td>29.5"</td><td>21.5"</td><td>9.0"</td></tr>
-              <tr><th>L</th><td>46"</td><td>30.5"</td><td>22.5"</td><td>9.5"</td></tr>
-              <tr><th>XL</th><td>48"</td><td>31.5"</td><td>23.5"</td><td>10.0"</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="size-guide-table-wrap" data-size-panel="hoodies" hidden>
-        <div class="size-guide-table-scroll">
-          <table class="size-guide-table">
-            <thead>
-              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
-            </thead>
-            <tbody>
-              <tr><th>S</th><td>44"</td><td>27.5"</td><td>22.0"</td><td>23.5"</td></tr>
-              <tr><th>M</th><td>46"</td><td>28.5"</td><td>23.0"</td><td>24.0"</td></tr>
-              <tr><th>L</th><td>48"</td><td>29.5"</td><td>24.0"</td><td>24.5"</td></tr>
-              <tr><th>XL</th><td>50"</td><td>30.5"</td><td>25.0"</td><td>25.0"</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Core Scripts -->
-  <script src="js/cart.js" defer></script>
   <script src="js/main.js" defer></script>
+
+  <!-- =====================================================
+       CART JS
+  ====================================================== -->
+
+  <script src="js/cart.js" defer></script>
+
 </body>
 </html>
