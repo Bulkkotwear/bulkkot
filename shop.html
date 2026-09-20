@@ -1768,6 +1768,20 @@
           });
       }
 
+      function withTimeout(promise, ms = 12000) {
+        let timer = null;
+
+        const timeout = new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            reject(new Error("Catalogue request timed out. Please retry."));
+          }, ms);
+        });
+
+        return Promise.race([promise, timeout]).finally(() => {
+          if (timer) clearTimeout(timer);
+        });
+      }
+
       /* =====================================================
          LOAD PRODUCTS
          ===================================================== */
@@ -1790,13 +1804,15 @@
           const {
             data,
             error
-          } = await supabaseClient
-            .from("products")
-            .select("*")
-            .order(
-              "created_at",
-              { ascending: false }
-            );
+          } = await withTimeout(
+            supabaseClient
+              .from("products")
+              .select("*")
+              .order(
+                "created_at",
+                { ascending: false }
+              )
+          );
 
           if (error) {
             throw error;
