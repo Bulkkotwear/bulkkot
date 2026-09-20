@@ -890,6 +890,36 @@
     }
 
   </style>
+
+    /* =========================================================
+       BULKKOT FINAL ROOT SAFETY — FLOW / FOOTER / TOUCH
+       ========================================================= */
+    html, body { width:100%; min-width:0; max-width:none; height:auto !important; min-height:100%; max-height:none !important; }
+    html { overflow-x:clip !important; overflow-y:auto !important; }
+    body { overflow-x:clip !important; overflow-y:auto !important; }
+    body.modal-open, body.drawer-open { overflow:hidden !important; }
+    main, #top { width:100%; height:auto !important; min-height:0 !important; max-height:none !important; overflow:visible !important; }
+    .site-footer { position:relative !important; width:100%; height:auto !important; min-height:0 !important; max-height:none !important; overflow:visible !important; display:grid !important; }
+    .drawer-close, [data-open-drawer], [data-close-drawer], #headerSearchToggle, #headerSearchClose,
+    [data-open-account], [data-account-close], [data-open-track-order], [data-track-order-close],
+    [data-size-guide-open], [data-size-guide-close], [data-open-policy], [data-close-policy],
+    [data-open-about], [data-close-about], [data-open-cart], [data-cart-open], [data-close-cart],
+    .carousel-control, .carousel-indicator, .size-guide-trigger, .shop-filter, .filter-btn,
+    .p-size-chip, .size-box, [data-action="select-size"], [data-action="add-to-bag"] {
+      min-width:44px; min-height:44px; touch-action:manipulation;
+    }
+    @media (max-width:640px) {
+      .site-footer { grid-template-columns:repeat(2,minmax(0,1fr)) !important; column-gap:20px !important; row-gap:40px !important; }
+      .footer-brand, .footer-bottom { grid-column:1 / -1 !important; }
+      .footer-column { min-width:0; }
+      .footer-column a, .footer-column button { max-width:100%; overflow-wrap:anywhere; }
+      .footer-bottom { flex-direction:column; align-items:flex-start; gap:8px; }
+    }
+    @media (max-width:380px) {
+      .site-footer { padding-left:12px !important; padding-right:12px !important; column-gap:14px !important; }
+      .footer-column a, .footer-column button { font-size:9px; }
+    }
+
 </head>
 
 <body>
@@ -1896,14 +1926,189 @@
 
   <!-- CART DRAWER -->
   <div class="drawer-overlay" data-cart-overlay></div>
-
-  <aside
-    class="cart-drawer"
-    id="cart-drawer"
-    data-cart-drawer
-    aria-hidden="true">
-
+  <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true">
     <div class="cart-drawer__header">
-      <div>
-        <p class="eyebrow">BULKKOT</p>
-        <h2>YOUR CART</h2>
+      <div><p class="eyebrow">BULKKOT</p><h2>YOUR CART</h2></div>
+      <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
+    </div>
+    <div class="drawer__body" id="cart-content"></div>
+  </aside>
+
+  <!-- ACCOUNT MODAL -->
+  <div class="account-modal" data-account-modal aria-hidden="true">
+    <div class="account-backdrop" data-account-close></div>
+    <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
+      <button type="button" class="account-close" data-account-close aria-label="Close account">×</button>
+
+      <div class="account-user-view" data-account-user>
+        <div class="account-header" style="margin-bottom:24px;">
+          <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">AUTHENTICATED</p>
+          <h2 style="font-size:24px; margin:0 0 4px;" data-account-name-heading>MY PROFILE</h2>
+          <p data-account-user-email style="color:#888; font-size:12px; margin:0;">—</p>
+        </div>
+
+        <section class="account-section" style="margin-bottom:32px;">
+          <div class="account-section-head" style="margin-bottom:16px;">
+            <div><span class="eyebrow" style="color:#888; font-size:10px;">SAVED DETAILS</span><h3 style="font-size:14px; margin:2px 0 0;">SHIPPING ADDRESS</h3></div>
+          </div>
+
+          <form class="account-profile-form" id="profileAddressForm" data-account-profile-form>
+            <div class="bk-input-group">
+              <input id="account-name" name="full_name" type="text" class="bk-input" autocomplete="name" placeholder="Full Name">
+            </div>
+            <div class="bk-input-group">
+              <input id="account-phone" name="phone" type="tel" class="bk-input" autocomplete="tel" placeholder="Phone Number">
+            </div>
+            <div class="bk-input-group">
+              <textarea id="account-address" name="shipping_address" class="bk-input" autocomplete="street-address" placeholder="House / street / area" rows="3"></textarea>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+              <input id="account-city" name="shipping_city" type="text" class="bk-input" autocomplete="address-level2" placeholder="City">
+              <input id="account-state" name="shipping_state" type="text" class="bk-input" autocomplete="address-level1" placeholder="State">
+              <input id="account-pincode" name="shipping_pincode" type="text" class="bk-input" inputmode="numeric" autocomplete="postal-code" placeholder="Pincode">
+            </div>
+            <button type="submit" class="bk-btn-primary" style="margin-top:16px;">SAVE PROFILE</button>
+            <p class="account-message" data-profile-message aria-live="polite" style="color:#31c48d; font-size:11px; margin-top:8px; text-align:center; min-height:16px;"></p>
+          </form>
+        </section>
+
+        <section class="account-section">
+          <div class="account-section-head" style="margin-bottom:16px;"><div><span class="eyebrow" style="color:#888; font-size:10px;">LOG</span><h3 style="font-size:14px; margin:2px 0 0;">PAST ORDERS</h3></div></div>
+          <div class="account-orders" data-account-orders><div class="account-orders-loading" style="color:#666; font-size:11px;">Loading orders...</div></div>
+        </section>
+
+        <button type="button" class="account-signout" data-account-signout style="width:100%; padding:14px; background:none; border:1px solid #333; color:#888; border-radius:4px; font-size:11px; font-weight:800; cursor:pointer; margin-top:32px; transition:all 0.2s;">SIGN OUT</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- TRACK ORDER MODAL -->
+  <div class="track-order-modal" data-track-order-modal aria-hidden="true">
+    <div class="track-order-backdrop" data-track-order-close></div>
+    <section class="track-order-panel" role="dialog" aria-modal="true" aria-labelledby="track-order-title">
+      <button type="button" class="track-order-close" data-track-order-close aria-label="Close order tracking">×</button>
+      <div class="track-order-header">
+        <p class="eyebrow">BULKKOT · FULFILMENT TRACKING</p>
+        <h2 id="track-order-title">TRACK YOUR ORDER</h2>
+        <p>Enter your Order Number and phone provided at checkout.</p>
+      </div>
+
+      <form class="track-order-form" data-track-order-form novalidate>
+        <div class="track-order-field">
+          <label for="track-order-number">ORDER NUMBER</label>
+          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="e.g. BK-260909-A1B2" maxlength="24" required>
+        </div>
+        <div class="track-order-field">
+          <label for="track-order-phone">PHONE NUMBER</label>
+          <input id="track-order-phone" name="phone" type="tel" autocomplete="tel" placeholder="10-digit mobile number" maxlength="15" required>
+        </div>
+        <button type="submit" class="button button--primary track-order-submit">LOOKUP SHIPMENT</button>
+        <p class="track-order-message" data-track-order-message aria-live="polite"></p>
+      </form>
+
+      <div class="track-order-result" data-track-order-result hidden>
+        <div class="track-order-result-head">
+          <div><p class="eyebrow">ORDER REFERENCE</p><strong data-track-result-number>—</strong></div>
+          <span class="track-order-status-badge" data-track-result-status>PLACED</span>
+        </div>
+        <div class="track-progress">
+          <div class="track-progress-line" aria-hidden="true"><span data-track-progress-line></span></div>
+          <div class="track-progress-steps">
+            <div class="track-step" data-track-step="PLACED"><span class="track-step-dot"></span><strong>PLACED</strong></div>
+            <div class="track-step" data-track-step="PACKED"><span class="track-step-dot"></span><strong>PACKED</strong></div>
+            <div class="track-step" data-track-step="SHIPPED"><span class="track-step-dot"></span><strong>SHIPPED</strong></div>
+            <div class="track-step" data-track-step="OUT FOR DELIVERY"><span class="track-step-dot"></span><strong>OUT FOR DELIVERY</strong></div>
+            <div class="track-step" data-track-step="DELIVERED"><span class="track-step-dot"></span><strong>DELIVERED</strong></div>
+          </div>
+        </div>
+        <div class="track-shipping-card">
+          <div class="track-info-row"><span>PAYMENT METHOD</span><strong data-track-result-payment>CASH ON DELIVERY</strong></div>
+          <div class="track-info-row"><span>COURIER PARTNER</span><strong data-track-result-courier>In Preparation</strong></div>
+          <div class="track-info-row"><span>AWB / TRACKING NO.</span><strong data-track-result-tracking>Will update on dispatch</strong></div>
+        </div>
+        <div class="track-order-footer">
+          <button type="button" class="button button--outline" data-track-again>LOOKUP ANOTHER ORDER</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ABOUT MODAL -->
+  <div class="content-modal" data-about-modal aria-hidden="true">
+    <div class="content-modal__panel">
+      <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
+      <p class="eyebrow">BULKKOT · 불꽃</p>
+      <h2>OUR STORY</h2>
+      <div class="modal-copy">
+        <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
+        <p>We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
+        <p class="modal-signature">Less noise. More presence.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- POLICY MODAL (FAQ / SHIPPING / RETURNS / PRIVACY / TERMS) -->
+  <div class="content-modal" data-policy-modal aria-hidden="true">
+    <div class="content-modal__panel">
+      <button type="button" class="drawer-close" data-close-policy aria-label="Close information">×</button>
+      <p class="eyebrow" data-policy-eyebrow>BULKKOT</p>
+      <h2 data-policy-title>INFORMATION</h2>
+      <div class="modal-copy" data-policy-content></div>
+    </div>
+  </div>
+
+  <!-- SIZE GUIDE MODAL -->
+  <div class="size-guide-modal" data-size-guide-modal aria-hidden="true">
+    <div class="size-guide-backdrop" data-size-guide-close></div>
+    <div class="size-guide-panel" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
+      <button type="button" class="size-guide-close" data-size-guide-close aria-label="Close size guide">×</button>
+      <div class="size-guide-header">
+        <span class="size-guide-eyebrow">BULKKOT / ARCHITECTURAL FIT</span>
+        <h2 id="size-guide-title">SIZE GUIDE</h2>
+        <p>Garment measurements in inches. Oversized drop-shoulder aesthetic.</p>
+      </div>
+
+      <div class="size-guide-tabs" role="tablist" aria-label="Size categories">
+        <button type="button" class="size-guide-tab is-active" data-size-tab="tees" role="tab" aria-selected="true">TEES</button>
+        <button type="button" class="size-guide-tab" data-size-tab="hoodies" role="tab" aria-selected="false">HOODS & SWEATS</button>
+      </div>
+
+      <div class="size-guide-table-wrap is-active" data-size-panel="tees">
+        <div class="size-guide-table-scroll">
+          <table class="size-guide-table">
+            <thead>
+              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
+            </thead>
+            <tbody>
+              <tr><th>S</th><td>42"</td><td>28.5"</td><td>20.5"</td><td>8.5"</td></tr>
+              <tr><th>M</th><td>44"</td><td>29.5"</td><td>21.5"</td><td>9.0"</td></tr>
+              <tr><th>L</th><td>46"</td><td>30.5"</td><td>22.5"</td><td>9.5"</td></tr>
+              <tr><th>XL</th><td>48"</td><td>31.5"</td><td>23.5"</td><td>10.0"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="size-guide-table-wrap" data-size-panel="hoodies" hidden>
+        <div class="size-guide-table-scroll">
+          <table class="size-guide-table">
+            <thead>
+              <tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>SHOULDER</th><th>SLEEVE</th></tr>
+            </thead>
+            <tbody>
+              <tr><th>S</th><td>44"</td><td>27.5"</td><td>22.0"</td><td>23.5"</td></tr>
+              <tr><th>M</th><td>46"</td><td>28.5"</td><td>23.0"</td><td>24.0"</td></tr>
+              <tr><th>L</th><td>48"</td><td>29.5"</td><td>24.0"</td><td>24.5"</td></tr>
+              <tr><th>XL</th><td>50"</td><td>30.5"</td><td>25.0"</td><td>25.0"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="js/cart.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
