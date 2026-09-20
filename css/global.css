@@ -2770,3 +2770,23 @@ section {
 button, a, input {
   -webkit-tap-highlight-color: transparent;
 }
+/* Force natural document flow and fix vertical cutoff */
+html, body {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow-x: clip !important;
+  overflow-y: auto !important;
+}
+
+main, .shop-container, .pdp-wrapper {
+  min-height: auto !important;
+  height: auto !important;
+}
+
+/* Ensure footer is always pushed to the bottom and fully visible */
+.site-footer {
+  position: relative !important;
+  z-index: 10 !important;
+  display: block !important;
+  visibility: visible !important;
+}
