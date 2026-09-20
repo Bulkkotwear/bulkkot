@@ -434,12 +434,16 @@
     const input =
       $("#liveSearchInput");
 
+    let searchReturnFocus = null;
+
     if (!toggle && !bar && !input) {
       return;
     }
 
     function openSearch() {
       if (!bar) return;
+
+      searchReturnFocus = document.activeElement;
 
       state.searchOpen = true;
 
@@ -470,6 +474,13 @@
           }
         })
       );
+
+      if (clear && searchReturnFocus && typeof searchReturnFocus.focus === "function") {
+        window.setTimeout(() => {
+          searchReturnFocus?.focus?.();
+          searchReturnFocus = null;
+        }, 0);
+      }
     }
 
     on(toggle, "click", (event) => {
@@ -1934,6 +1945,8 @@
       return;
     }
 
+    modal._bulkkotReturnFocus = document.activeElement;
+
     modal.classList.add(
       "is-open"
     );
@@ -1943,9 +1956,28 @@
       "false"
     );
 
+    modal.setAttribute(
+      "aria-modal",
+      "true"
+    );
+
     state.activeModal = modal;
 
     lockBodyScroll();
+
+    window.setTimeout(() => {
+      const closeButton =
+        modal.querySelector(
+          "[data-account-close], [data-track-order-close], [data-size-guide-close], [data-close-policy], [data-close-about], [data-modal-close]"
+        );
+
+      const firstField =
+        modal.querySelector(
+          "input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), a[href]"
+        );
+
+      (closeButton || firstField)?.focus?.();
+    }, 0);
   }
 
   function closeModal(modal) {
@@ -1968,11 +2000,29 @@
       "true"
     );
 
+    modal.setAttribute(
+      "aria-modal",
+      "false"
+    );
+
     if (state.activeModal === modal) {
       state.activeModal = null;
     }
 
     unlockBodyScroll();
+
+    const returnFocus = modal._bulkkotReturnFocus;
+    modal._bulkkotReturnFocus = null;
+
+    window.setTimeout(() => {
+      if (
+        returnFocus &&
+        typeof returnFocus.focus === "function" &&
+        document.contains(returnFocus)
+      ) {
+        returnFocus.focus();
+      }
+    }, 0);
   }
 
   function bindModalBackdrop(
