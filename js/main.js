@@ -311,7 +311,9 @@
       $$("[data-open-drawer]");
 
     const closeButtons =
-      $$("[data-close-drawer]");
+      $("[data-close-drawer]");
+
+    let drawerReturnFocus = null;
 
     if (
       !drawer &&
@@ -324,6 +326,7 @@
     function openDrawer() {
       if (state.drawerOpen) return;
 
+      drawerReturnFocus = document.activeElement;
       state.drawerOpen = true;
 
       drawer?.classList.add("is-open");
@@ -336,6 +339,10 @@
       overlay?.setAttribute("aria-hidden", "false");
 
       lockBodyScroll();
+
+      window.setTimeout(() => {
+        drawer?.querySelector("[data-close-drawer]")?.focus();
+      }, 0);
     }
 
     function closeDrawer() {
@@ -353,6 +360,13 @@
       overlay?.setAttribute("aria-hidden", "true");
 
       unlockBodyScroll();
+
+      window.setTimeout(() => {
+        if (drawerReturnFocus && typeof drawerReturnFocus.focus === "function") {
+          drawerReturnFocus.focus();
+        }
+        drawerReturnFocus = null;
+      }, 0);
     }
 
     window.BULKKOT_UI = window.BULKKOT_UI || {};
@@ -389,7 +403,7 @@
 
     const handleResize = () => {
       const desktop =
-        window.matchMedia("(min-width: 768px)").matches;
+        window.matchMedia("(min-width: 769px)").matches;
 
       if (desktop && !lastDesktopState) {
         closeDrawer();
@@ -488,10 +502,29 @@
     });
 
     on(input, "keydown", (event) => {
-      if (event.key !== "Escape") return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeSearch(false);
+        return;
+      }
 
-      event.preventDefault();
-      closeSearch(false);
+      if (event.key === "Enter") {
+        event.preventDefault();
+
+        const query = String(input?.value || "").trim();
+        if (!query) return;
+
+        const isShop = /(^|\/)shop\.html$/i.test(window.location.pathname);
+        if (!isShop) {
+          window.location.href = `shop.html?q=${encodeURIComponent(query)}`;
+        } else {
+          document.dispatchEvent(
+            new CustomEvent("bulkkot:search-change", {
+              detail: { query }
+            })
+          );
+        }
+      }
     });
 
     $$("[data-search-tag]").forEach((button) => {
@@ -517,10 +550,17 @@
           })
         );
 
-        $("#shop")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
+        const isShop = /(^|\/)shop\.html$/i.test(window.location.pathname);
+
+        if (!isShop) {
+          window.location.href =
+            `shop.html?q=${encodeURIComponent(value)}`;
+        } else {
+          $("#shop")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }
       });
     });
 
@@ -529,6 +569,21 @@
 
     window.BULKKOT_UI.openSearch = openSearch;
     window.BULKKOT_UI.closeSearch = closeSearch;
+
+    window.BULKKOT_UI.openTrackOrder = () => {
+      const modal = $("[data-track-order-modal]");
+      if (!modal) return;
+
+      const form = $("[data-track-order-form]", modal);
+      const result = $("[data-track-order-result]", modal);
+      const message = $("[data-track-order-message]", modal);
+
+      if (result) result.hidden = true;
+      if (form) form.hidden = false;
+      if (message) message.textContent = "";
+
+      openModal(modal);
+    };
   }
 
   /* =========================================================
