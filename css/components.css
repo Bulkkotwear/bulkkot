@@ -3748,3 +3748,101 @@ main,
  *
  * Their internal content should scroll independently.
  */
+
+
+/* =========================================================
+   BULKKOT — FINAL COMPONENT SAFETY
+   ========================================================= */
+
+.site-footer {
+  display: grid !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.footer-brand,
+.footer-column,
+.footer-bottom {
+  min-width: 0 !important;
+}
+
+.footer-column a,
+.footer-column button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.drawer-close,
+[data-close-cart],
+[data-cart-qty],
+[data-cart-remove],
+#proceedToCheckoutBtn,
+#cartApplyCouponBtn,
+#cartSubmitOrderBtn,
+#backToBagBtn,
+#cartAuthTrigger,
+.btn-add-bag,
+.p-size-chip,
+.size-box,
+.product-size-btn,
+.product-add-button,
+.p-quickadd-btn,
+.filter-btn,
+.filter-strip button,
+.shop-filter,
+.shop-retry-btn,
+.size-guide-trigger {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+@media (max-width: 640px) {
+  .site-footer {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: 20px !important;
+    row-gap: 40px !important;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .footer-brand,
+  .footer-bottom {
+    grid-column: 1 / -1 !important;
+  }
+
+  .footer-column {
+    align-items: flex-start;
+  }
+
+  .footer-column a,
+  .footer-column button {
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .cart-drawer {
+    width: min(460px, 100vw) !important;
+    max-width: 100vw !important;
+  }
+
+  .cart-drawer__header,
+  .cart-drawer__footer {
+    flex-shrink: 0;
+  }
+
+  .cart-body-wrapper {
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-footer {
+    padding-left: 12px;
+    padding-right: 12px;
+    column-gap: 14px !important;
+  }
+}
