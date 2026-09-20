@@ -328,6 +328,9 @@
 
       drawer?.classList.add("is-open");
       drawer?.setAttribute("aria-hidden", "false");
+      openButtons.forEach((button) => {
+        button.setAttribute("aria-expanded", "true");
+      });
 
       overlay?.classList.add("is-active");
       overlay?.setAttribute("aria-hidden", "false");
@@ -342,6 +345,9 @@
 
       drawer?.classList.remove("is-open");
       drawer?.setAttribute("aria-hidden", "true");
+      openButtons.forEach((button) => {
+        button.setAttribute("aria-expanded", "false");
+      });
 
       overlay?.classList.remove("is-active");
       overlay?.setAttribute("aria-hidden", "true");
@@ -379,7 +385,7 @@
 
     /* Keep drawer sane if viewport changes to desktop. */
     let lastDesktopState =
-      window.matchMedia("(min-width: 768px)").matches;
+      window.matchMedia("(min-width: 769px)").matches;
 
     const handleResize = () => {
       const desktop =
@@ -425,6 +431,7 @@
 
       bar.classList.add("is-active");
       bar.setAttribute("aria-hidden", "false");
+      toggle?.setAttribute("aria-expanded", "true");
 
       window.setTimeout(() => {
         input?.focus();
@@ -436,6 +443,7 @@
 
       bar?.classList.remove("is-active");
       bar?.setAttribute("aria-hidden", "true");
+      toggle?.setAttribute("aria-expanded", "false");
 
       if (clear && input) {
         input.value = "";
@@ -722,6 +730,12 @@
 
     render(0);
     start();
+
+    on(document, "bulkkot:editorial-resume", () => {
+      if (document.visibilityState === "visible") {
+        start();
+      }
+    });
   }
 
   /* =========================================================
@@ -2496,25 +2510,10 @@
 
   function initCartTriggers() {
     /*
-     * cart.js remains the single owner of cart state.
-     * main.js only forwards UI intent when a cart API exists.
+     * Cart.js owns cart open/close and dynamic cart controls.
+     * Keeping this initializer intentionally inert prevents
+     * duplicate click handlers and double renders.
      */
-
-    $$(
-      "[data-open-cart], [data-cart-open]"
-    ).forEach((button) => {
-      on(button, "click", (event) => {
-        event.preventDefault();
-
-        if (
-          window.BULKKOT_CART &&
-          typeof window.BULKKOT_CART.openCart ===
-            "function"
-        ) {
-          window.BULKKOT_CART.openCart();
-        }
-      });
-    });
   }
 
   /* =========================================================
@@ -2867,7 +2866,7 @@
        * state after multiple overlays.
        */
       if (
-        !$(".is-open[data-account-modal], .is-open[data-policy-modal], .is-open[data-about-modal], .is-open[data-size-guide-modal], .is-open[data-track-order-modal], [data-mobile-drawer].is-open")
+        !$(".is-open[data-account-modal], .is-open[data-policy-modal], .is-open[data-about-modal], .is-open[data-size-guide-modal], .is-open[data-track-order-modal], [data-mobile-drawer].is-open, [data-cart-drawer].is-open")
       ) {
         forceUnlockBodyScroll();
       }
@@ -2990,37 +2989,23 @@
      ========================================================= */
 
   function initVisibilityHandling() {
-    on(
-      document,
-      "visibilitychange",
-      () => {
-        if (
-          document.visibilityState ===
-          "hidden"
-        ) {
-          /*
-           * Stop editorial timer while page
-           * isn't visible.
-           */
-          if (
-            state.editorialTimer
-          ) {
-            clearInterval(
-              state.editorialTimer
-            );
-
-            state.editorialTimer = null;
-          }
-        } else {
-          /*
-           * Reinitializeing the carousel isn't
-           * necessary; simply let its own
-           * controller continue on next user
-           * interaction.
-           */
+    on(document, "visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        if (state.editorialTimer) {
+          clearInterval(state.editorialTimer);
+          state.editorialTimer = null;
         }
+        return;
       }
-    );
+
+      /*
+       * The carousel owns its timer. Notify it to resume after
+       * a background-tab pause instead of leaving it permanently stopped.
+       */
+      document.dispatchEvent(
+        new CustomEvent("bulkkot:editorial-resume")
+      );
+    });
   }
 
   /* =========================================================
