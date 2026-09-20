@@ -884,65 +884,36 @@
      * Apply corrections after iteration so indices
      * remain stable.
      */
-    const removeIndexes =
+    const removedKeys = new Set(
       corrections
-        .filter(
-          (item) =>
-            item.type ===
-            "removed"
-        )
-        .map(
-          (item) =>
-            item.index
-        )
-        .sort(
-          (a, b) =>
-            b - a
-        );
-
-    removeIndexes.forEach(
-      (index) => {
-        cart.splice(
-          index,
-          1
-        );
-      }
+        .filter((item) => item.type === "removed")
+        .map((item) => getItemKey(item))
     );
 
-    /*
-     * Quantity corrections need fresh index lookup
-     * because removed entries shifted positions.
-     */
-    corrections
-      .filter(
-        (item) =>
-          item.type ===
-          "quantity"
-      )
-      .forEach(
-        (correction) => {
-          const matching =
-            cart.find(
-              (item) =>
-                item.id ===
-                  cart[
-                    correction.index
-                  ]?.id &&
-                item.size ===
-                  cart[
-                    correction.index
-                  ]?.size
-            );
-
-          if (
-            matching &&
-            correction.quantity
-          ) {
-            matching.quantity =
-              correction.quantity;
-          }
-        }
+    if (removedKeys.size) {
+      cart = cart.filter(
+        (item) => !removedKeys.has(getItemKey(item))
       );
+    }
+
+    corrections
+      .filter((item) => item.type === "quantity")
+      .forEach((correction) => {
+        const key = getItemKey(correction);
+        const matching = cart.find(
+          (item) => getItemKey(item) === key
+        );
+
+        if (
+          matching &&
+          Number.isFinite(Number(correction.quantity))
+        ) {
+          matching.quantity = Math.max(
+            1,
+            Math.min(99, Math.floor(Number(correction.quantity)))
+          );
+        }
+      });
 
     saveCart();
 
@@ -958,9 +929,12 @@
      PINCODE
      ========================================================= */
 
+  let pincodeRequestToken = 0;
+
   async function lookupPincode(
     pincode
   ) {
+    const requestToken = ++pincodeRequestToken;
     const cleanPin =
       String(
         pincode || ""
@@ -1046,6 +1020,10 @@
 
         const state =
           po.State || "";
+
+        if (requestToken !== pincodeRequestToken) {
+          return;
+        }
 
         if (
           cityInput &&
@@ -3638,13 +3616,8 @@
             "[data-close-cart]"
           );
 
-        if (
-          closeButton &&
-          !document.querySelector(
-            "[data-cart-drawer] " +
-              "#storefrontCheckoutForm"
-          )
-        ) {
+        if (closeButton) {
+          event.preventDefault();
           closeCart();
         }
       }
