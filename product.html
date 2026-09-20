@@ -2,461 +2,2100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
   <title>PRODUCT DETAILS — BULKKOT (불꽃)</title>
 
-  <!-- OpenGraph / Social Share Preview (WhatsApp, Instagram, Facebook, Slack).
-       NOTE: this is a static site with no server-side rendering, so link-preview
-       crawlers (which do not run JavaScript) will always see these generic,
-       static values — not the specific garment being shared. The inline script
-       below updates the *tab title* and these tags in the live DOM once the
-       product loads, which helps if a platform re-crawls after JS runs, but
-       true per-product preview images require server-side rendering (see the
-       launch notes in chat). -->
+  <meta
+    name="description"
+    content="Korean-inspired premium everyday wear from BULKKOT."
+  >
+
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="BULKKOT (불꽃)">
-  <meta property="og:title" content="Product Details — BULKKOT (불꽃)" id="ogTitleMeta">
-  <meta property="og:description" content="Korean-inspired premium everyday wear from BULKKOT." id="ogDescMeta">
-  <meta property="og:url" content="https://bulkkot.com/product.html">
-  <meta property="og:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" id="ogImageMeta">
-  <meta property="og:image:width" content="541">
-  <meta property="og:image:height" content="359">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Product Details — BULKKOT (불꽃)" id="twTitleMeta">
-  <meta name="twitter:description" content="Korean-inspired premium everyday wear from BULKKOT." id="twDescMeta">
-  <meta name="twitter:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" id="twImageMeta">
+  <meta
+    property="og:title"
+    content="Product Details — BULKKOT (불꽃)"
+    id="ogTitleMeta"
+  >
+  <meta
+    property="og:description"
+    content="Korean-inspired premium everyday wear from BULKKOT."
+    id="ogDescMeta"
+  >
+  <meta
+    property="og:url"
+    content="https://bulkkot.com/product.html"
+    id="ogUrlMeta"
+  >
+  <meta
+    property="og:image"
+    content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+    id="ogImageMeta"
+  >
 
-  <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
+  <meta
+    name="twitter:card"
+    content="summary_large_image"
+  >
+  <meta
+    name="twitter:title"
+    content="Product Details — BULKKOT (불꽃)"
+    id="twTitleMeta"
+  >
+  <meta
+    name="twitter:description"
+    content="Korean-inspired premium everyday wear from BULKKOT."
+    id="twDescMeta"
+  >
+  <meta
+    name="twitter:image"
+    content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
+    id="twImageMeta"
+  >
 
-  <!-- Fonts & Core CSS -->
+  <link
+    rel="icon"
+    href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"
+  >
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap"
+    rel="stylesheet"
+  >
+
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body { background: #070707; color: #f5f5f5; font-family: 'Inter', sans-serif; }
-    .pdp-wrapper { max-width: 1200px; margin: 0 auto; padding: 24px 20px 80px; }
+    /* =========================================================
+       BULKKOT PDP
+       Production hardening only.
+       Visual identity intentionally preserved.
+       ========================================================= */
 
-    .breadcrumb { font-size: 11px; color: #888; margin-bottom: 24px; }
-    .breadcrumb a { color: #888; text-decoration: none; }
-    .breadcrumb a:hover { color: #fff; }
+    :root {
+      --pdp-bg: #070707;
+      --pdp-card: #0e0e0e;
+      --pdp-surface: #111;
+      --pdp-border: #1a1a1a;
+      --pdp-border-strong: #292929;
+      --pdp-text: #f5f5f5;
+      --pdp-muted: #888;
+      --pdp-red: var(--bk-red, #e31b23);
+      --pdp-green: #31c48d;
+    }
 
-    /* PDP Grid: Image Left, Details Right */
+    html {
+      overflow-x: clip;
+      background: var(--pdp-bg);
+    }
+
+    body {
+      margin: 0;
+      background: var(--pdp-bg);
+      color: var(--pdp-text);
+      font-family: "Inter", sans-serif;
+      overflow-x: clip;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.8);
+      outline-offset: 2px;
+    }
+
+    /* =========================================================
+       WRAPPER
+       ========================================================= */
+
+    .pdp-wrapper {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+      box-sizing: border-box;
+    }
+
+    /* =========================================================
+       BREADCRUMB
+       ========================================================= */
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      margin-bottom: 24px;
+      overflow: hidden;
+      color: #888;
+      font-size: 11px;
+      line-height: 1.4;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .breadcrumb a {
+      flex: 0 0 auto;
+      color: #888;
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+      color: #fff;
+    }
+
+    #breadName {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* =========================================================
+       MAIN PDP GRID
+       ========================================================= */
+
     .pdp-main-grid {
       display: grid;
-      grid-template-columns: 1.1fr 1fr;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
       gap: 50px;
       align-items: start;
+      min-width: 0;
     }
+
+    .pdp-gallery-column,
+    .pdp-info-column {
+      min-width: 0;
+    }
+
+    /* =========================================================
+       GALLERY
+       ========================================================= */
 
     .pdp-gallery-box {
-      border: 1px solid #1f1f1f;
-      background: #0e0e0e;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .pdp-gallery-box img {
+      position: relative;
       width: 100%;
-      height: 540px;
-      object-fit: cover;
+      overflow: hidden;
+      background: var(--pdp-card);
+      border: 1px solid #1f1f1f;
+      border-radius: 8px;
+      aspect-ratio: 1 / 1.08;
+    }
+
+    .pdp-gallery-box img {
       display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
-    .pdp-thumb-strip { display: flex; gap: 8px; margin-top: 10px; }
-    .pdp-thumb {
-      width: 64px; height: 64px; border-radius: 4px; overflow: hidden; cursor: pointer;
-      border: 1px solid #242424; opacity: 0.6; transition: all 0.15s ease; flex-shrink: 0;
+
+    .pdp-gallery-box img.image-failed {
+      object-fit: contain;
+      padding: 32px;
+      box-sizing: border-box;
+      opacity: 0.65;
     }
-    .pdp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .pdp-thumb.active { opacity: 1; border-color: #fff; }
 
-    .pdp-meta-kicker { font-size: 11px; font-weight: 800; color: var(--bk-red, #e31b23); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
-    .pdp-meta-title { font-size: 26px; font-weight: 900; letter-spacing: -0.01em; margin: 0 0 10px; }
-    .pdp-meta-price { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 18px; }
-
-    .pdp-desc { font-size: 13px; color: #999; line-height: 1.7; margin-bottom: 24px; border-bottom: 1px solid #1a1a1a; padding-bottom: 20px; }
-
-    /* Size Selector */
-    .opt-label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; color: #bbb; margin-bottom: 10px; }
-    .size-grid { display: flex; gap: 10px; margin-bottom: 24px; }
-    .size-box {
-      width: 50px;
-      height: 44px;
-      border: 1px solid #2a2a2a;
-      background: #111;
-      color: #ddd;
-      font-size: 12px;
-      font-weight: 800;
+    .pdp-gallery-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
       display: grid;
       place-items: center;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.2s ease;
-      position: relative;
+      background:
+        linear-gradient(
+          100deg,
+          #101010 30%,
+          #191919 50%,
+          #101010 70%
+        );
+      background-size: 200% 100%;
+      animation: pdpShimmer 1.4s infinite;
     }
-    .size-box:hover:not(:disabled), .size-box.active { border-color: #fff; background: #fff; color: #000; }
-    .size-box:disabled { color: #555; cursor: not-allowed; opacity: 0.5; }
+
+    .pdp-gallery-loading[hidden] {
+      display: none;
+    }
+
+    .pdp-thumb-strip {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      margin-top: 10px;
+      padding-bottom: 3px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+
+    .pdp-thumb-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .pdp-thumb {
+      position: relative;
+      flex: 0 0 64px;
+      width: 64px;
+      height: 64px;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid #242424;
+      border-radius: 4px;
+      background: #111;
+      opacity: 0.6;
+      cursor: pointer;
+      transition:
+        border-color 0.15s ease,
+        opacity 0.15s ease;
+    }
+
+    .pdp-thumb:hover,
+    .pdp-thumb.active {
+      border-color: #fff;
+      opacity: 1;
+    }
+
+    .pdp-thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* =========================================================
+       PRODUCT META
+       ========================================================= */
+
+    .pdp-meta-kicker {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--pdp-red);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .pdp-meta-title {
+      margin: 0 0 10px;
+      color: #f5f5f5;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+
+    .pdp-meta-price {
+      margin-bottom: 18px;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .pdp-desc {
+      margin: 0 0 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #1a1a1a;
+      color: #999;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    /* =========================================================
+       SIZE SELECTOR
+       ========================================================= */
+
+    .opt-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: #bbb;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      line-height: 1.4;
+    }
+
+    .size-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      max-width: 300px;
+      margin-bottom: 24px;
+    }
+
+    .size-box {
+      position: relative;
+      min-width: 0;
+      min-height: 44px;
+      padding: 8px;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      background: #111;
+      color: #ddd;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .size-box:hover:not(:disabled),
+    .size-box.active {
+      border-color: #fff;
+      background: #fff;
+      color: #000;
+    }
+
+    .size-box:disabled {
+      color: #555;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .size-box:disabled::after {
-      content: ""; position: absolute; left: 6px; right: 6px; top: 50%;
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 50%;
       border-top: 1px solid #555;
     }
 
-    /* Actions */
-    .cta-row { display: flex; gap: 12px; margin-bottom: 30px; }
+    /* =========================================================
+       CTA
+       ========================================================= */
+
+    .cta-row {
+      display: flex;
+      width: 100%;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
     .btn-add-bag {
-      flex: 1;
+      width: 100%;
       min-height: 50px;
-      background: var(--bk-red, #e31b23);
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 4px;
+      background: var(--pdp-red);
       color: #fff;
+      cursor: pointer;
       font-size: 11px;
       font-weight: 900;
       letter-spacing: 0.12em;
-      border-radius: 4px;
-      cursor: pointer;
-      border: none;
-      transition: opacity 0.2s;
+      line-height: 1.2;
+      transition:
+        opacity 0.2s ease,
+        background-color 0.2s ease;
     }
-    .btn-add-bag:hover:not(:disabled) { opacity: 0.9; }
-    .btn-add-bag:disabled { background: #2a2a2a; color: #777; cursor: not-allowed; }
 
-    /* Quality Highlights */
+    .btn-add-bag:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    .btn-add-bag:disabled {
+      background: #2a2a2a;
+      color: #777;
+      cursor: not-allowed;
+    }
+
+    /* =========================================================
+       FEATURE LIST
+       ========================================================= */
+
     .feature-list {
-      background: #0d0d0d;
+      padding: 16px;
       border: 1px solid #1a1a1a;
       border-radius: 6px;
-      padding: 16px;
-      font-size: 11px;
+      background: #0d0d0d;
       color: #888;
+      font-size: 11px;
       line-height: 1.8;
     }
 
-    /* Similar Products */
-    .similar-sec { margin-top: 80px; border-top: 1px solid #1a1a1a; padding-top: 40px; }
-    .similar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 20px; }
+    .feature-list div + div {
+      margin-top: 2px;
+    }
 
-    /* Loading / not-found states */
-    .pdp-skel { background: linear-gradient(100deg, #141414 30%, #1c1c1c 50%, #141414 70%); background-size: 200% 100%; animation: pdpShimmer 1.4s infinite; border-radius: 4px; }
-    @keyframes pdpShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-    .pdp-not-found { text-align: center; padding: 100px 20px; color: #888; }
-    .pdp-not-found strong { display: block; color: #fff; font-size: 18px; margin-bottom: 10px; }
-    .pdp-not-found a { color: var(--bk-red, #e31b23); text-decoration: none; font-weight: 700; font-size: 12px; }
+    /* =========================================================
+       SIMILAR
+       ========================================================= */
 
-    @media (max-width: 820px) {
-      .pdp-main-grid { grid-template-columns: 1fr; gap: 24px; }
-      .pdp-gallery-box img { height: 380px; }
-      .similar-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .similar-sec {
+      margin-top: 80px;
+      padding-top: 40px;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .similar-heading {
+      margin: 0;
+      color: #f5f5f5;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      line-height: 1.3;
+      text-transform: uppercase;
+    }
+
+    .similar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+      min-width: 0;
+    }
+
+    .similar-card {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid #1a1a1a;
+      border-radius: 4px;
+      background: #0e0e0e;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .similar-card:hover {
+      border-color: #333;
+    }
+
+    .similar-card-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1 / 1.12;
+      object-fit: cover;
+      background: #141414;
+    }
+
+    .similar-card-image.image-failed {
+      object-fit: contain;
+      padding: 20px;
+      box-sizing: border-box;
+      opacity: 0.65;
+    }
+
+    .similar-card-info {
+      min-width: 0;
+      padding: 10px;
+    }
+
+    .similar-card-name {
+      margin: 0 0 4px;
+      overflow: hidden;
+      color: #eee;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .similar-card-price {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    /* =========================================================
+       LOADING / NOT FOUND
+       ========================================================= */
+
+    .pdp-loading-grid {
+      min-width: 0;
+    }
+
+    .pdp-skel {
+      background:
+        linear-gradient(
+          100deg,
+          #141414 30%,
+          #1c1c1c 50%,
+          #141414 70%
+        );
+      background-size: 200% 100%;
+      animation: pdpShimmer 1.4s infinite;
+      border-radius: 4px;
+    }
+
+    .pdp-loading-gallery {
+      width: 100%;
+      aspect-ratio: 1 / 1.08;
+    }
+
+    .pdp-loading-line {
+      height: 12px;
+      margin-bottom: 12px;
+    }
+
+    .pdp-loading-line.wide {
+      width: 80%;
+    }
+
+    .pdp-loading-line.medium {
+      width: 50%;
+    }
+
+    .pdp-loading-line.small {
+      width: 30%;
+    }
+
+    @keyframes pdpShimmer {
+      from {
+        background-position: 200% 0;
+      }
+
+      to {
+        background-position: -200% 0;
+      }
+    }
+
+    .pdp-not-found {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 100px 20px;
+      color: #888;
+      text-align: center;
+    }
+
+    .pdp-not-found strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #fff;
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .pdp-not-found p {
+      margin: 0 0 20px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .pdp-not-found a {
+      color: var(--pdp-red);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* =========================================================
+       TABLET
+       ========================================================= */
+
+    @media (max-width: 900px) {
+      .pdp-main-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 28px;
+      }
+
+      .pdp-gallery-box {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+
+      .pdp-info-column {
+        width: min(720px, 100%);
+        margin: 0 auto;
+      }
+
+      .similar-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @media (max-width: 600px) {
+      .pdp-wrapper {
+        padding: 16px 12px 64px;
+      }
+
+      .breadcrumb {
+        margin-bottom: 16px;
+        font-size: 10px;
+      }
+
+      .pdp-main-grid {
+        gap: 22px;
+      }
+
+      .pdp-gallery-box {
+        border-radius: 6px;
+        aspect-ratio: 1 / 1.08;
+      }
+
+      .pdp-thumb {
+        flex-basis: 58px;
+        width: 58px;
+        height: 58px;
+      }
+
+      .pdp-meta-kicker {
+        font-size: 9px;
+      }
+
+      .pdp-meta-title {
+        font-size: 22px;
+      }
+
+      .pdp-meta-price {
+        font-size: 20px;
+        margin-bottom: 14px;
+      }
+
+      .pdp-desc {
+        font-size: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 18px;
+      }
+
+      .opt-label {
+        font-size: 10px;
+      }
+
+      .size-grid {
+        width: 100%;
+        max-width: 100%;
+        gap: 7px;
+      }
+
+      .size-box {
+        min-height: 46px;
+      }
+
+      .cta-row {
+        margin-bottom: 22px;
+      }
+
+      .btn-add-bag {
+        min-height: 52px;
+      }
+
+      .feature-list {
+        padding: 14px;
+        font-size: 10px;
+      }
+
+      .similar-sec {
+        margin-top: 56px;
+        padding-top: 28px;
+      }
+
+      .similar-heading {
+        font-size: 14px;
+      }
+
+      .similar-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+
+    /* =========================================================
+       COMPACT 360–374PX
+       ========================================================= */
+
+    @media (max-width: 374px) {
+      .pdp-wrapper {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .pdp-meta-title {
+        font-size: 20px;
+      }
+
+      .pdp-meta-price {
+        font-size: 19px;
+      }
+
+      .size-grid {
+        gap: 6px;
+      }
+
+      .size-box {
+        min-height: 44px;
+        font-size: 11px;
+      }
+
+      .feature-list {
+        font-size: 9px;
+      }
+
+      .similar-grid {
+        gap: 8px;
+      }
+
+      .similar-card-info {
+        padding: 9px;
+      }
+
+      .similar-card-name {
+        font-size: 10px;
+      }
+
+      .similar-card-price {
+        font-size: 11px;
+      }
+    }
+
+    /* =========================================================
+       REDUCED MOTION
+       ========================================================= */
+
+    @media (prefers-reduced-motion: reduce) {
+      .pdp-skel,
+      .pdp-gallery-loading,
+      .pdp-thumb,
+      .size-box,
+      .btn-add-bag,
+      .similar-card {
+        animation: none !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
 
 <body>
-  <!-- HEADER -->
+
+  <!-- =======================================================
+       HEADER
+       ======================================================= -->
+
   <header class="site-header">
     <div class="header-inner">
-      <a href="index.html" class="brand" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" style="width:36px; height:36px;">
+
+      <a
+        href="index.html"
+        class="brand"
+        aria-label="BULKKOT home"
+        style="display:flex; align-items:center; gap:10px; text-decoration:none;"
+      >
+        <img
+          src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"
+          alt="BULKKOT logo"
+          class="brand-logo"
+          width="36"
+          height="36"
+          style="width:36px; height:36px;"
+        >
+
         <span class="brand-name">
-          <span class="brand-korean" style="color:var(--bk-red, #e31b23); font-weight:700;">불꽃</span>
-          <span class="brand-english" style="color:#fff; font-weight:900;">BULKKOT</span>
+          <span
+            class="brand-korean"
+            style="color:var(--bk-red, #e31b23); font-weight:700;"
+          >불꽃</span>
+
+          <span
+            class="brand-english"
+            style="color:#fff; font-weight:900;"
+          >BULKKOT</span>
         </span>
       </a>
+
       <div class="header-actions">
-        <a href="shop.html" class="nav-btn" style="color:#aaa; font-size:11px; font-weight:700; text-decoration:none;">← BACK TO CATALOG</a>
-        <button type="button" class="header-action cart-action" data-open-cart aria-label="Open cart">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
-          <span class="cart-count" data-cart-count hidden>0</span>
+
+        <a
+          href="shop.html"
+          class="nav-btn"
+          style="color:#aaa; font-size:11px; font-weight:700; text-decoration:none;"
+        >← BACK TO CATALOG</a>
+
+        <button
+          type="button"
+          class="header-action cart-action"
+          data-open-cart
+          aria-label="Open cart"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M4 5h2l1.7 11h9.8L20 8H7"></path>
+            <circle cx="10" cy="20" r="1"></circle>
+            <circle cx="17" cy="20" r="1"></circle>
+          </svg>
+
+          <span
+            class="cart-count"
+            data-cart-count
+            hidden
+          >0</span>
         </button>
+
       </div>
     </div>
   </header>
 
+  <!-- =======================================================
+       MAIN
+       ======================================================= -->
+
   <main class="pdp-wrapper">
+
     <div class="breadcrumb">
-      <a href="index.html">HOME</a> / <a href="shop.html">SHOP</a> / <span id="breadName" style="color:#fff;">SILHOUETTE</span>
+      <a href="index.html">HOME</a>
+      <span>/</span>
+      <a href="shop.html">SHOP</a>
+      <span>/</span>
+      <span
+        id="breadName"
+        style="color:#fff;"
+      >SILHOUETTE</span>
     </div>
 
-    <div class="pdp-main-grid">
-      <!-- Left: Image -->
-      <div>
-        <div class="pdp-gallery-box">
-          <img id="pdpImg" src="" alt="Product Silhouette">
-        </div>
-        <div class="pdp-thumb-strip" id="pdpThumbStrip"></div>
+    <!-- Initial loading skeleton -->
+    <div
+      id="pdpLoading"
+      class="pdp-main-grid"
+      aria-hidden="true"
+    >
+      <div class="pdp-loading-grid">
+        <div class="pdp-skel pdp-loading-gallery"></div>
       </div>
 
-      <!-- Right: Details & Variants -->
       <div>
-        <span class="pdp-meta-kicker" id="pdpKicker">DROP 001 · ESSENTIAL</span>
-        <h1 class="pdp-meta-title" id="pdpTitle">LOADING...</h1>
-        <div class="pdp-meta-price" id="pdpPrice">₹0</div>
+        <div
+          class="pdp-skel pdp-loading-line small"
+          style="margin-top:8px;"
+        ></div>
 
-        <p class="pdp-desc" id="pdpDesc">
-          Crafted from 100% heavyweight combed cotton. Engineered with dropped shoulders and architectural volume to maintain clean lines throughout all-day wear.
-        </p>
+        <div
+          class="pdp-skel pdp-loading-line wide"
+          style="height:28px;"
+        ></div>
 
-        <!-- Size Variant -->
+        <div
+          class="pdp-skel pdp-loading-line medium"
+          style="height:22px;"
+        ></div>
+
+        <div
+          class="pdp-skel pdp-loading-line wide"
+          style="margin-top:28px;"
+        ></div>
+
+        <div
+          class="pdp-skel pdp-loading-line wide"
+        ></div>
+
+        <div
+          class="pdp-skel pdp-loading-line medium"
+        ></div>
+      </div>
+    </div>
+
+    <div
+      class="pdp-main-grid"
+      id="pdpContent"
+      hidden
+    >
+
+      <!-- ===================================================
+           GALLERY
+           =================================================== -->
+
+      <div class="pdp-gallery-column">
+
+        <div class="pdp-gallery-box">
+
+          <div
+            class="pdp-gallery-loading"
+            id="galleryLoading"
+            aria-hidden="true"
+          ></div>
+
+          <img
+            id="pdpImg"
+            src=""
+            alt="Product silhouette"
+            width="800"
+            height="864"
+          >
+
+        </div>
+
+        <div
+          class="pdp-thumb-strip"
+          id="pdpThumbStrip"
+          aria-label="Product images"
+        ></div>
+
+      </div>
+
+      <!-- ===================================================
+           DETAILS
+           =================================================== -->
+
+      <div class="pdp-info-column">
+
+        <span
+          class="pdp-meta-kicker"
+          id="pdpKicker"
+        >BULKKOT ESSENTIAL</span>
+
+        <h1
+          class="pdp-meta-title"
+          id="pdpTitle"
+        >LOADING...</h1>
+
+        <div
+          class="pdp-meta-price"
+          id="pdpPrice"
+        >₹0</div>
+
+        <p
+          class="pdp-desc"
+          id="pdpDesc"
+        ></p>
+
+        <!-- SIZE -->
         <div class="opt-label">
           <span>SELECT SIZE (UK/INDIA)</span>
-          <span id="pdpStockStatus" style="color:#31c48d;">IN STOCK</span>
-        </div>
-        <div class="size-grid" id="pdpSizeGrid">
-          <button type="button" class="size-box" data-size="S">S</button>
-          <button type="button" class="size-box" data-size="M">M</button>
-          <button type="button" class="size-box" data-size="L">L</button>
-          <button type="button" class="size-box" data-size="XL">XL</button>
+
+          <span
+            id="pdpStockStatus"
+            style="color:var(--pdp-green);"
+          >IN STOCK</span>
         </div>
 
+        <div
+          class="size-grid"
+          id="pdpSizeGrid"
+          role="group"
+          aria-label="Select product size"
+        >
+          <button
+            type="button"
+            class="size-box"
+            data-size="S"
+            aria-label="Size S"
+          >S</button>
+
+          <button
+            type="button"
+            class="size-box"
+            data-size="M"
+            aria-label="Size M"
+          >M</button>
+
+          <button
+            type="button"
+            class="size-box"
+            data-size="L"
+            aria-label="Size L"
+          >L</button>
+
+          <button
+            type="button"
+            class="size-box"
+            data-size="XL"
+            aria-label="Size XL"
+          >XL</button>
+        </div>
+
+        <!-- CTA -->
         <div class="cta-row">
-          <button type="button" class="btn-add-bag" id="pdpAddBtn">ADD TO BAG</button>
+          <button
+            type="button"
+            class="btn-add-bag"
+            id="pdpAddBtn"
+            disabled
+          >LOADING...</button>
         </div>
 
-        <div class="feature-list" id="pdpFeatureList">
-          <div>✓ Heavyweight dense cotton weave (Zero shrinkage)</div>
-          <div>✓ Relaxed drop-shoulder street drape</div>
-          <div>✓ Free express shipping across India</div>
-          <div>✓ 7-Day hassle-free size exchange window</div>
-        </div>
+        <!-- FEATURES -->
+        <div
+          class="feature-list"
+          id="pdpFeatureList"
+        ></div>
+
       </div>
+
     </div>
 
-    <!-- Similar Products Section -->
-    <section class="similar-sec" id="similarSec">
-      <h2 style="font-size: 16px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">SIMILAR SILHOUETTES</h2>
-      <div class="similar-grid" id="similarGrid"></div>
+    <!-- =====================================================
+         SIMILAR PRODUCTS
+         ===================================================== -->
+
+    <section
+      class="similar-sec"
+      id="similarSec"
+      hidden
+    >
+      <h2 class="similar-heading">
+        SIMILAR SILHOUETTES
+      </h2>
+
+      <div
+        class="similar-grid"
+        id="similarGrid"
+      ></div>
     </section>
+
   </main>
 
-  <!-- CART DRAWER -->
-  <div class="drawer-overlay" data-cart-overlay></div>
-  <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true"></aside>
+  <!-- =======================================================
+       CART
+       ======================================================= -->
+
+  <div
+    class="drawer-overlay"
+    data-cart-overlay
+  ></div>
+
+  <aside
+    class="cart-drawer"
+    id="cart-drawer"
+    data-cart-drawer
+    aria-hidden="true"
+  ></aside>
 
   <script src="js/cart.js"></script>
+
   <script>
-    const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-    const supabase = window.supabase && typeof window.supabase.createClient === 'function'
-      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      : null;
+    (() => {
+      "use strict";
 
-    const SIZES = ["S", "M", "L", "XL"];
-    const FALLBACK_IMG = "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
+      /* =====================================================
+         CONFIG
+         ===================================================== */
 
-    function escapeHtml(str) {
-      return String(str ?? "").replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[c]));
-    }
+      const SUPABASE_URL =
+        "https://pgubjluqgqvrybvehzeh.supabase.co";
 
-    function getImages(p) {
-      const imgs = (Array.isArray(p.images) && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
-      return imgs.length ? imgs : [FALLBACK_IMG];
-    }
-    function getStock(p) {
-      return p.stock && typeof p.stock === "object" ? p.stock : {};
-    }
-    function isSoldOut(p) {
-      const stock = getStock(p);
-      return SIZES.every(s => Number(stock[s] || 0) <= 0);
-    }
-    function firstAvailableSize(p) {
-      const stock = getStock(p);
-      return SIZES.find(s => Number(stock[s] || 0) > 0) || null;
-    }
+      const SUPABASE_ANON_KEY =
+        "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
 
-    let product = null;
-    let selectedSize = null;
-    const params = new URLSearchParams(window.location.search);
-    const prodId = params.get('id');
+      const FALLBACK_IMG =
+        "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
 
-    function showNotFound(message) {
-      document.querySelector('.pdp-main-grid').innerHTML = `
-        <div class="pdp-not-found" style="grid-column:1/-1;">
-          <strong>${escapeHtml(message || "This piece could not be found")}</strong>
-          <p style="font-size:12px; margin-bottom:20px;">It may have been removed or the link is incorrect.</p>
-          <a href="shop.html">← BACK TO CATALOGUE</a>
-        </div>
-      `;
-      document.getElementById('similarSec').style.display = 'none';
-    }
+      const SIZES = ["S", "M", "L", "XL"];
 
-    function renderGallery() {
-      const images = getImages(product);
-      let activeIdx = 0;
-      const img = document.getElementById('pdpImg');
-      const strip = document.getElementById('pdpThumbStrip');
+      const supabaseClient =
+        window.supabase &&
+        typeof window.supabase.createClient === "function"
+          ? window.supabase.createClient(
+              SUPABASE_URL,
+              SUPABASE_ANON_KEY
+            )
+          : null;
 
-      function setActive(i) {
-        activeIdx = i;
-        img.src = images[i];
-        strip.querySelectorAll('.pdp-thumb').forEach((t, idx) => t.classList.toggle('active', idx === i));
+      /* =====================================================
+         DOM
+         ===================================================== */
+
+      const loadingEl =
+        document.getElementById("pdpLoading");
+
+      const contentEl =
+        document.getElementById("pdpContent");
+
+      const similarSec =
+        document.getElementById("similarSec");
+
+      const similarGrid =
+        document.getElementById("similarGrid");
+
+      const galleryLoading =
+        document.getElementById("galleryLoading");
+
+      const mainImage =
+        document.getElementById("pdpImg");
+
+      const thumbStrip =
+        document.getElementById("pdpThumbStrip");
+
+      const titleEl =
+        document.getElementById("pdpTitle");
+
+      const priceEl =
+        document.getElementById("pdpPrice");
+
+      const kickerEl =
+        document.getElementById("pdpKicker");
+
+      const descEl =
+        document.getElementById("pdpDesc");
+
+      const breadName =
+        document.getElementById("breadName");
+
+      const stockStatus =
+        document.getElementById("pdpStockStatus");
+
+      const sizeGrid =
+        document.getElementById("pdpSizeGrid");
+
+      const addBtn =
+        document.getElementById("pdpAddBtn");
+
+      /* =====================================================
+         STATE
+         ===================================================== */
+
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      const productId =
+        params.get("id");
+
+      let product = null;
+      let selectedSize = null;
+      let activeImageIndex = 0;
+
+      /* =====================================================
+         HELPERS
+         ===================================================== */
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(
+          /[&<>"']/g,
+          (char) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+          })[char]
+        );
       }
 
-      img.src = images[0];
-      if (images.length > 1) {
-        strip.innerHTML = images.map((src, i) => `<div class="pdp-thumb ${i === 0 ? 'active' : ''}" data-idx="${i}"><img src="${src}" loading="lazy"></div>`).join('');
-        strip.querySelectorAll('.pdp-thumb').forEach(t => {
-          t.addEventListener('click', () => setActive(Number(t.dataset.idx)));
-        });
-      } else {
-        strip.innerHTML = '';
-      }
-    }
-
-    function renderSizes() {
-      const stock = getStock(product);
-      selectedSize = firstAvailableSize(product);
-      const soldOut = isSoldOut(product);
-
-      document.querySelectorAll('.size-box').forEach(sb => {
-        const size = sb.dataset.size;
-        const available = Number(stock[size] || 0) > 0;
-        sb.disabled = !available;
-        sb.classList.toggle('active', size === selectedSize);
-      });
-
-      const statusEl = document.getElementById('pdpStockStatus');
-      if (soldOut) {
-        statusEl.textContent = 'SOLD OUT';
-        statusEl.style.color = '#e31b23';
-      } else {
-        statusEl.textContent = 'IN STOCK';
-        statusEl.style.color = '#31c48d';
+      function formatPrice(value) {
+        return `₹${Number(
+          value || 0
+        ).toLocaleString("en-IN")}`;
       }
 
-      const addBtn = document.getElementById('pdpAddBtn');
-      addBtn.disabled = soldOut;
-      addBtn.textContent = soldOut ? 'SOLD OUT' : 'ADD TO BAG';
-    }
+      function getImages(item) {
+        if (
+          Array.isArray(item?.images)
+        ) {
+          const valid =
+            item.images.filter(
+              (src) =>
+                typeof src === "string" &&
+                src.trim()
+            );
 
-    document.querySelectorAll('.size-box').forEach(sb => {
-      sb.addEventListener('click', () => {
-        if (sb.disabled) return;
-        document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
-        sb.classList.add('active');
-        selectedSize = sb.dataset.size;
-      });
-    });
+          if (valid.length) {
+            return valid;
+          }
+        }
 
-    document.getElementById('pdpAddBtn').addEventListener('click', () => {
-      if (!product || !selectedSize) return;
-      const stock = getStock(product);
-      if (Number(stock[selectedSize] || 0) <= 0) return;
+        if (
+          typeof item?.image_url === "string" &&
+          item.image_url.trim()
+        ) {
+          return [
+            item.image_url.trim()
+          ];
+        }
 
-      if (window.BULKKOT_CART?.addItem) {
-        window.BULKKOT_CART.addItem({
-          id: product.id,
-          name: product.name,
-          price: Number(product.price || 0),
-          size: selectedSize,
-          image: getImages(product)[0],
-          quantity: 1
-        });
-      }
-    });
-
-    function renderProductInfo() {
-      document.getElementById('pdpTitle').textContent = product.name || 'Untitled Garment';
-      document.getElementById('breadName').textContent = product.name || 'Silhouette';
-
-      // Best-effort dynamic meta update — helps the browser tab title and any
-      // crawler that renders JS, but see the static <meta> comment in <head>:
-      // WhatsApp/Instagram's crawlers do not execute JS, so their preview
-      // card still uses the static fallback values above.
-      const pageTitle = `${product.name || 'Silhouette'} — BULKKOT (불꽃)`;
-      const pageDesc = (product.description || 'Korean-inspired premium everyday wear from BULKKOT.').slice(0, 160);
-      const pageImg = getImages(product)[0];
-      document.title = pageTitle;
-      document.getElementById('ogTitleMeta')?.setAttribute('content', pageTitle);
-      document.getElementById('ogDescMeta')?.setAttribute('content', pageDesc);
-      document.getElementById('ogImageMeta')?.setAttribute('content', pageImg);
-      document.getElementById('twTitleMeta')?.setAttribute('content', pageTitle);
-      document.getElementById('twDescMeta')?.setAttribute('content', pageDesc);
-      document.getElementById('twImageMeta')?.setAttribute('content', pageImg);
-
-      const kickerParts = [product.category ? product.category.toUpperCase() : null, product.gsm ? `${product.gsm} GSM` : null].filter(Boolean);
-      document.getElementById('pdpKicker').textContent = kickerParts.length ? kickerParts.join(' · ') : 'BULKKOT ESSENTIAL';
-
-      document.getElementById('pdpPrice').textContent = `₹${Number(product.price || 0).toLocaleString('en-IN')}`;
-
-      if (product.description) {
-        document.getElementById('pdpDesc').textContent = product.description;
-      } else {
-        document.getElementById('pdpDesc').style.display = 'none';
+        return [FALLBACK_IMG];
       }
 
-      const features = [];
-      if (product.fabric) features.push(`✓ ${product.fabric}`);
-      if (product.fit) features.push(`✓ ${product.fit} fit`);
-      features.push('✓ Free express shipping across India');
-      features.push('✓ 7-Day hassle-free size exchange window');
-      document.getElementById('pdpFeatureList').innerHTML = features.map(f => `<div>${escapeHtml(f)}</div>`).join('');
+      function getStock(item) {
+        if (
+          item?.stock &&
+          typeof item.stock === "object" &&
+          !Array.isArray(item.stock)
+        ) {
+          return item.stock;
+        }
 
-      renderGallery();
-      renderSizes();
-    }
+        return {};
+      }
 
-    async function loadSimilar() {
-      const grid = document.getElementById('similarGrid');
-      if (!supabase || !product.category) { grid.innerHTML = ''; return; }
+      function getAvailableSizes(item) {
+        const stock =
+          getStock(item);
 
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', product.category)
-          .neq('id', product.id)
-          .limit(8);
+        return SIZES.filter(
+          (size) =>
+            Number(
+              stock[size] || 0
+            ) > 0
+        );
+      }
 
-        if (error) throw error;
+      function isSoldOut(item) {
+        return (
+          getAvailableSizes(item)
+            .length === 0
+        );
+      }
 
-        const similar = (data || []).filter(p => p.active !== false).slice(0, 4);
-        if (!similar.length) {
-          document.getElementById('similarSec').style.display = 'none';
+      function getFirstAvailableSize(item) {
+        return (
+          getAvailableSizes(item)[0] ||
+          null
+        );
+      }
+
+      /* =====================================================
+         NOT FOUND / ERROR
+         ===================================================== */
+
+      function showNotFound(message) {
+        loadingEl.hidden = true;
+        contentEl.hidden = false;
+
+        contentEl.innerHTML = `
+          <div
+            class="pdp-not-found"
+            style="grid-column:1 / -1;"
+          >
+            <strong>
+              ${escapeHtml(
+                message ||
+                "This piece could not be found."
+              )}
+            </strong>
+
+            <p>
+              It may have been removed or
+              the product link may be incorrect.
+            </p>
+
+            <a href="shop.html">
+              ← BACK TO CATALOGUE
+            </a>
+          </div>
+        `;
+
+        similarSec.hidden = true;
+      }
+
+      /* =====================================================
+         IMAGE FALLBACK
+         ===================================================== */
+
+      function applyImageFallback(image) {
+        if (!image) return;
+
+        if (
+          image.dataset.fallbackApplied ===
+          "true"
+        ) {
           return;
         }
 
-        grid.innerHTML = similar.map(s => `
-          <a href="product.html?id=${encodeURIComponent(s.id)}" style="text-decoration:none; color:inherit; background:#0e0e0e; border:1px solid #1a1a1a; border-radius:4px; overflow:hidden; display:block;">
-            <img src="${getImages(s)[0]}" style="width:100%; height:200px; object-fit:cover; display:block;" loading="lazy">
-            <div style="padding:10px;">
-              <h4 style="font-size:11px; font-weight:800; margin:0 0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(s.name || '')}</h4>
-              <span style="font-size:12px; font-weight:900; color:#fff;">₹${Number(s.price || 0).toLocaleString('en-IN')}</span>
-            </div>
-          </a>
-        `).join('');
-      } catch (err) {
-        console.error('Failed to load similar products:', err);
-        document.getElementById('similarSec').style.display = 'none';
+        image.dataset.fallbackApplied =
+          "true";
+
+        image.src = FALLBACK_IMG;
+        image.classList.add(
+          "image-failed"
+        );
       }
-    }
 
-    async function loadProduct() {
-      if (!prodId) { showNotFound("No product specified."); return; }
-      if (!supabase) { showNotFound("Store is currently offline."); return; }
+      /* =====================================================
+         GALLERY
+         ===================================================== */
 
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('id', prodId)
-          .maybeSingle();
+      function renderGallery() {
+        const images =
+          getImages(product);
 
-        if (error) throw error;
-        if (!data || data.active === false) { showNotFound("This piece could not be found."); return; }
+        activeImageIndex = 0;
 
-        product = data;
-        renderProductInfo();
-        loadSimilar();
-      } catch (err) {
-        console.error('Failed to load product:', err);
-        showNotFound("Something went wrong loading this piece. Please try again.");
+        function setActiveImage(index) {
+          if (
+            index < 0 ||
+            index >= images.length
+          ) {
+            return;
+          }
+
+          activeImageIndex = index;
+
+          mainImage.src =
+            images[index];
+
+          mainImage.alt =
+            `${product.name || "Product"} — image ${
+              index + 1
+            }`;
+
+          thumbStrip
+            .querySelectorAll(".pdp-thumb")
+            .forEach(
+              (thumb, thumbIndex) => {
+                const active =
+                  thumbIndex === index;
+
+                thumb.classList.toggle(
+                  "active",
+                  active
+                );
+
+                thumb.setAttribute(
+                  "aria-current",
+                  active
+                    ? "true"
+                    : "false"
+                );
+              }
+            );
+        }
+
+        mainImage.dataset.fallbackApplied =
+          "false";
+
+        mainImage.classList.remove(
+          "image-failed"
+        );
+
+        mainImage.onload = () => {
+          galleryLoading.hidden = true;
+        };
+
+        mainImage.onerror = () => {
+          galleryLoading.hidden = true;
+          applyImageFallback(
+            mainImage
+          );
+        };
+
+        galleryLoading.hidden = false;
+
+        thumbStrip.innerHTML =
+          images.length > 1
+            ? images
+                .map(
+                  (src, index) => `
+                    <button
+                      type="button"
+                      class="pdp-thumb${
+                        index === 0
+                          ? " active"
+                          : ""
+                      }"
+                      data-image-index="${index}"
+                      aria-label="View image ${
+                        index + 1
+                      }"
+                      aria-current="${
+                        index === 0
+                          ? "true"
+                          : "false"
+                      }"
+                    >
+                      <img
+                        src="${escapeHtml(
+                          src
+                        )}"
+                        alt=""
+                        loading="${
+                          index === 0
+                            ? "eager"
+                            : "lazy"
+                        }"
+                        decoding="async"
+                      >
+                    </button>
+                  `
+                )
+                .join("")
+            : "";
+
+        thumbStrip
+          .querySelectorAll(".pdp-thumb")
+          .forEach(
+            (thumb) => {
+              thumb.addEventListener(
+                "click",
+                () => {
+                  setActiveImage(
+                    Number(
+                      thumb.dataset
+                        .imageIndex
+                    )
+                  );
+                }
+              );
+
+              const thumbImage =
+                thumb.querySelector("img");
+
+              thumbImage?.addEventListener(
+                "error",
+                () => {
+                  thumbImage.src =
+                    FALLBACK_IMG;
+                },
+                { once: true }
+              );
+            }
+          );
+
+        setActiveImage(0);
       }
-    }
 
-    loadProduct();
+      /* =====================================================
+         SIZE RENDER
+         ===================================================== */
+
+      function renderSizes() {
+        const stock =
+          getStock(product);
+
+        const available =
+          getAvailableSizes(product);
+
+        selectedSize =
+          available.includes(
+            selectedSize
+          )
+            ? selectedSize
+            : available[0] || null;
+
+        sizeGrid
+          .querySelectorAll(".size-box")
+          .forEach(
+            (button) => {
+              const size =
+                button.dataset.size;
+
+              const inStock =
+                Number(
+                  stock[size] || 0
+                ) > 0;
+
+              const active =
+                selectedSize === size;
+
+              button.disabled =
+                !inStock;
+
+              button.classList.toggle(
+                "active",
+                active
+              );
+
+              button.setAttribute(
+                "aria-pressed",
+                active
+                  ? "true"
+                  : "false"
+              );
+
+              button.setAttribute(
+                "aria-label",
+                inStock
+                  ? `Select size ${size}`
+                  : `Size ${size} is sold out`
+              );
+            }
+          );
+
+        const soldOut =
+          available.length === 0;
+
+        if (soldOut) {
+          stockStatus.textContent =
+            "SOLD OUT";
+
+          stockStatus.style.color =
+            "var(--pdp-red)";
+
+          addBtn.disabled = true;
+          addBtn.textContent =
+            "SOLD OUT";
+        } else {
+          stockStatus.textContent =
+            "IN STOCK";
+
+          stockStatus.style.color =
+            "var(--pdp-green)";
+
+          addBtn.disabled =
+            !selectedSize;
+
+          addBtn.textContent =
+            "ADD TO BAG";
+        }
+      }
+
+      /* =====================================================
+         PRODUCT INFO
+         ===================================================== */
+
+      function renderProductInfo() {
+        const name =
+          product.name ||
+          "Untitled Garment";
+
+        const description =
+          String(
+            product.description || ""
+          ).trim();
+
+        titleEl.textContent =
+          name;
+
+        breadName.textContent =
+          name;
+
+        priceEl.textContent =
+          formatPrice(
+            product.price
+          );
+
+        const kickerParts = [
+          product.category
+            ? String(
+                product.category
+              ).toUpperCase()
+            : null,
+          product.gsm
+            ? `${product.gsm} GSM`
+            : null
+        ].filter(Boolean);
+
+        kickerEl.textContent =
+          kickerParts.length
+            ? kickerParts.join(" · ")
+            : "BULKKOT ESSENTIAL";
+
+        if (description) {
+          descEl.textContent =
+            description;
+
+          descEl.hidden = false;
+        } else {
+          descEl.hidden = true;
+        }
+
+        const features = [];
+
+        if (product.fabric) {
+          features.push(
+            `✓ ${product.fabric}`
+          );
+        }
+
+        if (product.fit) {
+          features.push(
+            `✓ ${product.fit} fit`
+          );
+        }
+
+        /*
+         * Keep existing storefront promises
+         * exactly as configured in the current
+         * product experience.
+         */
+        features.push(
+          "✓ Free express shipping across India"
+        );
+
+        features.push(
+          "✓ 7-Day hassle-free size exchange window"
+        );
+
+        document.getElementById(
+          "pdpFeatureList"
+        ).innerHTML =
+          features
+            .map(
+              (feature) =>
+                `<div>${escapeHtml(
+                  feature
+                )}</div>`
+            )
+            .join("");
+
+        renderGallery();
+        renderSizes();
+
+        updateMeta();
+
+        loadingEl.hidden = true;
+        contentEl.hidden = false;
+      }
+
+      /* =====================================================
+         SEO / TAB META
+         ===================================================== */
+
+      function updateMeta() {
+        const name =
+          product.name ||
+          "Silhouette";
+
+        const description =
+          String(
+            product.description ||
+              "Korean-inspired premium everyday wear from BULKKOT."
+          )
+            .trim()
+            .slice(0, 160);
+
+        const image =
+          getImages(product)[0] ||
+          FALLBACK_IMG;
+
+        const canonicalUrl =
+          new URL(
+            `product.html?id=${encodeURIComponent(
+              String(product.id)
+            )}`,
+            window.location.href
+          ).href;
+
+        const pageTitle =
+          `${name} — BULKKOT (불꽃)`;
+
+        document.title =
+          pageTitle;
+
+        document
+          .getElementById("ogTitleMeta")
+          ?.setAttribute(
+            "content",
+            pageTitle
+          );
+
+        document
+          .getElementById("ogDescMeta")
+          ?.setAttribute(
+            "content",
+            description
+          );
+
+        document
+          .getElementById("ogImageMeta")
+          ?.setAttribute(
+            "content",
+            image
+          );
+
+        document
+          .getElementById("ogUrlMeta")
+          ?.setAttribute(
+            "content",
+            canonicalUrl
+          );
+
+        document
+          .getElementById("twTitleMeta")
+          ?.setAttribute(
+            "content",
+            pageTitle
+          );
+
+        document
+          .getElementById("twDescMeta")
+          ?.setAttribute(
+            "content",
+            description
+          );
+
+        document
+          .getElementById("twImageMeta")
+          ?.setAttribute(
+            "content",
+            image
+          );
+      }
+
+      /* =====================================================
+         SIZE EVENTS
+         ===================================================== */
+
+      sizeGrid.addEventListener(
+        "click",
+        (event) => {
+          const button =
+            event.target.closest(
+              ".size-box"
+            );
+
+          if (
+            !button ||
+            button.disabled
+          ) {
+            return;
+          }
+
+          const size =
+            button.dataset.size;
+
+          if (
+            !SIZES.includes(size)
+          ) {
+            return;
+          }
+
+          const stock =
+            getStock(product);
+
+          if (
+            Number(
+              stock[size] || 0
+            ) <= 0
+          ) {
+            return;
+          }
+
+          selectedSize =
+            size;
+
+          sizeGrid
+            .querySelectorAll(
+              ".size-box"
+            )
+            .forEach(
+              (item) => {
+                const active =
+                  item.dataset.size ===
+                  selectedSize;
+
+                item.classList.toggle(
+                  "active",
+                  active
+                );
+
+                item.setAttribute(
+                  "aria-pressed",
+                  active
+                    ? "true"
+                    : "false"
+                );
+              }
+            );
+        }
+      );
+
+      /* =====================================================
+         ADD TO CART
+         ===================================================== */
+
+      addBtn.addEventListener(
+        "click",
+        () => {
+          if (
+            !product ||
+            !selectedSize
+          ) {
+            return;
+          }
+
+          const stock =
+            getStock(product);
+
+          if (
+            Number(
+              stock[selectedSize] || 0
+            ) <= 0
+          ) {
+            renderSizes();
+            return;
+          }
+
+          const cart =
+            window.BULKKOT_CART;
+
+          if (
+            !cart ||
+            typeof cart.addItem !==
+              "function"
+          ) {
+            console.error(
+              "BULKKOT cart engine is unavailable."
+            );
+            return;
+          }
+
+          cart.addItem({
+            id: product.id,
+            name:
+              product.name ||
+              "Untitled Garment",
+            price:
+              Number(
+                product.price || 0
+              ),
+            size:
+              selectedSize,
+            image:
+              getImages(product)[0] ||
+              FALLBACK_IMG,
+            quantity: 1
+          });
+        }
+      );
+
+      /* =====================================================
+         SIMILAR PRODUCTS
+         ===================================================== */
+
+      async function loadSimilar() {
+        if (
+          !supabaseClient ||
+          !product?.category
+        ) {
+          similarSec.hidden = true;
+          return;
+        }
+
+        try {
+          const {
+            data,
+            error
+          } =
+            await supabaseClient
+              .from("products")
+              .select("*")
+              .eq(
+                "category",
+                product.category
+              )
+              .neq(
+                "id",
+                product.id
+              )
+              .order(
+                "created_at",
+                {
+                  ascending: false
+                }
+              )
+              .limit(8);
+
+          if (error) {
+            throw error;
+          }
+
+          const similar =
+            Array.isArray(data)
+              ? data
+                  .filter(
+                    (item) =>
+                      item?.active !== false
+                  )
+                  .slice(0, 4)
+              : [];
+
+          if (!similar.length) {
+            similarSec.hidden = true;
+            return;
+          }
+
+          similarGrid.innerHTML =
+            similar
+              .map(
+                (item) => {
+                  const image =
+                    getImages(
+                      item
+                    )[0] ||
+                    FALLBACK_IMG;
+
+                  return `
+                    <a
+                      class="similar-card"
+                      href="product.html?id=${encodeURIComponent(
+                        String(
+                          item.id
+                        )
+                      )}"
+                      aria-label="View ${escapeHtml(
+                        item.name ||
+                        "product"
+                      )}"
+                    >
+
+                      <img
+                        class="similar-card-image"
+                        src="${escapeHtml(
+                          image
+                        )}"
+                        alt="${escapeHtml(
+                          item.name ||
+                          "Product"
+                        )}"
+                        loading="lazy"
+                        decoding="async"
+                      >
+
+                      <div class="similar-card-info">
+
+                        <h3 class="similar-card-name">
+                          ${escapeHtml(
+                            item.name ||
+                            "Untitled Garment"
+                          )}
+                        </h3>
+
+                        <span class="similar-card-price">
+                          ${formatPrice(
+                            item.price
+                          )}
+                        </span>
+
+                      </div>
+
+                    </a>
+                  `;
+                }
+              )
+              .join("");
+
+          similarGrid
+            .querySelectorAll(
+              ".similar-card-image"
+            )
+            .forEach(
+              (image) => {
+                image.addEventListener(
+                  "error",
+                  () => {
+                    applyImageFallback(
+                      image
+                    );
+                  },
+                  { once: true }
+                );
+              }
+            );
+
+          similarSec.hidden = false;
+        } catch (error) {
+          console.error(
+            "BULKKOT similar products failed:",
+            error
+          );
+
+          similarSec.hidden = true;
+        }
+      }
+
+      /* =====================================================
+         LOAD PRODUCT
+         ===================================================== */
+
+      async function loadProduct() {
+        if (!productId) {
+          showNotFound(
+            "No product specified."
+          );
+          return;
+        }
+
+        if (!supabaseClient) {
+          showNotFound(
+            "Store is currently offline."
+          );
+          return;
+        }
+
+        try {
+          const {
+            data,
+            error
+          } =
+            await supabaseClient
+              .from("products")
+              .select("*")
+              .eq(
+                "id",
+                productId
+              )
+              .maybeSingle();
+
+          if (error) {
+            throw error;
+          }
+
+          if (
+            !data ||
+            data.active === false
+          ) {
+            showNotFound(
+              "This piece could not be found."
+            );
+            return;
+          }
+
+          product = data;
+
+          renderProductInfo();
+
+          /*
+           * Similar products are intentionally
+           * non-blocking. Main PDP becomes usable
+           * even if recommendation query fails.
+           */
+          loadSimilar();
+
+        } catch (error) {
+          console.error(
+            "BULKKOT product load failed:",
+            error
+          );
+
+          showNotFound(
+            "Something went wrong loading this piece."
+          );
+        }
+      }
+
+      /* =====================================================
+         INIT
+         ===================================================== */
+
+      loadProduct();
+
+    })();
   </script>
+
 </body>
 </html>
