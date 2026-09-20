@@ -1907,24 +1907,27 @@
             data,
             error
           } =
-            await supabaseClient
-              .from("products")
-              .select("*")
-              .eq(
-                "category",
-                product.category
-              )
-              .neq(
-                "id",
-                product.id
-              )
-              .order(
-                "created_at",
-                {
-                  ascending: false
-                }
-              )
-              .limit(8);
+            await withTimeout(
+              supabaseClient
+                .from("products")
+                .select("*")
+                .eq(
+                  "category",
+                  product.category
+                )
+                .neq(
+                  "id",
+                  product.id
+                )
+                .order(
+                  "created_at",
+                  {
+                    ascending: false
+                  }
+                )
+                .limit(8),
+              10000
+            );
 
           if (error) {
             throw error;
