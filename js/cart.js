@@ -1288,6 +1288,16 @@
           closeCart
         );
       });
+
+    drawer
+      .querySelector("[data-open-track-order]")
+      ?.addEventListener("click", () => {
+        closeCart();
+
+        window.setTimeout(() => {
+          window.BULKKOT_UI?.openTrackOrder?.();
+        }, 0);
+      });
   }
 
   /* =========================================================
@@ -2938,6 +2948,15 @@
 
       errorBox.style.display =
         "none";
+
+      document
+        .querySelectorAll("#storefrontCheckoutForm .bk-field-error")
+        .forEach((field) => field.classList.remove("bk-field-error"));
+    }
+
+    function markCheckoutFieldError(fieldId) {
+      const field = document.getElementById(fieldId);
+      if (field) field.classList.add("bk-field-error");
     }
 
     clearError();
@@ -2948,9 +2967,26 @@
       );
 
     if (validationError) {
-      showError(
-        validationError
+      const validationMap = [
+        ["full name", "chkName"],
+        ["phone", "chkPhone"],
+        ["email", "chkEmail"],
+        ["address", "chkAddress"],
+        ["city", "chkCity"],
+        ["state", "chkState"],
+        ["pincode", "chkPincode"]
+      ];
+
+      const match = validationMap.find(([needle]) =>
+        validationError.toLowerCase().includes(needle)
       );
+
+      if (match) {
+        markCheckoutFieldError(match[1]);
+        document.getElementById(match[1])?.focus();
+      }
+
+      showError(validationError);
       return;
     }
 
@@ -3384,14 +3420,28 @@
             `
         }
 
-        <button
-          type="button"
-          class="bk-btn-primary"
-          data-close-cart
-          style="width:100%;"
+        <div
+          class="order-success-actions"
+          style="display:grid;gap:10px;width:100%;"
         >
-          CONTINUE EXPLORING
-        </button>
+          <button
+            type="button"
+            class="bk-btn-primary"
+            data-open-track-order
+            style="width:100%;"
+          >
+            TRACK THIS ORDER
+          </button>
+
+          <button
+            type="button"
+            class="bk-btn-primary"
+            data-close-cart
+            style="width:100%;"
+          >
+            CONTINUE EXPLORING
+          </button>
+        </div>
       </div>
     `;
 
