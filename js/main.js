@@ -2518,6 +2518,216 @@
   }
 
   /* =========================================================
+     DYNAMIC UI TRIGGER DELEGATION
+     ========================================================= */
+
+  function initDelegatedUITriggers() {
+    /*
+     * Static controls already have local listeners. Delegation is
+     * intentionally a fallback for controls rendered/replaced after
+     * DOMContentLoaded. A locally-bound handler calls preventDefault(),
+     * so this delegated layer will not execute the same action twice.
+     */
+    on(document, "click", (event) => {
+      if (event.defaultPrevented) return;
+
+      const target =
+        event.target instanceof Element
+          ? event.target
+          : null;
+
+      if (!target) return;
+
+      /* Mobile drawer */
+      const openDrawer = target.closest("[data-open-drawer]");
+      if (openDrawer) {
+        event.preventDefault();
+
+        const drawer = $("[data-mobile-drawer]");
+        const overlay = $("[data-mobile-overlay]");
+
+        state.drawerOpen = true;
+        drawer?.classList.add("is-open");
+        drawer?.setAttribute("aria-hidden", "false");
+        overlay?.classList.add("is-active");
+        overlay?.setAttribute("aria-hidden", "false");
+
+        lockBodyScroll();
+        return;
+      }
+
+      const closeDrawerButton =
+        target.closest("[data-close-drawer]");
+
+      if (closeDrawerButton) {
+        event.preventDefault();
+
+        const drawer = $("[data-mobile-drawer]");
+        const overlay = $("[data-mobile-overlay]");
+
+        if (state.drawerOpen) {
+          state.drawerOpen = false;
+          drawer?.classList.remove("is-open");
+          drawer?.setAttribute("aria-hidden", "true");
+          overlay?.classList.remove("is-active");
+          overlay?.setAttribute("aria-hidden", "true");
+          unlockBodyScroll();
+        }
+
+        return;
+      }
+
+      /* Header search */
+      if (target.closest("#headerSearchToggle")) {
+        event.preventDefault();
+
+        if (window.BULKKOT_UI?.openSearch) {
+          window.BULKKOT_UI.openSearch();
+        }
+
+        return;
+      }
+
+      if (target.closest("#headerSearchClose")) {
+        event.preventDefault();
+
+        if (window.BULKKOT_UI?.closeSearch) {
+          window.BULKKOT_UI.closeSearch(true);
+        }
+
+        return;
+      }
+
+      /* Account */
+      if (target.closest("[data-open-account]")) {
+        event.preventDefault();
+
+        const modal = $("[data-account-modal]");
+        openModal(modal);
+        return;
+      }
+
+      if (target.closest("[data-account-close]")) {
+        event.preventDefault();
+
+        const modal =
+          target.closest("[data-account-modal]") ||
+          $("[data-account-modal]");
+
+        closeModal(modal);
+        return;
+      }
+
+      /* Track order */
+      if (target.closest("[data-open-track-order]")) {
+        event.preventDefault();
+
+        const modal = $("[data-track-order-modal]");
+        const form = $("[data-track-order-form]", modal);
+        const result = $("[data-track-order-result]", modal);
+        const message = $("[data-track-order-message]", modal);
+
+        if (form) form.hidden = false;
+        if (result) result.hidden = true;
+        if (message) message.textContent = "";
+
+        openModal(modal);
+        return;
+      }
+
+      if (target.closest("[data-track-order-close]")) {
+        event.preventDefault();
+
+        const modal =
+          target.closest("[data-track-order-modal]") ||
+          $("[data-track-order-modal]");
+
+        closeModal(modal);
+        return;
+      }
+
+      /* Size guide */
+      if (target.closest("[data-size-guide-open]")) {
+        event.preventDefault();
+
+        const modal = $("[data-size-guide-modal]");
+        openModal(modal);
+        return;
+      }
+
+      if (target.closest("[data-size-guide-close]")) {
+        event.preventDefault();
+
+        const modal =
+          target.closest("[data-size-guide-modal]") ||
+          $("[data-size-guide-modal]");
+
+        closeModal(modal);
+        return;
+      }
+
+      /* About */
+      if (target.closest("[data-open-about]")) {
+        event.preventDefault();
+
+        const modal = $("[data-about-modal]");
+        openModal(modal);
+        return;
+      }
+
+      if (target.closest("[data-close-about]")) {
+        event.preventDefault();
+
+        const modal =
+          target.closest("[data-about-modal]") ||
+          $("[data-about-modal]");
+
+        closeModal(modal);
+        return;
+      }
+
+      /* Policies */
+      const policyButton =
+        target.closest("[data-open-policy]");
+
+      if (policyButton) {
+        event.preventDefault();
+
+        const modal = $("[data-policy-modal]");
+
+        const type =
+          policyButton.dataset.openPolicy;
+
+        const policy =
+          POLICY_DATA[type] || {
+            title: "INFORMATION",
+            content:
+              "<p>Information coming soon.</p>"
+          };
+
+        $("[data-policy-title]", modal).textContent =
+          policy.title;
+
+        $("[data-policy-content]", modal).innerHTML =
+          policy.content;
+
+        openModal(modal);
+        return;
+      }
+
+      if (target.closest("[data-close-policy]")) {
+        event.preventDefault();
+
+        const modal =
+          target.closest("[data-policy-modal]") ||
+          $("[data-policy-modal]");
+
+        closeModal(modal);
+      }
+    });
+  }
+
+  /* =========================================================
      GLOBAL CLICK BEHAVIOUR
      ========================================================= */
 
@@ -2799,6 +3009,12 @@
     initSizeGuide();
     initOrderTracking();
     initAccountModal();
+
+    /*
+     * Delegated fallback for controls that may be inserted or
+     * replaced after the initial DOM scan.
+     */
+    initDelegatedUITriggers();
 
     initCartTriggers();
     initGlobalClicks();
