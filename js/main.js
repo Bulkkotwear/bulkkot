@@ -2556,6 +2556,41 @@
         return;
       }
 
+      const mobileOverlay = target.closest("[data-mobile-overlay]");
+      if (mobileOverlay) {
+        event.preventDefault();
+
+        const drawer = $("[data-mobile-drawer]");
+
+        if (state.drawerOpen) {
+          state.drawerOpen = false;
+          drawer?.classList.remove("is-open");
+          drawer?.setAttribute("aria-hidden", "true");
+          mobileOverlay.classList.remove("is-active");
+          mobileOverlay.setAttribute("aria-hidden", "true");
+          unlockBodyScroll();
+        }
+
+        return;
+      }
+
+      const drawerLink = target.closest("[data-mobile-drawer] a");
+      if (drawerLink) {
+        const drawer = $("[data-mobile-drawer]");
+        const overlay = $("[data-mobile-overlay]");
+
+        if (state.drawerOpen) {
+          state.drawerOpen = false;
+          drawer?.classList.remove("is-open");
+          drawer?.setAttribute("aria-hidden", "true");
+          overlay?.classList.remove("is-active");
+          overlay?.setAttribute("aria-hidden", "true");
+          unlockBodyScroll();
+        }
+
+        return;
+      }
+
       const closeDrawerButton =
         target.closest("[data-close-drawer]");
 
