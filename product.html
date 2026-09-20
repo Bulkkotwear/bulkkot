@@ -2018,6 +2018,20 @@
         }
       }
 
+      function withTimeout(promise, ms = 12000) {
+        let timer = null;
+
+        const timeout = new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            reject(new Error("Product request timed out. Please retry."));
+          }, ms);
+        });
+
+        return Promise.race([promise, timeout]).finally(() => {
+          if (timer) clearTimeout(timer);
+        });
+      }
+
       /* =====================================================
          LOAD PRODUCT
          ===================================================== */
