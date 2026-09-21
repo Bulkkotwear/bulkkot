@@ -4,168 +4,174 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SHOP SILHOUETTES — BULKKOT (불꽃)</title>
-  <meta name="description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweats, Korean-inspired oversized essentials.">
-  <meta name="theme-color" content="#070707">
-
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
+
+  <!-- Fonts & Core CSS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    .shop-container {
-      width: min(1360px, 100%);
-      margin: 0 auto;
-      padding: 24px 16px 80px;
-    }
+    body { background: #070707; color: #f5f5f5; font-family: 'Inter', sans-serif; }
+    .shop-container { max-width: 1360px; margin: 0 auto; padding: 24px 16px 80px; }
+
+    /* Top Horizontal Bar (Myntra Style Filter & Sort) */
     .shop-header-bar {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) minmax(180px, 260px) auto;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 16px;
       padding: 16px 0;
-      border-bottom: 1px solid var(--bk-border);
+      border-bottom: 1px solid #1a1a1a;
       margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
     }
+    .shop-title-area h1 {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .shop-title-area p {
+      font-size: 11px;
+      color: #888;
+      margin: 4px 0 0;
+      letter-spacing: 0.1em;
+    }
+
+    /* Horizontal Filter Strip */
     .filter-strip {
       display: flex;
       align-items: center;
       gap: 8px;
       overflow-x: auto;
       scrollbar-width: none;
+      padding-bottom: 4px;
     }
-    .filter-strip::-webkit-scrollbar { display: none; }
     .filter-btn {
-      flex: 0 0 auto;
-      min-height: 44px;
-      min-width: 44px;
-      padding: 8px 16px;
-      border: 1px solid #333;
-      border-radius: 4px;
-      background: #111;
+      background: #121212;
+      border: 1px solid #242424;
       color: #999;
-      cursor: pointer;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
     }
-    .filter-btn.active {
+    .filter-btn:hover, .filter-btn.active {
       background: #fff;
       color: #000;
       border-color: #fff;
     }
-    .shop-search {
-      width: 100%;
-      min-height: 44px;
-      padding: 0 14px;
-      background: #111;
-      border: 1px solid #333;
+
+    .sort-wrap select {
+      background: #121212;
+      border: 1px solid #242424;
       color: #fff;
-      border-radius: 4px;
-      font-size: 13px;
-    }
-    .shop-sort {
-      min-height: 44px;
-      padding: 0 12px;
-      background: #111;
-      border: 1px solid #333;
-      color: #fff;
-      border-radius: 4px;
+      padding: 8px 14px;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 700;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
     }
+
+    /* 4-col desktop, 2-col mobile */
     .products-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
     }
+
     .p-card {
-      background: #0d0d0d;
+      background: #0e0e0e;
       border: 1px solid #1a1a1a;
       border-radius: 6px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s;
     }
+    .p-card:hover { border-color: #333; }
+
     .p-thumb {
       width: 100%;
-      aspect-ratio: 1/1.12;
+      height: 320px;
       background: #141414;
       position: relative;
+      overflow: hidden;
     }
     .p-thumb img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: transform 0.4s ease;
     }
-    .p-info {
-      padding: 14px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .p-quickadd {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      padding: 0 14px 14px;
-    }
-    .p-size-chip {
-      min-height: 44px;
-      min-width: 44px;
-      border: 1px solid #282828;
-      background: #111;
-      color: #ccc;
+    .p-card:hover .p-thumb img { transform: scale(1.04); }
+
+    .p-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #000;
+      border: 1px solid #222;
+      color: var(--bk-red, #e31b23);
+      font-size: 9px;
       font-weight: 800;
+      padding: 4px 8px;
+      letter-spacing: 0.1em;
+    }
+
+    .p-info { padding: 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .p-info h3 { font-size: 12px; font-weight: 800; margin: 0 0 4px; letter-spacing: 0.05em; color: #eee; }
+    .p-info .p-sub { font-size: 10px; color: #777; margin-bottom: 10px; }
+    .p-meta { display: flex; justify-content: space-between; align-items: center; }
+    .p-price { font-size: 13px; font-weight: 900; color: #fff; }
+    .p-btn-view {
+      background: transparent;
+      border: 1px solid #333;
+      color: #ccc;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 6px 12px;
       border-radius: 3px;
-      cursor: pointer;
     }
-    .p-size-chip.active {
-      background: #fff;
-      color: #000;
-      border-color: #fff;
-    }
-    .p-size-chip:disabled {
-      opacity: 0.3;
-      text-decoration: line-through;
-      cursor: not-allowed;
-    }
-    .p-quickadd-btn {
-      grid-column: 1 / -1;
-      min-height: 44px;
-      background: #fff;
-      color: #000;
-      border: 1px solid #fff;
-      font-weight: 900;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      border-radius: 3px;
-      cursor: pointer;
-      margin-top: 4px;
-    }
-    @media (max-width: 900px) {
+    .p-card:hover .p-btn-view { background: #fff; color: #000; border-color: #fff; }
+
+    @media (max-width: 768px) {
       .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .shop-header-bar { grid-template-columns: 1fr; }
+      .p-thumb { height: 210px; }
+      .p-info { padding: 10px; }
+      .p-info h3 { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .p-price { font-size: 12px; }
+      .p-btn-view { font-size: 9px; padding: 5px 8px; }
     }
   </style>
 </head>
 
 <body>
+  <!-- HEADER -->
   <header class="site-header">
     <div class="header-inner">
-      <a href="index.html" class="brand">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT" class="brand-logo">
+      <a href="index.html" class="brand" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" style="width:36px; height:36px;">
         <span class="brand-name">
-          <span class="brand-korean">불꽃</span>
-          <span class="brand-english">BULKKOT</span>
+          <span class="brand-korean" style="color:var(--bk-red, #e31b23); font-weight:700;">불꽃</span>
+          <span class="brand-english" style="color:#fff; font-weight:900;">BULKKOT</span>
         </span>
       </a>
       <div class="header-actions">
-        <a href="index.html" class="button button--outline" style="min-height: 38px; font-size: 10px;">← HOME</a>
-        <button type="button" class="header-action" data-open-cart aria-label="Open cart">
+        <a href="index.html#top" class="nav-btn" style="color:#aaa; font-size:11px; font-weight:700; text-decoration:none;">← HOME</a>
+        <button type="button" class="header-action cart-action" data-open-cart aria-label="Open cart">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
           <span class="cart-count" data-cart-count hidden>0</span>
         </button>
@@ -174,234 +180,142 @@
   </header>
 
   <main class="shop-container">
-    <section class="shop-header-bar">
-      <div>
-        <h1 style="font-size: 20px; font-weight: 900; text-transform: uppercase;">SILHOUETTES</h1>
-        <p style="font-size: 10px; color: #888;">LESS NOISE. MORE PRESENCE.</p>
+    <!-- Top Filter & Sorting Bar -->
+    <div class="shop-header-bar">
+      <div class="shop-title-area">
+        <h1 id="shopHeading">CATALOGUE</h1>
+        <p id="shopCount">SHOWING SILHOUETTES</p>
       </div>
-      <div class="filter-strip" id="filterStrip">
-        <button type="button" class="filter-btn active" data-category="all">ALL</button>
-        <button type="button" class="filter-btn" data-category="tees">TEES</button>
-        <button type="button" class="filter-btn" data-category="hoodies">HOODIES</button>
-        <button type="button" class="filter-btn" data-category="sweats">SWEATS</button>
+
+      <!-- Quick Filter Strip -->
+      <div class="filter-strip">
+        <button class="filter-btn active" data-cat="all">ALL PIECES</button>
+        <button class="filter-btn" data-cat="tees">TEES (티셔츠)</button>
+        <button class="filter-btn" data-cat="hoods">HOODIES (후드)</button>
+        <button class="filter-btn" data-cat="sweats">SWEATS (스웨트)</button>
       </div>
-      <div>
-        <input type="search" id="shopSearch" class="shop-search" placeholder="SEARCH PIECES...">
-      </div>
-      <div>
-        <select id="shopSort" class="shop-sort">
+
+      <!-- Sort Dropdown -->
+      <div class="sort-wrap">
+        <select id="shopSort">
           <option value="featured">FEATURED</option>
-          <option value="price-low">PRICE: LOW → HIGH</option>
-          <option value="price-high">PRICE: HIGH → LOW</option>
+          <option value="price-low">PRICE: LOW TO HIGH</option>
+          <option value="price-high">PRICE: HIGH TO LOW</option>
           <option value="newest">NEWEST</option>
         </select>
       </div>
-    </section>
-
-    <div id="shopLoading" style="text-align: center; padding: 60px 0; color: #888;">LOADING CATALOGUE...</div>
-    <div id="shopEmpty" style="text-align: center; padding: 60px 0; color: #888;" hidden>
-      <strong style="color: #fff; display: block; margin-bottom: 8px;">NO SILHOUETTES FOUND</strong>
-      <p style="font-size: 12px; margin-bottom: 16px;">Try adjusting your filters or search term.</p>
-      <button type="button" id="clearFilterBtn" class="button button--primary">CLEAR FILTERS</button>
     </div>
-    <section id="productsGrid" class="products-grid" hidden></section>
+
+    <!-- Product Grid -->
+    <div class="products-grid" id="shopGrid">
+      <!-- Injected by JS -->
+    </div>
   </main>
 
+  <!-- CART DRAWER -->
   <div class="drawer-overlay" data-cart-overlay></div>
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true"></aside>
 
   <script src="js/cart.js"></script>
   <script>
-    (() => {
-      "use strict";
-
-      const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
-      const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-      const FALLBACK_IMG = "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
-      const SIZES = ["S", "M", "L", "XL"];
-
-      const client = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-      let products = [];
-      let activeCategory = "all";
-      let searchTerm = "";
-      let activeSort = "featured";
-      const selectedSizes = new Map();
-
-      const grid = document.getElementById("productsGrid");
-      const loading = document.getElementById("shopLoading");
-      const empty = document.getElementById("shopEmpty");
-      const searchInput = document.getElementById("shopSearch");
-      const sortSelect = document.getElementById("shopSort");
-      const filterStrip = document.getElementById("filterStrip");
-      const clearBtn = document.getElementById("clearFilterBtn");
-
-      /* Read URL Parameters for Search Linkage */
-      function readParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const q = urlParams.get("q");
-        const cat = urlParams.get("category");
-        if (q) {
-          searchTerm = q;
-          searchInput.value = q;
-        }
-        if (cat) {
-          const normCat = cat.toLowerCase();
-          if (normCat.includes("tee")) activeCategory = "tees";
-          else if (normCat.includes("hood")) activeCategory = "hoodies";
-          else if (normCat.includes("sweat")) activeCategory = "sweats";
-          filterStrip.querySelectorAll(".filter-btn").forEach(btn => {
-            btn.classList.toggle("active", btn.dataset.category === activeCategory);
-          });
-        }
+    const MOCK_PRODUCTS = [
+      {
+        id: "bk-tee-01",
+        name: "HEAVY ARCHITECTURAL BOXY TEE",
+        category: "tees",
+        korean: "오버사이즈 티셔츠",
+        price: 2499,
+        tag: "DROP 001",
+        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"
+      },
+      {
+        id: "bk-hood-01",
+        name: "STRUCTURED LOOPBACK HOODIE",
+        category: "hoods",
+        korean: "헤비웨이트 후드",
+        price: 4499,
+        tag: "LIMITED",
+        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"
+      },
+      {
+        id: "bk-sweat-01",
+        name: "MINIMALIST OVERSIZED SWEATSHIRT",
+        category: "sweats",
+        korean: "미니멀 스웨트",
+        price: 3699,
+        tag: "CORE",
+        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"
+      },
+      {
+        id: "bk-tee-02",
+        name: "SEOUL SILHOUETTE GRAPHIC TEE",
+        category: "tees",
+        korean: "그래픽 티셔츠",
+        price: 2699,
+        tag: "DROP 001",
+        image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
       }
+    ];
 
-      function getImages(p) {
-        if (Array.isArray(p.images) && p.images.length) return p.images;
-        return [p.image_url || p.image || FALLBACK_IMG];
-      }
+    let currentProducts = [...MOCK_PRODUCTS];
+    let selectedCat = "all";
 
-      function getStock(p) {
-        return p && p.stock && typeof p.stock === "object" ? p.stock : {};
-      }
+    // URL Param Check (?category=tees etc.)
+    const urlParams = new URLSearchParams(window.location.search);
+    const catParam = urlParams.get('category');
+    if (catParam) selectedCat = catParam.toLowerCase();
 
-      function applyFilters() {
-        const term = searchTerm.trim().toLowerCase();
-        let filtered = products.filter(p => {
-          if (p.active === false) return false;
-          if (activeCategory !== "all") {
-            const cat = String(p.category || "").toLowerCase();
-            if (!cat.includes(activeCategory.slice(0, 4))) return false;
-          }
-          if (term) {
-            const text = [p.name, p.category, p.description, p.fit].filter(Boolean).join(" ").toLowerCase();
-            if (!text.includes(term)) return false;
-          }
-          return true;
-        });
+    function renderShop() {
+      const grid = document.getElementById('shopGrid');
+      let filtered = selectedCat === 'all' 
+        ? [...currentProducts] 
+        : currentProducts.filter(p => p.category === selectedCat);
 
-        filtered.sort((a, b) => {
-          if (activeSort === "price-low") return (a.price || 0) - (b.price || 0);
-          if (activeSort === "price-high") return (b.price || 0) - (a.price || 0);
-          if (activeSort === "newest") return Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0);
-          return (b.featured === true ? 1 : 0) - (a.featured === true ? 1 : 0);
-        });
+      const sortVal = document.getElementById('shopSort').value;
+      if (sortVal === 'price-low') filtered.sort((a, b) => a.price - b.price);
+      if (sortVal === 'price-high') filtered.sort((a, b) => b.price - a.price);
 
-        renderProducts(filtered);
-      }
+      document.getElementById('shopHeading').textContent = selectedCat === 'all' ? 'ALL SILHOUETTES' : selectedCat.toUpperCase() + ' COLLECTION';
+      document.getElementById('shopCount').textContent = `${filtered.length} PIECES AVAILABLE`;
 
-      function renderProducts(list) {
-        loading.hidden = true;
-        if (!list.length) {
-          empty.hidden = false;
-          grid.hidden = true;
-          return;
-        }
-        empty.hidden = true;
-        grid.hidden = false;
-
-        grid.innerHTML = list.map(p => {
-          const stock = getStock(p);
-          const inStockSizes = SIZES.filter(s => Number(stock[s] || 0) > 0);
-          const isSoldOut = inStockSizes.length === 0;
-          const currentSize = selectedSizes.get(String(p.id)) || inStockSizes[0] || SIZES[0];
-
-          return `
-            <article class="p-card" data-product-id="${p.id}">
-              <div class="p-thumb">
-                <img src="${getImages(p)[0]}" alt="${p.name}" loading="lazy">
-              </div>
-              <div class="p-info">
-                <div>
-                  <strong style="font-size:12px; color:#fff; display:block; margin-bottom:4px;">${p.name}</strong>
-                  <span style="font-size:10px; color:#888;">${p.fit || p.category || 'ESSENTIAL'}</span>
-                </div>
-                <div style="margin-top:12px; font-size:13px; font-weight:900; color:#fff;">₹${Number(p.price || 0).toLocaleString("en-IN")}</div>
-              </div>
-              <div class="p-quickadd" data-id="${p.id}">
-                ${SIZES.map(s => {
-                  const hasStock = Number(stock[s] || 0) > 0;
-                  return `<button type="button" class="p-size-chip ${currentSize === s ? 'active' : ''}" data-size="${s}" ${!hasStock ? 'disabled' : ''}>${s}</button>`;
-                }).join("")}
-                <button type="button" class="p-quickadd-btn" data-action="add" ${isSoldOut ? 'disabled' : ''}>
-                  ${isSoldOut ? 'SOLD OUT' : 'ADD TO BAG'}
-                </button>
-              </div>
-            </article>
-          `;
-        }).join("");
-      }
-
-      grid.addEventListener("click", e => {
-        const sizeBtn = e.target.closest(".p-size-chip");
-        if (sizeBtn && !sizeBtn.disabled) {
-          const wrapper = sizeBtn.closest(".p-quickadd");
-          const id = wrapper.dataset.id;
-          const size = sizeBtn.dataset.size;
-          selectedSizes.set(id, size);
-          wrapper.querySelectorAll(".p-size-chip").forEach(b => b.classList.toggle("active", b.dataset.size === size));
-          return;
-        }
-
-        const addBtn = e.target.closest("[data-action='add']");
-        if (addBtn && !addBtn.disabled) {
-          const wrapper = addBtn.closest(".p-quickadd");
-          const id = wrapper.dataset.id;
-          const p = products.find(x => String(x.id) === String(id));
-          if (!p || !window.BULKKOT_CART) return;
-          const size = selectedSizes.get(id) || SIZES.find(s => Number(getStock(p)[s] || 0) > 0);
-          if (!size) return;
-          window.BULKKOT_CART.addItem({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            size,
-            image: getImages(p)[0]
-          });
-        }
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.cat === selectedCat);
       });
 
-      filterStrip.addEventListener("click", e => {
-        const btn = e.target.closest(".filter-btn");
-        if (!btn) return;
-        activeCategory = btn.dataset.category;
-        filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b === btn));
-        applyFilters();
-      });
-
-      searchInput.addEventListener("input", e => {
-        searchTerm = e.target.value;
-        applyFilters();
-      });
-
-      sortSelect.addEventListener("change", e => {
-        activeSort = e.target.value;
-        applyFilters();
-      });
-
-      clearBtn.addEventListener("click", () => {
-        searchTerm = "";
-        activeCategory = "all";
-        searchInput.value = "";
-        filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b.dataset.category === "all"));
-        applyFilters();
-      });
-
-      async function init() {
-        readParams();
-        if (!client) return;
-        try {
-          const { data, error } = await client.from("products").select("*").order("created_at", { ascending: false });
-          if (!error && data) {
-            products = data;
-            applyFilters();
-          }
-        } catch {
-          loading.textContent = "Catalogue temporarily unavailable.";
-        }
+      if (!filtered.length) {
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:60px 0; color:#777;">No pieces found in this category.</p>';
+        return;
       }
 
-      init();
-    })();
+      grid.innerHTML = filtered.map(p => `
+        <a href="product.html?id=${p.id}" class="p-card">
+          <div class="p-thumb">
+            <span class="p-tag">${p.tag}</span>
+            <img src="${p.image}" alt="${p.name}" loading="lazy">
+          </div>
+          <div class="p-info">
+            <div>
+              <h3>${p.name}</h3>
+              <div class="p-sub">${p.korean}</div>
+            </div>
+            <div class="p-meta">
+              <span class="p-price">₹${p.price.toLocaleString('en-IN')}</span>
+              <span class="p-btn-view">VIEW DETAILS</span>
+            </div>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedCat = btn.dataset.cat;
+        renderShop();
+      });
+    });
+
+    document.getElementById('shopSort').addEventListener('change', renderShop);
+    renderShop();
   </script>
 </body>
 </html>
