@@ -19,6 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -68,53 +69,55 @@
       <div class="header-actions">
         <button type="button" class="header-track-order" id="openTrackBtn">TRACK ORDER</button>
         <button type="button" class="header-action" aria-label="Search" id="headerSearchToggle">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>
         </button>
         <button type="button" class="header-action cart-action" aria-label="Open cart" data-open-cart>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
           <span class="cart-count" data-cart-count hidden>0</span>
         </button>
       </div>
     </div>
 
-    <!-- INLINE SEARCH WITH REDIRECT LINKAGE -->
-    <div class="header-search-bar" id="headerSearchBar" style="display:none; padding:12px 20px; background:#0e0e0e; border-top:1px solid #222;">
+    <!-- INLINE SEARCH -->
+    <div class="header-search-bar" id="headerSearchBar" style="display:none; padding:16px var(--page-padding); background:#0c0c0c; border-top:1px solid #1a1a1a;">
       <form id="searchRedirectForm" style="display:flex; gap:10px; max-width:900px; margin:0 auto;">
         <input type="search" id="homeSearchInput" placeholder="SEARCH OVERSIZED TEES, HOODIES..." style="flex:1; min-height:44px; padding:0 14px; background:#000; border:1px solid #333; color:#fff; border-radius:4px;">
         <button type="submit" class="button button--primary" style="min-height:44px;">SEARCH</button>
-        <button type="button" id="closeSearchBtn" style="color:#aaa; font-size:20px; padding:0 10px;">×</button>
+        <button type="button" id="closeSearchBtn" style="color:#aaa; font-size:22px; padding:0 12px; cursor:pointer;">×</button>
       </form>
     </div>
   </header>
 
   <!-- MOBILE DRAWER -->
-  <div class="drawer-overlay" id="mobileDrawerOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1190;"></div>
-  <aside class="mobile-drawer" id="mobileDrawer" style="display:none; position:fixed; top:0; left:0; width:85%; max-width:340px; height:100%; background:#090909; z-index:1200; padding:24px; box-sizing:border-box;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-      <span style="font-weight:900; letter-spacing:0.1em;">BULKKOT (불꽃)</span>
-      <button type="button" id="closeMobileDrawerBtn" style="font-size:24px; color:#fff;">×</button>
+  <div class="drawer-overlay" id="mobileDrawerOverlay" style="display:none;"></div>
+  <aside class="mobile-drawer" id="mobileDrawer">
+    <div class="mobile-drawer__header">
+      <span class="brand-name"><span class="brand-korean">불꽃</span><span class="brand-english">BULKKOT</span></span>
+      <button type="button" class="drawer-close" id="closeMobileDrawerBtn">×</button>
     </div>
-    <nav style="display:flex; flex-direction:column; gap:18px;">
-      <a href="index.html" style="font-weight:800; font-size:13px;">HOME</a>
-      <a href="shop.html" style="font-weight:800; font-size:13px;">SHOP CATALOGUE</a>
-      <a href="shop.html?category=tees" style="color:#aaa; font-size:12px;">— TEES (티셔츠)</a>
-      <a href="shop.html?category=hoodies" style="color:#aaa; font-size:12px;">— HOODIES (후드)</a>
-      <a href="shop.html?category=sweats" style="color:#aaa; font-size:12px;">— SWEATS (스웨트)</a>
-      <a href="#about" style="font-weight:800; font-size:13px;">ABOUT BULKKOT</a>
+    <nav class="mobile-navigation">
+      <a href="index.html"><span>HOME</span><small>홈</small></a>
+      <a href="shop.html"><span>SHOP CATALOGUE</span><small>쇼핑</small></a>
+      <a href="shop.html?category=tees"><span>TEES</span><small>티셔츠</small></a>
+      <a href="shop.html?category=hoodies"><span>HOODIES</span><small>후드</small></a>
+      <a href="shop.html?category=sweats"><span>SWEATS</span><small>스웨트</small></a>
+      <a href="#about"><span>ABOUT BULKKOT</span><small>브랜드</small></a>
     </nav>
   </aside>
 
   <main id="top">
     <!-- HERO -->
-    <section class="hero" style="position:relative; min-height:80vh; display:flex; align-items:center; padding:0 var(--page-padding);">
-      <div style="position:absolute; inset:0; z-index:1;">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT" style="width:100%; height:100%; object-fit:cover; filter:brightness(0.65);">
+    <section class="hero">
+      <div class="hero-media">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Drop 001" class="hero-image">
       </div>
-      <div style="position:relative; z-index:2; max-width:600px;">
-        <span class="eyebrow" style="margin-bottom:8px;">DROP 001 · AVAILABLE NOW</span>
-        <h1 style="font-size:clamp(38px, 7vw, 76px); font-weight:900; line-height:0.95; margin-bottom:16px;">LESS NOISE.<br>MORE PRESENCE.</h1>
-        <p style="font-size:13px; color:#ccc; line-height:1.6; margin-bottom:24px;">Heavyweight oversized essentials engineered for elevated movement.</p>
-        <a href="shop.html" class="button button--primary">EXPLORE THE COLLECTION</a>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <p class="hero-korean">불꽃</p>
+        <h1>BULKKOT</h1>
+        <p class="hero-label">PREMIUM EVERYDAY WEAR</p>
+        <p class="hero-description">Heavyweight oversized essentials engineered for elevated movement.</p>
+        <a href="shop.html" class="button button--primary">EXPLORE COLLECTION</a>
       </div>
     </section>
 
@@ -122,7 +125,7 @@
     <section class="circle-collections-section" id="collections">
       <div class="circle-collections-inner">
         <div class="circle-collections-head">
-          <span class="eyebrow">THE SYSTEM</span>
+          <span class="eyebrow">THE LINEUP</span>
           <h2>COLLECTIONS</h2>
         </div>
         <div class="circle-items-row">
@@ -142,17 +145,77 @@
       </div>
     </section>
 
+    <!-- EDITORIAL CAROUSEL -->
+    <section class="editorial-section" aria-label="Editorial Slider">
+      <div class="editorial-carousel" id="editorialCarousel">
+        <div class="editorial-track">
+          <article class="editorial-slide is-active">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Drop 001 Editorial" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 01 // DROP 001</span>
+              <p class="slide-korean">불꽃 · 001</p>
+              <h2>LESS NOISE.</h2>
+              <span class="slide-sub">MORE PRESENCE.</span>
+              <p class="slide-desc">Architectural drop shoulders with pure matte combed yarn.</p>
+              <a href="shop.html" class="slide-cta">DISCOVER DROP 001 →</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <!-- ABOUT SECTION -->
-    <section class="about-section" id="about" style="padding: 80px var(--page-padding);">
-      <div class="container" style="display:grid; grid-template-columns:1fr 1fr; gap:40px;">
-        <div>
-          <span class="eyebrow">BRAND PHILOSOPHY</span>
-          <h2 style="font-size:clamp(32px, 5vw, 54px); margin-top:8px;">BUILT WITH INTENT.</h2>
+    <section class="about-section" id="about">
+      <div class="container about-grid">
+        <div class="about-intro">
+          <h2>불꽃</h2>
+          <span>THE SPARK</span>
         </div>
-        <div>
-          <p style="font-size:14px; line-height:1.8; color:#aaa; margin-bottom:16px;">BULKKOT is a Korean-inspired premium everyday wear label built around proportion, weight, and restraint.</p>
-          <p style="font-size:14px; line-height:1.8; color:#aaa;">Clothing does not need excessive noise to create an impression. The silhouette does the talking.</p>
+        <div class="about-copy">
+          <p class="about-lead">BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
+          <p>We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.</p>
+          <p class="about-signature">Less noise. More presence.</p>
         </div>
+      </div>
+    </section>
+
+    <!-- PHILOSOPHY -->
+    <section class="philosophy-section">
+      <p class="philosophy-korean">불꽃의 철학</p>
+      <h2>LESS NOISE.</h2>
+      <h3>MORE PRESENCE.</h3>
+      <p>Quiet design. Strong identity.</p>
+    </section>
+
+    <!-- INSTAGRAM -->
+    <section class="instagram-section">
+      <div class="section-heading section-heading--center">
+        <span class="eyebrow">SOCIAL · 소셜</span>
+        <h2>FOLLOW BULKKOT</h2>
+        <p style="font-size:12px; margin-top:4px;">불꽃을 팔로우하세요</p>
+      </div>
+      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="instagram-handle">
+        @bulkkot.wear
+      </a>
+    </section>
+
+    <!-- WAITLIST -->
+    <section class="waitlist-section" id="waitlist">
+      <div class="waitlist-inner">
+        <div class="waitlist-copy">
+          <span class="eyebrow">DROP 001</span>
+          <h2>BE FIRST TO KNOW</h2>
+          <span style="font-size:12px; color:#888;">가장 먼저 만나보세요</span>
+          <p>Join the VIP waitlist to receive access before Drop 001 goes live.</p>
+        </div>
+        <form class="waitlist-form" novalidate>
+          <label for="waitlistEmail">EMAIL ADDRESS</label>
+          <div class="waitlist-input-row">
+            <input id="waitlistEmail" type="email" placeholder="your@email.com" required>
+            <button type="submit" class="button button--primary">JOIN</button>
+          </div>
+        </form>
       </div>
     </section>
   </main>
@@ -185,7 +248,7 @@
     <div class="footer-column">
       <h3>COMPANY</h3>
       <a href="#about">ABOUT BULKKOT</a>
-      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank">INSTAGRAM</a>
+      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">INSTAGRAM</a>
     </div>
 
     <div class="footer-column">
@@ -200,27 +263,29 @@
     </div>
   </footer>
 
+  <div class="drawer-overlay" data-cart-overlay></div>
+  <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true"></aside>
+
   <script src="js/cart.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      /* Search toggle & redirect logic */
       const searchToggle = document.getElementById("headerSearchToggle");
       const searchBar = document.getElementById("headerSearchBar");
       const closeSearch = document.getElementById("closeSearchBtn");
       const searchForm = document.getElementById("searchRedirectForm");
       const searchInput = document.getElementById("homeSearchInput");
 
-      searchToggle.addEventListener("click", () => {
+      searchToggle?.addEventListener("click", () => {
         const isHidden = searchBar.style.display === "none";
         searchBar.style.display = isHidden ? "block" : "none";
         if (isHidden) searchInput.focus();
       });
 
-      closeSearch.addEventListener("click", () => {
+      closeSearch?.addEventListener("click", () => {
         searchBar.style.display = "none";
       });
 
-      searchForm.addEventListener("submit", (e) => {
+      searchForm?.addEventListener("submit", (e) => {
         e.preventDefault();
         const val = searchInput.value.trim();
         if (val) {
@@ -228,27 +293,34 @@
         }
       });
 
-      /* Mobile Drawer Toggle */
       const menuBtn = document.getElementById("headerMenuToggle");
       const drawer = document.getElementById("mobileDrawer");
       const overlay = document.getElementById("mobileDrawerOverlay");
       const closeBtn = document.getElementById("closeMobileDrawerBtn");
 
       function openDrawer() {
-        drawer.style.display = "block";
-        overlay.style.display = "block";
-        document.body.classList.add("drawer-open");
+        if (drawer && overlay) {
+          drawer.classList.add("is-open");
+          overlay.classList.add("is-visible");
+          drawer.style.display = "flex";
+          overlay.style.display = "block";
+          document.body.classList.add("drawer-open");
+        }
       }
 
       function closeDrawer() {
-        drawer.style.display = "none";
-        overlay.style.display = "none";
-        document.body.classList.remove("drawer-open");
+        if (drawer && overlay) {
+          drawer.classList.remove("is-open");
+          overlay.classList.remove("is-visible");
+          drawer.style.display = "none";
+          overlay.style.display = "none";
+          document.body.classList.remove("drawer-open");
+        }
       }
 
-      menuBtn.addEventListener("click", openDrawer);
-      closeBtn.addEventListener("click", closeDrawer);
-      overlay.addEventListener("click", closeDrawer);
+      menuBtn?.addEventListener("click", openDrawer);
+      closeBtn?.addEventListener("click", closeDrawer);
+      overlay?.addEventListener("click", closeDrawer);
     });
   </script>
 </body>
