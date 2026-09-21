@@ -8,20 +8,6 @@
 
   <title>BULKKOT (불꽃) — Premium Everyday Wear</title>
 
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="BULKKOT (불꽃)">
-  <meta property="og:title" content="BULKKOT (불꽃) — Premium Everyday Wear">
-  <meta property="og:description" content="Korean-inspired premium everyday wear. Heavyweight oversized essentials, engineered for elevated movement. Drop 001 — coming soon.">
-  <meta property="og:url" content="https://bulkkot.com/">
-  <meta property="og:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png">
-  <meta property="og:image:width" content="541">
-  <meta property="og:image:height" content="359">
-
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="BULKKOT (불꽃) — Premium Everyday Wear">
-  <meta name="twitter:description" content="Korean-inspired premium everyday wear. Drop 001 — coming soon.">
-  <meta name="twitter:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png">
-
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
 
   <!-- Google Fonts -->
@@ -35,13 +21,177 @@
 
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* Inline Essential Polish for Circles & Clean Mobile Alignment */
+    .circle-collections-section {
+      padding: 38px 0 34px !important;
+      background: radial-gradient(circle at 50% 10%, #150708 0%, #070707 75%);
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .circle-collections-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px;
+      text-align: center;
+    }
+
+    .circle-collections-head {
+      margin-bottom: 24px;
+    }
+
+    .circle-collections-head .eyebrow {
+      color: var(--bk-red, #e31b23);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      font-weight: 800;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .circle-collections-head h2 {
+      font-size: clamp(20px, 3.5vw, 30px);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      margin: 0;
+      color: #fff;
+    }
+
+    .circle-items-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      margin-top: 10px;
+    }
+
+    .collection-circle-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      group: focus;
+      width: 170px;
+      transition: transform 0.25s ease;
+    }
+
+    .collection-circle-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .circle-frame {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #222;
+      background: #111;
+      padding: 3px;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      transition: all 0.25s ease;
+    }
+
+    .circle-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
+      transition: transform 0.4s ease, filter 0.3s ease;
+      filter: brightness(0.9);
+    }
+
+    .collection-circle-card:hover .circle-frame {
+      border-color: var(--bk-red, #e31b23);
+      box-shadow: 0 0 20px rgba(227, 27, 35, 0.35);
+    }
+
+    .collection-circle-card:hover .circle-frame img {
+      transform: scale(1.08);
+      filter: brightness(1.05);
+    }
+
+    .circle-meta {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .circle-label {
+      font-size: 12px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .circle-korean {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--bk-red, #e31b23);
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .circle-action-btn {
+      background: #131313;
+      border: 1px solid #2a2a2a;
+      color: #ccc;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      padding: 6px 14px;
+      border-radius: 999px;
+      transition: all 0.2s;
+      margin-top: 2px;
+    }
+
+    .collection-circle-card:hover .circle-action-btn {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    /* Mobile: 3 Circles strictly side-by-side (no broken stack) */
+    @media (max-width: 768px) {
+      .circle-collections-section {
+        padding: 26px 0 22px !important;
+      }
+      .circle-items-row {
+        gap: 12px !important;
+        justify-content: space-around;
+      }
+      .collection-circle-card {
+        width: 105px !important;
+      }
+      .circle-frame {
+        width: 88px !important;
+        height: 88px !important;
+        padding: 2px !important;
+      }
+      .circle-label {
+        font-size: 10px !important;
+        letter-spacing: 0.06em !important;
+      }
+      .circle-korean {
+        font-size: 9px !important;
+      }
+      .circle-action-btn {
+        font-size: 8px !important;
+        padding: 4px 8px !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- =========================================================
-       ANNOUNCEMENT TICKER
-       ========================================================= -->
+  <!-- ANNOUNCEMENT TICKER -->
   <div class="announcement-bar" aria-label="Announcement">
     <div class="announcement-track">
       <div class="announcement-content">
@@ -57,66 +207,36 @@
     </div>
   </div>
 
-  <!-- =========================================================
-       HEADER
-       ========================================================= -->
-  <header class="site-header" id="siteHeader">
+  <!-- HEADER -->
+  <header class="site-header" style="position: relative;">
     <div class="header-inner">
-      <!-- Mobile Menu Toggle -->
-      <button
-        class="header-menu"
-        type="button"
-        aria-label="Open menu"
-        aria-controls="mobile-drawer"
-        data-open-drawer
-      >
+      <button class="header-menu" type="button" aria-label="Open menu" aria-controls="mobile-drawer" data-open-drawer>
         <span></span>
         <span></span>
       </button>
 
-      <!-- Brand -->
       <a href="#top" class="brand" aria-label="BULKKOT home">
-        <img
-          src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"
-          alt="BULKKOT logo"
-          class="brand-logo"
-          onerror="this.style.display='none'"
-        >
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" onerror="this.style.display='none'">
         <span class="brand-name">
           <span class="brand-korean">불꽃</span>
           <span class="brand-english">BULKKOT</span>
         </span>
       </a>
 
-      <!-- Desktop Navigation -->
       <nav class="desktop-navigation" aria-label="Primary navigation">
         <a href="#top">HOME</a>
         <a href="shop.html">SHOP</a>
-        <a href="#collections">COLLECTIONS</a>
         <a href="#drop-001">DROP 001</a>
+        <a href="#collections">COLLECTIONS</a>
         <a href="#about">ABOUT</a>
       </nav>
 
-      <!-- Header Actions -->
       <div class="header-actions">
-        <!-- Track Order Button -->
-        <button
-          type="button"
-          class="header-track-order"
-          data-open-track-order
-          aria-label="Track your order"
-        >
-          TRACK ORDER
-        </button>
-
+        <!-- Guest Order Tracking -->
+        <button type="button" class="header-track-order" data-open-track-order aria-label="Track your order">TRACK ORDER</button>
+        
         <!-- Account Button -->
-        <button
-          type="button"
-          class="header-account"
-          data-open-account
-          aria-label="Open account"
-          style="display:inline-flex; align-items:center; gap:6px;"
-        >
+        <button type="button" class="header-account" data-open-account aria-label="Open account" style="display:inline-flex; align-items:center; gap:6px;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="8" r="4"/>
             <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
@@ -125,66 +245,30 @@
         </button>
 
         <!-- Inline Search Toggle -->
-        <button
-          type="button"
-          class="header-action"
-          aria-label="Search"
-          id="headerSearchToggle"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="10.8" cy="10.8" r="6.8"/>
-            <path d="M16 16L21 21"/>
-          </svg>
+        <button type="button" class="header-action" aria-label="Search" id="headerSearchToggle">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
         </button>
 
         <!-- Instagram -->
-        <a
-          href="https://www.instagram.com/bulkkot.wear/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="header-action instagram-action"
-          aria-label="BULKKOT Instagram"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="none" stroke="currentColor" stroke-width="2"/>
-            <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/>
-          </svg>
+        <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="header-action instagram-action" aria-label="BULKKOT Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
         </a>
 
         <!-- Cart Action -->
-        <button
-          type="button"
-          class="header-action cart-action"
-          aria-label="Open cart"
-          data-open-cart
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 5h2l1.7 11h9.8L20 8H7"/>
-            <circle cx="10" cy="20" r="1"/>
-            <circle cx="17" cy="20" r="1"/>
-          </svg>
+        <button type="button" class="header-action cart-action" aria-label="Open cart" data-open-cart>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
           <span class="cart-count" data-cart-count hidden>0</span>
         </button>
       </div>
     </div>
 
-    <!-- Inline Search Dropdown with Auto-Redirect Form -->
+    <!-- Inline Search Dropdown -->
     <div class="header-search-bar" id="headerSearchBar">
-      <form id="headerSearchForm" class="header-search-input-wrap">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#777" stroke-width="2">
-          <circle cx="10.8" cy="10.8" r="6.8"/>
-          <path d="M16 16L21 21"/>
-        </svg>
-        <input
-          type="search"
-          id="liveSearchInput"
-          placeholder="SEARCH HEAVYWEIGHT TEES, HOODIES, SILHOUETTES..."
-          autocomplete="off"
-        >
+      <div class="header-search-input-wrap">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#777" stroke-width="2"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
+        <input type="text" id="liveSearchInput" placeholder="SEARCH HEAVYWEIGHT TEES, HOODIES, SILHOUETTES..." autocomplete="off">
         <button type="button" class="header-search-close" id="headerSearchClose" aria-label="Close search">×</button>
-      </form>
-
+      </div>
       <div class="search-trending-tags">
         <span>TRENDING:</span>
         <button type="button" class="search-tag-btn" data-search-tag="OVERSIZED">OVERSIZED</button>
@@ -195,11 +279,8 @@
     </div>
   </header>
 
-  <!-- =========================================================
-       MOBILE DRAWER
-       ========================================================= -->
+  <!-- MOBILE DRAWER BACKDROP & PANEL -->
   <div class="drawer-overlay" data-mobile-overlay></div>
-
   <aside class="mobile-drawer" id="mobile-drawer" data-mobile-drawer aria-hidden="true">
     <div class="mobile-drawer__header">
       <a href="#top" class="brand">
@@ -214,8 +295,8 @@
     <nav class="mobile-navigation" aria-label="Mobile navigation">
       <a href="#top" data-close-drawer><span>HOME</span><small>홈</small></a>
       <a href="shop.html" data-close-drawer><span>SHOP</span><small>쇼핑</small></a>
-      <a href="#collections" data-close-drawer><span>COLLECTIONS</span><small>컬렉션</small></a>
       <a href="#drop-001" data-close-drawer><span>DROP 001</span><small>첫 번째 드롭</small></a>
+      <a href="#collections" data-close-drawer><span>COLLECTIONS</span><small>컬렉션</small></a>
       <a href="#about" data-close-drawer><span>ABOUT</span><small>브랜드 소개</small></a>
       <button type="button" class="mobile-nav-track" data-size-guide-open data-close-drawer><span>SIZE GUIDE</span><small>사이즈 가이드</small></button>
       <button type="button" class="mobile-nav-track" data-open-track-order data-close-drawer><span>TRACK ORDER</span><small>주문 배송 조회</small></button>
@@ -229,36 +310,23 @@
     </div>
   </aside>
 
-  <!-- =========================================================
-       MAIN STOREFRONT
-       ========================================================= -->
   <main id="top">
-
-    <!-- HERO SECTION -->
+    <!-- HERO SECTION (COMPACT & FOCUSED) -->
     <section class="hero">
       <div class="hero-media">
-        <img
-          src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"
-          alt="BULKKOT Campaign"
-          class="hero-image"
-          data-cms-key="hero_image"
-        >
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Campaign" class="hero-image" data-cms-key="hero_image">
       </div>
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <p class="hero-korean" data-cms-key="hero_korean">불꽃</p>
         <h1 data-cms-key="hero_title">BULKKOT</h1>
         <p class="hero-label" data-cms-key="hero_subtitle">PREMIUM EVERYDAY WEAR</p>
-        <p class="hero-description" data-cms-key="hero_description">
-          Korean-inspired minimalist heavyweight essentials engineered for elevated movement.
-        </p>
-        <a href="shop.html" class="button button--primary" data-cms-key="hero_button_text">
-          EXPLORE DROP 001
-        </a>
+        <p class="hero-description" data-cms-key="hero_description">Korean-inspired minimalist heavyweight essentials.</p>
+        <a href="#drop-001" class="button button--primary" data-cms-key="hero_button_text">EXPLORE DROP 001</a>
       </div>
     </section>
 
-    <!-- 3 CIRCLES COLLECTION GATEWAY -->
+    <!-- 3 CIRCLES COLLECTIONS SECTION (MYNTRA-GRADE CIRCLE GATEWAY) -->
     <section class="circle-collections-section" id="collections">
       <div class="circle-collections-inner">
         <div class="circle-collections-head">
@@ -267,10 +335,10 @@
         </div>
 
         <div class="circle-items-row">
-          <!-- TEES -->
+          <!-- CIRCLE 1: TEES -->
           <a href="shop.html?category=tees" class="collection-circle-card">
             <div class="circle-frame">
-              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="Oversized Tees" loading="lazy">
+              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="Oversized Tees">
             </div>
             <div class="circle-meta">
               <span class="circle-label">TEES</span>
@@ -279,10 +347,10 @@
             </div>
           </a>
 
-          <!-- HOODIES -->
+          <!-- CIRCLE 2: HOODS -->
           <a href="shop.html?category=hoods" class="collection-circle-card">
             <div class="circle-frame">
-              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="Oversized Hoods" loading="lazy">
+              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="Oversized Hoods">
             </div>
             <div class="circle-meta">
               <span class="circle-label">HOODIES</span>
@@ -291,10 +359,10 @@
             </div>
           </a>
 
-          <!-- SWEATS -->
+          <!-- CIRCLE 3: SWEATS -->
           <a href="shop.html?category=sweats" class="collection-circle-card">
             <div class="circle-frame">
-              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="Oversized Sweats" loading="lazy">
+              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="Oversized Sweats">
             </div>
             <div class="circle-meta">
               <span class="circle-label">SWEATS</span>
@@ -306,11 +374,11 @@
       </div>
     </section>
 
-    <!-- EDITORIAL / LATEST NEWS CAROUSEL -->
+ <!-- EDITORIAL / LATEST NEWS CAROUSEL (LUXURY EDITORIAL SLIDER) -->
     <section class="editorial-section" aria-label="Latest News & Editorial">
       <div class="editorial-carousel" data-carousel id="editorialCarousel">
         <div class="editorial-track" data-carousel-track>
-          <!-- SLIDE 1 -->
+          <!-- SLIDE 1: GENESIS / DROP 001 -->
           <article class="editorial-slide is-active" data-slide="0">
             <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Drop 001 Editorial" loading="lazy" data-cms-key="editorial_1_img">
             <div class="editorial-slide__overlay"></div>
@@ -320,11 +388,11 @@
               <h2 data-cms-key="editorial_1_title">LESS NOISE.</h2>
               <span class="slide-sub" data-cms-key="editorial_1_sub">MORE PRESENCE.</span>
               <p class="slide-desc" data-cms-key="editorial_1_desc">Architectural drop shoulders with pure matte combed yarn. Engineered for elevated movement.</p>
-              <a href="shop.html" class="slide-cta">DISCOVER DROP 001 →</a>
+              <a href="#drop-001" class="slide-cta">DISCOVER DROP 001 →</a>
             </div>
           </article>
 
-          <!-- SLIDE 2 -->
+          <!-- SLIDE 2: FABRIC ARCHITECTURE -->
           <article class="editorial-slide" data-slide="1">
             <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Heavy Fleece" loading="lazy" data-cms-key="editorial_2_img">
             <div class="editorial-slide__overlay"></div>
@@ -338,7 +406,7 @@
             </div>
           </article>
 
-          <!-- SLIDE 3 -->
+          <!-- SLIDE 3: PHILOSOPHY & STREETWEAR -->
           <article class="editorial-slide" data-slide="2">
             <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Silhouette" loading="lazy" data-cms-key="editorial_3_img">
             <div class="editorial-slide__overlay"></div>
@@ -352,7 +420,7 @@
             </div>
           </article>
 
-          <!-- SLIDE 4 -->
+          <!-- SLIDE 4: LIMITED EDITION RUNS -->
           <article class="editorial-slide" data-slide="3">
             <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Limited Tees" loading="lazy" data-cms-key="editorial_4_img">
             <div class="editorial-slide__overlay"></div>
@@ -367,6 +435,7 @@
           </article>
         </div>
 
+        <!-- Sleek Minimalist Controls -->
         <button type="button" class="carousel-control carousel-control--prev" aria-label="Previous slide" data-carousel-prev>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
@@ -374,6 +443,7 @@
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
         </button>
 
+        <!-- Vogue / Myntra Style Sleek Line Indicators -->
         <div class="carousel-indicators" role="tablist" aria-label="Slider Indicators">
           <button type="button" class="carousel-indicator is-active" data-slide-indicator="0" aria-label="Slide 1"><span class="indicator-bar"></span></button>
           <button type="button" class="carousel-indicator" data-slide-indicator="1" aria-label="Slide 2"><span class="indicator-bar"></span></button>
@@ -383,17 +453,56 @@
       </div>
     </section>
 
-    <!-- DROP 001 BANNER -->
+    <!-- DROP BANNER -->
     <section class="drop-section" id="drop-001">
       <div class="drop-content">
         <p class="eyebrow">DROP 001 · 첫 번째 드롭</p>
         <h2>COMING SOON</h2>
         <p>The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.</p>
-        <a href="#waitlist" class="button button--outline" style="margin-top:20px;">JOIN WAITLIST</a>
+        <a href="#waitlist" class="button button--outline">JOIN WAITLIST</a>
       </div>
     </section>
 
-    <!-- VALUES SECTION -->
+    <!-- SHOP / PRODUCTS -->
+    <section class="shop-section" id="shop">
+      <div class="section-heading section-heading--split">
+        <div>
+          <p class="eyebrow">SHOP · 쇼핑</p>
+          <h2>LATEST RELEASES</h2>
+        </div>
+        <a href="shop.html" class="section-status" style="color:var(--bk-red); text-decoration:none; font-weight:800;">OPEN FULL CATALOGUE →</a>
+      </div>
+
+      <!-- SHOP TOOLBAR -->
+      <div class="shop-toolbar">
+        <div class="shop-filters" role="group" aria-label="Product categories">
+          <button type="button" class="shop-filter is-active" data-shop-category="all">ALL</button>
+          <button type="button" class="shop-filter" data-shop-category="tees">TEES</button>
+          <button type="button" class="shop-filter" data-shop-category="hoods">HOODS</button>
+          <button type="button" class="shop-filter" data-shop-category="sweats">SWEATS</button>
+        </div>
+
+        <div class="shop-toolbar__actions">
+          <button type="button" class="size-guide-trigger" data-size-guide-open>SIZE GUIDE</button>
+          <label class="shop-sort">
+            <span class="sr-only">Sort products</span>
+            <select id="shop-sort" aria-label="Sort products">
+              <option value="featured">FEATURED</option>
+              <option value="newest">NEWEST</option>
+              <option value="price-low">PRICE: LOW TO HIGH</option>
+              <option value="price-high">PRICE: HIGH TO LOW</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- DYNAMIC PRODUCT GRID -->
+      <div class="product-grid" id="products-grid" aria-live="polite">
+        <p class="catalog-message">Loading catalog...</p>
+      </div>
+    </section>
+
+    <!-- VALUES -->
     <section class="values-section">
       <div class="section-heading">
         <p class="eyebrow">WHY BULKKOT · 왜 불꽃인가</p>
@@ -407,7 +516,7 @@
       </div>
     </section>
 
-    <!-- ABOUT SECTION -->
+    <!-- ABOUT -->
     <section class="about-section" id="about">
       <div class="about-grid">
         <div class="about-intro">
@@ -473,13 +582,11 @@
     </section>
   </main>
 
-  <!-- =========================================================
-       FOOTER
-       ========================================================= -->
+  <!-- FOOTER -->
   <footer class="site-footer">
     <div class="footer-brand">
       <a href="#top" class="brand"><span class="brand-name"><span class="brand-korean">불꽃</span><span class="brand-english">BULKKOT</span></span></a>
-      <p>Korean-inspired premium everyday wear built around weight, silhouette, and presence.</p>
+      <p>Korean-inspired premium everyday wear.</p>
       <p class="footer-tagline">Less noise. More presence.</p>
     </div>
     <div class="footer-column">
@@ -536,7 +643,7 @@
   <div class="welcome-popup-modal" id="welcomePopupModal" aria-hidden="true">
     <div class="welcome-card">
       <button type="button" class="welcome-close" id="welcomePopupClose">×</button>
-      <p class="eyebrow" style="margin-bottom:8px;">불꽃 · EXCLUSIVE ACCESS</p>
+      <p class="eyebrow" style="color:var(--bk-red, #e31b23); margin-bottom:8px;">불꽃 · EXCLUSIVE ACCESS</p>
       <h2 style="font-size:22px; font-weight:900; margin:0 0 10px; color:#fff;">WELCOME TO BULKKOT</h2>
       <p style="font-size:12px; color:#aaa; line-height:1.6; margin:0 0 20px;">
         Sign in to save shipping addresses, track drop shipments in real time, and unlock Drop 001.
@@ -629,7 +736,7 @@
 
       <div class="account-user-view" data-account-user hidden>
         <div class="account-header" style="margin-bottom:24px;">
-          <p class="eyebrow" style="font-size:10px; margin:0 0 4px;">AUTHENTICATED</p>
+          <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">AUTHENTICATED</p>
           <h2 style="font-size:24px; margin:0 0 4px;">MY PROFILE</h2>
           <p data-account-user-email style="color:#888; font-size:12px; margin:0;">—</p>
         </div>
@@ -793,43 +900,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Search Redirection Handler -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const searchForm = document.getElementById("headerSearchForm");
-      const searchInput = document.getElementById("liveSearchInput");
-      const searchToggle = document.getElementById("headerSearchToggle");
-      const searchBar = document.getElementById("headerSearchBar");
-      const closeSearch = document.getElementById("headerSearchClose");
-
-      searchToggle?.addEventListener("click", () => {
-        searchBar?.classList.toggle("is-active");
-        if (searchBar?.classList.contains("is-active")) {
-          searchInput?.focus();
-        }
-      });
-
-      closeSearch?.addEventListener("click", () => {
-        searchBar?.classList.remove("is-active");
-      });
-
-      searchForm?.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const query = searchInput?.value.trim();
-        if (query) {
-          window.location.href = `shop.html?q=${encodeURIComponent(query)}`;
-        }
-      });
-
-      document.querySelectorAll(".search-tag-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const tag = btn.dataset.searchTag;
-          if (tag) window.location.href = `shop.html?q=${encodeURIComponent(tag)}`;
-        });
-      });
-    });
-  </script>
 
   <!-- Core Scripts -->
   <script src="js/cart.js" defer></script>
