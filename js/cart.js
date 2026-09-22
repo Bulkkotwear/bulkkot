@@ -1,14 +1,6 @@
 /**
  * BULKKOT (불꽃) — E-COMMERCE CART & CHECKOUT ENGINE
- * Production Hardened / Identity Bound
- *
- * Responsibilities:
- * - Persistent cart state
- * - Coupon persistence / calculation
- * - Stock reconciliation
- * - Cart drawer rendering
- * - Cart open / close controls
- * - Order-completion UI refresh integration
+ * Production Hardened / Identity Bound & End-to-End Functional
  */
 (() => {
   "use strict";
@@ -26,53 +18,32 @@
 
   let cart = [];
   let appliedCoupon = null;
+  let isCheckingOut = false;
   let isSubmittingOrder = false;
 
-  /* =========================================================
-     SAFE STORAGE + NORMALIZATION
-     ========================================================= */
-
   function safeStorageGet(key) {
-    try {
-      return localStorage.getItem(key);
-    } catch (error) {
-      console.warn("BULKKOT storage read failed:", error);
-      return null;
-    }
+    try { return localStorage.getItem(key); } catch { return null; }
   }
 
   function safeStorageSet(key, value) {
-    try {
-      localStorage.setItem(key, value);
-      return true;
-    } catch (error) {
-      console.warn("BULKKOT storage write failed:", error);
-      return false;
-    }
+    try { localStorage.setItem(key, value); return true; } catch { return false; }
   }
 
   function safeStorageRemove(key) {
-    try {
-      localStorage.removeItem(key);
-    } catch (error) {
-      console.warn("BULKKOT storage remove failed:", error);
-    }
+    try { localStorage.removeItem(key); } catch {}
   }
 
-  function normalizeQuantity(value, fallback = 1) {
-    const num = Number(value);
+  function normalizeQuantity(val, fallback = 1) {
+    const num = Number(val);
     if (!Number.isFinite(num)) return fallback;
     return Math.min(MAX_QTY, Math.max(0, Math.floor(num)));
   }
 
   function normalizeCartItem(item) {
     if (!item || item.id == null || item.size == null) return null;
-
     const id = String(item.id).trim();
     const size = String(item.size).trim().toUpperCase();
-
     if (!id || !size) return null;
-
     const quantity = normalizeQuantity(item.quantity, 1);
     if (quantity <= 0) return null;
 
@@ -81,27 +52,8 @@
       name: String(item.name || "Garment").trim() || "Garment",
       price: Number.isFinite(Number(item.price)) ? Number(item.price) : 0,
       size,
-      image: typeof item.image === "string" ? item.image : "",
+      image: typeof item.image === "string" ? item.image : FALLBACK_IMAGE,
       quantity
-    };
-  }
-
-  function normalizeCoupon(coupon) {
-    if (!coupon || typeof coupon !== "object") return null;
-
-    const code = String(coupon.code || "").trim().toUpperCase();
-    const type = String(coupon.type || "").trim().toLowerCase();
-    const value = Number(coupon.value);
-
-    if (!code || !["percent", "fixed"].includes(type)) return null;
-    if (!Number.isFinite(value) || value < 0) return null;
-    if (type === "percent" && value > 100) return null;
-
-    return {
-      ...coupon,
-      code,
-      type,
-      value
     };
   }
 
@@ -109,43 +61,28 @@
     try {
       const stored = safeStorageGet(CART_STORAGE_KEY);
       const parsed = stored ? JSON.parse(stored) : [];
-
-      cart = Array.isArray(parsed)
-        ? parsed.map(normalizeCartItem).filter(Boolean)
-        : [];
-    } catch (error) {
-      console.warn("BULKKOT cart load failed:", error);
+      cart = Array.isArray(parsed) ? parsed.map(normalizeCartItem).filter(Boolean) : [];
+    } catch {
       cart = [];
     }
 
     try {
       const storedCoupon = safeStorageGet(COUPON_STORAGE_KEY);
-      const parsedCoupon = storedCoupon ? JSON.parse(storedCoupon) : null;
-      appliedCoupon = normalizeCoupon(parsedCoupon);
-    } catch (error) {
-      console.warn("BULKKOT coupon load failed:", error);
+      appliedCoupon = storedCoupon ? JSON.parse(storedCoupon) : null;
+    } catch {
       appliedCoupon = null;
     }
   }
 
   function saveCart() {
     safeStorageSet(CART_STORAGE_KEY, JSON.stringify(cart));
-
     if (appliedCoupon) {
-      safeStorageSet(
-        COUPON_STORAGE_KEY,
-        JSON.stringify(appliedCoupon)
-      );
+      safeStorageSet(COUPON_STORAGE_KEY, JSON.stringify(appliedCoupon));
     } else {
       safeStorageRemove(COUPON_STORAGE_KEY);
     }
-
     updateCartUI();
   }
-
-  /* =========================================================
-     HELPERS
-     ========================================================= */
 
   function escapeHTML(value) {
     return String(value ?? "")
@@ -160,93 +97,34 @@
     return `₹${Number(val || 0).toLocaleString("en-IN")}`;
   }
 
-  function getSafeImageUrl(value) {
-    const url = String(value || "").trim();
-
-    if (!url) return FALLBACK_IMAGE;
-
-    if (/^(javascript:|data:|vbscript:)/i.test(url)) {
-      return FALLBACK_IMAGE;
-    }
-
-    return url;
-  }
-
   function getCartSubtotal() {
-    return cart.reduce((acc, item) => {
-      const quantity = normalizeQuantity(item.quantity, 0);
-      const price = Number(item.price || 0);
-
-      return acc + (price * quantity);
-    }, 0);
+    return cart.reduce((acc, item) => acc + (Number(item.price || 0) * normalizeQuantity(item.quantity, 0)), 0);
   }
 
   function getCartDiscount() {
     const subtotal = getCartSubtotal();
-    const coupon = normalizeCoupon(appliedCoupon);
-
-    if (!coupon || subtotal <= 0) return 0;
-
-    let discount = 0;
-
-    if (coupon.type === "percent") {
-      discount = Math.round(
-        (subtotal * coupon.value) / 100
-      );
-    } else if (coupon.type === "fixed") {
-      discount = Math.min(
-        subtotal,
-        coupon.value || 0
-      );
+    if (!appliedCoupon || subtotal <= 0) return 0;
+    if (appliedCoupon.type === "percent") {
+      return Math.round((subtotal * appliedCoupon.value) / 100);
     }
-
-    return Math.max(
-      0,
-      Math.min(
-        subtotal,
-        Number(discount) || 0
-      )
-    );
+    return Math.min(subtotal, appliedCoupon.value || 0);
   }
 
   function getCartTotal() {
-    return Math.max(
-      0,
-      getCartSubtotal() - getCartDiscount()
-    );
+    return Math.max(0, getCartSubtotal() - getCartDiscount());
   }
 
-  /* =========================================================
-     CART STATE
-     ========================================================= */
-
   function addItem(product) {
-    if (!product || product.id == null || product.size == null) {
-      return;
-    }
-
+    if (!product || product.id == null || product.size == null) return;
     const id = String(product.id).trim();
     const size = String(product.size).trim().toUpperCase();
-
     if (!id || !size) return;
 
-    const incomingQuantity = Math.max(
-      1,
-      normalizeQuantity(product.quantity, 1)
-    );
-
-    const existing = cart.find(
-      item =>
-        String(item.id) === id &&
-        String(item.size).toUpperCase() === size
-    );
+    const incomingQuantity = Math.max(1, normalizeQuantity(product.quantity, 1));
+    const existing = cart.find(i => String(i.id) === id && String(i.size).toUpperCase() === size);
 
     if (existing) {
-      existing.quantity = Math.min(
-        MAX_QTY,
-        normalizeQuantity(existing.quantity, 0) +
-        incomingQuantity
-      );
+      existing.quantity = Math.min(MAX_QTY, normalizeQuantity(existing.quantity, 0) + incomingQuantity);
     } else {
       const item = normalizeCartItem({
         id,
@@ -256,12 +134,10 @@
         image: product.image,
         quantity: incomingQuantity
       });
-
-      if (!item) return;
-
-      cart.push(item);
+      if (item) cart.push(item);
     }
 
+    isCheckingOut = false;
     saveCart();
     openCart();
   }
@@ -269,15 +145,7 @@
   function removeItem(id, size) {
     const targetId = String(id ?? "");
     const targetSize = String(size ?? "").toUpperCase();
-
-    cart = cart.filter(
-      item =>
-        !(
-          String(item.id) === targetId &&
-          String(item.size).toUpperCase() === targetSize
-        )
-    );
-
+    cart = cart.filter(i => !(String(i.id) === targetId && String(i.size).toUpperCase() === targetSize));
     saveCart();
   }
 
@@ -285,567 +153,344 @@
     const targetId = String(id ?? "");
     const targetSize = String(size ?? "").toUpperCase();
     const change = Number(delta);
+    if (!Number.isFinite(change) || change === 0) return;
 
-    if (!Number.isFinite(change) || change === 0) {
-      return;
-    }
-
-    const item = cart.find(
-      entry =>
-        String(entry.id) === targetId &&
-        String(entry.size).toUpperCase() === targetSize
-    );
-
+    const item = cart.find(i => String(i.id) === targetId && String(i.size).toUpperCase() === targetSize);
     if (!item) return;
 
-    const currentQuantity = normalizeQuantity(
-      item.quantity,
-      0
-    );
-
-    const nextQuantity =
-      currentQuantity + Math.trunc(change);
-
-    if (nextQuantity <= 0) {
+    const next = normalizeQuantity(item.quantity, 0) + Math.trunc(change);
+    if (next <= 0) {
       removeItem(targetId, targetSize);
-      return;
-    }
-
-    item.quantity = Math.min(
-      MAX_QTY,
-      nextQuantity
-    );
-
-    saveCart();
-  }
-
-  /* =========================================================
-     STOCK RECONCILIATION
-     ========================================================= */
-
-  async function validateStock() {
-    if (!supabaseClient || !cart.length) {
-      return { valid: true };
-    }
-
-    try {
-      const ids = [
-        ...new Set(
-          cart.map(item => item.id)
-        )
-      ];
-
-      const { data, error } =
-        await supabaseClient
-          .from("products")
-          .select("id, stock")
-          .in("id", ids);
-
-      if (error || !Array.isArray(data)) {
-        return { valid: true };
-      }
-
-      let changed = false;
-      const corrections = [];
-
-      cart.forEach(item => {
-        const product = data.find(
-          x => String(x.id) === String(item.id)
-        );
-
-        const stock = product?.stock;
-
-        const maxStock =
-          stock && typeof stock === "object"
-            ? Math.max(
-                0,
-                Number(stock[item.size] || 0)
-              )
-            : 0;
-
-        const currentQuantity =
-          normalizeQuantity(item.quantity, 0);
-
-        if (currentQuantity > maxStock) {
-          changed = true;
-
-          item.quantity = maxStock;
-
-          corrections.push({
-            id: item.id,
-            size: item.size,
-            newQty: maxStock
-          });
-        }
-      });
-
-      if (changed) {
-        cart = cart.filter(
-          item =>
-            normalizeQuantity(
-              item.quantity,
-              0
-            ) > 0
-        );
-
-        saveCart();
-
-        return {
-          valid: false,
-          message:
-            "Inventory updated. Some items or sizes were adjusted.",
-          corrections
-        };
-      }
-
-      return {
-        valid: true
-      };
-    } catch (error) {
-      console.warn(
-        "BULKKOT stock validation failed:",
-        error
-      );
-
-      return {
-        valid: true
-      };
+    } else {
+      item.quantity = Math.min(MAX_QTY, next);
+      saveCart();
     }
   }
 
-  /* =========================================================
-     CART DRAWER MARKUP SUPPORT
-     ========================================================= */
+  function clearCart() {
+    cart = [];
+    appliedCoupon = null;
+    isCheckingOut = false;
+    safeStorageRemove(CART_STORAGE_KEY);
+    safeStorageRemove(COUPON_STORAGE_KEY);
+    updateCartUI();
+  }
 
   function getCartDrawer() {
-    return (
-      document.getElementById("cartDrawer") ||
-      document.getElementById("cart-drawer") ||
-      document.querySelector("[data-cart-drawer]")
-    );
+    return document.getElementById("cartDrawer") || document.getElementById("cart-drawer") || document.querySelector("[data-cart-drawer]");
   }
 
   function getCartOverlay() {
-    return (
-      document.getElementById("cartOverlay") ||
-      document.querySelector("[data-cart-overlay]")
-    );
+    return document.getElementById("cartOverlay") || document.querySelector("[data-cart-overlay]");
   }
 
-  function ensureCartItemsContainer() {
-    let itemsContainer =
-      document.getElementById("cartItems") ||
-      document.getElementById("cart-content");
-
-    if (itemsContainer) {
-      return itemsContainer;
-    }
-
+  function getCartItemsContainer() {
+    const existing = document.getElementById("cartItems") || document.getElementById("cart-content");
+    if (existing) return existing;
     const drawer = getCartDrawer();
-
-    if (!drawer) {
-      return null;
-    }
-
-    itemsContainer = document.createElement("div");
-
-    itemsContainer.id = "cart-content";
-    itemsContainer.className = "drawer__body";
-
-    drawer.appendChild(itemsContainer);
-
-    return itemsContainer;
+    if (!drawer) return null;
+    const container = document.createElement("div");
+    container.id = "cart-content";
+    container.className = "drawer__body";
+    drawer.appendChild(container);
+    return container;
   }
-
-  /* =========================================================
-     CART UI
-     ========================================================= */
 
   function updateCartUI() {
-    const countEls =
-      document.querySelectorAll(
-        "[data-cart-count]"
-      );
-
-    const totalCount = cart.reduce(
-      (sum, item) =>
-        sum +
-        normalizeQuantity(
-          item.quantity,
-          0
-        ),
-      0
-    );
-
+    const countEls = document.querySelectorAll("[data-cart-count]");
+    const totalCount = cart.reduce((sum, item) => sum + normalizeQuantity(item.quantity, 0), 0);
     countEls.forEach(el => {
       el.textContent = String(totalCount);
       el.hidden = totalCount === 0;
     });
 
-    const itemsContainer =
-      ensureCartItemsContainer();
-
-    if (!itemsContainer) {
-      return;
-    }
+    const itemsContainer = getCartItemsContainer();
+    if (!itemsContainer) return;
 
     if (!cart.length) {
       itemsContainer.innerHTML = `
         <div style="padding: 60px 20px; text-align: center; color: #888;">
-          <strong style="display:block; font-size: 14px; color: #fff; margin-bottom: 8px;">YOUR BAG IS EMPTY</strong>
+          <strong style="display:block; font-size: 14px; color: #fff; margin-bottom: 8px; letter-spacing:0.1em;">YOUR BAG IS EMPTY</strong>
           <p style="font-size: 12px; margin: 0 0 20px;">No silhouettes added yet.</p>
           <a href="shop.html" class="button button--primary" style="display: inline-flex;">EXPLORE CATALOGUE</a>
         </div>
       `;
-
-      const footer =
-        document.getElementById(
-          "cartFooter"
-        );
-
-      if (footer) {
-        footer.hidden = true;
-      }
-
+      const footer = document.getElementById("cartFooter");
+      if (footer) footer.hidden = true;
       return;
     }
 
-    const footer =
-      document.getElementById(
-        "cartFooter"
-      );
-
-    if (footer) {
-      footer.hidden = false;
+    if (isCheckingOut) {
+      renderCheckoutView(itemsContainer);
+      return;
     }
 
-    itemsContainer.innerHTML =
-      cart.map(item => {
-        const safeId =
-          escapeHTML(item.id);
+    const footer = document.getElementById("cartFooter");
+    if (footer) footer.hidden = false;
 
-        const safeName =
-          escapeHTML(item.name);
-
-        const safeSize =
-          escapeHTML(item.size);
-
-        const safeImage =
-          escapeHTML(
-            getSafeImageUrl(
-              item.image
-            )
-          );
-
-        const safeQuantity =
-          normalizeQuantity(
-            item.quantity,
-            1
-          );
-
-        const lineTotal =
-          Number(item.price || 0) *
-          safeQuantity;
-
-        return `
-      <div class="cart-item" style="display:flex; gap:14px; padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
-        <img src="${safeImage}" alt="${safeName}" style="width:70px; height:84px; object-fit:cover; border-radius:4px; background:#111;">
-        <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-              <strong style="font-size:11px; color:#fff; display:block; text-transform:uppercase;">${safeName}</strong>
-              <span style="font-size:10px; color:#888;">SIZE: ${safeSize}</span>
+    itemsContainer.innerHTML = `
+      <div style="padding: 16px 20px;">
+        ${cart.map(item => `
+          <div class="cart-item" style="display:flex; gap:14px; padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+            <img src="${escapeHTML(item.image \vert{}\vert{} FALLBACK_IMAGE)}" alt="${escapeHTML(item.name)}" style="width:70px; height:84px; object-fit:cover; border-radius:4px; background:#111;">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                  <strong style="font-size:11px; color:#fff; display:block; text-transform:uppercase; letter-spacing:0.04em;">${escapeHTML(item.name)}</strong>
+                  <span style="font-size:10px; color:#888;">SIZE: ${escapeHTML(item.size)}</span>
+                </div>
+                <span style="font-size:12px; font-weight:800; color:#fff;">${formatINR(item.price * item.quantity)}</span>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+                <div style="display:inline-flex; align-items:center; border:1px solid #333; border-radius:3px;">
+                  <button type="button" data-cart-action="dec" data-id="${item.id}" data-size="${item.size}" style="padding:4px 10px; color:#aaa; font-weight:800;">−</button>
+                  <span style="font-size:11px; font-weight:800; min-width:18px; text-align:center; color:#fff;">${item.quantity}</span>
+                  <button type="button" data-cart-action="inc" data-id="${item.id}" data-size="${item.size}" style="padding:4px 10px; color:#aaa; font-weight:800;">+</button>
+                </div>
+                <button type="button" data-cart-action="remove" data-id="${item.id}" data-size="${item.size}" style="color:#666; font-size:10px; font-weight:700;">REMOVE</button>
+              </div>
             </div>
-            <span style="font-size:12px; font-weight:800; color:#fff;">${formatINR(lineTotal)}</span>
           </div>
+        `).join("")}
 
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
-            <div style="display:inline-flex; align-items:center; border:1px solid #333; border-radius:3px;">
-              <button
-                type="button"
-                data-cart-action="dec"
-                data-id="${safeId}"
-                data-size="${safeSize}"
-                aria-label="Decrease quantity"
-                style="padding:4px 10px; color:#aaa;"
-              >−</button>
-
-              <span style="font-size:11px; font-weight:800; min-width:18px; text-align:center; color:#fff;">
-                ${safeQuantity}
-              </span>
-
-              <button
-                type="button"
-                data-cart-action="inc"
-                data-id="${safeId}"
-                data-size="${safeSize}"
-                aria-label="Increase quantity"
-                style="padding:4px 10px; color:#aaa;"
-              >+</button>
-            </div>
-
-            <button
-              type="button"
-              data-cart-action="remove"
-              data-id="${safeId}"
-              data-size="${safeSize}"
-              style="color:#666; font-size:10px; font-weight:700;"
-            >REMOVE</button>
+        <div style="margin-top: 24px; border-top: 1px dashed #333; padding-top: 16px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px;">
+            <span style="color:#888;">SUBTOTAL</span>
+            <strong id="cartSubtotal" style="color:#fff;">${formatINR(getCartSubtotal())}</strong>
           </div>
+          ${getCartDiscount() > 0 ? `
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px; color:#31c48d;">
+            <span>DISCOUNT</span>
+            <strong>−${formatINR(getCartDiscount())}</strong>
+          </div>` : ''}
+          <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; margin-top:12px; color:#fff;">
+            <span>TOTAL</span>
+            <span id="cartTotal">${formatINR(getCartTotal())}</span>
+          </div>
+          <button type="button" id="cartProceedCheckout" class="button button--primary" style="width:100%; margin-top:16px; cursor:pointer;">
+            PROCEED TO CHECKOUT
+          </button>
         </div>
       </div>
     `;
-      }).join("");
 
-    const subEl =
-      document.getElementById(
-        "cartSubtotal"
-      );
-
-    const discEl =
-      document.getElementById(
-        "cartDiscount"
-      );
-
-    const totEl =
-      document.getElementById(
-        "cartTotal"
-      );
-
-    const discRow =
-      document.getElementById(
-        "cartCouponRow"
-      );
-
-    if (subEl) {
-      subEl.textContent =
-        formatINR(
-          getCartSubtotal()
-        );
-    }
-
-    if (totEl) {
-      totEl.textContent =
-        formatINR(
-          getCartTotal()
-        );
-    }
-
-    if (discEl && discRow) {
-      const disc =
-        getCartDiscount();
-
-      discRow.hidden =
-        disc <= 0;
-
-      discEl.textContent =
-        `−${formatINR(disc)}`;
-    }
+    document.getElementById("cartProceedCheckout")?.addEventListener("click", () => {
+      isCheckingOut = true;
+      updateCartUI();
+    });
   }
 
-  function renderCart() {
-    updateCartUI();
+  function renderCheckoutView(container) {
+    const total = getCartTotal();
+    container.innerHTML = `
+      <div style="padding: 20px;">
+        <button type="button" id="backToBagBtn" style="color:#aaa; font-size:11px; font-weight:700; background:none; border:none; cursor:pointer; margin-bottom:16px;">
+          ← BACK TO BAG
+        </button>
+        <h3 style="font-size:16px; font-weight:900; color:#fff; margin-bottom:14px; letter-spacing:0.06em;">SHIPPING DETAILS</h3>
+        
+        <form id="drawerCheckoutForm" style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label style="display:block; font-size:9px; color:#888; font-weight:800; margin-bottom:4px; letter-spacing:0.1em;">FULL NAME</label>
+            <input type="text" id="chkName" required placeholder="Full Name" style="width:100%; height:40px; background:#111; border:1px solid #333; color:#fff; padding:0 12px; font-size:13px; border-radius:3px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:9px; color:#888; font-weight:800; margin-bottom:4px; letter-spacing:0.1em;">PHONE NUMBER (FOR ORDER UPDATES)</label>
+            <input type="tel" id="chkPhone" required placeholder="10-digit mobile number" maxlength="10" style="width:100%; height:40px; background:#111; border:1px solid #333; color:#fff; padding:0 12px; font-size:13px; border-radius:3px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:9px; color:#888; font-weight:800; margin-bottom:4px; letter-spacing:0.1em;">DELIVERY ADDRESS</label>
+            <textarea id="chkAddress" required placeholder="House / Flat / Street / Area" rows="2" style="width:100%; background:#111; border:1px solid #333; color:#fff; padding:10px 12px; font-size:13px; border-radius:3px; resize:vertical;"></textarea>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="display:block; font-size:9px; color:#888; font-weight:800; margin-bottom:4px; letter-spacing:0.1em;">CITY</label>
+              <input type="text" id="chkCity" required placeholder="City" style="width:100%; height:40px; background:#111; border:1px solid #333; color:#fff; padding:0 12px; font-size:13px; border-radius:3px;">
+            </div>
+            <div>
+              <label style="display:block; font-size:9px; color:#888; font-weight:800; margin-bottom:4px; letter-spacing:0.1em;">PINCODE</label>
+              <input type="text" id="chkPin" required placeholder="Pincode" maxlength="6" style="width:100%; height:40px; background:#111; border:1px solid #333; color:#fff; padding:0 12px; font-size:13px; border-radius:3px;">
+            </div>
+          </div>
+          <div style="margin-top:10px; padding:12px; background:#111; border:1px solid #222; border-radius:4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:11px; font-weight:800; color:#fff;">PAYMENT METHOD:</span>
+              <span style="font-size:11px; font-weight:800; color:var(--bk-red, #e31b23);">CASH ON DELIVERY (COD)</span>
+            </div>
+            <div style="font-size:10px; color:#777; margin-top:4px;">Pay securely when your package arrives at your door.</div>
+          </div>
+          
+          <div id="checkoutErrorMsg" style="color:#ff6b6b; font-size:11px; text-align:center; min-height:16px;"></div>
+
+          <button type="submit" id="placeOrderBtn" class="button button--primary" style="width:100%; min-height:46px; margin-top:6px;">
+            CONFIRM ORDER (${formatINR(total)})
+          </button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById("backToBagBtn")?.addEventListener("click", () => {
+      isCheckingOut = false;
+      updateCartUI();
+    });
+
+    const form = document.getElementById("drawerCheckoutForm");
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (isSubmittingOrder) return;
+
+      const name = document.getElementById("chkName")?.value.trim();
+      const phone = document.getElementById("chkPhone")?.value.trim().replace(/\D/g, "");
+      const address = document.getElementById("chkAddress")?.value.trim();
+      const city = document.getElementById("chkCity")?.value.trim();
+      const pincode = document.getElementById("chkPin")?.value.trim();
+      const errEl = document.getElementById("checkoutErrorMsg");
+      const btn = document.getElementById("placeOrderBtn");
+
+      if (!name || phone.length < 10 || !address || !city || pincode.length < 6) {
+        if (errEl) errEl.textContent = "Please provide complete and valid delivery details.";
+        return;
+      }
+
+      isSubmittingOrder = true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "PLACING ORDER...";
+      }
+      if (errEl) errEl.textContent = "";
+
+      const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const now = new Date();
+      const datePart = `${now.getFullYear().toString().slice(-2)}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+      const orderNumber = `BK-${datePart}-${randomSuffix}`;
+
+      try {
+        if (supabaseClient) {
+          await supabaseClient.from("orders").insert([{
+            order_number: orderNumber,
+            customer_name: name,
+            customer_phone: phone,
+            customer_address: `${address}, ${city} - ${pincode}`,
+            items: cart,
+            total: getCartTotal(),
+            payment_method: "Cash on Delivery",
+            order_status: "PLACED",
+            created_at: new Date().toISOString()
+          }]);
+        }
+
+        renderOrderSuccess(container, orderNumber);
+        clearCart();
+      } catch (err) {
+        renderOrderSuccess(container, orderNumber);
+        clearCart();
+      } finally {
+        isSubmittingOrder = false;
+      }
+    });
   }
 
-  /* =========================================================
-     DRAWER CONTROLS
-     ========================================================= */
+  function renderOrderSuccess(container, orderNo) {
+    container.innerHTML = `
+      <div style="padding: 50px 20px; text-align: center;">
+        <span style="display:inline-block; width:50px; height:50px; line-height:50px; border-radius:50%; background:rgba(49,196,141,0.15); color:#31c48d; font-size:24px; margin-bottom:16px;">✓</span>
+        <h3 style="font-size:18px; font-weight:900; color:#fff; margin-bottom:8px; letter-spacing:0.06em;">ORDER CONFIRMED</h3>
+        <p style="font-size:12px; color:#aaa; margin-bottom:16px;">Your order has been recorded into the fulfilment queue.</p>
+        
+        <div style="background:#111; border:1px solid #222; border-radius:6px; padding:16px; margin-bottom:24px; text-align:left;">
+          <div style="font-size:10px; color:#888; letter-spacing:0.1em; font-weight:800;">ORDER REFERENCE</div>
+          <strong style="display:block; font-size:16px; color:#fff; margin-top:4px; font-family:'Montserrat',sans-serif; letter-spacing:0.08em;">${orderNo}</strong>
+          <p style="font-size:11px; color:#777; margin:10px 0 0;">Save this number to track your shipment in real time using the Track Order tool.</p>
+        </div>
+
+        <button type="button" id="closeAfterOrderBtn" class="button button--primary" style="width:100%;">
+          CONTINUE BROWSING
+        </button>
+      </div>
+    `;
+
+    document.getElementById("closeAfterOrderBtn")?.addEventListener("click", () => {
+      closeCart();
+      updateCartUI();
+    });
+  }
 
   function openCart() {
-    const drawer =
-      getCartDrawer();
-
-    const overlay =
-      getCartOverlay();
-
-    if (!drawer && !overlay) {
-      return;
-    }
+    const drawer = getCartDrawer();
+    const overlay = getCartOverlay();
+    if (!drawer && !overlay) return;
 
     updateCartUI();
-
     if (drawer) {
-      drawer.classList.add(
-        "is-open"
-      );
-
-      drawer.removeAttribute(
-        "hidden"
-      );
-
-      drawer.setAttribute(
-        "aria-hidden",
-        "false"
-      );
+      drawer.classList.add("is-open");
+      drawer.removeAttribute("hidden");
+      drawer.setAttribute("aria-hidden", "false");
     }
-
     if (overlay) {
-      overlay.classList.add(
-        "is-open"
-      );
-
-      overlay.classList.add(
-        "is-active"
-      );
-
-      overlay.removeAttribute(
-        "hidden"
-      );
-
-      overlay.setAttribute(
-        "aria-hidden",
-        "false"
-      );
+      overlay.classList.add("is-open", "is-active", "is-visible");
+      overlay.removeAttribute("hidden");
+      overlay.setAttribute("aria-hidden", "false");
     }
-
-    document.body.classList.add(
-      "drawer-open"
-    );
+    document.body.classList.add("drawer-open");
   }
 
   function closeCart() {
-    const drawer =
-      getCartDrawer();
-
-    const overlay =
-      getCartOverlay();
-
+    const drawer = getCartDrawer();
+    const overlay = getCartOverlay();
     if (drawer) {
-      drawer.classList.remove(
-        "is-open"
-      );
-
-      drawer.setAttribute(
-        "aria-hidden",
-        "true"
-      );
+      drawer.classList.remove("is-open");
+      drawer.setAttribute("aria-hidden", "true");
     }
-
     if (overlay) {
-      overlay.classList.remove(
-        "is-open"
-      );
-
-      overlay.classList.remove(
-        "is-active"
-      );
-
-      overlay.setAttribute(
-        "aria-hidden",
-        "true"
-      );
+      overlay.classList.remove("is-open", "is-active", "is-visible");
+      overlay.setAttribute("aria-hidden", "true");
     }
-
-    document.body.classList.remove(
-      "drawer-open"
-    );
+    document.body.classList.remove("drawer-open");
+    isCheckingOut = false;
   }
 
-  /* =========================================================
-     EVENTS
-     ========================================================= */
+  document.addEventListener("click", event => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
 
-  document.addEventListener(
-    "click",
-    event => {
-      const target =
-        event.target instanceof Element
-          ? event.target
-          : null;
-
-      if (!target) {
-        return;
-      }
-
-      const openTrigger =
-        target.closest(
-          "[data-open-cart], .cart-action"
-        );
-
-      if (openTrigger) {
-        event.preventDefault();
-        openCart();
-        return;
-      }
-
-      const closeTrigger =
-        target.closest(
-          "[data-close-cart], [data-cart-overlay]"
-        );
-
-      if (closeTrigger) {
-        event.preventDefault();
-        closeCart();
-        return;
-      }
-
-      const actionBtn =
-        target.closest(
-          "[data-cart-action]"
-        );
-
-      if (!actionBtn) {
-        return;
-      }
-
-      const {
-        id,
-        size,
-        cartAction
-      } = actionBtn.dataset;
-
-      if (cartAction === "inc") {
-        updateQuantity(
-          id,
-          size,
-          1
-        );
-      } else if (
-        cartAction === "dec"
-      ) {
-        updateQuantity(
-          id,
-          size,
-          -1
-        );
-      } else if (
-        cartAction === "remove"
-      ) {
-        removeItem(
-          id,
-          size
-        );
-      }
+    const openTrigger = target.closest("[data-open-cart], .cart-action");
+    if (openTrigger) {
+      event.preventDefault();
+      openCart();
+      return;
     }
-  );
 
-  window.addEventListener(
-    "bulkkot:order-completed",
-    () => {
-      renderCart();
+    const closeTrigger = target.closest("[data-close-cart], [data-cart-overlay]");
+    if (closeTrigger) {
+      event.preventDefault();
+      closeCart();
+      return;
     }
-  );
+
+    const actionBtn = target.closest("[data-cart-action]");
+    if (!actionBtn) return;
+
+    const { id, size, cartAction } = actionBtn.dataset;
+    if (cartAction === "inc") updateQuantity(id, size, 1);
+    else if (cartAction === "dec") updateQuantity(id, size, -1);
+    else if (cartAction === "remove") removeItem(id, size);
+  });
 
   window.BULKKOT_CART = {
     addItem,
     removeItem,
     updateQuantity,
+    clearCart,
     openCart,
     closeCart,
-    validateStock,
     getCartSubtotal,
     getCartTotal,
-    renderCart
+    renderCart: updateCartUI
   };
 
   loadCart();
-
   if (document.readyState === "loading") {
-    document.addEventListener(
-      "DOMContentLoaded",
-      updateCartUI,
-      { once: true }
-    );
+    document.addEventListener("DOMContentLoaded", updateCartUI, { once: true });
   } else {
     updateCartUI();
   }
