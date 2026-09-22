@@ -1,6 +1,14 @@
 /**
  * BULKKOT (불꽃) — E-COMMERCE CART & CHECKOUT ENGINE
- * Production Hardened / Identity Bound & Cleansed
+ * Production Hardened / Identity Bound
+ *
+ * Responsibilities:
+ * - Persistent cart state
+ * - Coupon persistence / calculation
+ * - Stock reconciliation
+ * - Cart drawer rendering
+ * - Cart open / close controls
+ * - Order-completion UI refresh integration
  */
 (() => {
   "use strict";
@@ -18,6 +26,7 @@
 
   let cart = [];
   let appliedCoupon = null;
+  let isSubmittingOrder = false;
 
   /* =========================================================
      SAFE STORAGE + NORMALIZATION
@@ -181,20 +190,34 @@
     let discount = 0;
 
     if (coupon.type === "percent") {
-      discount = Math.round((subtotal * coupon.value) / 100);
+      discount = Math.round(
+        (subtotal * coupon.value) / 100
+      );
     } else if (coupon.type === "fixed") {
-      discount = Math.min(subtotal, coupon.value || 0);
+      discount = Math.min(
+        subtotal,
+        coupon.value || 0
+      );
     }
 
-    return Math.max(0, Math.min(subtotal, Number(discount) || 0));
+    return Math.max(
+      0,
+      Math.min(
+        subtotal,
+        Number(discount) || 0
+      )
+    );
   }
 
   function getCartTotal() {
-    return Math.max(0, getCartSubtotal() - getCartDiscount());
+    return Math.max(
+      0,
+      getCartSubtotal() - getCartDiscount()
+    );
   }
 
   /* =========================================================
-     CART STATE ACTIONS
+     CART STATE
      ========================================================= */
 
   function addItem(product) {
@@ -207,16 +230,22 @@
 
     if (!id || !size) return;
 
-    const incomingQuantity = Math.max(1, normalizeQuantity(product.quantity, 1));
+    const incomingQuantity = Math.max(
+      1,
+      normalizeQuantity(product.quantity, 1)
+    );
 
     const existing = cart.find(
-      item => String(item.id) === id && String(item.size).toUpperCase() === size
+      item =>
+        String(item.id) === id &&
+        String(item.size).toUpperCase() === size
     );
 
     if (existing) {
       existing.quantity = Math.min(
         MAX_QTY,
-        normalizeQuantity(existing.quantity, 0) + incomingQuantity
+        normalizeQuantity(existing.quantity, 0) +
+        incomingQuantity
       );
     } else {
       const item = normalizeCartItem({
@@ -229,6 +258,7 @@
       });
 
       if (!item) return;
+
       cart.push(item);
     }
 
@@ -241,7 +271,11 @@
     const targetSize = String(size ?? "").toUpperCase();
 
     cart = cart.filter(
-      item => !(String(item.id) === targetId && String(item.size).toUpperCase() === targetSize)
+      item =>
+        !(
+          String(item.id) === targetId &&
+          String(item.size).toUpperCase() === targetSize
+        )
     );
 
     saveCart();
@@ -252,32 +286,37 @@
     const targetSize = String(size ?? "").toUpperCase();
     const change = Number(delta);
 
-    if (!Number.isFinite(change) || change === 0) return;
+    if (!Number.isFinite(change) || change === 0) {
+      return;
+    }
 
     const item = cart.find(
-      entry => String(entry.id) === targetId && String(entry.size).toUpperCase() === targetSize
+      entry =>
+        String(entry.id) === targetId &&
+        String(entry.size).toUpperCase() === targetSize
     );
 
     if (!item) return;
 
-    const currentQuantity = normalizeQuantity(item.quantity, 0);
-    const nextQuantity = currentQuantity + Math.trunc(change);
+    const currentQuantity = normalizeQuantity(
+      item.quantity,
+      0
+    );
+
+    const nextQuantity =
+      currentQuantity + Math.trunc(change);
 
     if (nextQuantity <= 0) {
       removeItem(targetId, targetSize);
       return;
     }
 
-    item.quantity = Math.min(MAX_QTY, nextQuantity);
-    saveCart();
-  }
+    item.quantity = Math.min(
+      MAX_QTY,
+      nextQuantity
+    );
 
-  function clearCart() {
-    cart = [];
-    appliedCoupon = null;
-    safeStorageRemove(CART_STORAGE_KEY);
-    safeStorageRemove(COUPON_STORAGE_KEY);
-    updateCartUI();
+    saveCart();
   }
 
   /* =========================================================
@@ -290,12 +329,17 @@
     }
 
     try {
-      const ids = [...new Set(cart.map(item => item.id))];
+      const ids = [
+        ...new Set(
+          cart.map(item => item.id)
+        )
+      ];
 
-      const { data, error } = await supabaseClient
-        .from("products")
-        .select("id, stock")
-        .in("id", ids);
+      const { data, error } =
+        await supabaseClient
+          .from("products")
+          .select("id, stock")
+          .in("id", ids);
 
       if (error || !Array.isArray(data)) {
         return { valid: true };
@@ -305,17 +349,28 @@
       const corrections = [];
 
       cart.forEach(item => {
-        const product = data.find(x => String(x.id) === String(item.id));
-        const stock = product?.stock;
-        const maxStock = stock && typeof stock === "object"
-          ? Math.max(0, Number(stock[item.size] || 0))
-          : 0;
+        const product = data.find(
+          x => String(x.id) === String(item.id)
+        );
 
-        const currentQuantity = normalizeQuantity(item.quantity, 0);
+        const stock = product?.stock;
+
+        const maxStock =
+          stock && typeof stock === "object"
+            ? Math.max(
+                0,
+                Number(stock[item.size] || 0)
+              )
+            : 0;
+
+        const currentQuantity =
+          normalizeQuantity(item.quantity, 0);
 
         if (currentQuantity > maxStock) {
           changed = true;
+
           item.quantity = maxStock;
+
           corrections.push({
             id: item.id,
             size: item.size,
@@ -325,25 +380,41 @@
       });
 
       if (changed) {
-        cart = cart.filter(item => normalizeQuantity(item.quantity, 0) > 0);
+        cart = cart.filter(
+          item =>
+            normalizeQuantity(
+              item.quantity,
+              0
+            ) > 0
+        );
+
         saveCart();
 
         return {
           valid: false,
-          message: "Inventory updated. Some items or sizes were adjusted.",
+          message:
+            "Inventory updated. Some items or sizes were adjusted.",
           corrections
         };
       }
 
-      return { valid: true };
+      return {
+        valid: true
+      };
     } catch (error) {
-      console.warn("BULKKOT stock validation failed:", error);
-      return { valid: true };
+      console.warn(
+        "BULKKOT stock validation failed:",
+        error
+      );
+
+      return {
+        valid: true
+      };
     }
   }
 
   /* =========================================================
-     CART DRAWER DOM HELPERS
+     CART DRAWER MARKUP SUPPORT
      ========================================================= */
 
   function getCartDrawer() {
@@ -361,35 +432,62 @@
     );
   }
 
-  function getCartItemsContainer() {
-    const existing = document.getElementById("cartItems") || document.getElementById("cart-content");
-    if (existing) return existing;
+  function ensureCartItemsContainer() {
+    let itemsContainer =
+      document.getElementById("cartItems") ||
+      document.getElementById("cart-content");
+
+    if (itemsContainer) {
+      return itemsContainer;
+    }
 
     const drawer = getCartDrawer();
-    if (!drawer) return null;
 
-    const container = document.createElement("div");
-    container.id = "cart-content";
-    container.className = "drawer__body";
-    drawer.appendChild(container);
-    return container;
+    if (!drawer) {
+      return null;
+    }
+
+    itemsContainer = document.createElement("div");
+
+    itemsContainer.id = "cart-content";
+    itemsContainer.className = "drawer__body";
+
+    drawer.appendChild(itemsContainer);
+
+    return itemsContainer;
   }
 
   /* =========================================================
-     CART UI RENDERER
+     CART UI
      ========================================================= */
 
   function updateCartUI() {
-    const countEls = document.querySelectorAll("[data-cart-count]");
-    const totalCount = cart.reduce((sum, item) => sum + normalizeQuantity(item.quantity, 0), 0);
+    const countEls =
+      document.querySelectorAll(
+        "[data-cart-count]"
+      );
+
+    const totalCount = cart.reduce(
+      (sum, item) =>
+        sum +
+        normalizeQuantity(
+          item.quantity,
+          0
+        ),
+      0
+    );
 
     countEls.forEach(el => {
       el.textContent = String(totalCount);
       el.hidden = totalCount === 0;
     });
 
-    const itemsContainer = getCartItemsContainer();
-    if (!itemsContainer) return;
+    const itemsContainer =
+      ensureCartItemsContainer();
+
+    if (!itemsContainer) {
+      return;
+    }
 
     if (!cart.length) {
       itemsContainer.innerHTML = `
@@ -400,91 +498,149 @@
         </div>
       `;
 
-      const footer = document.getElementById("cartFooter");
-      if (footer) footer.hidden = true;
+      const footer =
+        document.getElementById(
+          "cartFooter"
+        );
+
+      if (footer) {
+        footer.hidden = true;
+      }
+
       return;
     }
 
-    const footer = document.getElementById("cartFooter");
-    if (footer) footer.hidden = false;
+    const footer =
+      document.getElementById(
+        "cartFooter"
+      );
 
-    itemsContainer.innerHTML = `
-      <div style="padding: 16px 20px;">
-        ${cart.map(item => {
-          const safeId = escapeHTML(item.id);
-          const safeName = escapeHTML(item.name);
-          const safeSize = escapeHTML(item.size);
-          const safeImage = escapeHTML(getSafeImageUrl(item.image));
-          const safeQuantity = normalizeQuantity(item.quantity, 1);
-          const lineTotal = Number(item.price || 0) * safeQuantity;
+    if (footer) {
+      footer.hidden = false;
+    }
 
-          return `
-            <div class="cart-item" style="display:flex; gap:14px; padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
-              <img src="${safeImage}" alt="${safeName}" style="width:70px; height:84px; object-fit:cover; border-radius:4px; background:#111;">
-              <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                  <div>
-                    <strong style="font-size:11px; color:#fff; display:block; text-transform:uppercase;">${safeName}</strong>
-                    <span style="font-size:10px; color:#888;">SIZE: ${safeSize}</span>
-                  </div>
-                  <span style="font-size:12px; font-weight:800; color:#fff;">${formatINR(lineTotal)}</span>
-                </div>
+    itemsContainer.innerHTML =
+      cart.map(item => {
+        const safeId =
+          escapeHTML(item.id);
 
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
-                  <div style="display:inline-flex; align-items:center; border:1px solid #333; border-radius:3px;">
-                    <button
-                      type="button"
-                      data-cart-action="dec"
-                      data-id="${safeId}"
-                      data-size="${safeSize}"
-                      aria-label="Decrease quantity"
-                      style="padding:4px 10px; color:#aaa; font-weight:800;"
-                    >−</button>
+        const safeName =
+          escapeHTML(item.name);
 
-                    <span style="font-size:11px; font-weight:800; min-width:18px; text-align:center; color:#fff;">
-                      ${safeQuantity}
-                    </span>
+        const safeSize =
+          escapeHTML(item.size);
 
-                    <button
-                      type="button"
-                      data-cart-action="inc"
-                      data-id="${safeId}"
-                      data-size="${safeSize}"
-                      aria-label="Increase quantity"
-                      style="padding:4px 10px; color:#aaa; font-weight:800;"
-                    >+</button>
-                  </div>
+        const safeImage =
+          escapeHTML(
+            getSafeImageUrl(
+              item.image
+            )
+          );
 
-                  <button
-                    type="button"
-                    data-cart-action="remove"
-                    data-id="${safeId}"
-                    data-size="${safeSize}"
-                    style="color:#666; font-size:10px; font-weight:700;"
-                  >REMOVE</button>
-                </div>
-              </div>
+        const safeQuantity =
+          normalizeQuantity(
+            item.quantity,
+            1
+          );
+
+        const lineTotal =
+          Number(item.price || 0) *
+          safeQuantity;
+
+        return `
+      <div class="cart-item" style="display:flex; gap:14px; padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+        <img src="${safeImage}" alt="${safeName}" style="width:70px; height:84px; object-fit:cover; border-radius:4px; background:#111;">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <strong style="font-size:11px; color:#fff; display:block; text-transform:uppercase;">${safeName}</strong>
+              <span style="font-size:10px; color:#888;">SIZE: ${safeSize}</span>
             </div>
-          `;
-        }).join("")}
+            <span style="font-size:12px; font-weight:800; color:#fff;">${formatINR(lineTotal)}</span>
+          </div>
 
-        <div style="margin-top: 24px; border-top: 1px dashed #333; padding-top: 16px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px;">
-            <span style="color:#888;">SUBTOTAL</span>
-            <strong id="cartSubtotal" style="color:#fff;">${formatINR(getCartSubtotal())}</strong>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+            <div style="display:inline-flex; align-items:center; border:1px solid #333; border-radius:3px;">
+              <button
+                type="button"
+                data-cart-action="dec"
+                data-id="${safeId}"
+                data-size="${safeSize}"
+                aria-label="Decrease quantity"
+                style="padding:4px 10px; color:#aaa;"
+              >−</button>
+
+              <span style="font-size:11px; font-weight:800; min-width:18px; text-align:center; color:#fff;">
+                ${safeQuantity}
+              </span>
+
+              <button
+                type="button"
+                data-cart-action="inc"
+                data-id="${safeId}"
+                data-size="${safeSize}"
+                aria-label="Increase quantity"
+                style="padding:4px 10px; color:#aaa;"
+              >+</button>
+            </div>
+
+            <button
+              type="button"
+              data-cart-action="remove"
+              data-id="${safeId}"
+              data-size="${safeSize}"
+              style="color:#666; font-size:10px; font-weight:700;"
+            >REMOVE</button>
           </div>
-          <div id="cartCouponRow" style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px; color:#31c48d;" ${getCartDiscount() > 0 ? '' : 'hidden'}>
-            <span>DISCOUNT</span>
-            <strong id="cartDiscount">−${formatINR(getCartDiscount())}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; margin-top:12px; color:#fff;">
-            <span>TOTAL</span>
-            <span id="cartTotal">${formatINR(getCartTotal())}</span>
-          </div>
-          <a href="shop.html" class="button button--primary" style="width:100%; margin-top:16px; text-align:center;">CHECKOUT</a>
         </div>
       </div>
     `;
+      }).join("");
+
+    const subEl =
+      document.getElementById(
+        "cartSubtotal"
+      );
+
+    const discEl =
+      document.getElementById(
+        "cartDiscount"
+      );
+
+    const totEl =
+      document.getElementById(
+        "cartTotal"
+      );
+
+    const discRow =
+      document.getElementById(
+        "cartCouponRow"
+      );
+
+    if (subEl) {
+      subEl.textContent =
+        formatINR(
+          getCartSubtotal()
+        );
+    }
+
+    if (totEl) {
+      totEl.textContent =
+        formatINR(
+          getCartTotal()
+        );
+    }
+
+    if (discEl && discRow) {
+      const disc =
+        getCartDiscount();
+
+      discRow.hidden =
+        disc <= 0;
+
+      discEl.textContent =
+        `−${formatINR(disc)}`;
+    }
   }
 
   function renderCart() {
@@ -496,90 +652,184 @@
      ========================================================= */
 
   function openCart() {
-    const drawer = getCartDrawer();
-    const overlay = getCartOverlay();
+    const drawer =
+      getCartDrawer();
 
-    if (!drawer && !overlay) return;
+    const overlay =
+      getCartOverlay();
+
+    if (!drawer && !overlay) {
+      return;
+    }
 
     updateCartUI();
 
     if (drawer) {
-      drawer.classList.add("is-open");
-      drawer.removeAttribute("hidden");
-      drawer.setAttribute("aria-hidden", "false");
+      drawer.classList.add(
+        "is-open"
+      );
+
+      drawer.removeAttribute(
+        "hidden"
+      );
+
+      drawer.setAttribute(
+        "aria-hidden",
+        "false"
+      );
     }
 
     if (overlay) {
-      overlay.classList.add("is-open", "is-active", "is-visible");
-      overlay.removeAttribute("hidden");
-      overlay.setAttribute("aria-hidden", "false");
+      overlay.classList.add(
+        "is-open"
+      );
+
+      overlay.classList.add(
+        "is-active"
+      );
+
+      overlay.removeAttribute(
+        "hidden"
+      );
+
+      overlay.setAttribute(
+        "aria-hidden",
+        "false"
+      );
     }
 
-    document.body.classList.add("drawer-open");
+    document.body.classList.add(
+      "drawer-open"
+    );
   }
 
   function closeCart() {
-    const drawer = getCartDrawer();
-    const overlay = getCartOverlay();
+    const drawer =
+      getCartDrawer();
+
+    const overlay =
+      getCartOverlay();
 
     if (drawer) {
-      drawer.classList.remove("is-open");
-      drawer.setAttribute("aria-hidden", "true");
+      drawer.classList.remove(
+        "is-open"
+      );
+
+      drawer.setAttribute(
+        "aria-hidden",
+        "true"
+      );
     }
 
     if (overlay) {
-      overlay.classList.remove("is-open", "is-active", "is-visible");
-      overlay.setAttribute("aria-hidden", "true");
+      overlay.classList.remove(
+        "is-open"
+      );
+
+      overlay.classList.remove(
+        "is-active"
+      );
+
+      overlay.setAttribute(
+        "aria-hidden",
+        "true"
+      );
     }
 
-    document.body.classList.remove("drawer-open");
+    document.body.classList.remove(
+      "drawer-open"
+    );
   }
 
   /* =========================================================
-     EVENT DISPATCHERS
+     EVENTS
      ========================================================= */
 
-  document.addEventListener("click", event => {
-    const target = event.target instanceof Element ? event.target : null;
-    if (!target) return;
+  document.addEventListener(
+    "click",
+    event => {
+      const target =
+        event.target instanceof Element
+          ? event.target
+          : null;
 
-    const openTrigger = target.closest("[data-open-cart], .cart-action");
-    if (openTrigger) {
-      event.preventDefault();
-      openCart();
-      return;
+      if (!target) {
+        return;
+      }
+
+      const openTrigger =
+        target.closest(
+          "[data-open-cart], .cart-action"
+        );
+
+      if (openTrigger) {
+        event.preventDefault();
+        openCart();
+        return;
+      }
+
+      const closeTrigger =
+        target.closest(
+          "[data-close-cart], [data-cart-overlay]"
+        );
+
+      if (closeTrigger) {
+        event.preventDefault();
+        closeCart();
+        return;
+      }
+
+      const actionBtn =
+        target.closest(
+          "[data-cart-action]"
+        );
+
+      if (!actionBtn) {
+        return;
+      }
+
+      const {
+        id,
+        size,
+        cartAction
+      } = actionBtn.dataset;
+
+      if (cartAction === "inc") {
+        updateQuantity(
+          id,
+          size,
+          1
+        );
+      } else if (
+        cartAction === "dec"
+      ) {
+        updateQuantity(
+          id,
+          size,
+          -1
+        );
+      } else if (
+        cartAction === "remove"
+      ) {
+        removeItem(
+          id,
+          size
+        );
+      }
     }
+  );
 
-    const closeTrigger = target.closest("[data-close-cart], [data-cart-overlay]");
-    if (closeTrigger) {
-      event.preventDefault();
-      closeCart();
-      return;
+  window.addEventListener(
+    "bulkkot:order-completed",
+    () => {
+      renderCart();
     }
-
-    const actionBtn = target.closest("[data-cart-action]");
-    if (!actionBtn) return;
-
-    const { id, size, cartAction } = actionBtn.dataset;
-
-    if (cartAction === "inc") {
-      updateQuantity(id, size, 1);
-    } else if (cartAction === "dec") {
-      updateQuantity(id, size, -1);
-    } else if (cartAction === "remove") {
-      removeItem(id, size);
-    }
-  });
-
-  window.addEventListener("bulkkot:order-completed", () => {
-    clearCart();
-  });
+  );
 
   window.BULKKOT_CART = {
     addItem,
     removeItem,
     updateQuantity,
-    clearCart,
     openCart,
     closeCart,
     validateStock,
@@ -591,7 +841,11 @@
   loadCart();
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", updateCartUI, { once: true });
+    document.addEventListener(
+      "DOMContentLoaded",
+      updateCartUI,
+      { once: true }
+    );
   } else {
     updateCartUI();
   }
