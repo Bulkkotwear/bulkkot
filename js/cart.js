@@ -1,14 +1,14 @@
 /**
  * BULKKOT (불꽃) — E-COMMERCE CART & CHECKOUT ENGINE
- * Production Hardened / Identity Bound
+ * Production Hardened / Identity Bound & Validated
  */
 (() => {
   "use strict";
 
   const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-  const CART_STORAGE_KEY = "bulk_kot_cart_v2";
-  const COUPON_STORAGE_KEY = "bulk_kot_coupon_v2";
+  const CART_KEY = "bulk_kot_cart_v2";
+  const COUPON_KEY = "bulk_kot_coupon_v2";
 
   const supabaseClient = window.supabase && typeof window.supabase.createClient === "function"
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -16,44 +16,40 @@
 
   let cart = [];
   let appliedCoupon = null;
-  let isSubmittingOrder = false;
 
   function loadCart() {
     try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
-      cart = stored ? JSON.parse(stored) : [];
-      if (!Array.isArray(cart)) cart = [];
+      cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
     } catch {
       cart = [];
     }
     try {
-      const storedCoupon = localStorage.getItem(COUPON_STORAGE_KEY);
-      appliedCoupon = storedCoupon ? JSON.parse(storedCoupon) : null;
+      appliedCoupon = JSON.parse(localStorage.getItem(COUPON_KEY)) || null;
     } catch {
       appliedCoupon = null;
     }
   }
 
   function saveCart() {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
     if (appliedCoupon) {
-      localStorage.setItem(COUPON_STORAGE_KEY, JSON.stringify(appliedCoupon));
+      localStorage.setItem(COUPON_KEY, JSON.stringify(appliedCoupon));
     } else {
-      localStorage.removeItem(COUPON_STORAGE_KEY);
+      localStorage.removeItem(COUPON_KEY);
     }
-    updateCartUI();
+    updateUI();
   }
 
   function formatINR(val) {
     return `₹${Number(val || 0).toLocaleString("en-IN")}`;
   }
 
-  function getCartSubtotal() {
+  function getSubtotal() {
     return cart.reduce((acc, item) => acc + (Number(item.price || 0) * (item.quantity || 1)), 0);
   }
 
-  function getCartDiscount() {
-    const subtotal = getCartSubtotal();
+  function getDiscount() {
+    const subtotal = getSubtotal();
     if (!appliedCoupon || subtotal <= 0) return 0;
     if (appliedCoupon.type === "percent") {
       return Math.round((subtotal * appliedCoupon.value) / 100);
@@ -61,8 +57,8 @@
     return Math.min(subtotal, appliedCoupon.value || 0);
   }
 
-  function getCartTotal() {
-    return Math.max(0, getCartSubtotal() - getCartDiscount());
+  function getTotal() {
+    return Math.max(0, getSubtotal() - getDiscount());
   }
 
   function addItem(product) {
@@ -76,7 +72,7 @@
         name: product.name || "Garment",
         price: Number(product.price || 0),
         size: String(product.size),
-        image: product.image || "",
+        image: product.image || "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png",
         quantity: Math.min(99, Math.max(1, product.quantity || 1))
       });
     }
@@ -101,7 +97,6 @@
     }
   }
 
-  /* Fixed identity-preserving stock reconciliation */
   async function validateStock() {
     if (!supabaseClient || !cart.length) return { valid: true };
     try {
@@ -125,7 +120,7 @@
       if (changed) {
         cart = cart.filter(i => i.quantity > 0);
         saveCart();
-        return { valid: false, message: "Inventory updated. Some items or sizes were adjusted.", corrections };
+        return { valid: false, message: "Inventory updated. Some items were adjusted.", corrections };
       }
       return { valid: true };
     } catch {
@@ -133,116 +128,111 @@
     }
   }
 
-  function updateCartUI() {
-    const countEls = document.querySelectorAll("[data-cart-count]");
-    const totalCount = cart.reduce((sum, i) => sum + (i.quantity || 0), 0);
-    countEls.forEach(el => {
-      el.textContent = totalCount;
-      el.hidden = totalCount === 0;
+  function updateUI() {
+    const counts = document.querySelectorAll("[data-cart-count]");
+    const totalQty = cart.reduce((sum, i) => sum + (i.quantity || 0), 0);
+    counts.forEach(el => {
+      el.textContent = totalQty;
+      el.hidden = totalQty === 0;
     });
 
-    const itemsContainer = document.getElementById("cartItems") || document.getElementById("cart-content");
-    if (!itemsContainer) return;
+    const container = document.getElementById("cart-content") || document.getElementById("cartItems");
+    if (!container) return;
 
     if (!cart.length) {
-      itemsContainer.innerHTML = `
+      container.innerHTML = `
         <div style="padding: 60px 20px; text-align: center; color: #888;">
           <strong style="display:block; font-size: 14px; color: #fff; margin-bottom: 8px;">YOUR BAG IS EMPTY</strong>
           <p style="font-size: 12px; margin: 0 0 20px;">No silhouettes added yet.</p>
           <a href="shop.html" class="button button--primary" style="display: inline-flex;">EXPLORE CATALOGUE</a>
         </div>
       `;
-      const footer = document.getElementById("cartFooter");
-      if (footer) footer.hidden = true;
       return;
     }
 
-    const footer = document.getElementById("cartFooter");
-    if (footer) footer.hidden = false;
-
-    itemsContainer.innerHTML = cart.map(item => `
-      <div class="cart-item" style="display:flex; gap:14px; padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
-        <img src="${item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'}" alt="${item.name}" style="width:70px; height:84px; object-fit:cover; border-radius:4px; background:#111;">
-        <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-              <strong style="font-size:11px; color:#fff; display:block; text-transform:uppercase;">${item.name}</strong>
-              <span style="font-size:10px; color:#888;">SIZE: ${item.size}</span>
+    container.innerHTML = `
+      <div style="padding: 16px 20px;">
+        ${cart.map(item => `
+          <div class="cart-item-row" style="display:flex; gap:14px; padding:14px 0; border-bottom:1px solid #1a1a1a;">
+            <img src="${item.image}" alt="${item.name}" style="width:68px; height:82px; object-fit:cover; border-radius:4px; background:#141414;">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                  <strong style="font-size:11px; color:#fff; display:block; text-transform:uppercase;">${item.name}</strong>
+                  <span style="font-size:10px; color:#888;">SIZE: ${item.size}</span>
+                </div>
+                <span style="font-size:12px; font-weight:800; color:#fff;">${formatINR(item.price * item.quantity)}</span>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+                <div style="display:inline-flex; align-items:center; border:1px solid #333; border-radius:3px;">
+                  <button type="button" data-action="dec" data-id="${item.id}" data-size="${item.size}" style="padding:4px 10px; color:#aaa; font-weight:800;">−</button>
+                  <span style="font-size:11px; font-weight:800; min-width:18px; text-align:center; color:#fff;">${item.quantity}</span>
+                  <button type="button" data-action="inc" data-id="${item.id}" data-size="${item.size}" style="padding:4px 10px; color:#aaa; font-weight:800;">+</button>
+                </div>
+                <button type="button" data-action="remove" data-id="${item.id}" data-size="${item.size}" style="color:#666; font-size:10px; font-weight:700;">REMOVE</button>
+              </div>
             </div>
-            <span style="font-size:12px; font-weight:800; color:#fff;">${formatINR(item.price * item.quantity)}</span>
           </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
-            <div style="display:inline-flex; align-items:center; border:1px solid #333; border-radius:3px;">
-              <button type="button" data-cart-action="dec" data-id="${item.id}" data-size="${item.size}" style="padding:4px 10px; color:#aaa;">−</button>
-              <span style="font-size:11px; font-weight:800; min-width:18px; text-align:center; color:#fff;">${item.quantity}</span>
-              <button type="button" data-cart-action="inc" data-id="${item.id}" data-size="${item.size}" style="padding:4px 10px; color:#aaa;">+</button>
-            </div>
-            <button type="button" data-cart-action="remove" data-id="${item.id}" data-size="${item.size}" style="color:#666; font-size:10px; font-weight:700;">REMOVE</button>
+        `).join("")}
+        <div style="margin-top: 24px; border-top: 1px dashed #333; padding-top: 16px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px;">
+            <span style="color:#888;">SUBTOTAL</span>
+            <strong style="color:#fff;">${formatINR(getSubtotal())}</strong>
           </div>
+          <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; margin-top:12px; color:#fff;">
+            <span>TOTAL</span>
+            <span>${formatINR(getTotal())}</span>
+          </div>
+          <a href="shop.html" class="button button--primary" style="width:100%; margin-top:16px; text-align:center;">CHECKOUT</a>
         </div>
       </div>
-    `).join("");
-
-    const subEl = document.getElementById("cartSubtotal");
-    const discEl = document.getElementById("cartDiscount");
-    const totEl = document.getElementById("cartTotal");
-    const discRow = document.getElementById("cartCouponRow");
-
-    if (subEl) subEl.textContent = formatINR(getCartSubtotal());
-    if (totEl) totEl.textContent = formatINR(getCartTotal());
-    if (discEl && discRow) {
-      const disc = getCartDiscount();
-      discRow.hidden = disc <= 0;
-      discEl.textContent = `−${formatINR(disc)}`;
-    }
+    `;
   }
 
   function openCart() {
-    const drawer = document.getElementById("cartDrawer") || document.getElementById("cart-drawer");
-    const overlay = document.getElementById("cartOverlay") || document.querySelector("[data-cart-overlay]");
+    const drawer = document.getElementById("cart-drawer");
+    const overlay = document.querySelector("[data-cart-overlay]");
     if (drawer) {
       drawer.classList.add("is-open");
-      drawer.removeAttribute("hidden");
       drawer.setAttribute("aria-hidden", "false");
     }
     if (overlay) {
-      overlay.classList.add("is-open");
-      overlay.removeAttribute("hidden");
+      overlay.classList.add("is-open", "is-visible");
       overlay.setAttribute("aria-hidden", "false");
     }
     document.body.classList.add("drawer-open");
   }
 
   function closeCart() {
-    const drawer = document.getElementById("cartDrawer") || document.getElementById("cart-drawer");
-    const overlay = document.getElementById("cartOverlay") || document.querySelector("[data-cart-overlay]");
+    const drawer = document.getElementById("cart-drawer");
+    const overlay = document.querySelector("[data-cart-overlay]");
     if (drawer) {
       drawer.classList.remove("is-open");
       drawer.setAttribute("aria-hidden", "true");
     }
     if (overlay) {
-      overlay.classList.remove("is-open");
+      overlay.classList.remove("is-open", "is-visible");
       overlay.setAttribute("aria-hidden", "true");
     }
     document.body.classList.remove("drawer-open");
   }
 
-  document.addEventListener("click", e => {
-    if (e.target.closest("[data-open-cart]")) {
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-open-cart], .cart-action")) {
       e.preventDefault();
       openCart();
     }
-    if (e.target.closest("[data-close-cart]") || e.target.closest("[data-cart-overlay]")) {
+    if (e.target.closest("[data-close-cart], [data-cart-overlay]")) {
       e.preventDefault();
       closeCart();
     }
 
-    const actionBtn = e.target.closest("[data-cart-action]");
-    if (actionBtn) {
-      const { id, size, cartAction } = actionBtn.dataset;
-      if (cartAction === "inc") updateQuantity(id, size, 1);
-      if (cartAction === "dec") updateQuantity(id, size, -1);
-      if (cartAction === "remove") removeItem(id, size);
+    const btn = e.target.closest("[data-action]");
+    if (btn) {
+      const { id, size, action } = btn.dataset;
+      if (action === "inc") updateQuantity(id, size, 1);
+      if (action === "dec") updateQuantity(id, size, -1);
+      if (action === "remove") removeItem(id, size);
     }
   });
 
@@ -253,10 +243,9 @@
     openCart,
     closeCart,
     validateStock,
-    getCartSubtotal,
-    getCartTotal
+    renderCart: updateUI
   };
 
   loadCart();
-  document.addEventListener("DOMContentLoaded", updateCartUI);
+  document.addEventListener("DOMContentLoaded", updateUI);
 })();
