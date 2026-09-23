@@ -31,9 +31,8 @@
       --shop-red: var(--bk-red, #e31b23);
     }
 
-    [hidden] {
-      display: none !important;
-    }
+    /* Prevents ghosting of hidden elements */
+    [hidden] { display: none !important; }
 
     html, body {
       margin: 0;
@@ -399,9 +398,11 @@
       let sortMode = "featured";
       const quickAddSelections = new Map();
 
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('category')) activeCategory = urlParams.get('category').toLowerCase();
-      if (urlParams.get('q')) { searchTerm = urlParams.get('q').trim(); searchInput.value = searchTerm; }
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('category')) activeCategory = urlParams.get('category').toLowerCase();
+        if (urlParams.get('q')) { searchTerm = urlParams.get('q').trim(); if(searchInput) searchInput.value = searchTerm; }
+      } catch (err) {}
 
       function setViewState(state) {
         if (loadingEl) loadingEl.style.display = state === "loading" ? "grid" : "none";
@@ -420,6 +421,17 @@
       function getStock(p) {
         if (p?.stock && typeof p.stock === "object" && !Array.isArray(p.stock)) return p.stock;
         return { S: 10, M: 10, L: 10, XL: 10 };
+      }
+
+      function getAvailableSizes(item) {
+        const stock = getStock(item);
+        return SIZES.filter((size) => Number(stock[size] || 0) > 0);
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[char]);
       }
 
       function applyFilters() {
@@ -446,12 +458,6 @@
         renderProducts();
       }
 
-      function escapeHtml(value) {
-        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-        })[char]);
-      }
-
       function renderProducts() {
         if (!filteredProducts.length) {
           if (emptyTextEl) emptyTextEl.textContent = searchTerm ? `No pieces match "${searchTerm}".` : "Try another category.";
@@ -459,114 +465,138 @@
           return;
         }
 
-        productsGrid.innerHTML = filteredProducts.map(p => {
-          const id = String(p.id);
-          const name = p.name || "GARMENT";
-          const img = getImages(p);
-          const stockData = getStock(p);
-          const availableSizes = SIZES.filter(s => Number(stockData[s] || 0) > 0);
-          const soldOut = availableSizes.length === 0;
-          const selectedSize = quickAddSelections.get(id) || availableSizes[0] || "M";
-          const tag = p.tag ? p.tag : (p.category ? String(p.category).toUpperCase() : "DROP 001");
+        if (productsGrid) {
+          productsGrid.innerHTML = filteredProducts.map(p => {
+            const id = String(p.id);
+            const name = p.name || "GARMENT";
+            const img = getImages(p);
+            const stockData = getStock(p);
+            const availableSizes = SIZES.filter(s => Number(stockData[s] || 0) > 0);
+            const soldOut = availableSizes.length === 0;
+            const selectedSize = quickAddSelections.get(id) || availableSizes[0] || "M";
+            const tag = p.tag ? p.tag : (p.category ? String(p.category).toUpperCase() : "DROP 001");
 
-          return `
-            <article class="p-card">
-              <a href="product.html?id=${encodeURIComponent(id)}" class="p-card-link">
-                <div class="p-thumb">
-                  <img src="${escapeHtml(img)}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
-                  <span class="p-tag">${escapeHtml(tag)}</span>
-                  ${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
-                </div>
-                <div class="p-info">
-                  <div>
-                    <h3>${escapeHtml(name)}</h3>
-                    <p class="p-sub">${escapeHtml(p.korean || "에센셜")}</p>
+            return `
+              <article class="p-card">
+                <a href="product.html?id=${encodeURIComponent(id)}" class="p-card-link">
+                  <div class="p-thumb">
+                    <img src="${escapeHtml(img)}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
+                    <span class="p-tag">${escapeHtml(tag)}</span>
+                    ${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
                   </div>
-                  <div class="p-meta">
-                    <span class="p-price">${formatPrice(p.price)}</span>
-                    <span class="p-btn-view">VIEW PIECE</span>
+                  <div class="p-info">
+                    <div>
+                      <h3>${escapeHtml(name)}</h3>
+                      <p class="p-sub">${escapeHtml(p.korean || "에센셜")}</p>
+                    </div>
+                    <div class="p-meta">
+                      <span class="p-price">${formatPrice(p.price)}</span>
+                      <span class="p-btn-view">VIEW PIECE</span>
+                    </div>
                   </div>
+                </a>
+                <div class="p-quickadd" data-quickadd-id="${id}">
+                  ${SIZES.map(s => {
+                    const inStock = Number(stockData[s] || 0) > 0;
+                    return `<button type="button" class="p-size-chip ${selectedSize === s ? 'active' : ''}" data-size="${s}" ${!inStock ? 'disabled' : ''}>${s}</button>`;
+                  }).join('')}
+                  <button type="button" class="p-quickadd-btn" data-quick-add ${soldOut ? 'disabled' : ''}>
+                    ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
+                  </button>
                 </div>
-              </a>
-              <div class="p-quickadd" data-quickadd-id="${id}">
-                ${SIZES.map(s => {
-                  const inStock = Number(stockData[s] || 0) > 0;
-                  return `<button type="button" class="p-size-chip ${selectedSize === s ? 'active' : ''}" data-size="${s}" ${!inStock ? 'disabled' : ''}>${s}</button>`;
-                }).join('')}
-                <button type="button" class="p-quickadd-btn" data-quick-add ${soldOut ? 'disabled' : ''}>
-                  ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
-                </button>
-              </div>
-            </article>
-          `;
-        }).join("");
+              </article>
+            `;
+          }).join("");
+        }
 
         setViewState("products");
       }
 
-      productsGrid.addEventListener("click", e => {
-        const sizeBtn = e.target.closest(".p-size-chip");
-        if (sizeBtn && !sizeBtn.disabled) {
-          const wrap = sizeBtn.closest("[data-quickadd-id]");
-          const id = wrap.dataset.quickaddId;
-          const size = sizeBtn.dataset.size;
-          quickAddSelections.set(id, size);
-          wrap.querySelectorAll(".p-size-chip").forEach(b => b.classList.toggle("active", b.dataset.size === size));
-        }
+      if (productsGrid) {
+        productsGrid.addEventListener("click", e => {
+          const sizeBtn = e.target.closest(".p-size-chip");
+          if (sizeBtn && !sizeBtn.disabled) {
+            const wrap = sizeBtn.closest("[data-quickadd-id]");
+            if(wrap) {
+              const id = wrap.dataset.quickaddId;
+              const size = sizeBtn.dataset.size;
+              quickAddSelections.set(id, size);
+              wrap.querySelectorAll(".p-size-chip").forEach(b => b.classList.toggle("active", b.dataset.size === size));
+            }
+          }
 
-        const addBtn = e.target.closest("[data-quick-add]");
-        if (addBtn && !addBtn.disabled) {
-          const wrap = addBtn.closest("[data-quickadd-id]");
-          const id = wrap.dataset.quickaddId;
-          const product = products.find(p => String(p.id) === id);
-          if (!product || !window.BULKKOT_CART) return;
+          const addBtn = e.target.closest("[data-quick-add]");
+          if (addBtn && !addBtn.disabled) {
+            const wrap = addBtn.closest("[data-quickadd-id]");
+            if(wrap) {
+              const id = wrap.dataset.quickaddId;
+              const product = products.find(p => String(p.id) === id);
+              if (!product || !window.BULKKOT_CART) return;
 
-          const size = quickAddSelections.get(id) || "M";
-          window.BULKKOT_CART.addItem({
-            id: product.id,
-            name: product.name,
-            price: Number(product.price || 0),
-            size: size,
-            image: getImages(product)[0] || FALLBACK_IMG,
-            quantity: 1
-          });
-        }
-      });
+              const size = quickAddSelections.get(id) || "M";
+              window.BULKKOT_CART.addItem({
+                id: product.id,
+                name: product.name,
+                price: Number(product.price || 0),
+                size: size,
+                image: getImages(product),
+                quantity: 1
+              });
+            }
+          }
+        });
+      }
 
-      filterStrip?.addEventListener("click", e => {
-        const btn = e.target.closest(".filter-btn");
-        if (!btn) return;
-        activeCategory = btn.dataset.category || "all";
-        filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b === btn));
-        applyFilters();
-      });
+      if (filterStrip) {
+        filterStrip.addEventListener("click", e => {
+          const btn = e.target.closest(".filter-btn");
+          if (!btn) return;
+          activeCategory = btn.dataset.category || "all";
+          filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b === btn));
+          applyFilters();
+        });
+      }
 
-      searchInput?.addEventListener("input", () => {
-        searchTerm = searchInput.value || "";
-        applyFilters();
-      });
+      if (searchInput) {
+        searchInput.addEventListener("input", () => {
+          searchTerm = searchInput.value || "";
+          applyFilters();
+        });
+      }
 
-      sortSelect?.addEventListener("change", () => {
-        sortMode = sortSelect.value || "featured";
-        applyFilters();
+      if (sortSelect) {
+        sortSelect.addEventListener("change", () => {
+          sortMode = sortSelect.value || "featured";
+          applyFilters();
+        });
+      }
+
+      /* FIX for external search event from main.js throwing ReferenceError */
+      document.addEventListener('bulkkot:search-change', (e) => {
+        try {
+          searchTerm = String(e.detail?.query || '').trim();
+          if(searchInput) searchInput.value = searchTerm;
+          applyFilters(); 
+        } catch(err) {}
       });
 
       async function initializeData() {
-        // INSTANT RENDER: Load Fallback immediately so user never sees a blank screen or hanging skeleton
-        products = [...FALLBACK_PRODUCTS];
-        products.forEach(p => {
-          const available = getAvailableSizes(p);
-          if (available.length) quickAddSelections.set(String(p.id), available[0]);
-        });
-        
-        if (filterStrip) {
-          filterStrip.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.category === activeCategory));
-        }
-        applyFilters(); 
+        try {
+          // Instant Optimistic Load
+          products = [...FALLBACK_PRODUCTS];
+          products.forEach(p => {
+            const available = getAvailableSizes(p);
+            if (available.length) quickAddSelections.set(String(p.id), available[0]);
+          });
+          
+          if (filterStrip) {
+            filterStrip.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.category === activeCategory));
+          }
+          
+          applyFilters();
 
-        // BACKGROUND FETCH: Check Supabase invisibly and swap live products in
-        if (supabaseClient) {
-          try {
+          // Background Supabase Sync
+          if (supabaseClient) {
             const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
             if (!error && Array.isArray(data) && data.length > 0) {
               products = data;
@@ -575,17 +605,16 @@
                 const available = getAvailableSizes(p);
                 if (available.length) quickAddSelections.set(String(p.id), available[0]);
               });
-              applyFilters(); // Re-render with real products seamlessly
+              applyFilters();
             }
-          } catch (err) {
-            console.warn("Using fallback products due to Supabase delay.");
           }
+        } catch (err) {
+          console.warn("Using fallback products due to Supabase delay.");
         }
       }
 
-      // Initialize Immediately
+      // Safe Init
       initializeData();
-
     })();
   </script>
 </body>
