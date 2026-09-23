@@ -31,6 +31,11 @@
       --shop-red: var(--bk-red, #e31b23);
     }
 
+    /* Ye fix hidden elements ko screen pe block karne se rokta hai */
+    [hidden] {
+      display: none !important;
+    }
+
     html, body {
       margin: 0;
       background: var(--shop-bg);
@@ -53,7 +58,7 @@
 
     .shop-header-bar {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) minmax(180px, 260px) auto;
+      grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
       gap: 16px;
       padding: 16px 0;
@@ -109,7 +114,7 @@
       background: #fff; border-color: #fff; color: #000;
     }
 
-    .search-wrap { width: 100%; }
+    .search-wrap { width: 100%; min-width: 140px; }
     .shop-search {
       width: 100%;
       min-height: 38px;
@@ -185,6 +190,21 @@
       letter-spacing: 0.1em;
     }
 
+    .p-sold-out-badge {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+    }
+
     .p-info {
       padding: 14px;
       display: flex;
@@ -243,19 +263,19 @@
     @keyframes shopShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
     @media (max-width: 1100px) {
-      .shop-header-bar { grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) auto; }
+      .shop-header-bar { grid-template-columns: minmax(0, 1fr) auto; }
       .shop-title-area { grid-column: 1 / -1; }
+      .filter-strip { grid-column: 1 / 2; }
       .products-grid, .shop-skeleton-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (max-width: 760px) {
-      .shop-header-bar { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 12px 0; margin-bottom: 18px; }
+      .shop-header-bar { grid-template-columns: 1fr; gap: 10px; padding: 12px 0; margin-bottom: 18px; }
       .shop-title-area { grid-column: 1 / -1; }
-      .filter-strip { grid-column: 1 / -1; grid-row: 2; width: 100%; }
-      .search-wrap { grid-column: 1 / 2; grid-row: 3; }
-      .sort-wrap { grid-column: 2 / 3; grid-row: 3; width: 140px; }
-      .products-grid, .shop-skeleton-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .p-quickadd { display: none; } /* Hide quickadd on mobile to keep cards compact */
+      .filter-strip { grid-column: 1 / -1; }
+      .search-wrap { grid-column: 1 / -1; }
+      .products-grid, .shop-skeleton-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;}
+      .p-quickadd { display: none; }
     }
   </style>
 </head>
@@ -274,7 +294,7 @@
       <div class="header-actions">
         <a href="index.html" class="nav-btn" style="color:#aaa; font-size:11px; font-weight:700; text-decoration:none;">← HOME</a>
         <button type="button" class="header-action cart-action" data-open-cart aria-label="Open cart">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M4 5h2l1.7 11h9.8L20 8H7"></path>
             <circle cx="10" cy="20" r="1"></circle>
             <circle cx="17" cy="20" r="1"></circle>
@@ -286,30 +306,34 @@
   </header>
 
   <main class="shop-container">
-    <section class="shop-header-bar">
+    <section class="shop-header-bar" aria-label="Catalogue controls">
       <div class="shop-title-area">
         <h1>SILHOUETTES</h1>
         <p>LESS NOISE. MORE PRESENCE.</p>
       </div>
 
-      <div class="filter-strip" id="filterStrip">
-        <button type="button" class="filter-btn active" data-category="all">ALL</button>
-        <button type="button" class="filter-btn" data-category="tees">TEES</button>
-        <button type="button" class="filter-btn" data-category="hoodies">HOODIES</button>
-        <button type="button" class="filter-btn" data-category="sweats">SWEATS</button>
+      <div class="filter-strip" id="filterStrip" role="tablist">
+        <button type="button" class="filter-btn active" data-category="all" role="tab">ALL</button>
+        <button type="button" class="filter-btn" data-category="tees" role="tab">TEES</button>
+        <button type="button" class="filter-btn" data-category="hoodies" role="tab">HOODIES</button>
+        <button type="button" class="filter-btn" data-category="sweats" role="tab">SWEATS</button>
       </div>
 
-      <div class="search-wrap">
-        <input id="shopSearch" class="shop-search" type="search" placeholder="SEARCH SILHOUETTES">
-      </div>
-
-      <div class="sort-wrap">
-        <select id="shopSort" class="shop-sort">
-          <option value="featured">FEATURED</option>
-          <option value="newest">NEWEST</option>
-          <option value="price-low">PRICE: LOW → HIGH</option>
-          <option value="price-high">PRICE: HIGH → LOW</option>
-        </select>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <div class="search-wrap">
+          <input id="shopSearch" class="shop-search" type="search" placeholder="SEARCH SILHOUETTES">
+        </div>
+        
+        <button type="button" class="filter-btn" data-size-guide-open style="color:#fff; border-color:#444;">SIZE GUIDE</button>
+        
+        <div class="sort-wrap">
+          <select id="shopSort" class="shop-sort">
+            <option value="featured">FEATURED</option>
+            <option value="newest">NEWEST</option>
+            <option value="price-low">PRICE: LOW → HIGH</option>
+            <option value="price-high">PRICE: HIGH → LOW</option>
+          </select>
+        </div>
       </div>
     </section>
 
@@ -338,6 +362,7 @@
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true"></aside>
 
   <script src="js/cart.js"></script>
+  <script src="js/main.js"></script>
 
   <script>
     (() => {
@@ -352,7 +377,6 @@
         ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
         : null;
 
-      // Ensure products show even if Supabase is disconnected or empty
       const FALLBACK_PRODUCTS = [
         { id: "bk-tee-01", name: "HEAVY ARCHITECTURAL BOXY TEE", category: "tees", korean: "오버사이즈 티셔츠", price: 2499, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" },
         { id: "bk-hood-01", name: "STRUCTURED LOOPBACK HOODIE", category: "hoods", korean: "헤비웨이트 후드", price: 4499, tag: "LIMITED", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" },
@@ -376,12 +400,10 @@
       let sortMode = "featured";
       const quickAddSelections = new Map();
 
-      // Read URL Params
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('category')) activeCategory = urlParams.get('category').toLowerCase();
       if (urlParams.get('q')) { searchTerm = urlParams.get('q').trim(); searchInput.value = searchTerm; }
 
-      // Core State Manager (Fixes the infinite loading skeleton issue)
       function setViewState(state) {
         if (loadingEl) loadingEl.style.display = state === "loading" ? "grid" : "none";
         if (errorEl) errorEl.style.display = state === "error" ? "block" : "none";
@@ -397,7 +419,6 @@
       }
 
       function getStock(p) {
-        // If Supabase doesn't return stock data, assume stock is available so ADD TO BAG works
         if (p?.stock && typeof p.stock === "object" && !Array.isArray(p.stock)) return p.stock;
         return { S: 10, M: 10, L: 10, XL: 10 };
       }
@@ -420,10 +441,16 @@
           if (sortMode === "newest") return Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0);
           if (sortMode === "price-low") return Number(a.price || 0) - Number(b.price || 0);
           if (sortMode === "price-high") return Number(b.price || 0) - Number(a.price || 0);
-          return 0; // featured
+          return 0;
         });
 
         renderProducts();
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[char]);
       }
 
       function renderProducts() {
@@ -447,14 +474,14 @@
             <article class="p-card">
               <a href="product.html?id=${encodeURIComponent(id)}" class="p-card-link">
                 <div class="p-thumb">
-                  <img src="${img}" alt="${name}" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
-                  <span class="p-tag">${tag}</span>
+                  <img src="${img}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
+                  <span class="p-tag">${escapeHtml(tag)}</span>
                   ${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
                 </div>
                 <div class="p-info">
                   <div>
-                    <h3>${name}</h3>
-                    <p class="p-sub">${p.korean || "에센셜"}</p>
+                    <h3>${escapeHtml(name)}</h3>
+                    <p class="p-sub">${escapeHtml(p.korean || "에센셜")}</p>
                   </div>
                   <div class="p-meta">
                     <span class="p-price">${formatPrice(p.price)}</span>
@@ -478,7 +505,6 @@
         setViewState("products");
       }
 
-      // Event Delegation for UI
       productsGrid.addEventListener("click", e => {
         const sizeBtn = e.target.closest(".p-size-chip");
         if (sizeBtn && !sizeBtn.disabled) {
@@ -502,7 +528,7 @@
             name: product.name,
             price: Number(product.price || 0),
             size: size,
-            image: getImages(product),
+            image: getImages(product)[0] || FALLBACK_IMG,
             quantity: 1
           });
         }
@@ -537,9 +563,8 @@
               loadedData = data;
             }
           }
-        } catch (err) { console.warn("Supabase fetch failed, using fallbacks."); }
+        } catch (err) {}
 
-        // If data is empty (no products in Supabase yet) or error, inject Fallback Products
         products = loadedData.length > 0 ? loadedData : FALLBACK_PRODUCTS;
 
         products.forEach(p => {
@@ -547,7 +572,6 @@
           if (available.length) quickAddSelections.set(String(p.id), available[0]);
         });
 
-        // Set initial active state on filter strip based on URL param
         if (filterStrip) {
           filterStrip.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.category === activeCategory));
         }
