@@ -31,7 +31,6 @@
       --shop-red: var(--bk-red, #e31b23);
     }
 
-    /* Ye fix hidden elements ko screen pe block karne se rokta hai */
     [hidden] {
       display: none !important;
     }
@@ -284,8 +283,8 @@
 
   <header class="site-header">
     <div class="header-inner">
-      <a href="index.html" class="brand" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" width="36" height="36" style="width:36px; height:36px;">
+      <a href="index.html" class="brand" aria-label="BULKKOT home" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" width="36" height="36" style="width:36px; height:36px;">
         <span class="brand-name">
           <span class="brand-korean" style="color:var(--bk-red, #e31b23); font-weight:700;">불꽃</span>
           <span class="brand-english" style="color:#fff; font-weight:900;">BULKKOT</span>
@@ -404,6 +403,7 @@
       if (urlParams.get('category')) activeCategory = urlParams.get('category').toLowerCase();
       if (urlParams.get('q')) { searchTerm = urlParams.get('q').trim(); searchInput.value = searchTerm; }
 
+      // Safe state switcher
       function setViewState(state) {
         if (loadingEl) loadingEl.style.display = state === "loading" ? "grid" : "none";
         if (errorEl) errorEl.style.display = state === "error" ? "block" : "none";
@@ -474,7 +474,7 @@
             <article class="p-card">
               <a href="product.html?id=${encodeURIComponent(id)}" class="p-card-link">
                 <div class="p-thumb">
-                  <img src="${img}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
+                  <img src="${escapeHtml(img)}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
                   <span class="p-tag">${escapeHtml(tag)}</span>
                   ${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
                 </div>
@@ -552,18 +552,30 @@
         applyFilters();
       });
 
+      const withTimeout = (promise, ms = 6000) => {
+        let timer;
+        const timeoutPromise = new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error("Request timed out")), ms);
+        });
+        return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+      };
+
       async function initializeData() {
         setViewState("loading");
         
         let loadedData = [];
-        try {
-          if (supabaseClient) {
-            const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
+        if (supabaseClient) {
+          try {
+            const { data, error } = await withTimeout(
+              supabaseClient.from("products").select("*").order("created_at", { ascending: false })
+            );
             if (!error && Array.isArray(data) && data.length > 0) {
               loadedData = data;
             }
+          } catch (err) {
+            console.warn("Supabase fetch failed or timed out, using fallbacks.");
           }
-        } catch (err) {}
+        }
 
         products = loadedData.length > 0 ? loadedData : FALLBACK_PRODUCTS;
 
