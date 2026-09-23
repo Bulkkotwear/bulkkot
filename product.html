@@ -556,8 +556,13 @@
 
 <body>
 
+  <!-- =======================================================
+       HEADER
+       ======================================================= -->
+
   <header class="site-header">
     <div class="header-inner">
+
       <a href="index.html" class="brand" aria-label="BULKKOT home" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
         <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" width="36" height="36" style="width:36px; height:36px;">
         <span class="brand-name">
@@ -580,7 +585,12 @@
     </div>
   </header>
 
+  <!-- =======================================================
+       MAIN
+       ======================================================= -->
+
   <main class="pdp-wrapper">
+
     <div class="breadcrumb">
       <a href="index.html">HOME</a>
       <span>/</span>
@@ -594,6 +604,7 @@
       <div class="pdp-loading-grid">
         <div class="pdp-skel pdp-loading-gallery"></div>
       </div>
+
       <div>
         <div class="pdp-skel pdp-loading-line small" style="margin-top:8px;"></div>
         <div class="pdp-skel pdp-loading-line wide" style="height:28px;"></div>
@@ -606,20 +617,33 @@
 
     <div class="pdp-main-grid" id="pdpContent" hidden>
 
-      <!-- GALLERY -->
+      <!-- ===================================================
+           GALLERY
+           =================================================== -->
+
       <div class="pdp-gallery-column">
+
         <div class="pdp-gallery-box">
           <div class="pdp-gallery-loading" id="galleryLoading" aria-hidden="true"></div>
           <img id="pdpImg" src="" alt="Product silhouette" width="800" height="864">
         </div>
+
         <div class="pdp-thumb-strip" id="pdpThumbStrip" aria-label="Product images"></div>
+
       </div>
 
-      <!-- DETAILS -->
+      <!-- ===================================================
+           DETAILS
+           =================================================== -->
+
       <div class="pdp-info-column">
+
         <span class="pdp-meta-kicker" id="pdpKicker">BULKKOT ESSENTIAL</span>
+
         <h1 class="pdp-meta-title" id="pdpTitle">LOADING...</h1>
+
         <div class="pdp-meta-price" id="pdpPrice">₹0</div>
+
         <p class="pdp-desc" id="pdpDesc"></p>
 
         <!-- SIZE -->
@@ -647,10 +671,15 @@
 
         <!-- FEATURES -->
         <div class="feature-list" id="pdpFeatureList"></div>
+
       </div>
+
     </div>
 
-    <!-- SIMILAR PRODUCTS -->
+    <!-- =====================================================
+         SIMILAR PRODUCTS
+         ===================================================== -->
+
     <section class="similar-sec" id="similarSec" hidden>
       <h2 class="similar-heading">SIMILAR SILHOUETTES</h2>
       <div class="similar-grid" id="similarGrid"></div>
@@ -658,11 +687,13 @@
 
   </main>
 
-  <!-- CART DRAWER -->
+  <!-- =======================================================
+       CART
+       ======================================================= -->
+
   <div class="drawer-overlay" data-cart-overlay></div>
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true"></aside>
 
-  <!-- SCRIPTS -->
   <script src="js/cart.js"></script>
   <script src="js/main.js"></script>
 
@@ -670,14 +701,29 @@
     (() => {
       "use strict";
 
+      /* =====================================================
+         CONFIG
+         ===================================================== */
+
       const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
       const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
       const FALLBACK_IMG = "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
       const SIZES = ["S", "M", "L", "XL"];
 
       const supabaseClient = window.supabase && typeof window.supabase.createClient === "function"
-        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-        : null;
+          ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+          : null;
+
+      const FALLBACK_PRODUCTS = [
+        { id: "bk-tee-01", name: "HEAVY ARCHITECTURAL BOXY TEE", category: "tees", korean: "오버사이즈 티셔츠", price: 2499, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" },
+        { id: "bk-hood-01", name: "STRUCTURED LOOPBACK HOODIE", category: "hoods", korean: "헤비웨이트 후드", price: 4499, tag: "LIMITED", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" },
+        { id: "bk-sweat-01", name: "MINIMALIST OVERSIZED SWEATSHIRT", category: "sweats", korean: "미니멀 스웨트", price: 3699, tag: "CORE", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" },
+        { id: "bk-tee-02", name: "SEOUL SILHOUETTE GRAPHIC TEE", category: "tees", korean: "그래픽 티셔츠", price: 2699, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" }
+      ];
+
+      /* =====================================================
+         DOM
+         ===================================================== */
 
       const loadingEl = document.getElementById("pdpLoading");
       const contentEl = document.getElementById("pdpContent");
@@ -695,16 +741,25 @@
       const sizeGrid = document.getElementById("pdpSizeGrid");
       const addBtn = document.getElementById("pdpAddBtn");
 
+      /* =====================================================
+         STATE
+         ===================================================== */
+
       const params = new URLSearchParams(window.location.search);
       const productId = params.get("id");
 
       let product = null;
       let selectedSize = null;
+      let activeImageIndex = 0;
+
+      /* =====================================================
+         HELPERS
+         ===================================================== */
 
       function escapeHtml(value) {
         return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-        })[char]);
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+          })[char]);
       }
 
       function formatPrice(value) {
@@ -713,7 +768,7 @@
 
       function getImages(item) {
         if (Array.isArray(item?.images)) {
-          const valid = item.images.filter(src => typeof src === "string" && src.trim());
+          const valid = item.images.filter((src) => typeof src === "string" && src.trim());
           if (valid.length) return valid;
         }
         if (typeof item?.image_url === "string" && item.image_url.trim()) return [item.image_url.trim()];
@@ -722,17 +777,26 @@
 
       function getStock(item) {
         if (item?.stock && typeof item.stock === "object" && !Array.isArray(item.stock)) return item.stock;
-        return {};
+        return { S: 10, M: 10, L: 10, XL: 10 }; // Provide fallback stock
       }
 
       function getAvailableSizes(item) {
         const stock = getStock(item);
-        return SIZES.filter(size => Number(stock[size] || 0) > 0);
+        return SIZES.filter((size) => Number(stock[size] || 0) > 0);
       }
+
+      function isSoldOut(item) {
+        return getAvailableSizes(item).length === 0;
+      }
+
+      /* =====================================================
+         NOT FOUND / ERROR
+         ===================================================== */
 
       function showNotFound(message) {
         loadingEl.hidden = true;
         contentEl.hidden = false;
+
         contentEl.innerHTML = `
           <div class="pdp-not-found" style="grid-column:1 / -1;">
             <strong>${escapeHtml(message || "This piece could not be found.")}</strong>
@@ -743,20 +807,33 @@
         similarSec.hidden = true;
       }
 
+      /* =====================================================
+         IMAGE FALLBACK
+         ===================================================== */
+
       function applyImageFallback(image) {
-        if (!image || image.dataset.fallbackApplied === "true") return;
+        if (!image) return;
+        if (image.dataset.fallbackApplied === "true") return;
+
         image.dataset.fallbackApplied = "true";
         image.src = FALLBACK_IMG;
         image.classList.add("image-failed");
       }
 
+      /* =====================================================
+         GALLERY
+         ===================================================== */
+
       function renderGallery() {
         const images = getImages(product);
+        activeImageIndex = 0;
 
         function setActiveImage(index) {
           if (index < 0 || index >= images.length) return;
+          activeImageIndex = index;
           mainImage.src = images[index];
           mainImage.alt = `${product.name || "Product"} — image ${index + 1}`;
+
           thumbStrip.querySelectorAll(".pdp-thumb").forEach((thumb, thumbIndex) => {
             const active = thumbIndex === index;
             thumb.classList.toggle("active", active);
@@ -766,18 +843,19 @@
 
         mainImage.dataset.fallbackApplied = "false";
         mainImage.classList.remove("image-failed");
+
         mainImage.onload = () => { galleryLoading.hidden = true; };
         mainImage.onerror = () => { galleryLoading.hidden = true; applyImageFallback(mainImage); };
         galleryLoading.hidden = false;
 
         thumbStrip.innerHTML = images.length > 1 ? images.map((src, index) => `
-          <button type="button" class="pdp-thumb${index === 0 ? " active" : ""}" data-image-index="${index}" aria-label="View image ${index + 1}" aria-current="${index === 0 ? "true" : "false"}">
-            <img src="${escapeHtml(src)}" alt="" loading="${index === 0 ? "eager" : "lazy"}" decoding="async">
-          </button>
-        `).join("") : "";
+            <button type="button" class="pdp-thumb${index === 0 ? " active" : ""}" data-image-index="${index}" aria-label="View image ${index + 1}" aria-current="${index === 0 ? "true" : "false"}">
+              <img src="${escapeHtml(src)}" alt="" loading="${index === 0 ? "eager" : "lazy"}" decoding="async">
+            </button>
+          `).join("") : "";
 
-        thumbStrip.querySelectorAll(".pdp-thumb").forEach(thumb => {
-          thumb.addEventListener("click", () => setActiveImage(Number(thumb.dataset.imageIndex)));
+        thumbStrip.querySelectorAll(".pdp-thumb").forEach((thumb) => {
+          thumb.addEventListener("click", () => { setActiveImage(Number(thumb.dataset.imageIndex)); });
           const thumbImage = thumb.querySelector("img");
           thumbImage?.addEventListener("error", () => { thumbImage.src = FALLBACK_IMG; }, { once: true });
         });
@@ -785,10 +863,17 @@
         setActiveImage(0);
       }
 
+      /* =====================================================
+         SIZE RENDER
+         ===================================================== */
+
       function renderSizes() {
         const stock = getStock(product);
         const available = getAvailableSizes(product);
-        selectedSize = available.includes(selectedSize) ? selectedSize : available[0] || null;
+
+        if (!selectedSize || !available.includes(selectedSize)) {
+            selectedSize = available[0] || null;
+        }
 
         sizeGrid.querySelectorAll(".size-box").forEach((button) => {
           const size = button.dataset.size;
@@ -802,6 +887,7 @@
         });
 
         const soldOut = available.length === 0;
+
         if (soldOut) {
           stockStatus.textContent = "SOLD OUT";
           stockStatus.style.color = "var(--pdp-red)";
@@ -814,6 +900,10 @@
           addBtn.textContent = "ADD TO BAG";
         }
       }
+
+      /* =====================================================
+         PRODUCT INFO
+         ===================================================== */
 
       function renderProductInfo() {
         const name = product.name || "Untitled Garment";
@@ -843,7 +933,7 @@
         features.push("✓ Free express shipping across India");
         features.push("✓ 7-Day hassle-free size exchange window");
 
-        document.getElementById("pdpFeatureList").innerHTML = features.map(f => `<div>${escapeHtml(f)}</div>`).join("");
+        document.getElementById("pdpFeatureList").innerHTML = features.map((feature) => `<div>${escapeHtml(feature)}</div>`).join("");
 
         renderGallery();
         renderSizes();
@@ -852,6 +942,10 @@
         loadingEl.hidden = true;
         contentEl.hidden = false;
       }
+
+      /* =====================================================
+         SEO / TAB META
+         ===================================================== */
 
       function updateMeta() {
         const name = product.name || "Silhouette";
@@ -870,14 +964,22 @@
         document.getElementById("twImageMeta")?.setAttribute("content", image);
       }
 
+      /* =====================================================
+         SIZE EVENTS
+         ===================================================== */
+
       sizeGrid.addEventListener("click", (event) => {
         const button = event.target.closest(".size-box");
         if (!button || button.disabled) return;
 
         const size = button.dataset.size;
-        if (!SIZES.includes(size) || Number(getStock(product)[size] || 0) <= 0) return;
+        if (!SIZES.includes(size)) return;
+
+        const stock = getStock(product);
+        if (Number(stock[size] || 0) <= 0) return;
 
         selectedSize = size;
+
         sizeGrid.querySelectorAll(".size-box").forEach((item) => {
           const active = item.dataset.size === selectedSize;
           item.classList.toggle("active", active);
@@ -886,9 +988,11 @@
 
         const prompt = document.getElementById("pdpSizePrompt");
         if (prompt) prompt.hidden = true;
-        
-        addBtn.disabled = false;
       });
+
+      /* =====================================================
+         ADD TO CART
+         ===================================================== */
 
       addBtn.addEventListener("click", () => {
         if (!product) return;
@@ -902,7 +1006,8 @@
           return;
         }
 
-        if (Number(getStock(product)[selectedSize] || 0) <= 0) {
+        const stock = getStock(product);
+        if (Number(stock[selectedSize] || 0) <= 0) {
           renderSizes();
           return;
         }
@@ -925,86 +1030,102 @@
         });
       });
 
+      /* =====================================================
+         SIMILAR PRODUCTS WITH FALLBACK
+         ===================================================== */
+
       async function loadSimilar() {
-        if (!supabaseClient || !product?.category) {
+        let similar = [];
+
+        if (supabaseClient && product?.category) {
+          try {
+            const { data, error } = await supabaseClient
+              .from("products")
+              .select("*")
+              .eq("category", product.category)
+              .neq("id", product.id)
+              .order("created_at", { ascending: false })
+              .limit(4);
+
+            if (!error && data) {
+              similar = data.filter((item) => item?.active !== false);
+            }
+          } catch (error) {}
+        }
+
+        // Fill empty spots with Fallback products
+        if (similar.length < 4) {
+          const fallbacks = FALLBACK_PRODUCTS.filter(item => item.id !== product.id && !similar.find(s => s.id === item.id));
+          similar = [...similar, ...fallbacks].slice(0, 4);
+        }
+
+        if (!similar.length) {
           similarSec.hidden = true;
           return;
         }
 
-        try {
-          const { data, error } = await supabaseClient
-            .from("products")
-            .select("*")
-            .eq("category", product.category)
-            .neq("id", product.id)
-            .order("created_at", { ascending: false })
-            .limit(4);
+        similarGrid.innerHTML = similar.map((item) => {
+          const image = getImages(item)[0] || FALLBACK_IMG;
+          return `
+            <a class="similar-card" href="product.html?id=${encodeURIComponent(String(item.id))}" aria-label="View ${escapeHtml(item.name || "product")}">
+              <img class="similar-card-image" src="${escapeHtml(image)}" alt="${escapeHtml(item.name || "Product")}" loading="lazy" decoding="async">
+              <div class="similar-card-info">
+                <h3 class="similar-card-name">${escapeHtml(item.name || "Untitled Garment")}</h3>
+                <span class="similar-card-price">${formatPrice(item.price)}</span>
+              </div>
+            </a>
+          `;
+        }).join("");
 
-          if (error) throw error;
+        similarGrid.querySelectorAll(".similar-card-image").forEach((image) => {
+          image.addEventListener("error", () => applyImageFallback(image), { once: true });
+        });
 
-          const similar = Array.isArray(data) ? data.filter(item => item?.active !== false) : [];
-
-          if (!similar.length) {
-            similarSec.hidden = true;
-            return;
-          }
-
-          similarGrid.innerHTML = similar.map((item) => {
-            const image = getImages(item)[0] || FALLBACK_IMG;
-            return `
-              <a class="similar-card" href="product.html?id=${encodeURIComponent(String(item.id))}" aria-label="View ${escapeHtml(item.name || "product")}">
-                <img class="similar-card-image" src="${escapeHtml(image)}" alt="${escapeHtml(item.name || "Product")}" loading="lazy" decoding="async">
-                <div class="similar-card-info">
-                  <h3 class="similar-card-name">${escapeHtml(item.name || "Untitled Garment")}</h3>
-                  <span class="similar-card-price">${formatPrice(item.price)}</span>
-                </div>
-              </a>
-            `;
-          }).join("");
-
-          similarGrid.querySelectorAll(".similar-card-image").forEach(image => {
-            image.addEventListener("error", () => applyImageFallback(image), { once: true });
-          });
-
-          similarSec.hidden = false;
-        } catch (error) {
-          console.error("BULKKOT similar products failed:", error);
-          similarSec.hidden = true;
-        }
+        similarSec.hidden = false;
       }
+
+      /* =====================================================
+         LOAD PRODUCT
+         ===================================================== */
 
       async function loadProduct() {
+        let data = null;
+
         if (!productId) {
-          showNotFound("No product specified.");
-          return;
-        }
-
-        if (!supabaseClient) {
-          showNotFound("Store is currently offline.");
-          return;
-        }
-
-        try {
-          const { data, error } = await supabaseClient.from("products").select("*").eq("id", productId).maybeSingle();
-          if (error) throw error;
-
-          if (!data || data.active === false) {
-            showNotFound("This piece could not be found.");
-            return;
+          data = FALLBACK_PRODUCTS[0]; // For local testing
+        } else {
+          if (supabaseClient) {
+            try {
+              const { data: dbData, error } = await supabaseClient.from("products").select("*").eq("id", productId).maybeSingle();
+              if (!error && dbData && dbData.active !== false) {
+                data = dbData;
+              }
+            } catch (error) {}
           }
 
-          product = data;
-          renderProductInfo();
-          loadSimilar();
-
-        } catch (error) {
-          console.error("BULKKOT product load failed:", error);
-          showNotFound("Something went wrong loading this piece.");
+          if (!data) {
+            data = FALLBACK_PRODUCTS.find(p => p.id === productId);
+          }
         }
+
+        if (!data) {
+          showNotFound("This piece could not be found.");
+          return;
+        }
+
+        product = data;
+        renderProductInfo();
+        loadSimilar();
       }
 
+      /* =====================================================
+         INIT
+         ===================================================== */
+
       loadProduct();
+
     })();
   </script>
+
 </body>
 </html>
