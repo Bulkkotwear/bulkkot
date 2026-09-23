@@ -273,7 +273,13 @@
       letter-spacing: 0.08em;
       transition: color 0.2s ease;
     }
-    .size-guide-btn:hover { color: #fff; }
+    .size-guide-btn:hover { color: var(--pdp-red); }
+
+    /* SIZE GUIDE MODAL CSS */
+    .sg-modal { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .sg-modal.is-open { opacity: 1; pointer-events: auto; }
+    .sg-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.8); cursor: pointer; }
+    .sg-content { position: relative; background: #111; border: 1px solid #333; padding: 24px; border-radius: 6px; width: 90%; max-width: 400px; z-index: 10; }
 
     .size-grid {
       display: grid;
@@ -565,6 +571,7 @@
 
       <a href="index.html" class="brand" aria-label="BULKKOT home" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
         <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" width="36" height="36" style="width:36px; height:36px;">
+
         <span class="brand-name">
           <span class="brand-korean" style="color:var(--bk-red, #e31b23); font-weight:700;">불꽃</span>
           <span class="brand-english" style="color:#fff; font-weight:900;">BULKKOT</span>
@@ -573,12 +580,14 @@
 
       <div class="header-actions">
         <a href="shop.html" class="nav-btn" style="color:#aaa; font-size:11px; font-weight:700; text-decoration:none;">← BACK TO CATALOG</a>
+
         <button type="button" class="header-action cart-action" data-open-cart aria-label="Open cart">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M4 5h2l1.7 11h9.8L20 8H7"></path>
             <circle cx="10" cy="20" r="1"></circle>
             <circle cx="17" cy="20" r="1"></circle>
           </svg>
+
           <span class="cart-count" data-cart-count hidden>0</span>
         </button>
       </div>
@@ -622,14 +631,11 @@
            =================================================== -->
 
       <div class="pdp-gallery-column">
-
         <div class="pdp-gallery-box">
           <div class="pdp-gallery-loading" id="galleryLoading" aria-hidden="true"></div>
           <img id="pdpImg" src="" alt="Product silhouette" width="800" height="864">
         </div>
-
         <div class="pdp-thumb-strip" id="pdpThumbStrip" aria-label="Product images"></div>
-
       </div>
 
       <!-- ===================================================
@@ -637,22 +643,18 @@
            =================================================== -->
 
       <div class="pdp-info-column">
-
         <span class="pdp-meta-kicker" id="pdpKicker">BULKKOT ESSENTIAL</span>
-
         <h1 class="pdp-meta-title" id="pdpTitle">LOADING...</h1>
-
         <div class="pdp-meta-price" id="pdpPrice">₹0</div>
-
         <p class="pdp-desc" id="pdpDesc"></p>
 
         <!-- SIZE -->
         <div class="opt-label">
+          <span>SELECT SIZE (UK/INDIA)</span>
           <div style="display:flex; align-items:center; gap:12px;">
-            <span>SELECT SIZE (UK/INDIA)</span>
             <button type="button" data-size-guide-open class="size-guide-btn">SIZE GUIDE</button>
+            <span id="pdpStockStatus" style="color:var(--pdp-green);">IN STOCK</span>
           </div>
-          <span id="pdpStockStatus" style="color:var(--pdp-green);">IN STOCK</span>
         </div>
 
         <div class="size-grid" id="pdpSizeGrid" role="group" aria-label="Select product size">
@@ -688,11 +690,30 @@
   </main>
 
   <!-- =======================================================
-       CART
+       CART & MODALS
        ======================================================= -->
 
   <div class="drawer-overlay" data-cart-overlay></div>
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true"></aside>
+
+  <!-- SIZE GUIDE MODAL -->
+  <div class="sg-modal" data-size-guide-modal aria-hidden="true">
+    <div class="sg-backdrop" data-size-guide-close></div>
+    <div class="sg-content">
+      <button type="button" data-size-guide-close style="position:absolute; right:15px; top:15px; background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">&times;</button>
+      <h2 style="margin:0 0 15px; font-size:16px; color:#fff; letter-spacing:0.08em;">SIZE GUIDE</h2>
+      <div style="color:#aaa; font-size:11px; line-height:1.6;">
+        <p style="margin-top:0;">Oversized fit. Go true to size for the intended baggy look, or size down for a regular fit.</p>
+        <table style="width:100%; text-align:left; border-collapse:collapse; margin-top:15px; font-size:10px;">
+          <tr style="border-bottom:1px solid #333;"><th style="padding:8px 0; color:#fff;">SIZE</th><th>CHEST (IN)</th><th>LENGTH (IN)</th></tr>
+          <tr style="border-bottom:1px solid #333;"><td style="padding:8px 0; color:#fff;">S</td><td>40"</td><td>27"</td></tr>
+          <tr style="border-bottom:1px solid #333;"><td style="padding:8px 0; color:#fff;">M</td><td>42"</td><td>28"</td></tr>
+          <tr style="border-bottom:1px solid #333;"><td style="padding:8px 0; color:#fff;">L</td><td>44"</td><td>29"</td></tr>
+          <tr><td style="padding:8px 0; color:#fff;">XL</td><td>46"</td><td>30"</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <script src="js/cart.js"></script>
   <script src="js/main.js"></script>
@@ -713,13 +734,6 @@
       const supabaseClient = window.supabase && typeof window.supabase.createClient === "function"
           ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
           : null;
-
-      const FALLBACK_PRODUCTS = [
-        { id: "bk-tee-01", name: "HEAVY ARCHITECTURAL BOXY TEE", category: "tees", korean: "오버사이즈 티셔츠", price: 2499, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" },
-        { id: "bk-hood-01", name: "STRUCTURED LOOPBACK HOODIE", category: "hoods", korean: "헤비웨이트 후드", price: 4499, tag: "LIMITED", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" },
-        { id: "bk-sweat-01", name: "MINIMALIST OVERSIZED SWEATSHIRT", category: "sweats", korean: "미니멀 스웨트", price: 3699, tag: "CORE", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" },
-        { id: "bk-tee-02", name: "SEOUL SILHOUETTE GRAPHIC TEE", category: "tees", korean: "그래픽 티셔츠", price: 2699, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" }
-      ];
 
       /* =====================================================
          DOM
@@ -777,16 +791,12 @@
 
       function getStock(item) {
         if (item?.stock && typeof item.stock === "object" && !Array.isArray(item.stock)) return item.stock;
-        return { S: 10, M: 10, L: 10, XL: 10 }; // Provide fallback stock
+        return {};
       }
 
       function getAvailableSizes(item) {
         const stock = getStock(item);
         return SIZES.filter((size) => Number(stock[size] || 0) > 0);
-      }
-
-      function isSoldOut(item) {
-        return getAvailableSizes(item).length === 0;
       }
 
       /* =====================================================
@@ -965,7 +975,7 @@
       }
 
       /* =====================================================
-         SIZE EVENTS
+         SIZE EVENTS & MODAL LOGIC
          ===================================================== */
 
       sizeGrid.addEventListener("click", (event) => {
@@ -988,6 +998,22 @@
 
         const prompt = document.getElementById("pdpSizePrompt");
         if (prompt) prompt.hidden = true;
+        
+        addBtn.disabled = false;
+      });
+
+      // Size Guide Modal JS
+      const sizeModal = document.querySelector('[data-size-guide-modal]');
+      const sizeGuideBtn = document.querySelector('[data-size-guide-open]');
+      if (sizeGuideBtn && sizeModal) {
+        sizeGuideBtn.addEventListener('click', () => {
+          sizeModal.classList.add('is-open');
+        });
+      }
+      document.querySelectorAll('[data-size-guide-close]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (sizeModal) sizeModal.classList.remove('is-open');
+        });
       });
 
       /* =====================================================
@@ -1031,7 +1057,7 @@
       });
 
       /* =====================================================
-         SIMILAR PRODUCTS WITH FALLBACK
+         SIMILAR PRODUCTS (NO FALLBACKS)
          ===================================================== */
 
       async function loadSimilar() {
@@ -1053,17 +1079,15 @@
           } catch (error) {}
         }
 
-        // Fill empty spots with Fallback products
-        if (similar.length < 4) {
-          const fallbacks = FALLBACK_PRODUCTS.filter(item => item.id !== product.id && !similar.find(s => s.id === item.id));
-          similar = [...similar, ...fallbacks].slice(0, 4);
-        }
+        similarSec.hidden = false;
 
         if (!similar.length) {
-          similarSec.hidden = true;
+          similarGrid.style.display = "block"; // Override grid for text message
+          similarGrid.innerHTML = '<p style="color:#777; font-size:11px; margin:0; text-align:center;">NO SIMILAR SILHOUETTES FOUND.</p>';
           return;
         }
 
+        similarGrid.style.display = ""; // Reset grid display
         similarGrid.innerHTML = similar.map((item) => {
           const image = getImages(item)[0] || FALLBACK_IMG;
           return `
@@ -1080,8 +1104,6 @@
         similarGrid.querySelectorAll(".similar-card-image").forEach((image) => {
           image.addEventListener("error", () => applyImageFallback(image), { once: true });
         });
-
-        similarSec.hidden = false;
       }
 
       /* =====================================================
@@ -1089,33 +1111,32 @@
          ===================================================== */
 
       async function loadProduct() {
-        let data = null;
-
         if (!productId) {
-          data = FALLBACK_PRODUCTS[0]; // For local testing
-        } else {
-          if (supabaseClient) {
-            try {
-              const { data: dbData, error } = await supabaseClient.from("products").select("*").eq("id", productId).maybeSingle();
-              if (!error && dbData && dbData.active !== false) {
-                data = dbData;
-              }
-            } catch (error) {}
-          }
-
-          if (!data) {
-            data = FALLBACK_PRODUCTS.find(p => p.id === productId);
-          }
-        }
-
-        if (!data) {
-          showNotFound("This piece could not be found.");
+          showNotFound("No product specified.");
           return;
         }
 
-        product = data;
-        renderProductInfo();
-        loadSimilar();
+        if (!supabaseClient) {
+          showNotFound("Store is currently offline.");
+          return;
+        }
+
+        try {
+          const { data, error } = await supabaseClient.from("products").select("*").eq("id", productId).maybeSingle();
+          
+          if (error || !data || data.active === false) {
+            showNotFound("This piece could not be found.");
+            return;
+          }
+
+          product = data;
+          renderProductInfo();
+          loadSimilar();
+
+        } catch (error) {
+          console.error("BULKKOT product load failed:", error);
+          showNotFound("Something went wrong loading this piece.");
+        }
       }
 
       /* =====================================================
