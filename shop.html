@@ -45,6 +45,11 @@
       --shop-red: var(--bk-red, #e31b23);
     }
 
+    /* FIX: Force browser to respect the 'hidden' attribute over display:grid */
+    [hidden] {
+      display: none !important;
+    }
+
     html {
       overflow-x: clip;
       background: var(--shop-bg);
@@ -752,7 +757,7 @@
       }
 
       function formatPrice(value) {
-        return `₹${Number(value || 0).toLocaleString("en-IN")}`;
+        return \`₹\${Number(value || 0).toLocaleString("en-IN")}\`;
       }
 
       function getImages(product) {
@@ -806,7 +811,7 @@
 
       function renderProducts() {
         if (!filteredProducts.length) {
-          if (emptyTextEl) emptyTextEl.textContent = searchTerm ? `No silhouettes match "${searchTerm}".` : "Try another category or clear your filters.";
+          if (emptyTextEl) emptyTextEl.textContent = searchTerm ? \`No silhouettes match "\${searchTerm}".\` : "Try another category or clear your filters.";
           setState("empty");
           productsGrid.innerHTML = "";
           return;
@@ -820,41 +825,41 @@
           const soldOut = available.length === 0;
           const selected = quickAddSelections.get(id) || available[0] || null;
 
-          return `
+          return \`
             <article class="p-card">
-              <a href="product.html?id=${encodeURIComponent(id)}" class="p-card-link">
-                <div class="p-thumb${soldOut ? " is-sold-out" : ""}">
-                  <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async">
-                  <span class="p-tag">${escapeHtml(String(product?.category || "ESSENTIAL").toUpperCase())}</span>
-                  ${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
+              <a href="product.html?id=\${encodeURIComponent(id)}" class="p-card-link">
+                <div class="p-thumb\${soldOut ? " is-sold-out" : ""}">
+                  <img src="\${escapeHtml(image)}" alt="\${escapeHtml(name)}" loading="lazy" decoding="async">
+                  <span class="p-tag">\${escapeHtml(String(product?.category || "ESSENTIAL").toUpperCase())}</span>
+                  \${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
                 </div>
                 <div class="p-info">
                   <div class="p-copy">
-                    <h3>${escapeHtml(name)}</h3>
-                    <p class="p-sub">${escapeHtml(product?.fit || product?.fabric || "")}</p>
+                    <h3>\${escapeHtml(name)}</h3>
+                    <p class="p-sub">\${escapeHtml(product?.fit || product?.fabric || "")}</p>
                   </div>
                   <div class="p-meta">
-                    <span class="p-price">${formatPrice(product?.price)}</span>
+                    <span class="p-price">\${formatPrice(product?.price)}</span>
                     <span class="p-btn-view">VIEW PIECE</span>
                   </div>
                 </div>
               </a>
-              <div class="p-quickadd" data-quickadd-id="${encodeURIComponent(id)}">
-                ${SIZES.map((size) => {
+              <div class="p-quickadd" data-quickadd-id="\${encodeURIComponent(id)}">
+                \${SIZES.map((size) => {
                   const inStock = Number(getStock(product)[size] || 0) > 0;
                   const isActive = selected === size;
-                  return `
-                    <button type="button" class="p-size-chip${isActive ? " active" : ""}" data-size="${size}" ${!inStock ? "disabled" : ""}>
-                      ${size}
+                  return \`
+                    <button type="button" class="p-size-chip\${isActive ? " active" : ""}" data-size="\${size}" \${!inStock ? "disabled" : ""}>
+                      \${size}
                     </button>
-                  `;
+                  \`;
                 }).join("")}
-                <button type="button" class="p-quickadd-btn" data-quick-add ${soldOut ? "disabled" : ""}>
-                  ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
+                <button type="button" class="p-quickadd-btn" data-quick-add \${soldOut ? "disabled" : ""}>
+                  \${soldOut ? "SOLD OUT" : "ADD TO BAG"}
                 </button>
               </div>
             </article>
-          `;
+          \`;
         }).join("");
 
         setState("products");
