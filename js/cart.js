@@ -1,612 +1,626 @@
 /**
- * BULKKOT (불꽃) — E-COMMERCE CART & CHECKOUT ENGINE
- * Production Hardened / Identity Bound
+ * BULKKOT — Luxury Cart Engine
+ * Version: 7.2 (No-Refresh Payment Switch, WhatsApp Notification Popup, Fix Order Bug)
  */
-(() => {
-  "use strict";
+(function () {
+  'use strict';
+
+  const STORAGE_KEY = 'bulkkot_cart';
+  let cart = [];
+  let appliedCoupon = null;
+  let storeSettings = { shipping_fee: 0, free_shipping_threshold: 0, support_phone: '919876543210' };
+  let currentStep = 'bag'; // 'bag' or 'checkout'
+  let selectedPayment = 'online'; // 'online' or 'cod'
 
   const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-  const CART_STORAGE_KEY = "bulk_kot_cart_v2";
-  const COUPON_STORAGE_KEY = "bulk_kot_coupon_v2";
-  const FALLBACK_IMAGE = "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
-  const MAX_QTY = 99;
 
-  const supabaseClient = window.supabase && typeof window.supabase.createClient === "function"
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+  function getSupabase() {
+    if (window.bulkkotSupabase) return window.bulkkotSupabase;
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      window.bulkkotSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return window.bulkkotSupabase;
+    }
+    return null;
+  }
 
-  let cart = [];
-  let appliedCoupon = null;
-  let isSubmittingOrder = false;
+  function formatPrice(amount) {
+    return '₹' + Number(amount || 0).toLocaleString('en-IN');
+  }
+
+  function escapeHTML(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
   function loadCart() {
     try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
-      cart = stored ? JSON.parse(stored) : [];
+      const data = localStorage.getItem(STORAGE_KEY);
+      cart = data ? JSON.parse(data) : [];
       if (!Array.isArray(cart)) cart = [];
-    } catch {
+    } catch (e) {
       cart = [];
     }
-    try {
-      const storedCoupon = localStorage.getItem(COUPON_STORAGE_KEY);
-      appliedCoupon = storedCoupon ? JSON.parse(storedCoupon) : null;
-    } catch {
-      appliedCoupon = null;
-    }
+    updateCartBadge();
   }
 
   function saveCart() {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-    if (appliedCoupon) {
-      localStorage.setItem(COUPON_STORAGE_KEY, JSON.stringify(appliedCoupon));
-    } else {
-      localStorage.removeItem(COUPON_STORAGE_KEY);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    } catch (e) {
+      console.error('Failed to save cart', e);
     }
-    updateCartUI();
+    updateCartBadge();
   }
 
-  function formatINR(val) {
-    return `₹${Number(val || 0).toLocaleString("en-IN")}`;
+  function updateCartBadge() {
+    const totalCount = cart.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+    const badges = document.querySelectorAll('[data-cart-count]');
+    badges.forEach((badge) => {
+      badge.textContent = totalCount;
+      badge.hidden = totalCount === 0;
+    });
   }
 
-  function escapeHTML(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+  async function fetchSettings() {
+    const client = getSupabase();
+    if (!client) return;
+    try {
+      const { data } = await client.from('store_settings').select('*').eq('id', 1).maybeSingle();
+      if (data) storeSettings = Object.assign(storeSettings, data);
+    } catch (e) {}
   }
 
-  function getCartSubtotal() {
-    return cart.reduce((acc, item) => acc + (Number(item.price || 0) * (item.quantity || 1)), 0);
-  }
+  function addItem(item) {
+    loadCart();
+    const existingIndex = cart.findIndex(
+      (i) => String(i.id) === String(item.id) && i.size === item.size
+    );
 
-  function getCartDiscount() {
-    const subtotal = getCartSubtotal();
-    if (!appliedCoupon || subtotal <= 0) return 0;
-    if (appliedCoupon.type === "percent") {
-      return Math.round((subtotal * appliedCoupon.value) / 100);
-    }
-    return Math.min(subtotal, appliedCoupon.value || 0);
-  }
-
-  function getCartTotal() {
-    return Math.max(0, getCartSubtotal() - getCartDiscount());
-  }
-
-  function addItem(product) {
-    if (!product || !product.id || !product.size) return;
-    const existing = cart.find(i => String(i.id) === String(product.id) && String(i.size) === String(product.size));
-    if (existing) {
-      existing.quantity = Math.min(MAX_QTY, (existing.quantity || 1) + (product.quantity || 1));
+    if (existingIndex > -1) {
+      cart[existingIndex].quantity += Number(item.quantity || 1);
     } else {
       cart.push({
-        id: String(product.id),
-        name: product.name || "Garment",
-        price: Number(product.price || 0),
-        size: String(product.size),
-        image: product.image || FALLBACK_IMAGE,
-        quantity: Math.min(MAX_QTY, Math.max(1, product.quantity || 1))
+        id: item.id,
+        name: item.name,
+        price: Number(item.price || 0),
+        size: item.size || 'M',
+        image: item.image || '',
+        quantity: Number(item.quantity || 1)
       });
     }
+
     saveCart();
+    currentStep = 'bag';
+    renderCart();
     openCart();
   }
 
-  function removeItem(id, size) {
-    cart = cart.filter(i => !(String(i.id) === String(id) && String(i.size) === String(size)));
+  function removeItem(index) {
+    cart.splice(index, 1);
     saveCart();
+    renderCart();
   }
 
-  function updateQuantity(id, size, delta) {
-    const item = cart.find(i => String(i.id) === String(id) && String(i.size) === String(size));
-    if (!item) return;
-    item.quantity = (item.quantity || 1) + delta;
-    if (item.quantity <= 0) {
-      removeItem(id, size);
+  function updateQuantity(index, qty) {
+    if (qty <= 0) {
+      removeItem(index);
     } else {
-      item.quantity = Math.min(MAX_QTY, item.quantity);
+      cart[index].quantity = qty;
       saveCart();
+      renderCart();
     }
   }
 
-  async function validateStock() {
-    if (!supabaseClient || !cart.length) return { valid: true };
-    try {
-      const ids = [...new Set(cart.map(i => i.id))];
-      const { data, error } = await supabaseClient.from("products").select("id, stock").in("id", ids);
-      if (error || !data) return { valid: true };
-
-      let changed = false;
-      const corrections = [];
-
-      cart.forEach(item => {
-        const p = data.find(x => String(x.id) === String(item.id));
-        const maxStock = p && p.stock && typeof p.stock === "object" ? Number(p.stock[item.size] || 0) : 0;
-        if (item.quantity > maxStock) {
-          changed = true;
-          item.quantity = maxStock;
-          corrections.push({ id: item.id, size: item.size, newQty: maxStock });
-        }
-      });
-
-      if (changed) {
-        cart = cart.filter(i => i.quantity > 0);
-        saveCart();
-        return { valid: false, message: "Inventory updated. Some items or sizes were adjusted.", corrections };
-      }
-      return { valid: true };
-    } catch {
-      return { valid: true };
-    }
-  }
-
-  function getDrawerEl() {
-    return document.getElementById("cartDrawer") || document.getElementById("cart-drawer") || document.querySelector("[data-cart-drawer]");
-  }
-
-  function ensureDrawerShell() {
-    const drawer = getDrawerEl();
-    if (!drawer) return null;
-
-    if (drawer.dataset.bkBuilt === "true") {
-      return drawer;
-    }
-
-    drawer.innerHTML = `
-      <div class="cart-drawer__header" style="display:flex; align-items:flex-start; justify-content:space-between; padding:20px; border-bottom:1px solid rgba(255,255,255,0.08);">
-        <div>
-          <p style="margin:0 0 2px; font-size:10px; letter-spacing:0.12em; color:#888;">BULKKOT</p>
-          <h2 style="margin:0; font-size:16px; letter-spacing:0.04em; color:#fff;">YOUR CART</h2>
-        </div>
-        <button type="button" data-close-cart aria-label="Close cart" style="background:none; border:none; color:#fff; font-size:22px; line-height:1; cursor:pointer; padding:0;">×</button>
-      </div>
-
-      <div class="drawer__body" id="cart-content" style="padding:0 20px; overflow-y:auto; flex:1 1 auto;"></div>
-
-      <div id="cartFooter" hidden style="padding:16px 20px 20px; border-top:1px solid rgba(255,255,255,0.08); flex-shrink:0;">
-        <div style="display:flex; justify-content:space-between; font-size:12px; color:#ccc; margin-bottom:6px;">
-          <span>SUBTOTAL</span><span id="cartSubtotal">₹0</span>
-        </div>
-        <div id="cartCouponRow" hidden style="display:flex; justify-content:space-between; font-size:12px; color:#31c48d; margin-bottom:6px;">
-          <span>DISCOUNT</span><span id="cartDiscount">−₹0</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; color:#fff; margin-bottom:14px;">
-          <span>TOTAL</span><span id="cartTotal">₹0</span>
-        </div>
-
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <input type="text" id="cartCouponInput" placeholder="COUPON CODE" style="flex:1; min-width:0; background:#111; border:1px solid #333; color:#fff; padding:10px; font-size:11px; text-transform:uppercase; border-radius:3px;">
-          <button type="button" id="cartApplyCoupon" style="background:#1a1a1a; border:1px solid #333; color:#fff; padding:0 14px; font-size:11px; font-weight:700; border-radius:3px; cursor:pointer;">APPLY</button>
-        </div>
-        <div id="cartCouponMessage" style="font-size:11px; margin-bottom:10px; min-height:14px;"></div>
-
-        <button type="button" id="cartCheckoutBtn" class="button button--primary" style="width:100%; display:block; text-align:center; border:none; cursor:pointer;">PROCEED TO CHECKOUT</button>
-      </div>
-
-      <div id="cartCheckoutPanel" hidden style="padding:20px; overflow-y:auto; flex:1 1 auto;">
-        <h3 style="margin:0 0 4px; font-size:15px; color:#fff;">SHIPPING DETAILS</h3>
-        <p style="margin:0 0 16px; font-size:11px; color:#888;">Cash on Delivery only, right now.</p>
-
-        <div id="checkoutMessage" style="font-size:11px; color:#ff7777; margin-bottom:10px; min-height:14px;"></div>
-
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <input type="text" id="coFullName" placeholder="FULL NAME" style="background:#111; border:1px solid #333; color:#fff; padding:11px; font-size:12px; border-radius:3px;">
-          <input type="tel" id="coPhone" placeholder="PHONE NUMBER" style="background:#111; border:1px solid #333; color:#fff; padding:11px; font-size:12px; border-radius:3px;">
-          <textarea id="coAddress" placeholder="ADDRESS (HOUSE NO, STREET, AREA)" rows="2" style="background:#111; border:1px solid #333; color:#fff; padding:11px; font-size:12px; border-radius:3px; resize:vertical; font-family:inherit;"></textarea>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="coCity" placeholder="CITY" style="flex:1; min-width:0; background:#111; border:1px solid #333; color:#fff; padding:11px; font-size:12px; border-radius:3px;">
-            <input type="text" id="coState" placeholder="STATE" style="flex:1; min-width:0; background:#111; border:1px solid #333; color:#fff; padding:11px; font-size:12px; border-radius:3px;">
-          </div>
-          <input type="text" id="coPincode" placeholder="PINCODE" style="background:#111; border:1px solid #333; color:#fff; padding:11px; font-size:12px; border-radius:3px;">
-        </div>
-
-        <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; color:#fff; margin:18px 0;">
-          <span>TOTAL PAYABLE</span><span id="coTotal">₹0</span>
-        </div>
-
-        <button type="button" id="placeOrderBtn" class="button button--primary" style="width:100%; display:block; text-align:center; margin-bottom:10px; border:none; cursor:pointer;">PLACE ORDER (CASH ON DELIVERY)</button>
-        <button type="button" id="backToCartBtn" style="width:100%; background:none; border:none; color:#888; font-size:11px; padding:8px; cursor:pointer;">← BACK TO CART</button>
-      </div>
-
-      <div id="cartOrderSuccess" hidden style="padding:40px 20px; text-align:center; overflow-y:auto; flex:1 1 auto;">
-        <div style="font-size:34px; margin-bottom:10px; color:#31c48d;">✓</div>
-        <h3 style="margin:0 0 8px; font-size:16px; color:#fff;">ORDER PLACED!</h3>
-        <p style="font-size:12px; color:#aaa; margin:0 0 4px;">Your order number is</p>
-        <p id="successOrderNumber" style="font-size:15px; font-weight:800; color:#fff; margin:0 0 20px;"></p>
-        <p style="font-size:11px; color:#777; margin:0 0 20px;">Save this number — you can track your order with it any time.</p>
-        <button type="button" id="closeAfterOrderBtn" class="button button--primary" style="width:100%;">CONTINUE SHOPPING</button>
-      </div>
-    `;
-
-    drawer.dataset.bkBuilt = "true";
-    drawer.style.display = "flex";
-    drawer.style.flexDirection = "column";
-
-    wireDrawerEvents(drawer);
-    return drawer;
-  }
-
-  function setInlineMessage(el, text, isError) {
-    if (!el) return;
-    el.textContent = text || "";
-    el.style.color = isError ? "#ff7777" : "#31c48d";
-  }
-
-  function showCartView(drawer) {
-    if (!drawer) return;
-    drawer.querySelector("#cart-content").hidden = false;
-    drawer.querySelector("#cartFooter").hidden = cart.length === 0;
-    drawer.querySelector("#cartCheckoutPanel").hidden = true;
-    drawer.querySelector("#cartOrderSuccess").hidden = true;
-  }
-
-  function showCheckoutView(drawer) {
-    if (!drawer) return;
-    drawer.querySelector("#cart-content").hidden = true;
-    drawer.querySelector("#cartFooter").hidden = true;
-    drawer.querySelector("#cartCheckoutPanel").hidden = false;
-    drawer.querySelector("#cartOrderSuccess").hidden = true;
-    drawer.querySelector("#coTotal").textContent = formatINR(getCartTotal());
-  }
-
-  function showSuccessView(drawer, orderNumber) {
-    if (!drawer) return;
-    drawer.querySelector("#cart-content").hidden = true;
-    drawer.querySelector("#cartFooter").hidden = true;
-    drawer.querySelector("#cartCheckoutPanel").hidden = true;
-    drawer.querySelector("#cartOrderSuccess").hidden = false;
-    drawer.querySelector("#successOrderNumber").textContent = orderNumber;
-  }
-
-  function wireDrawerEvents(drawer) {
-    const couponInput = drawer.querySelector("#cartCouponInput");
-    const applyCouponBtn = drawer.querySelector("#cartApplyCoupon");
-    const couponMessage = drawer.querySelector("#cartCouponMessage");
-    const checkoutBtn = drawer.querySelector("#cartCheckoutBtn");
-    const backBtn = drawer.querySelector("#backToCartBtn");
-    const placeOrderBtn = drawer.querySelector("#placeOrderBtn");
-    const closeAfterOrderBtn = drawer.querySelector("#closeAfterOrderBtn");
-
-    applyCouponBtn?.addEventListener("click", async () => {
-      const code = String(couponInput?.value || "").trim().toUpperCase();
-
-      if (!code) {
-        if (appliedCoupon) {
-          appliedCoupon = null;
-          saveCart();
-          setInlineMessage(couponMessage, "Coupon removed.", false);
-        }
-        return;
-      }
-
-      if (!supabaseClient) {
-        setInlineMessage(couponMessage, "Store connection unavailable.", true);
-        return;
-      }
-
-      applyCouponBtn.disabled = true;
-      applyCouponBtn.textContent = "...";
-
-      try {
-        const { data, error } = await supabaseClient
-          .from("coupons")
-          .select("*")
-          .eq("code", code)
-          .maybeSingle();
-
-        if (error || !data || data.active === false) {
-          appliedCoupon = null;
-          saveCart();
-          setInlineMessage(couponMessage, "Invalid or expired coupon code.", true);
-          return;
-        }
-
-        appliedCoupon = { code, type: data.type, value: Number(data.value || 0) };
-        saveCart();
-        setInlineMessage(couponMessage, `Coupon "${code}" applied!`, false);
-      } catch {
-        setInlineMessage(couponMessage, "Could not apply coupon. Try again.", true);
-      } finally {
-        applyCouponBtn.disabled = false;
-        applyCouponBtn.textContent = "APPLY";
-      }
-    });
-
-    checkoutBtn?.addEventListener("click", async () => {
-      if (!cart.length) return;
-      checkoutBtn.disabled = true;
-      const check = await validateStock();
-      checkoutBtn.disabled = false;
-
-      if (!check.valid) {
-        updateCartUI();
-        const msg = drawer.querySelector("#checkoutMessage");
-        if (msg) msg.textContent = check.message || "Some items changed. Please review your cart.";
-        return;
-      }
-
-      const msg = drawer.querySelector("#checkoutMessage");
-      if (msg) msg.textContent = "";
-      showCheckoutView(drawer);
-    });
-
-    backBtn?.addEventListener("click", () => showCartView(drawer));
-
-    placeOrderBtn?.addEventListener("click", async () => {
-      if (isSubmittingOrder) return;
-
-      const fullName = drawer.querySelector("#coFullName")?.value.trim() || "";
-      const phone = drawer.querySelector("#coPhone")?.value.trim() || "";
-      const address = drawer.querySelector("#coAddress")?.value.trim() || "";
-      const city = drawer.querySelector("#coCity")?.value.trim() || "";
-      const stateVal = drawer.querySelector("#coState")?.value.trim() || "";
-      const pincode = drawer.querySelector("#coPincode")?.value.trim() || "";
-      const msg = drawer.querySelector("#checkoutMessage");
-
-      const setError = (text) => { if (msg) msg.textContent = text || ""; };
-      setError("");
-
-      if (!fullName || !phone || !address || !city || !stateVal || !pincode) {
-        setError("Please fill in all shipping details.");
-        return;
-      }
-
-      const cleanPhone = phone.replace(/\D/g, "").slice(-10);
-      if (!/^\d{10}$/.test(cleanPhone)) {
-        setError("Please enter a valid 10-digit phone number.");
-        return;
-      }
-
-      if (!/^\d{6}$/.test(pincode)) {
-        setError("Please enter a valid 6-digit pincode.");
-        return;
-      }
-
-      if (!cart.length) {
-        setError("Your cart is empty.");
-        return;
-      }
-
-      if (!supabaseClient) {
-        setError("Store connection unavailable. Please try again.");
-        return;
-      }
-
-      isSubmittingOrder = true;
-      placeOrderBtn.disabled = true;
-      placeOrderBtn.textContent = "PLACING ORDER...";
-
-      try {
-        const stockCheck = await validateStock();
-        if (!stockCheck.valid) {
-          setError(stockCheck.message || "Some items changed. Please review your cart.");
-          showCartView(drawer);
-          updateCartUI();
-          return;
-        }
-
-        let userId = null;
-        try {
-          const { data: userData } = await supabaseClient.auth.getUser();
-          userId = userData?.user?.id || null;
-        } catch { userId = null; }
-
-        const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-        const now = new Date();
-        const datePart = `${now.getFullYear().toString().slice(-2)}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-        const orderNumber = `BK-${datePart}-${randomSuffix}`;
-
-        const subtotal = getCartSubtotal();
-        const discount = getCartDiscount();
-        const total = getCartTotal();
-
-        const { error } = await supabaseClient.from("orders").insert([{
-          order_number: orderNumber,
-          user_id: userId,
-          customer_name: fullName,
-          customer_phone: cleanPhone,
-          shipping_address: address,
-          shipping_city: city,
-          shipping_state: stateVal,
-          shipping_pincode: pincode,
-          items: cart,
-          subtotal,
-          discount,
-          total,
-          coupon_code: appliedCoupon?.code || null,
-          payment_method: "Cash on Delivery",
-          order_status: "PLACED"
-        }]);
-
-        if (error) throw error;
-
-        cart = [];
-        appliedCoupon = null;
-        localStorage.removeItem(CART_STORAGE_KEY);
-        localStorage.removeItem(COUPON_STORAGE_KEY);
-
-        showSuccessView(drawer, orderNumber);
-        updateCartUI();
-
-        window.dispatchEvent(new CustomEvent("bulkkot:order-completed", { detail: { orderNumber } }));
-      } catch (error) {
-        setError(error?.message || "Something went wrong placing your order. Please try again.");
-      } finally {
-        isSubmittingOrder = false;
-        placeOrderBtn.disabled = false;
-        placeOrderBtn.textContent = "PLACE ORDER (CASH ON DELIVERY)";
-      }
-    });
-
-    closeAfterOrderBtn?.addEventListener("click", () => {
-      closeCart();
-      showCartView(drawer);
-    });
-  }
-
-  function updateCartUI() {
-    const drawer = ensureDrawerShell();
-    if (!drawer) return;
-
-    const countEls = document.querySelectorAll("[data-cart-count]");
-    const totalCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
-    countEls.forEach(el => {
-      el.textContent = String(totalCount);
-      el.hidden = totalCount === 0;
-    });
-
-    const itemsContainer = drawer.querySelector("#cart-content");
-    if (!itemsContainer) return;
-
-    if (!cart.length) {
-      itemsContainer.innerHTML = `
-        <div style="padding: 60px 20px; text-align: center; color: #888;">
-          <strong style="display:block; font-size: 14px; color: #fff; margin-bottom: 8px;">YOUR BAG IS EMPTY</strong>
-          <p style="font-size: 12px; margin: 0 0 20px;">No silhouettes added yet.</p>
-          <a href="shop.html" class="button button--primary" style="display: inline-flex;" onclick="window.BULKKOT_CART.closeCart()">EXPLORE CATALOGUE</a>
-        </div>
-      `;
-      const footer = drawer.querySelector("#cartFooter");
-      if (footer) footer.hidden = true;
-      return;
-    }
-
-    const footer = drawer.querySelector("#cartFooter");
-    if (footer) footer.hidden = false;
-
-    itemsContainer.innerHTML = cart.map(item => {
-      const safeId = escapeHTML(item.id);
-      const safeName = escapeHTML(item.name);
-      const safeSize = escapeHTML(item.size);
-      const safeImage = escapeHTML(item.image || FALLBACK_IMAGE);
-      const lineTotal = Number(item.price || 0) * (item.quantity || 1);
-
-      return `
-        <div class="cart-item" style="display:flex; gap:14px; padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
-          <img src="${safeImage}" alt="${safeName}" style="width:70px; height:84px; object-fit:cover; border-radius:4px; background:#111;">
-          <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div>
-                <strong style="font-size:11px; color:#fff; display:block; text-transform:uppercase;">${safeName}</strong>
-                <span style="font-size:10px; color:#888;">SIZE: ${safeSize}</span>
-              </div>
-              <span style="font-size:12px; font-weight:800; color:#fff;">${formatINR(lineTotal)}</span>
-            </div>
-
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
-              <div style="display:inline-flex; align-items:center; border:1px solid #333; border-radius:3px;">
-                <button type="button" data-cart-action="dec" data-id="${safeId}" data-size="${safeSize}" aria-label="Decrease quantity" style="padding:4px 10px; color:#aaa; font-weight:800;">−</button>
-                <span style="font-size:11px; font-weight:800; min-width:18px; text-align:center; color:#fff;">${item.quantity}</span>
-                <button type="button" data-cart-action="inc" data-id="${safeId}" data-size="${safeSize}" aria-label="Increase quantity" style="padding:4px 10px; color:#aaa; font-weight:800;">+</button>
-              </div>
-              <button type="button" data-cart-action="remove" data-id="${safeId}" data-size="${safeSize}" style="color:#666; font-size:10px; font-weight:700;">REMOVE</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    const subEl = drawer.querySelector("#cartSubtotal");
-    const discEl = drawer.querySelector("#cartDiscount");
-    const totEl = drawer.querySelector("#cartTotal");
-    const discRow = drawer.querySelector("#cartCouponRow");
-    const couponInputEl = drawer.querySelector("#cartCouponInput");
-
-    if (subEl) subEl.textContent = formatINR(getCartSubtotal());
-    if (totEl) totEl.textContent = formatINR(getCartTotal());
-    if (discEl && discRow) {
-      const disc = getCartDiscount();
-      discRow.hidden = disc <= 0;
-      discEl.textContent = `−${formatINR(disc)}`;
-    }
-    if (couponInputEl && appliedCoupon?.code && !couponInputEl.value) {
-      couponInputEl.value = appliedCoupon.code;
-    }
+  function clearCart() {
+    cart = [];
+    appliedCoupon = null;
+    currentStep = 'bag';
+    saveCart();
+    renderCart();
   }
 
   function openCart() {
-    const drawer = ensureDrawerShell();
-    const overlay = document.getElementById("cartOverlay") || document.querySelector("[data-cart-overlay]") || document.querySelector(".drawer-overlay");
-    if (!drawer) return;
-
-    showCartView(drawer);
-    updateCartUI();
-
-    drawer.classList.add("is-open");
-    drawer.removeAttribute("hidden");
-    drawer.setAttribute("aria-hidden", "false");
-
-    if (overlay) {
-      overlay.classList.add("is-open", "is-active", "is-visible");
-      overlay.removeAttribute("hidden");
-      overlay.setAttribute("aria-hidden", "false");
-    }
-
-    document.body.classList.add("drawer-open");
+    const drawer = document.querySelector('[data-cart-drawer]');
+    const overlay = document.querySelector('[data-cart-overlay]');
+    renderCart();
+    drawer?.classList.add('is-open');
+    drawer?.setAttribute('aria-hidden', 'false');
+    overlay?.classList.add('is-active');
+    document.body.classList.add('modal-open');
   }
 
   function closeCart() {
-    const drawer = getDrawerEl();
-    const overlay = document.getElementById("cartOverlay") || document.querySelector("[data-cart-overlay]") || document.querySelector(".drawer-overlay");
-
-    if (drawer) {
-      drawer.classList.remove("is-open");
-      drawer.setAttribute("aria-hidden", "true");
-      setTimeout(() => showCartView(drawer), 300);
-    }
-    if (overlay) {
-      overlay.classList.remove("is-open", "is-active", "is-visible");
-      overlay.setAttribute("aria-hidden", "true");
-    }
-    document.body.classList.remove("drawer-open");
+    const drawer = document.querySelector('[data-cart-drawer]');
+    const overlay = document.querySelector('[data-cart-overlay]');
+    drawer?.classList.remove('is-open');
+    drawer?.setAttribute('aria-hidden', 'true');
+    overlay?.classList.remove('is-active');
+    document.body.classList.remove('modal-open');
   }
 
-  document.addEventListener("click", event => {
-    const target = event.target instanceof Element ? event.target : null;
-    if (!target) return;
+  function getCartSubtotal() {
+    return cart.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
+  }
 
-    const openTrigger = target.closest("[data-open-cart], .cart-action");
-    if (openTrigger) {
-      event.preventDefault();
-      openCart();
+  function calculateDiscount(subtotal) {
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.min_order_value && subtotal < appliedCoupon.min_order_value) return 0;
+
+    if (appliedCoupon.discount_type === 'percentage') {
+      return Math.round((subtotal * (Number(appliedCoupon.discount_value || 0) / 100)));
+    }
+    return Math.min(subtotal, Number(appliedCoupon.discount_value || 0));
+  }
+
+  function calculateShipping(subtotalAfterDiscount) {
+    const baseFee = Number(storeSettings.shipping_fee || 0);
+    const threshold = Number(storeSettings.free_shipping_threshold || 0);
+
+    if (baseFee <= 0) return 0;
+    if (threshold > 0 && subtotalAfterDiscount >= threshold) return 0;
+    return baseFee;
+  }
+
+  async function lookupPincode(pincode) {
+    const cleanPin = String(pincode || '').trim();
+    if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) return;
+
+    const cityInput = document.getElementById('chkCity');
+    const stateInput = document.getElementById('chkState');
+    const statusBox = document.getElementById('pincodeStatus');
+
+    if (statusBox) {
+      statusBox.textContent = 'Locating area...';
+      statusBox.style.color = '#888';
+      statusBox.style.display = 'block';
+    }
+
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${cleanPin}`);
+      const data = await res.json();
+
+      if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice?.length) {
+        const po = data[0].PostOffice[0];
+        const district = po.District || po.Block || po.Circle;
+        const state = po.State;
+
+        if (cityInput && !cityInput.value) cityInput.value = district;
+        if (stateInput && !stateInput.value) stateInput.value = state;
+
+        if (statusBox) {
+          statusBox.textContent = `✓ Serviceable: ${district}, ${state}`;
+          statusBox.style.color = '#31c48d';
+        }
+      } else {
+        if (statusBox) {
+          statusBox.textContent = 'Please enter valid 6-digit pin';
+          statusBox.style.color = '#ff7777';
+        }
+      }
+    } catch (e) {
+      if (statusBox) statusBox.style.display = 'none';
+    }
+  }
+
+  function renderCart() {
+    const drawer = document.querySelector('[data-cart-drawer]');
+    if (!drawer) return;
+
+    loadCart();
+
+    if (cart.length === 0) {
+      drawer.innerHTML = `
+        <div class="cart-drawer__header">
+          <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">BULKKOT · 불꽃</p><h2>YOUR CART</h2></div>
+          <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
+        </div>
+        <div class="cart-body-wrapper" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:60px 24px;">
+          <span style="font-size:32px; color:#333; margin-bottom:12px;">◈</span>
+          <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 6px;">YOUR BAG IS EMPTY</h3>
+          <p style="font-size:12px; color:#888; line-height:1.6; margin:0 0 24px;">Heavyweight silhouettes constructed with architectural restraint await.</p>
+          <button type="button" class="bk-btn-primary" data-close-cart style="max-width:240px;">START SHOPPING</button>
+        </div>
+      `;
+      drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
       return;
     }
 
-    const closeTrigger = target.closest("[data-close-cart]");
-    if (closeTrigger) {
-      event.preventDefault();
-      closeCart();
-      return;
+    const subtotal = getCartSubtotal();
+    const discount = calculateDiscount(subtotal);
+    const discountedTotal = Math.max(0, subtotal - discount);
+    const shippingFee = calculateShipping(discountedTotal);
+    const finalTotal = discountedTotal + shippingFee;
+
+    if (currentStep === 'bag') {
+      const itemsHTML = cart.map((item, idx) => `
+        <div class="cart-item-row">
+          <img src="${escapeHTML(item.image || 'https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png')}"
+               alt="${escapeHTML(item.name)}" class="cart-item-img">
+          <div class="cart-item-meta">
+            <div>
+              <div class="cart-item-title-row">
+                <h4>${escapeHTML(item.name)}</h4>
+                <button type="button" class="cart-remove-btn" data-cart-remove="${idx}">×</button>
+              </div>
+              <p class="cart-size-label">SIZE: <strong style="color:#fff;">${escapeHTML(item.size)}</strong></p>
+            </div>
+            <div class="cart-bottom-row">
+              <div class="cart-qty-pill">
+                <button type="button" data-cart-qty="${idx}" data-qty="${item.quantity - 1}">−</button>
+                <span>${item.quantity}</span>
+                <button type="button" data-cart-qty="${idx}" data-qty="${item.quantity + 1}">+</button>
+              </div>
+              <div class="cart-item-price">${formatPrice(item.price * item.quantity)}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      drawer.innerHTML = `
+        <div class="cart-drawer__header">
+          <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">STEP 01 / 02</p><h2>YOUR BAG (${cart.length})</h2></div>
+          <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
+        </div>
+
+        <div class="cart-body-wrapper">
+          <div class="cart-items-wrap">
+            ${itemsHTML}
+          </div>
+
+          <div style="margin: 20px 0 10px; display: flex; gap: 8px;">
+            <input type="text" id="cartCouponInput" class="bk-input" placeholder="DISCOUNT CODE" value="${appliedCoupon ? escapeHTML(appliedCoupon.code) : ''}"
+                   style="text-transform: uppercase;" ${appliedCoupon ? 'disabled' : ''}>
+            <button type="button" id="cartApplyCouponBtn" class="search-tag-btn" style="padding: 0 16px; min-height: 42px; font-weight: 800;">
+              ${appliedCoupon ? 'REMOVE' : 'APPLY'}
+            </button>
+          </div>
+        </div>
+
+        <div class="cart-drawer__footer">
+          <div class="cart-breakdown-row">
+            <span>SUBTOTAL</span>
+            <span style="color:#fff;">${formatPrice(subtotal)}</span>
+          </div>
+          ${discount > 0 ? `
+            <div class="cart-breakdown-row" style="color:#31c48d;">
+              <span>DISCOUNT (${escapeHTML(appliedCoupon.code)})</span>
+              <span>-${formatPrice(discount)}</span>
+            </div>
+          ` : ''}
+          <div class="cart-breakdown-row">
+            <span>DELIVERY</span>
+            <span style="${shippingFee === 0 ? 'color:#31c48d; font-weight:800;' : 'color:#fff;'}">
+              ${shippingFee === 0 ? 'FREE' : formatPrice(shippingFee)}
+            </span>
+          </div>
+
+          <div class="cart-total-strip">
+            <span>ESTIMATED TOTAL</span>
+            <strong>${formatPrice(finalTotal)}</strong>
+          </div>
+
+          <button type="button" id="proceedToCheckoutBtn" class="bk-btn-primary">
+            PROCEED TO CHECKOUT →
+          </button>
+        </div>
+      `;
+
+      drawer.querySelector('#proceedToCheckoutBtn')?.addEventListener('click', () => {
+        currentStep = 'checkout';
+        renderCart();
+      });
+
+    } else {
+      // CHECKOUT STEP
+      drawer.innerHTML = `
+        <div class="cart-drawer__header">
+          <div><p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0;">STEP 02 / 02</p><h2>DISPATCH & PAYMENT</h2></div>
+          <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
+        </div>
+
+        <div class="cart-body-wrapper">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <button type="button" id="backToBagBtn" style="background:none; border:none; color:#888; font-size:11px; font-weight:800; cursor:pointer; padding:0;">
+              ← BACK TO BAG
+            </button>
+            <button type="button" id="cartAuthTrigger" style="background:none; border:none; color:var(--bk-red); font-size:10px; font-weight:800; cursor:pointer; padding:0;">
+              SIGN IN FOR AUTOFILL
+            </button>
+          </div>
+
+          <form id="storefrontCheckoutForm" novalidate>
+            <div class="bk-input-group">
+              <span>CUSTOMER DETAILS</span>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <input type="text" id="chkName" class="bk-input" placeholder="Full Name *" required>
+                <input type="tel" id="chkPhone" class="bk-input" placeholder="10-digit Phone *" maxlength="15" required>
+              </div>
+            </div>
+
+            <div class="bk-input-group">
+              <span>EMAIL FOR DISPATCH UPDATES</span>
+              <input type="email" id="chkEmail" class="bk-input" placeholder="name@email.com *" required>
+            </div>
+
+            <div class="bk-input-group">
+              <span>DELIVERY ADDRESS</span>
+              <input type="text" id="chkAddress" class="bk-input" placeholder="House No / Street / Landmark *" required style="margin-bottom:8px;">
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                <input type="text" id="chkPincode" class="bk-input" placeholder="Pincode *" maxlength="6" inputmode="numeric" required>
+                <input type="text" id="chkCity" class="bk-input" placeholder="City *" required>
+                <input type="text" id="chkState" class="bk-input" placeholder="State *" required>
+              </div>
+              <small id="pincodeStatus" style="font-size:10px; font-weight:700; margin-top:4px; display:none;"></small>
+            </div>
+
+            <div class="bk-input-group" style="margin-top:16px;">
+              <span>SELECT PAYMENT OPTION</span>
+
+              <label class="payment-card-label" style="display:flex; align-items:flex-start; gap:12px; padding:14px; background:#111; border:1px solid ${selectedPayment === 'online' ? 'var(--bk-red)' : 'var(--bk-border)'}; border-radius:6px; margin-bottom:8px; cursor:pointer; transition: border-color 0.2s;">
+                <input type="radio" name="payment_mode" value="online" ${selectedPayment === 'online' ? 'checked' : ''} style="margin-top:2px; accent-color:var(--bk-red);">
+                <div style="flex:1;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="font-size:12px; color:#fff;">ONLINE UPI / GPAY / PHONEPE</strong>
+                    <span style="font-size:8px; background:rgba(49,196,141,0.15); color:#31c48d; padding:2px 6px; border-radius:4px; font-weight:800;">FAST DISPATCH</span>
+                  </div>
+                  <small style="font-size:10px; color:#888; display:block; margin-top:4px; line-height:1.4;">
+                    Our team will contact you on WhatsApp to collect the payment securely.
+                  </small>
+                </div>
+              </label>
+
+              <label class="payment-card-label" style="display:flex; align-items:flex-start; gap:12px; padding:14px; background:#111; border:1px solid ${selectedPayment === 'cod' ? 'var(--bk-red)' : 'var(--bk-border)'}; border-radius:6px; cursor:pointer; transition: border-color 0.2s;">
+                <input type="radio" name="payment_mode" value="cod" ${selectedPayment === 'cod' ? 'checked' : ''} style="margin-top:2px; accent-color:var(--bk-red);">
+                <div style="flex:1;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="font-size:12px; color:#fff;">CASH ON DELIVERY (COD)</strong>
+                    <span style="font-size:8px; border:1px solid #333; color:#aaa; padding:2px 6px; border-radius:4px;">VERIFIED</span>
+                  </div>
+                  <small style="font-size:10px; color:#888; display:block; margin-top:4px;">
+                    Pay in cash or UPI when the courier agent delivers the package.
+                  </small>
+                </div>
+              </label>
+            </div>
+
+            <div id="checkoutInlineError" style="color: #ff7777; font-size: 11px; margin-top: 10px; display: none;"></div>
+          </form>
+        </div>
+
+        <div class="cart-drawer__footer">
+          <div class="cart-total-strip" style="border:none; padding:0; margin:0 0 12px;">
+            <span style="color:#888;">TOTAL PAYABLE</span>
+            <strong>${formatPrice(finalTotal)}</strong>
+          </div>
+
+          <button type="submit" form="storefrontCheckoutForm" id="cartSubmitOrderBtn" class="bk-btn-primary">
+            ${selectedPayment === 'online' ? 'PLACE ORDER (UPI NOTIFICATION)' : 'CONFIRM CASH ON DELIVERY'}
+          </button>
+
+          <div style="text-align: center; color: #555; font-size: 10px; margin-top: 10px;">
+            🔒 100% Encrypted & Direct Warehouse Fulfilment
+          </div>
+        </div>
+      `;
+
+      // Event Listeners for Checkout
+      drawer.querySelector('#backToBagBtn')?.addEventListener('click', () => {
+        currentStep = 'bag';
+        renderCart();
+      });
+
+      const pinInput = drawer.querySelector('#chkPincode');
+      pinInput?.addEventListener('input', (e) => {
+        if (e.target.value.length === 6) lookupPincode(e.target.value);
+      });
+
+      // NO RE-RENDER on Radio Change - Only DOM update
+      drawer.querySelectorAll('input[name="payment_mode"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          selectedPayment = e.target.value;
+          
+          drawer.querySelectorAll('.payment-card-label').forEach(lbl => lbl.style.borderColor = 'var(--bk-border)');
+          e.target.closest('.payment-card-label').style.borderColor = 'var(--bk-red)';
+
+          const submitBtn = drawer.querySelector('#cartSubmitOrderBtn');
+          if (submitBtn) {
+            submitBtn.textContent = selectedPayment === 'online' ? 'PLACE ORDER (UPI NOTIFICATION)' : 'CONFIRM CASH ON DELIVERY';
+          }
+        });
+      });
+
+      drawer.querySelector('#cartAuthTrigger')?.addEventListener('click', () => {
+        closeCart();
+        const accountModal = document.querySelector('[data-account-modal]');
+        accountModal?.classList.add('is-open');
+        accountModal?.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+      });
+
+      tryAutofillAddress();
+      bindCheckoutFormSubmit(finalTotal, shippingFee);
     }
 
-    const actionBtn = target.closest("[data-cart-action]");
-    if (!actionBtn) return;
+    // Common Cart Bindings
+    drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
+    drawer.querySelectorAll('[data-cart-remove]').forEach(btn => btn.addEventListener('click', () => removeItem(Number(btn.dataset.cartRemove))));
+    drawer.querySelectorAll('[data-cart-qty]').forEach(btn => btn.addEventListener('click', () => updateQuantity(Number(btn.dataset.cartQty), Number(btn.dataset.qty))));
+    
+    const couponBtn = drawer.querySelector('#cartApplyCouponBtn');
+    couponBtn?.addEventListener('click', async () => {
+      if (appliedCoupon) {
+        appliedCoupon = null;
+        renderCart();
+        return;
+      }
+      const code = drawer.querySelector('#cartCouponInput')?.value.trim().toUpperCase();
+      if (!code) return;
+      const client = getSupabase();
+      if (!client) return;
+      const { data, error } = await client.from('coupons').select('*').eq('code', code).eq('active', true).maybeSingle();
+      if (error || !data) return alert('Invalid coupon.');
+      appliedCoupon = data;
+      renderCart();
+    });
+  }
 
-    const { id, size, cartAction } = actionBtn.dataset;
-    if (cartAction === "inc") updateQuantity(id, size, 1);
-    else if (cartAction === "dec") updateQuantity(id, size, -1);
-    else if (cartAction === "remove") removeItem(id, size);
-  });
+  function bindCheckoutFormSubmit(finalTotal, shippingFee) {
+    const checkoutForm = document.getElementById('storefrontCheckoutForm');
+    checkoutForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('cartSubmitOrderBtn');
+      const errBox = document.getElementById('checkoutInlineError');
+
+      const name = document.getElementById('chkName')?.value.trim();
+      const phone = document.getElementById('chkPhone')?.value.trim();
+      const email = document.getElementById('chkEmail')?.value.trim();
+      const address = document.getElementById('chkAddress')?.value.trim();
+      const city = document.getElementById('chkCity')?.value.trim();
+      const state = document.getElementById('chkState')?.value.trim();
+      const pincode = document.getElementById('chkPincode')?.value.trim();
+
+      if (!name || !phone || !email || !address || !city || !state || !pincode) {
+        errBox.textContent = 'Please fill in all shipping fields.';
+        errBox.style.display = 'block';
+        return;
+      }
+
+      errBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'CONFIRMING ORDER WITH WAREHOUSE...';
+
+      try {
+        const client = getSupabase();
+        if (!client) throw new Error('Database connection unavailable.');
+
+        const rpcItems = cart.map((item) => ({ id: item.id, size: item.size, quantity: item.quantity }));
+        const customerPayload = {
+          customer_name: name, customer_email: email, customer_phone: phone,
+          shipping_address: address, shipping_city: city, shipping_state: state,
+          shipping_pincode: pincode, payment_method: selectedPayment
+        };
+
+        const { data, error } = await client.rpc('create_order', {
+          p_items: rpcItems, p_customer: customerPayload
+        });
+
+        if (error) throw error;
+
+        const orderNumber = data.order_number;
+        const paymentMode = data.payment_method || selectedPayment;
+
+        const drawer = document.querySelector('[data-cart-drawer]');
+        drawer.innerHTML = `
+          <div class="cart-drawer__header">
+            <div><p class="eyebrow" style="color:#31c48d; font-size:10px; margin:0;">SUCCESSFULLY LOGGED</p><h2>ORDER CONFIRMED</h2></div>
+            <button type="button" class="drawer-close" data-close-cart aria-label="Close cart">×</button>
+          </div>
+          <div class="cart-body-wrapper" style="text-align: center; padding: 40px 24px;">
+            <div style="width: 52px; height: 52px; background: rgba(49,196,141,.12); color: #31c48d; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; font-size: 24px;">✓</div>
+            <p class="eyebrow" style="color: #31c48d; font-weight: 900; margin-bottom:6px;">DISPATCH QUEUE CONFIRMED</p>
+            <h2 style="font-size: 22px; margin: 0 0 8px; color: #fff; letter-spacing:0.05em;">${escapeHTML(orderNumber)}</h2>
+            <p style="color: #aaa; font-size: 13px; line-height: 1.6; margin: 0 0 20px;">
+              Thank you, <strong>${escapeHTML(name)}</strong>.<br>
+              Order Total: <strong>${formatPrice(finalTotal)}</strong> (${paymentMode.toUpperCase()}).
+            </p>
+
+            ${paymentMode === 'online' ? `
+              <div style="background:#161616; border:1px solid #333; border-radius:8px; padding:18px; text-align:center; margin-bottom:20px;">
+                <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 6px;">NEXT STEP</p>
+                <strong style="color:#fff; font-size:13px; display:block; margin-bottom:8px;">OUR TEAM WILL CONTACT YOU SHORTLY</strong>
+                <p style="font-size:11px; color:#888; margin:0; line-height:1.5;">You will receive a WhatsApp message from our official support team with the UPI QR Code to securely complete your payment.</p>
+              </div>
+            ` : `
+              <div style="background: #111; border: 1px solid var(--bk-border); border-radius: 6px; padding: 14px; text-align: left; font-size: 11px; line-height: 1.7; color: #888; margin-bottom: 24px;">
+                <strong style="color: #fff; display: block; margin-bottom: 4px;">DISPATCH PROTOCOL:</strong>
+                • Order assigned to warehouse fulfillment queue.<br>
+                • Real-time updates active via Track Order in header.<br>
+                • Cash on Delivery payment upon courier arrival.
+              </div>
+            `}
+
+            <button type="button" class="bk-btn-primary" data-close-cart style="width: 100%;">CONTINUE EXPLORING</button>
+          </div>
+        `;
+        drawer.querySelectorAll('[data-close-cart]').forEach(b => b.addEventListener('click', closeCart));
+
+        cart = [];
+        appliedCoupon = null;
+        currentStep = 'bag';
+        saveCart();
+
+        if (window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('bulkkot:order-completed'));
+        }
+      } catch (err) {
+        console.error('Order error:', err);
+        errBox.textContent = err.message || 'Unable to place order. Please try again.';
+        errBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = selectedPayment === 'online' ? 'PLACE ORDER (UPI NOTIFICATION)' : 'CONFIRM CASH ON DELIVERY';
+      }
+    });
+  }
+
+  async function tryAutofillAddress() {
+    const client = getSupabase();
+    if (!client) return;
+    try {
+      const { data: authData } = await client.auth.getUser();
+      const user = authData?.user;
+      if (!user) return;
+
+      const emailField = document.getElementById('chkEmail');
+      if (emailField && !emailField.value) emailField.value = user.email || '';
+
+      const { data: profile } = await client.from('customer_profiles').select('*').eq('id', user.id).maybeSingle();
+
+      if (profile) {
+        if (document.getElementById('chkName') && !document.getElementById('chkName').value) document.getElementById('chkName').value = profile.full_name || '';
+        if (document.getElementById('chkPhone') && !document.getElementById('chkPhone').value) document.getElementById('chkPhone').value = profile.phone || '';
+        if (document.getElementById('chkAddress') && !document.getElementById('chkAddress').value) document.getElementById('chkAddress').value = profile.shipping_address || '';
+        if (document.getElementById('chkCity') && !document.getElementById('chkCity').value) document.getElementById('chkCity').value = profile.shipping_city || '';
+        if (document.getElementById('chkState') && !document.getElementById('chkState').value) document.getElementById('chkState').value = profile.shipping_state || '';
+        if (document.getElementById('chkPincode') && !document.getElementById('chkPincode').value) {
+          document.getElementById('chkPincode').value = profile.shipping_pincode || '';
+          lookupPincode(profile.shipping_pincode);
+        }
+      }
+    } catch (e) {}
+  }
+
+  function init() {
+    loadCart();
+    fetchSettings();
+
+    document.querySelectorAll('[data-open-cart]').forEach((btn) =>
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openCart();
+      })
+    );
+    document.querySelectorAll('[data-close-cart]').forEach((btn) =>
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeCart();
+      })
+    );
+    document.querySelector('[data-cart-overlay]')?.addEventListener('click', closeCart);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCart(); });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
   window.BULKKOT_CART = {
-    addItem,
-    removeItem,
-    updateQuantity,
-    openCart,
-    closeCart,
-    validateStock,
-    getCartSubtotal,
-    getCartTotal,
-    renderCart: updateCartUI
+    addItem, removeItem, updateQuantity, clearCart, openCart, closeCart, renderCart
   };
-
-  loadCart();
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", updateCartUI, { once: true });
-  } else {
-    updateCartUI();
-  }
 })();
