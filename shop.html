@@ -337,7 +337,7 @@
     </section>
 
     <!-- UI STATES -->
-    <section id="shopLoading" class="shop-skeleton-grid" style="display: grid;">
+    <section id="shopLoading" class="shop-skeleton-grid" style="display: none;">
       <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
       <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
       <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
@@ -403,7 +403,6 @@
       if (urlParams.get('category')) activeCategory = urlParams.get('category').toLowerCase();
       if (urlParams.get('q')) { searchTerm = urlParams.get('q').trim(); searchInput.value = searchTerm; }
 
-      // Safe state switcher
       function setViewState(state) {
         if (loadingEl) loadingEl.style.display = state === "loading" ? "grid" : "none";
         if (errorEl) errorEl.style.display = state === "error" ? "block" : "none";
@@ -552,46 +551,41 @@
         applyFilters();
       });
 
-      const withTimeout = (promise, ms = 6000) => {
-        let timer;
-        const timeoutPromise = new Promise((_, reject) => {
-          timer = setTimeout(() => reject(new Error("Request timed out")), ms);
-        });
-        return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
-      };
-
       async function initializeData() {
-        setViewState("loading");
-        
-        let loadedData = [];
-        if (supabaseClient) {
-          try {
-            const { data, error } = await withTimeout(
-              supabaseClient.from("products").select("*").order("created_at", { ascending: false })
-            );
-            if (!error && Array.isArray(data) && data.length > 0) {
-              loadedData = data;
-            }
-          } catch (err) {
-            console.warn("Supabase fetch failed or timed out, using fallbacks.");
-          }
-        }
-
-        products = loadedData.length > 0 ? loadedData : FALLBACK_PRODUCTS;
-
+        // INSTANT RENDER: Load Fallback immediately so user never sees a blank screen or hanging skeleton
+        products = [...FALLBACK_PRODUCTS];
         products.forEach(p => {
           const available = getAvailableSizes(p);
           if (available.length) quickAddSelections.set(String(p.id), available[0]);
         });
-
+        
         if (filterStrip) {
           filterStrip.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.category === activeCategory));
         }
+        applyFilters(); 
 
-        applyFilters();
+        // BACKGROUND FETCH: Check Supabase invisibly and swap live products in
+        if (supabaseClient) {
+          try {
+            const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
+            if (!error && Array.isArray(data) && data.length > 0) {
+              products = data;
+              quickAddSelections.clear();
+              products.forEach(p => {
+                const available = getAvailableSizes(p);
+                if (available.length) quickAddSelections.set(String(p.id), available[0]);
+              });
+              applyFilters(); // Re-render with real products seamlessly
+            }
+          } catch (err) {
+            console.warn("Using fallback products due to Supabase delay.");
+          }
+        }
       }
 
+      // Initialize Immediately
       initializeData();
+
     })();
   </script>
 </body>
