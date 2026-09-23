@@ -3,219 +3,655 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
   <title>SHOP SILHOUETTES — BULKKOT (불꽃)</title>
+  <meta name="description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweats, Korean-inspired oversized essentials.">
+  <meta name="theme-color" content="#070707">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="BULKKOT (불꽃)">
+  <meta property="og:title" content="Shop Silhouettes — BULKKOT (불꽃)">
+  <meta property="og:description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweats, Korean-inspired oversized essentials.">
+  <meta property="og:url" content="https://bulkkot.com/shop.html">
+  <meta property="og:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png">
+  <meta property="og:image:width" content="541">
+  <meta property="og:image:height" content="359">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Shop Silhouettes — BULKKOT (불꽃)">
+  <meta name="twitter:description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweats.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png">
+
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
 
-  <!-- Fonts & Core CSS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body { background: #070707; color: #f5f5f5; font-family: 'Inter', sans-serif; }
-    .shop-container { max-width: 1360px; margin: 0 auto; padding: 24px 16px 80px; }
-
-    /* Top Horizontal Bar (Myntra Style Filter & Sort) */
-    .shop-header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 0;
-      border-bottom: 1px solid #1a1a1a;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 16px;
+    :root {
+      --shop-bg: #070707;
+      --shop-card: #0e0e0e;
+      --shop-surface: #121212;
+      --shop-border: #1a1a1a;
+      --shop-border-strong: #242424;
+      --shop-text: #f5f5f5;
+      --shop-muted: #888;
+      --shop-red: var(--bk-red, #e31b23);
     }
+
+    html {
+      overflow-x: clip;
+      background: var(--shop-bg);
+    }
+
+    body {
+      margin: 0;
+      background: var(--shop-bg);
+      color: var(--shop-text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: clip;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button,
+    a,
+    input,
+    select {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .shop-container {
+      width: min(1360px, 100%);
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+      box-sizing: border-box;
+    }
+
+    .shop-header-bar {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) minmax(180px, 260px) auto;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--shop-border);
+      margin-bottom: 24px;
+      min-width: 0;
+    }
+
+    .shop-title-area {
+      min-width: 0;
+    }
+
     .shop-title-area h1 {
+      margin: 0;
       font-size: 20px;
+      line-height: 1.1;
       font-weight: 900;
       letter-spacing: 0.08em;
-      margin: 0;
       text-transform: uppercase;
-    }
-    .shop-title-area p {
-      font-size: 11px;
-      color: #888;
-      margin: 4px 0 0;
-      letter-spacing: 0.1em;
+      white-space: nowrap;
     }
 
-    /* Horizontal Filter Strip */
+    .shop-title-area p {
+      margin: 5px 0 0;
+      color: var(--shop-muted);
+      font-size: 10px;
+      line-height: 1.3;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
     .filter-strip {
+      min-width: 0;
       display: flex;
       align-items: center;
       gap: 8px;
       overflow-x: auto;
+      overflow-y: hidden;
       scrollbar-width: none;
-      padding-bottom: 4px;
-    }
-    .filter-btn {
-      background: #121212;
-      border: 1px solid #242424;
-      color: #999;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s ease;
-    }
-    .filter-btn:hover, .filter-btn.active {
-      background: #fff;
-      color: #000;
-      border-color: #fff;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      padding: 2px 0 4px;
     }
 
-    .sort-wrap select {
-      background: #121212;
-      border: 1px solid #242424;
-      color: #fff;
-      padding: 8px 14px;
-      font-size: 11px;
-      font-weight: 700;
+    .filter-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-btn {
+      flex: 0 0 auto;
+      min-height: 38px;
+      min-width: 44px;
+      padding: 8px 16px;
+      border: 1px solid var(--shop-border-strong);
+      border-radius: 4px;
+      background: var(--shop-surface);
+      color: #999;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      line-height: 1;
+      white-space: nowrap;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn:focus-visible,
+    .filter-btn.active {
+      background: #fff;
+      border-color: #fff;
+      color: #000;
+    }
+
+    .filter-btn:focus-visible,
+    .shop-search:focus-visible,
+    .shop-sort:focus-visible,
+    .p-size-chip:focus-visible,
+    .p-quickadd-btn:focus-visible,
+    .shop-retry-btn:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.75);
+      outline-offset: 2px;
+    }
+
+    .search-wrap {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .shop-search {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      min-height: 38px;
+      box-sizing: border-box;
+      padding: 0 12px;
+      border: 1px solid var(--shop-border-strong);
       border-radius: 4px;
       outline: none;
-      cursor: pointer;
+      background: var(--shop-surface);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
     }
 
-    /* 4-col desktop, 2-col mobile */
+    .shop-search::placeholder {
+      color: #666;
+      opacity: 1;
+    }
+
+    .shop-search:focus {
+      border-color: #444;
+    }
+
+    .sort-wrap {
+      min-width: 0;
+    }
+
+    .shop-sort {
+      display: block;
+      width: 100%;
+      min-height: 38px;
+      box-sizing: border-box;
+      padding: 0 12px;
+      border: 1px solid var(--shop-border-strong);
+      border-radius: 4px;
+      outline: none;
+      background: var(--shop-surface);
+      color: #fff;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 20px;
+      width: 100%;
+      min-width: 0;
+      align-items: stretch;
     }
 
     .p-card {
-      background: #0e0e0e;
-      border: 1px solid #1a1a1a;
+      min-width: 0;
+      background: var(--shop-card);
+      border: 1px solid var(--shop-border);
       border-radius: 6px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      text-decoration: none;
       color: inherit;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s ease;
     }
-    .p-card:hover { border-color: #333; }
+
+    .p-card:hover {
+      border-color: #333;
+    }
+
+    .p-card-link {
+      display: block;
+      min-width: 0;
+      color: inherit;
+      text-decoration: none;
+    }
 
     .p-thumb {
-      width: 100%;
-      height: 320px;
-      background: #141414;
       position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1.12;
+      min-width: 0;
       overflow: hidden;
+      background: #141414;
+      isolation: isolate;
     }
+
     .p-thumb img {
+      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: transform 0.4s ease;
     }
-    .p-card:hover .p-thumb img { transform: scale(1.04); }
 
-    .p-thumb.is-sold-out img { opacity: 0.45; filter: grayscale(0.4); }
-    .p-sold-out-badge {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 900; letter-spacing: 0.15em; color: #fff;
-      background: rgba(0,0,0,0.55);
+    .p-card:hover .p-thumb img {
+      transform: scale(1.04);
+    }
+
+    .p-thumb.is-sold-out img {
+      opacity: 0.45;
+      filter: grayscale(0.4);
+    }
+
+    .p-thumb img.image-failed {
+      object-fit: contain;
+      padding: 20px;
+      box-sizing: border-box;
+      opacity: 0.65;
     }
 
     .p-tag {
       position: absolute;
+      z-index: 2;
       top: 10px;
       left: 10px;
-      background: #000;
+      max-width: calc(100% - 20px);
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 5px 8px;
       border: 1px solid #222;
-      color: var(--bk-red, #e31b23);
-      font-size: 9px;
+      background: rgba(0, 0, 0, 0.92);
+      color: var(--shop-red);
+      font-size: 8px;
       font-weight: 800;
-      padding: 4px 8px;
       letter-spacing: 0.1em;
     }
 
-    .p-info { padding: 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-    .p-info h3 { font-size: 12px; font-weight: 800; margin: 0 0 4px; letter-spacing: 0.05em; color: #eee; }
-    .p-info .p-sub { font-size: 10px; color: #777; margin-bottom: 10px; }
-    .p-meta { display: flex; justify-content: space-between; align-items: center; }
-    .p-price { font-size: 13px; font-weight: 900; color: #fff; }
-    .p-btn-view {
-      background: transparent;
-      border: 1px solid #333;
-      color: #ccc;
+    .p-sold-out-badge {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
       font-size: 10px;
-      font-weight: 700;
-      padding: 6px 12px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      text-align: center;
+    }
+
+    .p-info {
+      min-width: 0;
+      padding: 14px;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      box-sizing: border-box;
+    }
+
+    .p-copy {
+      min-width: 0;
+    }
+
+    .p-info h3 {
+      margin: 0 0 4px;
+      overflow: hidden;
+      color: #eee;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.05em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .p-info .p-sub {
+      min-height: 13px;
+      margin: 0;
+      overflow: hidden;
+      color: #777;
+      font-size: 10px;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .p-meta {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .p-price {
+      flex: 0 0 auto;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .p-btn-view {
+      display: inline-flex;
+      min-height: 32px;
+      max-width: 100%;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 6px 10px;
+      border: 1px solid #333;
       border-radius: 3px;
-      text-decoration: none;
+      color: #ccc;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
-    .p-card:hover .p-btn-view { background: #fff; color: #000; border-color: #fff; }
 
-    /* Quick-add row: size chips + add-to-bag, shown under card info */
-    .p-quickadd { display: flex; gap: 6px; align-items: center; padding: 0 14px 14px; }
-    .p-size-chip {
-      width: 26px; height: 26px; font-size: 9px; font-weight: 800;
-      border: 1px solid #2a2a2a; background: #111; color: #ccc;
-      border-radius: 3px; cursor: pointer; display: grid; place-items: center;
+    .p-card:hover .p-btn-view {
+      border-color: #fff;
+      background: #fff;
+      color: #000;
     }
-    .p-size-chip.active { border-color: #fff; background: #fff; color: #000; }
-    .p-size-chip:disabled { opacity: 0.3; text-decoration: line-through; cursor: not-allowed; }
+
+    .p-quickadd {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr) minmax(80px, 1.8fr);
+      gap: 6px;
+      align-items: center;
+      padding: 0 14px 14px;
+      min-width: 0;
+    }
+
+    .p-size-chip,
     .p-quickadd-btn {
-      flex: 1; min-height: 26px; background: var(--bk-red, #e31b23); color: #fff;
-      font-size: 9px; font-weight: 900; letter-spacing: 0.08em; border: none;
-      border-radius: 3px; cursor: pointer;
+      min-width: 0;
+      min-height: 38px;
+      box-sizing: border-box;
+      border-radius: 3px;
+      cursor: pointer;
     }
-    .p-quickadd-btn:disabled { background: #2a2a2a; color: #777; cursor: not-allowed; }
 
-    /* Loading skeleton */
-    .p-skeleton { background: #0e0e0e; border: 1px solid #1a1a1a; border-radius: 6px; overflow: hidden; }
-    .p-skeleton .p-thumb { background: linear-gradient(100deg, #141414 30%, #1c1c1c 50%, #141414 70%); background-size: 200% 100%; animation: shopShimmer 1.4s infinite; }
-    .p-skeleton .sk-line { height: 10px; background: #161616; border-radius: 3px; margin: 12px 14px; }
-    @keyframes shopShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-
-    .shop-state-msg { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: #888; }
-    .shop-state-msg strong { display: block; color: #fff; font-size: 14px; margin-bottom: 8px; }
-    .shop-retry-btn { margin-top: 14px; background: transparent; border: 1px solid #333; color: #ccc; font-size: 11px; font-weight: 700; padding: 8px 18px; border-radius: 4px; cursor: pointer; }
-    .shop-retry-btn:hover { background: #fff; color: #000; }
-
-    .search-wrap { position: relative; flex: 1; min-width: 160px; max-width: 260px; }
-    .search-wrap input {
-      width: 100%; background: #121212; border: 1px solid #242424; color: #fff;
-      font-size: 11px; padding: 8px 12px; border-radius: 4px; outline: none;
+    .p-size-chip {
+      display: grid;
+      place-items: center;
+      padding: 4px;
+      border: 1px solid #2a2a2a;
+      background: #111;
+      color: #ccc;
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1;
     }
-    .search-wrap input:focus { border-color: #444; }
 
-    @media (max-width: 768px) {
-      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .p-thumb { height: 210px; }
-      .p-info { padding: 10px; }
-      .p-info h3 { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .p-price { font-size: 12px; }
-      .p-btn-view { font-size: 9px; padding: 5px 8px; }
-      .search-wrap { max-width: 100%; order: 3; }
+    .p-size-chip:hover:not(:disabled) {
+      border-color: #777;
+      color: #fff;
+    }
+
+    .p-size-chip.active {
+      border-color: #fff;
+      background: #fff;
+      color: #000;
+    }
+
+    .p-size-chip:disabled {
+      opacity: 0.3;
+      text-decoration: line-through;
+      cursor: not-allowed;
+    }
+
+    .p-quickadd-btn {
+      padding: 8px 10px;
+      border: 1px solid #333;
+      background: #fff;
+      color: #000;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      white-space: nowrap;
+      transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .p-quickadd-btn:hover:not(:disabled) {
+      background: #e31b23;
+      color: #fff;
+      border-color: #e31b23;
+    }
+
+    .p-quickadd-btn:disabled {
+      background: #1b1b1b;
+      border-color: #222;
+      color: #555;
+      cursor: not-allowed;
+    }
+
+    .shop-state {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 90px 20px;
+      color: var(--shop-muted);
+      text-align: center;
+    }
+
+    .shop-state strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+      text-transform: uppercase;
+    }
+
+    .shop-state p {
+      max-width: 460px;
+      margin: 0 auto 18px;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .shop-retry-btn {
+      min-width: 120px;
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: #111;
+      color: #fff;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .shop-retry-btn:hover {
+      border-color: #fff;
+      background: #fff;
+      color: #000;
+    }
+
+    .shop-skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .shop-skeleton-card {
+      overflow: hidden;
+      border: 1px solid var(--shop-border);
+      border-radius: 6px;
+      background: var(--shop-card);
+    }
+
+    .shop-skeleton-image,
+    .shop-skeleton-line {
+      background: linear-gradient(100deg, #141414 30%, #1d1d1d 50%, #141414 70%);
+      background-size: 200% 100%;
+      animation: shopShimmer 1.4s infinite;
+    }
+
+    .shop-skeleton-image {
+      width: 100%;
+      aspect-ratio: 1 / 1.12;
+    }
+
+    .shop-skeleton-copy {
+      padding: 14px;
+    }
+
+    .shop-skeleton-line {
+      height: 10px;
+      margin-bottom: 9px;
+      border-radius: 2px;
+    }
+
+    .shop-skeleton-line.wide {
+      width: 78%;
+    }
+
+    .shop-skeleton-line.medium {
+      width: 52%;
+    }
+
+    .shop-skeleton-line.small {
+      width: 30%;
+    }
+
+    @keyframes shopShimmer {
+      from {
+        background-position: 200% 0;
+      }
+      to {
+        background-position: -200% 0;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .shop-header-bar {
+        grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) auto;
+      }
+      .shop-title-area {
+        grid-column: 1 / -1;
+      }
+      .products-grid,
+      .shop-skeleton-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shop-container {
+        padding: 18px 12px 64px;
+      }
+      .shop-header-bar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 12px 0;
+        margin-bottom: 18px;
+      }
+      .shop-title-area {
+        grid-column: 1 / -1;
+      }
+      .filter-strip {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        width: 100%;
+      }
+      .search-wrap {
+        grid-column: 1 / 2;
+        grid-row: 3;
+      }
+      .sort-wrap {
+        grid-column: 2 / 3;
+        grid-row: 3;
+        width: 140px;
+      }
+      .products-grid,
+      .shop-skeleton-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .shop-skeleton-image,
+      .shop-skeleton-line,
+      .p-thumb img,
+      .p-card {
+        animation: none !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
 
 <body>
-  <!-- HEADER -->
+
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="brand" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" style="width:36px; height:36px;">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" width="36" height="36" style="width:36px; height:36px;">
         <span class="brand-name">
           <span class="brand-korean" style="color:var(--bk-red, #e31b23); font-weight:700;">불꽃</span>
           <span class="brand-english" style="color:#fff; font-weight:900;">BULKKOT</span>
         </span>
       </a>
       <div class="header-actions">
-        <a href="index.html#top" class="nav-btn" style="color:#aaa; font-size:11px; font-weight:700; text-decoration:none;">← HOME</a>
+        <a href="index.html" class="nav-btn" style="color:#aaa; font-size:11px; font-weight:700; text-decoration:none;">← HOME</a>
         <button type="button" class="header-action cart-action" data-open-cart aria-label="Open cart">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h2l1.7 11h9.8L20 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 5h2l1.7 11h9.8L20 8H7"></path>
+            <circle cx="10" cy="20" r="1"></circle>
+            <circle cx="17" cy="20" r="1"></circle>
+          </svg>
           <span class="cart-count" data-cart-count hidden>0</span>
         </button>
       </div>
@@ -223,268 +659,294 @@
   </header>
 
   <main class="shop-container">
-    <!-- Top Filter & Sorting Bar -->
-    <div class="shop-header-bar">
+    <section class="shop-header-bar" aria-label="Catalogue controls">
       <div class="shop-title-area">
-        <h1 id="shopHeading">CATALOGUE</h1>
-        <p id="shopCount">SHOWING SILHOUETTES</p>
+        <h1>SILHOUETTES</h1>
+        <p>LESS NOISE. MORE PRESENCE.</p>
       </div>
 
-      <!-- Quick Filter Strip -->
-      <div class="filter-strip">
-        <button class="filter-btn active" data-cat="all">ALL PIECES</button>
-        <button class="filter-btn" data-cat="tees">TEES (티셔츠)</button>
-        <button class="filter-btn" data-cat="hoods">HOODIES (후드)</button>
-        <button class="filter-btn" data-cat="sweats">SWEATS (스웨트)</button>
+      <div class="filter-strip" id="filterStrip" role="tablist" aria-label="Filter products">
+        <button type="button" class="filter-btn active" data-category="all" role="tab" aria-selected="true">ALL</button>
+        <button type="button" class="filter-btn" data-category="tees" role="tab" aria-selected="false">TEES</button>
+        <button type="button" class="filter-btn" data-category="hoodies" role="tab" aria-selected="false">HOODIES</button>
+        <button type="button" class="filter-btn" data-category="sweats" role="tab" aria-selected="false">SWEATS</button>
       </div>
 
       <div class="search-wrap">
-        <input type="text" id="shopSearch" placeholder="SEARCH SILHOUETTES..." autocomplete="off">
+        <input id="shopSearch" class="shop-search" type="search" placeholder="SEARCH SILHOUETTES" aria-label="Search silhouettes">
       </div>
 
-      <!-- Sort Dropdown -->
       <div class="sort-wrap">
-        <select id="shopSort">
+        <select id="shopSort" class="shop-sort" aria-label="Sort products">
           <option value="featured">FEATURED</option>
-          <option value="price-low">PRICE: LOW TO HIGH</option>
-          <option value="price-high">PRICE: HIGH TO LOW</option>
           <option value="newest">NEWEST</option>
+          <option value="price-low">PRICE: LOW → HIGH</option>
+          <option value="price-high">PRICE: HIGH → LOW</option>
+          <option value="name">NAME: A → Z</option>
         </select>
       </div>
-    </div>
+    </section>
 
-    <!-- Product Grid -->
-    <div class="products-grid" id="shopGrid">
-      <!-- Injected by JS -->
-    </div>
+    <section id="shopLoading" class="shop-skeleton-grid" aria-label="Loading catalogue">
+      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line wide"></div><div class="shop-skeleton-line medium"></div></div></article>
+      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line wide"></div><div class="shop-skeleton-line medium"></div></div></article>
+      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line wide"></div><div class="shop-skeleton-line medium"></div></div></article>
+      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line wide"></div><div class="shop-skeleton-line medium"></div></div></article>
+    </section>
+
+    <section id="shopError" class="shop-state" hidden aria-live="polite">
+      <strong>CATALOGUE UNAVAILABLE</strong>
+      <p>We couldn't load silhouettes right now. Please try again.</p>
+      <button type="button" id="shopRetryBtn" class="shop-retry-btn">RETRY</button>
+    </section>
+
+    <section id="shopEmpty" class="shop-state" hidden aria-live="polite">
+      <strong>NO SILHOUETTES FOUND</strong>
+      <p id="shopEmptyText">Try another search or clear your filters.</p>
+      <button type="button" id="shopClearBtn" class="shop-retry-btn">CLEAR FILTERS</button>
+    </section>
+
+    <section id="productsGrid" class="products-grid" aria-label="BULKKOT products" hidden></section>
   </main>
 
-  <!-- CART DRAWER -->
   <div class="drawer-overlay" data-cart-overlay></div>
   <aside class="cart-drawer" id="cart-drawer" data-cart-drawer aria-hidden="true"></aside>
 
   <script src="js/cart.js"></script>
+
   <script>
-    const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-    const supabase = window.supabase && typeof window.supabase.createClient === 'function'
-      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      : null;
+    (() => {
+      "use strict";
 
-    const SIZES = ["S", "M", "L", "XL"];
-    const FALLBACK_IMG = "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
+      const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+      const FALLBACK_IMG = "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png";
+      const SIZES = ["S", "M", "L", "XL"];
 
-    function escapeHtml(str) {
-      return String(str ?? "").replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[c]));
-    }
+      const supabaseClient = window.supabase && typeof window.supabase.createClient === "function"
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
 
-    let allProducts = [];   // raw, active-only, from Supabase
-    let selectedCat = "all";
-    let searchQuery = "";
-    const cardSizeSelection = {}; // productId -> chosen size, for quick-add
+      const loadingEl = document.getElementById("shopLoading");
+      const errorEl = document.getElementById("shopError");
+      const emptyEl = document.getElementById("shopEmpty");
+      const emptyTextEl = document.getElementById("shopEmptyText");
+      const productsGrid = document.getElementById("productsGrid");
+      const retryBtn = document.getElementById("shopRetryBtn");
+      const clearBtn = document.getElementById("shopClearBtn");
+      const searchInput = document.getElementById("shopSearch");
+      const sortSelect = document.getElementById("shopSort");
+      const filterStrip = document.getElementById("filterStrip");
 
-    // URL Param Check (?category=tees etc.)
-    const urlParams = new URLSearchParams(window.location.search);
-    const catParam = urlParams.get('category');
-    if (catParam) selectedCat = catParam.toLowerCase();
+      let products = [];
+      let filteredProducts = [];
+      let activeCategory = "all";
+      let searchTerm = "";
+      let sortMode = "featured";
+      const quickAddSelections = new Map();
 
-    function getImages(p) {
-      const imgs = (Array.isArray(p.images) && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
-      return imgs.length ? imgs : [FALLBACK_IMG];
-    }
-
-    function getStock(p) {
-      return p.stock && typeof p.stock === "object" ? p.stock : {};
-    }
-
-    function isSoldOut(p) {
-      const stock = getStock(p);
-      return SIZES.every(s => Number(stock[s] || 0) <= 0);
-    }
-
-    function firstAvailableSize(p) {
-      const stock = getStock(p);
-      return SIZES.find(s => Number(stock[s] || 0) > 0) || null;
-    }
-
-    // ── SKELETON / EMPTY / ERROR STATES ──────────────────────────────
-    function renderSkeleton() {
-      const grid = document.getElementById('shopGrid');
-      grid.innerHTML = Array.from({ length: 8 }).map(() => `
-        <div class="p-skeleton">
-          <div class="p-thumb"></div>
-          <div class="sk-line" style="width:80%;"></div>
-          <div class="sk-line" style="width:50%;"></div>
-        </div>
-      `).join('');
-    }
-
-    function renderErrorState(message) {
-      const grid = document.getElementById('shopGrid');
-      grid.innerHTML = `
-        <div class="shop-state-msg">
-          <strong>Unable to load the catalogue</strong>
-          ${escapeHtml(message || "Please check your connection and try again.")}
-          <br><button class="shop-retry-btn" type="button" onclick="loadProducts()">RETRY</button>
-        </div>
-      `;
-    }
-
-    // ── FETCH ─────────────────────────────────────────────────────────
-    async function loadProducts() {
-      renderSkeleton();
-
-      if (!supabase) {
-        renderErrorState("Store is currently offline.");
-        return;
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[char]);
       }
 
-      try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-
-        // Only show products the admin has marked Live. Missing/null
-        // `active` is treated as live (matches the admin panel's own
-        // "isLive = p.active !== false" convention).
-        allProducts = (data || []).filter(p => p.active !== false);
-        renderShop();
-      } catch (err) {
-        console.error("Failed to load products:", err);
-        renderErrorState(err.message);
-      }
-    }
-
-    // ── RENDER ────────────────────────────────────────────────────────
-    function renderShop() {
-      const grid = document.getElementById('shopGrid');
-
-      let filtered = selectedCat === 'all'
-        ? [...allProducts]
-        : allProducts.filter(p => (p.category || '').toLowerCase() === selectedCat);
-
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        filtered = filtered.filter(p =>
-          (p.name || '').toLowerCase().includes(q) ||
-          (p.korean_name || p.korean || '').toLowerCase().includes(q)
-        );
+      function formatPrice(value) {
+        return `₹${Number(value || 0).toLocaleString("en-IN")}`;
       }
 
-      const sortVal = document.getElementById('shopSort').value;
-      if (sortVal === 'price-low') filtered.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-      if (sortVal === 'price-high') filtered.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-      if (sortVal === 'newest') filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-
-      document.getElementById('shopHeading').textContent = selectedCat === 'all' ? 'ALL SILHOUETTES' : selectedCat.toUpperCase() + ' COLLECTION';
-      document.getElementById('shopCount').textContent = `${filtered.length} PIECE${filtered.length === 1 ? '' : 'S'} AVAILABLE`;
-
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.cat === selectedCat);
-      });
-
-      if (!allProducts.length) {
-        grid.innerHTML = `<div class="shop-state-msg"><strong>No pieces in the catalogue yet</strong>Check back soon — new drops are on the way.</div>`;
-        return;
-      }
-      if (!filtered.length) {
-        grid.innerHTML = `<div class="shop-state-msg"><strong>No pieces found</strong>Try a different category or search term.</div>`;
-        return;
+      function getImages(product) {
+        const candidates = [];
+        if (Array.isArray(product?.images)) candidates.push(...product.images);
+        [product?.image, product?.image_url, product?.imageUrl].forEach(val => val && candidates.push(val));
+        return [...new Set(candidates.map(v => String(v || "").trim()).filter(Boolean))];
       }
 
-      grid.innerHTML = filtered.map(p => {
-        const images = getImages(p);
-        const stock = getStock(p);
-        const soldOut = isSoldOut(p);
-        if (!(p.id in cardSizeSelection)) cardSizeSelection[p.id] = firstAvailableSize(p);
-        const selSize = cardSizeSelection[p.id];
+      function getStock(product) {
+        return product?.stock && typeof product.stock === "object" && !Array.isArray(product.stock) ? product.stock : {};
+      }
 
-        return `
-          <div class="p-card">
-            <a href="product.html?id=${encodeURIComponent(p.id)}" style="text-decoration:none; color:inherit;">
-              <div class="p-thumb ${soldOut ? 'is-sold-out' : ''}">
-                <span class="p-tag">${escapeHtml((p.category || 'NEW').toUpperCase())}</span>
-                <img src="${images[0]}" alt="${escapeHtml(p.name || '')}" loading="lazy">
-                ${soldOut ? '<div class="p-sold-out-badge">SOLD OUT</div>' : ''}
-              </div>
-              <div class="p-info">
-                <div>
-                  <h3>${escapeHtml(p.name || 'Untitled Garment')}</h3>
-                  <div class="p-sub">${escapeHtml(p.korean_name || p.korean || '')}</div>
+      function getAvailableSizes(product) {
+        const stock = getStock(product);
+        return SIZES.filter(size => Number(stock[size] || 0) > 0);
+      }
+
+      function setState(state) {
+        if (loadingEl) loadingEl.hidden = state !== "loading";
+        if (errorEl) errorEl.hidden = state !== "error";
+        if (emptyEl) emptyEl.hidden = state !== "empty";
+        if (productsGrid) productsGrid.hidden = state !== "products";
+      }
+
+      function applyFilters() {
+        const term = searchTerm.trim().toLowerCase();
+        filteredProducts = products.filter((product) => {
+          if (product.active === false) return false;
+          if (activeCategory !== "all" && String(product?.category || "").trim().toLowerCase() !== activeCategory) return false;
+          if (term) {
+            const searchText = [product?.name, product?.description, product?.category, product?.fit].filter(Boolean).join(" ").toLowerCase();
+            if (!searchText.includes(term)) return false;
+          }
+          return true;
+        });
+
+        filteredProducts.sort((a, b) => {
+          switch (sortMode) {
+            case "newest": return Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0);
+            case "price-low": return Number(a.price || 0) - Number(b.price || 0);
+            case "price-high": return Number(b.price || 0) - Number(a.price || 0);
+            case "name": return String(a.name || "").localeCompare(String(b.name || ""));
+            case "featured":
+            default: return (b.featured === true ? 1 : 0) - (a.featured === true ? 1 : 0);
+          }
+        });
+
+        renderProducts();
+      }
+
+      function renderProducts() {
+        if (!filteredProducts.length) {
+          if (emptyTextEl) emptyTextEl.textContent = searchTerm ? `No silhouettes match "${searchTerm}".` : "Try another category or clear your filters.";
+          setState("empty");
+          productsGrid.innerHTML = "";
+          return;
+        }
+
+        productsGrid.innerHTML = filteredProducts.map((product) => {
+          const id = String(product?.id ?? "");
+          const name = product?.name || "Untitled Garment";
+          const image = getImages(product)[0] || FALLBACK_IMG;
+          const available = getAvailableSizes(product);
+          const soldOut = available.length === 0;
+          const selected = quickAddSelections.get(id) || available[0] || null;
+
+          return `
+            <article class="p-card">
+              <a href="product.html?id=${encodeURIComponent(id)}" class="p-card-link">
+                <div class="p-thumb${soldOut ? " is-sold-out" : ""}">
+                  <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async">
+                  <span class="p-tag">${escapeHtml(String(product?.category || "ESSENTIAL").toUpperCase())}</span>
+                  ${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
                 </div>
-                <div class="p-meta">
-                  <span class="p-price">₹${Number(p.price || 0).toLocaleString('en-IN')}</span>
-                  <span class="p-btn-view">VIEW DETAILS</span>
+                <div class="p-info">
+                  <div class="p-copy">
+                    <h3>${escapeHtml(name)}</h3>
+                    <p class="p-sub">${escapeHtml(product?.fit || product?.fabric || "")}</p>
+                  </div>
+                  <div class="p-meta">
+                    <span class="p-price">${formatPrice(product?.price)}</span>
+                    <span class="p-btn-view">VIEW PIECE</span>
+                  </div>
                 </div>
+              </a>
+              <div class="p-quickadd" data-quickadd-id="${encodeURIComponent(id)}">
+                ${SIZES.map((size) => {
+                  const inStock = Number(getStock(product)[size] || 0) > 0;
+                  const isActive = selected === size;
+                  return `
+                    <button type="button" class="p-size-chip${isActive ? " active" : ""}" data-size="${size}" ${!inStock ? "disabled" : ""}>
+                      ${size}
+                    </button>
+                  `;
+                }).join("")}
+                <button type="button" class="p-quickadd-btn" data-quick-add ${soldOut ? "disabled" : ""}>
+                  ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
+                </button>
               </div>
-            </a>
-            <div class="p-quickadd">
-              ${SIZES.map(s => {
-                const avail = Number(stock[s] || 0) > 0;
-                return `<button type="button" class="p-size-chip ${selSize === s ? 'active' : ''}"
-                  data-pid="${p.id}" data-size="${s}" ${avail ? '' : 'disabled'}>${s}</button>`;
-              }).join('')}
-              <button type="button" class="p-quickadd-btn" data-pid="${p.id}" ${soldOut ? 'disabled' : ''}>
-                ${soldOut ? 'SOLD OUT' : 'ADD TO BAG'}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
+            </article>
+          `;
+        }).join("");
 
-    // Event delegation for quick-add size chips + add-to-bag buttons
-    // (grid is re-rendered often, so we bind once on the container).
-    document.getElementById('shopGrid').addEventListener('click', (e) => {
-      const chip = e.target.closest('.p-size-chip');
-      if (chip) {
-        e.preventDefault();
-        cardSizeSelection[chip.dataset.pid] = chip.dataset.size;
-        renderShop();
-        return;
+        setState("products");
       }
 
-      const addBtn = e.target.closest('.p-quickadd-btn');
-      if (addBtn && !addBtn.disabled) {
-        e.preventDefault();
-        const p = allProducts.find(item => String(item.id) === addBtn.dataset.pid);
-        if (!p) return;
-        const size = cardSizeSelection[p.id] || firstAvailableSize(p);
-        if (!size) return;
+      /* Quick-add & Filters Events */
+      productsGrid.addEventListener("click", (event) => {
+        const sizeBtn = event.target.closest(".p-size-chip");
+        if (sizeBtn && !sizeBtn.disabled) {
+          const wrapper = sizeBtn.closest("[data-quickadd-id]");
+          const productId = decodeURIComponent(wrapper?.dataset.quickaddId || "");
+          const size = sizeBtn.dataset.size;
+          quickAddSelections.set(productId, size);
+          wrapper.querySelectorAll(".p-size-chip").forEach(b => b.classList.toggle("active", b.dataset.size === size));
+          return;
+        }
 
-        if (window.BULKKOT_CART?.addItem) {
+        const addBtn = event.target.closest("[data-quick-add]");
+        if (addBtn) {
+          const wrapper = addBtn.closest("[data-quickadd-id]");
+          const productId = decodeURIComponent(wrapper?.dataset.quickaddId || "");
+          const product = products.find(i => String(i.id) === productId);
+          if (!product) return;
+          const available = getAvailableSizes(product);
+          const size = quickAddSelections.get(productId) || available[0];
+          if (!size || !window.BULKKOT_CART) return;
+
           window.BULKKOT_CART.addItem({
-            id: p.id, name: p.name, price: Number(p.price || 0),
-            size, image: getImages(p)[0], quantity: 1
+            id: product.id,
+            name: product.name,
+            price: Number(product.price || 0),
+            size,
+            image: getImages(product)[0] || FALLBACK_IMG,
+            quantity: 1
           });
         }
-      }
-    });
-
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selectedCat = btn.dataset.cat;
-        renderShop();
       });
-    });
 
-    document.getElementById('shopSort').addEventListener('change', renderShop);
+      filterStrip.addEventListener("click", (event) => {
+        const btn = event.target.closest(".filter-btn");
+        if (!btn) return;
+        activeCategory = btn.dataset.category || "all";
+        filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b === btn));
+        applyFilters();
+      });
 
-    let searchDebounce;
-    document.getElementById('shopSearch').addEventListener('input', (e) => {
-      clearTimeout(searchDebounce);
-      searchDebounce = setTimeout(() => {
-        searchQuery = e.target.value.trim();
-        renderShop();
-      }, 200);
-    });
+      searchInput.addEventListener("input", () => {
+        searchTerm = searchInput.value || "";
+        applyFilters();
+      });
 
-    loadProducts();
+      sortSelect.addEventListener("change", () => {
+        sortMode = sortSelect.value || "featured";
+        applyFilters();
+      });
+
+      clearBtn.addEventListener("click", () => {
+        activeCategory = "all";
+        searchTerm = "";
+        searchInput.value = "";
+        sortMode = "featured";
+        sortSelect.value = "featured";
+        filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b.dataset.category === "all"));
+        applyFilters();
+      });
+
+      retryBtn.addEventListener("click", loadProducts);
+
+      async function loadProducts() {
+        setState("loading");
+        if (!supabaseClient) {
+          setState("error");
+          return;
+        }
+        try {
+          const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
+          if (error) throw error;
+          products = Array.isArray(data) ? data : [];
+          quickAddSelections.clear();
+          products.forEach(p => {
+            const avail = getAvailableSizes(p);
+            if (avail.length) quickAddSelections.set(String(p.id), avail[0]);
+          });
+          applyFilters();
+        } catch (err) {
+          console.error("Catalogue load error:", err);
+          setState("error");
+        }
+      }
+
+      loadProducts();
+    })();
   </script>
 </body>
 </html>
