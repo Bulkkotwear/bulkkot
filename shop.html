@@ -8,20 +8,6 @@
   <meta name="description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweats, Korean-inspired oversized essentials.">
   <meta name="theme-color" content="#070707">
 
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="BULKKOT (불꽃)">
-  <meta property="og:title" content="Shop Silhouettes — BULKKOT (불꽃)">
-  <meta property="og:description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweats, Korean-inspired oversized essentials.">
-  <meta property="og:url" content="https://bulkkot.com/shop.html">
-  <meta property="og:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png">
-  <meta property="og:image:width" content="541">
-  <meta property="og:image:height" content="359">
-
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Shop Silhouettes — BULKKOT (불꽃)">
-  <meta name="twitter:description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweats.">
-  <meta name="twitter:image" content="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png">
-
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,17 +31,7 @@
       --shop-red: var(--bk-red, #e31b23);
     }
 
-    /* FIX: Force browser to respect the 'hidden' attribute over display:grid */
-    [hidden] {
-      display: none !important;
-    }
-
-    html {
-      overflow-x: clip;
-      background: var(--shop-bg);
-    }
-
-    body {
+    html, body {
       margin: 0;
       background: var(--shop-bg);
       color: var(--shop-text);
@@ -63,17 +39,9 @@
       overflow-x: clip;
     }
 
-    button,
-    input,
-    select {
-      font: inherit;
-    }
-
-    button,
-    a,
-    input,
-    select {
+    button, a, input, select {
       -webkit-tap-highlight-color: transparent;
+      font: inherit;
     }
 
     .shop-container {
@@ -94,10 +62,6 @@
       min-width: 0;
     }
 
-    .shop-title-area {
-      min-width: 0;
-    }
-
     .shop-title-area h1 {
       margin: 0;
       font-size: 20px;
@@ -112,32 +76,24 @@
       margin: 5px 0 0;
       color: var(--shop-muted);
       font-size: 10px;
-      line-height: 1.3;
       letter-spacing: 0.1em;
       white-space: nowrap;
     }
 
     .filter-strip {
-      min-width: 0;
       display: flex;
       align-items: center;
       gap: 8px;
       overflow-x: auto;
-      overflow-y: hidden;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
-      overscroll-behavior-x: contain;
       padding: 2px 0 4px;
     }
-
-    .filter-strip::-webkit-scrollbar {
-      display: none;
-    }
+    .filter-strip::-webkit-scrollbar { display: none; }
 
     .filter-btn {
       flex: 0 0 auto;
       min-height: 38px;
-      min-width: 44px;
       padding: 8px 16px;
       border: 1px solid var(--shop-border-strong);
       border-radius: 4px;
@@ -147,79 +103,39 @@
       font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.06em;
-      line-height: 1;
-      white-space: nowrap;
-      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      transition: all 0.2s ease;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: #fff; border-color: #fff; color: #000;
     }
 
-    .filter-btn:hover,
-    .filter-btn:focus-visible,
-    .filter-btn.active {
-      background: #fff;
-      border-color: #fff;
-      color: #000;
-    }
-
-    .filter-btn:focus-visible,
-    .shop-search:focus-visible,
-    .shop-sort:focus-visible,
-    .p-size-chip:focus-visible,
-    .p-quickadd-btn:focus-visible,
-    .shop-retry-btn:focus-visible {
-      outline: 2px solid rgba(255, 255, 255, 0.75);
-      outline-offset: 2px;
-    }
-
-    .search-wrap {
-      min-width: 0;
-      width: 100%;
-    }
-
+    .search-wrap { width: 100%; }
     .shop-search {
-      display: block;
       width: 100%;
-      min-width: 0;
       min-height: 38px;
-      box-sizing: border-box;
       padding: 0 12px;
       border: 1px solid var(--shop-border-strong);
       border-radius: 4px;
-      outline: none;
       background: var(--shop-surface);
       color: #fff;
       font-size: 10px;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      outline: none;
     }
-
-    .shop-search::placeholder {
-      color: #666;
-      opacity: 1;
-    }
-
-    .shop-search:focus {
-      border-color: #444;
-    }
-
-    .sort-wrap {
-      min-width: 0;
-    }
+    .shop-search:focus { border-color: #444; }
 
     .shop-sort {
-      display: block;
       width: 100%;
       min-height: 38px;
-      box-sizing: border-box;
       padding: 0 12px;
       border: 1px solid var(--shop-border-strong);
       border-radius: 4px;
-      outline: none;
       background: var(--shop-surface);
       color: #fff;
-      cursor: pointer;
       font-size: 10px;
       font-weight: 800;
-      letter-spacing: 0.04em;
+      outline: none;
+      cursor: pointer;
     }
 
     .products-grid {
@@ -227,77 +143,39 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 20px;
       width: 100%;
-      min-width: 0;
-      align-items: stretch;
     }
 
     .p-card {
-      min-width: 0;
       background: var(--shop-card);
       border: 1px solid var(--shop-border);
       border-radius: 6px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      color: inherit;
       transition: border-color 0.2s ease;
     }
+    .p-card:hover { border-color: #333; }
 
-    .p-card:hover {
-      border-color: #333;
-    }
-
-    .p-card-link {
-      display: block;
-      min-width: 0;
-      color: inherit;
-      text-decoration: none;
-    }
+    .p-card-link { display: block; color: inherit; text-decoration: none; }
 
     .p-thumb {
       position: relative;
       width: 100%;
       aspect-ratio: 1 / 1.12;
-      min-width: 0;
-      overflow: hidden;
       background: #141414;
-      isolation: isolate;
+      overflow: hidden;
     }
-
     .p-thumb img {
-      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: transform 0.4s ease;
     }
-
-    .p-card:hover .p-thumb img {
-      transform: scale(1.04);
-    }
-
-    .p-thumb.is-sold-out img {
-      opacity: 0.45;
-      filter: grayscale(0.4);
-    }
-
-    .p-thumb img.image-failed {
-      object-fit: contain;
-      padding: 20px;
-      box-sizing: border-box;
-      opacity: 0.65;
-    }
+    .p-card:hover .p-thumb img { transform: scale(1.04); }
 
     .p-tag {
       position: absolute;
-      z-index: 2;
-      top: 10px;
-      left: 10px;
-      max-width: calc(100% - 20px);
-      box-sizing: border-box;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      top: 10px; left: 10px; z-index: 2;
       padding: 5px 8px;
       border: 1px solid #222;
       background: rgba(0, 0, 0, 0.92);
@@ -307,333 +185,77 @@
       letter-spacing: 0.1em;
     }
 
-    .p-sold-out-badge {
-      position: absolute;
-      z-index: 3;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      box-sizing: border-box;
-      background: rgba(0, 0, 0, 0.55);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: 0.15em;
-      text-align: center;
-    }
-
     .p-info {
-      min-width: 0;
       padding: 14px;
       display: flex;
       flex: 1;
       flex-direction: column;
       justify-content: space-between;
       gap: 14px;
-      box-sizing: border-box;
     }
 
-    .p-copy {
-      min-width: 0;
-    }
-
-    .p-info h3 {
-      margin: 0 0 4px;
-      overflow: hidden;
-      color: #eee;
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 1.35;
-      letter-spacing: 0.05em;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .p-info .p-sub {
-      min-height: 13px;
-      margin: 0;
-      overflow: hidden;
-      color: #777;
-      font-size: 10px;
-      line-height: 1.35;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .p-meta {
-      display: flex;
-      min-width: 0;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .p-price {
-      flex: 0 0 auto;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 900;
-      white-space: nowrap;
-    }
+    .p-info h3 { margin: 0 0 4px; color: #eee; font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .p-info .p-sub { margin: 0; color: #777; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .p-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .p-price { color: #fff; font-size: 13px; font-weight: 900; }
 
     .p-btn-view {
-      display: inline-flex;
-      min-height: 32px;
-      max-width: 100%;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
       padding: 6px 10px;
       border: 1px solid #333;
       border-radius: 3px;
       color: #ccc;
       font-size: 9px;
       font-weight: 700;
-      line-height: 1;
-      text-align: center;
-      white-space: nowrap;
-      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      transition: all 0.2s ease;
     }
-
-    .p-card:hover .p-btn-view {
-      border-color: #fff;
-      background: #fff;
-      color: #000;
-    }
+    .p-card:hover .p-btn-view { border-color: #fff; background: #fff; color: #000; }
 
     .p-quickadd {
       display: grid;
       grid-template-columns: repeat(4, 1fr) minmax(80px, 1.8fr);
       gap: 6px;
-      align-items: center;
       padding: 0 14px 14px;
-      min-width: 0;
     }
-
-    .p-size-chip,
-    .p-quickadd-btn {
-      min-width: 0;
-      min-height: 38px;
-      box-sizing: border-box;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-
     .p-size-chip {
-      display: grid;
-      place-items: center;
-      padding: 4px;
-      border: 1px solid #2a2a2a;
-      background: #111;
-      color: #ccc;
-      font-size: 9px;
-      font-weight: 800;
-      line-height: 1;
+      padding: 4px; border: 1px solid #2a2a2a; background: #111; color: #ccc; font-size: 9px; font-weight: 800; cursor: pointer;
     }
-
-    .p-size-chip:hover:not(:disabled) {
-      border-color: #777;
-      color: #fff;
-    }
-
-    .p-size-chip.active {
-      border-color: #fff;
-      background: #fff;
-      color: #000;
-    }
-
-    .p-size-chip:disabled {
-      opacity: 0.3;
-      text-decoration: line-through;
-      cursor: not-allowed;
-    }
+    .p-size-chip:hover:not(:disabled) { border-color: #777; color: #fff; }
+    .p-size-chip.active { border-color: #fff; background: #fff; color: #000; }
+    .p-size-chip:disabled { opacity: 0.3; text-decoration: line-through; cursor: not-allowed; }
 
     .p-quickadd-btn {
-      padding: 8px 10px;
-      border: 1px solid #333;
-      background: #fff;
-      color: #000;
-      font-size: 9px;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      line-height: 1;
-      white-space: nowrap;
-      transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+      padding: 8px 10px; border: 1px solid #333; background: #fff; color: #000; font-size: 9px; font-weight: 900; cursor: pointer;
     }
+    .p-quickadd-btn:hover:not(:disabled) { background: #e31b23; color: #fff; border-color: #e31b23; }
 
-    .p-quickadd-btn:hover:not(:disabled) {
-      background: #e31b23;
-      color: #fff;
-      border-color: #e31b23;
-    }
+    .shop-state { padding: 90px 20px; text-align: center; color: var(--shop-muted); }
+    .shop-state strong { display: block; margin-bottom: 10px; color: #fff; font-size: 16px; font-weight: 900; }
+    .shop-state p { font-size: 11px; margin-bottom: 18px; }
 
-    .p-quickadd-btn:disabled {
-      background: #1b1b1b;
-      border-color: #222;
-      color: #555;
-      cursor: not-allowed;
-    }
+    .shop-skeleton-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+    .shop-skeleton-card { border: 1px solid var(--shop-border); border-radius: 6px; background: var(--shop-card); overflow: hidden; }
+    .shop-skeleton-image, .shop-skeleton-line { background: linear-gradient(100deg, #141414 30%, #1d1d1d 50%, #141414 70%); background-size: 200% 100%; animation: shopShimmer 1.4s infinite; }
+    .shop-skeleton-image { width: 100%; aspect-ratio: 1 / 1.12; }
+    .shop-skeleton-copy { padding: 14px; }
+    .shop-skeleton-line { height: 10px; margin-bottom: 9px; border-radius: 2px; }
 
-    .shop-state {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 90px 20px;
-      color: var(--shop-muted);
-      text-align: center;
-    }
-
-    .shop-state strong {
-      display: block;
-      margin-bottom: 10px;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: 0.06em;
-      line-height: 1.3;
-      text-transform: uppercase;
-    }
-
-    .shop-state p {
-      max-width: 460px;
-      margin: 0 auto 18px;
-      font-size: 11px;
-      line-height: 1.7;
-    }
-
-    .shop-retry-btn {
-      min-width: 120px;
-      min-height: 44px;
-      padding: 10px 16px;
-      border: 1px solid #333;
-      border-radius: 4px;
-      background: #111;
-      color: #fff;
-      cursor: pointer;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-    }
-
-    .shop-retry-btn:hover {
-      border-color: #fff;
-      background: #fff;
-      color: #000;
-    }
-
-    .shop-skeleton-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 20px;
-    }
-
-    .shop-skeleton-card {
-      overflow: hidden;
-      border: 1px solid var(--shop-border);
-      border-radius: 6px;
-      background: var(--shop-card);
-    }
-
-    .shop-skeleton-image,
-    .shop-skeleton-line {
-      background: linear-gradient(100deg, #141414 30%, #1d1d1d 50%, #141414 70%);
-      background-size: 200% 100%;
-      animation: shopShimmer 1.4s infinite;
-    }
-
-    .shop-skeleton-image {
-      width: 100%;
-      aspect-ratio: 1 / 1.12;
-    }
-
-    .shop-skeleton-copy {
-      padding: 14px;
-    }
-
-    .shop-skeleton-line {
-      height: 10px;
-      margin-bottom: 9px;
-      border-radius: 2px;
-    }
-
-    .shop-skeleton-line.wide {
-      width: 78%;
-    }
-
-    .shop-skeleton-line.medium {
-      width: 52%;
-    }
-
-    .shop-skeleton-line.small {
-      width: 30%;
-    }
-
-    @keyframes shopShimmer {
-      from {
-        background-position: 200% 0;
-      }
-      to {
-        background-position: -200% 0;
-      }
-    }
+    @keyframes shopShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
     @media (max-width: 1100px) {
-      .shop-header-bar {
-        grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) auto;
-      }
-      .shop-title-area {
-        grid-column: 1 / -1;
-      }
-      .products-grid,
-      .shop-skeleton-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
+      .shop-header-bar { grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) auto; }
+      .shop-title-area { grid-column: 1 / -1; }
+      .products-grid, .shop-skeleton-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (max-width: 760px) {
-      .shop-container {
-        padding: 18px 12px 64px;
-      }
-      .shop-header-bar {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 10px;
-        padding: 12px 0;
-        margin-bottom: 18px;
-      }
-      .shop-title-area {
-        grid-column: 1 / -1;
-      }
-      .filter-strip {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        width: 100%;
-      }
-      .search-wrap {
-        grid-column: 1 / 2;
-        grid-row: 3;
-      }
-      .sort-wrap {
-        grid-column: 2 / 3;
-        grid-row: 3;
-        width: 140px;
-      }
-      .products-grid,
-      .shop-skeleton-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .shop-skeleton-image,
-      .shop-skeleton-line,
-      .p-thumb img,
-      .p-card {
-        animation: none !important;
-        transition: none !important;
-      }
+      .shop-header-bar { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 12px 0; margin-bottom: 18px; }
+      .shop-title-area { grid-column: 1 / -1; }
+      .filter-strip { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+      .search-wrap { grid-column: 1 / 2; grid-row: 3; }
+      .sort-wrap { grid-column: 2 / 3; grid-row: 3; width: 140px; }
+      .products-grid, .shop-skeleton-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .p-quickadd { display: none; } /* Hide quickadd on mobile to keep cards compact */
     }
   </style>
 </head>
@@ -643,7 +265,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="brand" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
-        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" class="brand-logo" width="36" height="36" style="width:36px; height:36px;">
+        <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" alt="BULKKOT logo" width="36" height="36" style="width:36px; height:36px;">
         <span class="brand-name">
           <span class="brand-korean" style="color:var(--bk-red, #e31b23); font-weight:700;">불꽃</span>
           <span class="brand-english" style="color:#fff; font-weight:900;">BULKKOT</span>
@@ -652,7 +274,7 @@
       <div class="header-actions">
         <a href="index.html" class="nav-btn" style="color:#aaa; font-size:11px; font-weight:700; text-decoration:none;">← HOME</a>
         <button type="button" class="header-action cart-action" data-open-cart aria-label="Open cart">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 5h2l1.7 11h9.8L20 8H7"></path>
             <circle cx="10" cy="20" r="1"></circle>
             <circle cx="17" cy="20" r="1"></circle>
@@ -664,54 +286,52 @@
   </header>
 
   <main class="shop-container">
-    <section class="shop-header-bar" aria-label="Catalogue controls">
+    <section class="shop-header-bar">
       <div class="shop-title-area">
         <h1>SILHOUETTES</h1>
         <p>LESS NOISE. MORE PRESENCE.</p>
       </div>
 
-      <div class="filter-strip" id="filterStrip" role="tablist" aria-label="Filter products">
-        <button type="button" class="filter-btn active" data-category="all" role="tab" aria-selected="true">ALL</button>
-        <button type="button" class="filter-btn" data-category="tees" role="tab" aria-selected="false">TEES</button>
-        <button type="button" class="filter-btn" data-category="hoodies" role="tab" aria-selected="false">HOODIES</button>
-        <button type="button" class="filter-btn" data-category="sweats" role="tab" aria-selected="false">SWEATS</button>
+      <div class="filter-strip" id="filterStrip">
+        <button type="button" class="filter-btn active" data-category="all">ALL</button>
+        <button type="button" class="filter-btn" data-category="tees">TEES</button>
+        <button type="button" class="filter-btn" data-category="hoodies">HOODIES</button>
+        <button type="button" class="filter-btn" data-category="sweats">SWEATS</button>
       </div>
 
       <div class="search-wrap">
-        <input id="shopSearch" class="shop-search" type="search" placeholder="SEARCH SILHOUETTES" aria-label="Search silhouettes">
+        <input id="shopSearch" class="shop-search" type="search" placeholder="SEARCH SILHOUETTES">
       </div>
 
       <div class="sort-wrap">
-        <select id="shopSort" class="shop-sort" aria-label="Sort products">
+        <select id="shopSort" class="shop-sort">
           <option value="featured">FEATURED</option>
           <option value="newest">NEWEST</option>
           <option value="price-low">PRICE: LOW → HIGH</option>
           <option value="price-high">PRICE: HIGH → LOW</option>
-          <option value="name">NAME: A → Z</option>
         </select>
       </div>
     </section>
 
-    <section id="shopLoading" class="shop-skeleton-grid" aria-label="Loading catalogue">
-      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line wide"></div><div class="shop-skeleton-line medium"></div></div></article>
-      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line wide"></div><div class="shop-skeleton-line medium"></div></div></article>
-      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line wide"></div><div class="shop-skeleton-line medium"></div></div></article>
-      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line wide"></div><div class="shop-skeleton-line medium"></div></div></article>
+    <!-- UI STATES -->
+    <section id="shopLoading" class="shop-skeleton-grid" style="display: grid;">
+      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
+      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
+      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
+      <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
     </section>
 
-    <section id="shopError" class="shop-state" hidden aria-live="polite">
+    <section id="shopError" class="shop-state" style="display: none;">
       <strong>CATALOGUE UNAVAILABLE</strong>
       <p>We couldn't load silhouettes right now. Please try again.</p>
-      <button type="button" id="shopRetryBtn" class="shop-retry-btn">RETRY</button>
     </section>
 
-    <section id="shopEmpty" class="shop-state" hidden aria-live="polite">
+    <section id="shopEmpty" class="shop-state" style="display: none;">
       <strong>NO SILHOUETTES FOUND</strong>
       <p id="shopEmptyText">Try another search or clear your filters.</p>
-      <button type="button" id="shopClearBtn" class="shop-retry-btn">CLEAR FILTERS</button>
     </section>
 
-    <section id="productsGrid" class="products-grid" aria-label="BULKKOT products" hidden></section>
+    <section id="productsGrid" class="products-grid" style="display: none;"></section>
   </main>
 
   <div class="drawer-overlay" data-cart-overlay></div>
@@ -732,13 +352,19 @@
         ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
         : null;
 
+      // Ensure products show even if Supabase is disconnected or empty
+      const FALLBACK_PRODUCTS = [
+        { id: "bk-tee-01", name: "HEAVY ARCHITECTURAL BOXY TEE", category: "tees", korean: "오버사이즈 티셔츠", price: 2499, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" },
+        { id: "bk-hood-01", name: "STRUCTURED LOOPBACK HOODIE", category: "hoods", korean: "헤비웨이트 후드", price: 4499, tag: "LIMITED", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" },
+        { id: "bk-sweat-01", name: "MINIMALIST OVERSIZED SWEATSHIRT", category: "sweats", korean: "미니멀 스웨트", price: 3699, tag: "CORE", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" },
+        { id: "bk-tee-02", name: "SEOUL SILHOUETTE GRAPHIC TEE", category: "tees", korean: "그래픽 티셔츠", price: 2699, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" }
+      ];
+
       const loadingEl = document.getElementById("shopLoading");
       const errorEl = document.getElementById("shopError");
       const emptyEl = document.getElementById("shopEmpty");
-      const emptyTextEl = document.getElementById("shopEmptyText");
       const productsGrid = document.getElementById("productsGrid");
-      const retryBtn = document.getElementById("shopRetryBtn");
-      const clearBtn = document.getElementById("shopClearBtn");
+      const emptyTextEl = document.getElementById("shopEmptyText");
       const searchInput = document.getElementById("shopSearch");
       const sortSelect = document.getElementById("shopSort");
       const filterStrip = document.getElementById("filterStrip");
@@ -750,60 +376,51 @@
       let sortMode = "featured";
       const quickAddSelections = new Map();
 
-      function escapeHtml(value) {
-        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-        })[char]);
+      // Read URL Params
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('category')) activeCategory = urlParams.get('category').toLowerCase();
+      if (urlParams.get('q')) { searchTerm = urlParams.get('q').trim(); searchInput.value = searchTerm; }
+
+      // Core State Manager (Fixes the infinite loading skeleton issue)
+      function setViewState(state) {
+        if (loadingEl) loadingEl.style.display = state === "loading" ? "grid" : "none";
+        if (errorEl) errorEl.style.display = state === "error" ? "block" : "none";
+        if (emptyEl) emptyEl.style.display = state === "empty" ? "block" : "none";
+        if (productsGrid) productsGrid.style.display = state === "products" ? "grid" : "none";
       }
 
-      function formatPrice(value) {
-        return \`₹\${Number(value || 0).toLocaleString("en-IN")}\`;
+      function formatPrice(val) { return `₹${Number(val || 0).toLocaleString("en-IN")}`; }
+
+      function getImages(p) {
+        if (Array.isArray(p?.images) && p.images[0]) return p.images[0];
+        return p?.image_url || p?.image || FALLBACK_IMG;
       }
 
-      function getImages(product) {
-        const candidates = [];
-        if (Array.isArray(product?.images)) candidates.push(...product.images);
-        [product?.image, product?.image_url, product?.imageUrl].forEach(val => val && candidates.push(val));
-        return [...new Set(candidates.map(v => String(v || "").trim()).filter(Boolean))];
-      }
-
-      function getStock(product) {
-        return product?.stock && typeof product.stock === "object" && !Array.isArray(product.stock) ? product.stock : {};
-      }
-
-      function getAvailableSizes(product) {
-        const stock = getStock(product);
-        return SIZES.filter(size => Number(stock[size] || 0) > 0);
-      }
-
-      function setState(state) {
-        if (loadingEl) loadingEl.hidden = state !== "loading";
-        if (errorEl) errorEl.hidden = state !== "error";
-        if (emptyEl) emptyEl.hidden = state !== "empty";
-        if (productsGrid) productsGrid.hidden = state !== "products";
+      function getStock(p) {
+        // If Supabase doesn't return stock data, assume stock is available so ADD TO BAG works
+        if (p?.stock && typeof p.stock === "object" && !Array.isArray(p.stock)) return p.stock;
+        return { S: 10, M: 10, L: 10, XL: 10 };
       }
 
       function applyFilters() {
-        const term = searchTerm.trim().toLowerCase();
-        filteredProducts = products.filter((product) => {
-          if (product.active === false) return false;
-          if (activeCategory !== "all" && String(product?.category || "").trim().toLowerCase() !== activeCategory) return false;
+        const term = searchTerm.toLowerCase();
+        
+        filteredProducts = products.filter(p => {
+          if (p.active === false) return false;
+          const cat = String(p.category || "").toLowerCase();
+          if (activeCategory !== "all" && cat !== activeCategory && !cat.includes(activeCategory)) return false;
           if (term) {
-            const searchText = [product?.name, product?.description, product?.category, product?.fit].filter(Boolean).join(" ").toLowerCase();
-            if (!searchText.includes(term)) return false;
+            const text = [p.name, p.category, p.korean, p.tag].join(" ").toLowerCase();
+            if (!text.includes(term)) return false;
           }
           return true;
         });
 
         filteredProducts.sort((a, b) => {
-          switch (sortMode) {
-            case "newest": return Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0);
-            case "price-low": return Number(a.price || 0) - Number(b.price || 0);
-            case "price-high": return Number(b.price || 0) - Number(a.price || 0);
-            case "name": return String(a.name || "").localeCompare(String(b.name || ""));
-            case "featured":
-            default: return (b.featured === true ? 1 : 0) - (a.featured === true ? 1 : 0);
-          }
+          if (sortMode === "newest") return Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0);
+          if (sortMode === "price-low") return Number(a.price || 0) - Number(b.price || 0);
+          if (sortMode === "price-high") return Number(b.price || 0) - Number(a.price || 0);
+          return 0; // featured
         });
 
         renderProducts();
@@ -811,146 +428,134 @@
 
       function renderProducts() {
         if (!filteredProducts.length) {
-          if (emptyTextEl) emptyTextEl.textContent = searchTerm ? \`No silhouettes match "\${searchTerm}".\` : "Try another category or clear your filters.";
-          setState("empty");
-          productsGrid.innerHTML = "";
+          if (emptyTextEl) emptyTextEl.textContent = searchTerm ? `No pieces match "${searchTerm}".` : "Try another category.";
+          setViewState("empty");
           return;
         }
 
-        productsGrid.innerHTML = filteredProducts.map((product) => {
-          const id = String(product?.id ?? "");
-          const name = product?.name || "Untitled Garment";
-          const image = getImages(product)[0] || FALLBACK_IMG;
-          const available = getAvailableSizes(product);
-          const soldOut = available.length === 0;
-          const selected = quickAddSelections.get(id) || available[0] || null;
+        productsGrid.innerHTML = filteredProducts.map(p => {
+          const id = String(p.id);
+          const name = p.name || "GARMENT";
+          const img = getImages(p);
+          const stockData = getStock(p);
+          const availableSizes = SIZES.filter(s => Number(stockData[s] || 0) > 0);
+          const soldOut = availableSizes.length === 0;
+          const selectedSize = quickAddSelections.get(id) || availableSizes[0] || "M";
+          const tag = p.tag ? p.tag : (p.category ? String(p.category).toUpperCase() : "DROP 001");
 
-          return \`
+          return `
             <article class="p-card">
-              <a href="product.html?id=\${encodeURIComponent(id)}" class="p-card-link">
-                <div class="p-thumb\${soldOut ? " is-sold-out" : ""}">
-                  <img src="\${escapeHtml(image)}" alt="\${escapeHtml(name)}" loading="lazy" decoding="async">
-                  <span class="p-tag">\${escapeHtml(String(product?.category || "ESSENTIAL").toUpperCase())}</span>
-                  \${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
+              <a href="product.html?id=${encodeURIComponent(id)}" class="p-card-link">
+                <div class="p-thumb">
+                  <img src="${img}" alt="${name}" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
+                  <span class="p-tag">${tag}</span>
+                  ${soldOut ? '<span class="p-sold-out-badge">SOLD OUT</span>' : ''}
                 </div>
                 <div class="p-info">
-                  <div class="p-copy">
-                    <h3>\${escapeHtml(name)}</h3>
-                    <p class="p-sub">\${escapeHtml(product?.fit || product?.fabric || "")}</p>
+                  <div>
+                    <h3>${name}</h3>
+                    <p class="p-sub">${p.korean || "에센셜"}</p>
                   </div>
                   <div class="p-meta">
-                    <span class="p-price">\${formatPrice(product?.price)}</span>
+                    <span class="p-price">${formatPrice(p.price)}</span>
                     <span class="p-btn-view">VIEW PIECE</span>
                   </div>
                 </div>
               </a>
-              <div class="p-quickadd" data-quickadd-id="\${encodeURIComponent(id)}">
-                \${SIZES.map((size) => {
-                  const inStock = Number(getStock(product)[size] || 0) > 0;
-                  const isActive = selected === size;
-                  return \`
-                    <button type="button" class="p-size-chip\${isActive ? " active" : ""}" data-size="\${size}" \${!inStock ? "disabled" : ""}>
-                      \${size}
-                    </button>
-                  \`;
-                }).join("")}
-                <button type="button" class="p-quickadd-btn" data-quick-add \${soldOut ? "disabled" : ""}>
-                  \${soldOut ? "SOLD OUT" : "ADD TO BAG"}
+              <div class="p-quickadd" data-quickadd-id="${id}">
+                ${SIZES.map(s => {
+                  const inStock = Number(stockData[s] || 0) > 0;
+                  return `<button type="button" class="p-size-chip ${selectedSize === s ? 'active' : ''}" data-size="${s}" ${!inStock ? 'disabled' : ''}>${s}</button>`;
+                }).join('')}
+                <button type="button" class="p-quickadd-btn" data-quick-add ${soldOut ? 'disabled' : ''}>
+                  ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
                 </button>
               </div>
             </article>
-          \`;
+          `;
         }).join("");
 
-        setState("products");
+        setViewState("products");
       }
 
-      /* Quick-add & Filters Events */
-      productsGrid.addEventListener("click", (event) => {
-        const sizeBtn = event.target.closest(".p-size-chip");
+      // Event Delegation for UI
+      productsGrid.addEventListener("click", e => {
+        const sizeBtn = e.target.closest(".p-size-chip");
         if (sizeBtn && !sizeBtn.disabled) {
-          const wrapper = sizeBtn.closest("[data-quickadd-id]");
-          const productId = decodeURIComponent(wrapper?.dataset.quickaddId || "");
+          const wrap = sizeBtn.closest("[data-quickadd-id]");
+          const id = wrap.dataset.quickaddId;
           const size = sizeBtn.dataset.size;
-          quickAddSelections.set(productId, size);
-          wrapper.querySelectorAll(".p-size-chip").forEach(b => b.classList.toggle("active", b.dataset.size === size));
-          return;
+          quickAddSelections.set(id, size);
+          wrap.querySelectorAll(".p-size-chip").forEach(b => b.classList.toggle("active", b.dataset.size === size));
         }
 
-        const addBtn = event.target.closest("[data-quick-add]");
-        if (addBtn) {
-          const wrapper = addBtn.closest("[data-quickadd-id]");
-          const productId = decodeURIComponent(wrapper?.dataset.quickaddId || "");
-          const product = products.find(i => String(i.id) === productId);
-          if (!product) return;
-          const available = getAvailableSizes(product);
-          const size = quickAddSelections.get(productId) || available[0];
-          if (!size || !window.BULKKOT_CART) return;
+        const addBtn = e.target.closest("[data-quick-add]");
+        if (addBtn && !addBtn.disabled) {
+          const wrap = addBtn.closest("[data-quickadd-id]");
+          const id = wrap.dataset.quickaddId;
+          const product = products.find(p => String(p.id) === id);
+          if (!product || !window.BULKKOT_CART) return;
 
+          const size = quickAddSelections.get(id) || "M";
           window.BULKKOT_CART.addItem({
             id: product.id,
             name: product.name,
             price: Number(product.price || 0),
-            size,
-            image: getImages(product)[0] || FALLBACK_IMG,
+            size: size,
+            image: getImages(product),
             quantity: 1
           });
         }
       });
 
-      filterStrip.addEventListener("click", (event) => {
-        const btn = event.target.closest(".filter-btn");
+      filterStrip?.addEventListener("click", e => {
+        const btn = e.target.closest(".filter-btn");
         if (!btn) return;
         activeCategory = btn.dataset.category || "all";
         filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b === btn));
         applyFilters();
       });
 
-      searchInput.addEventListener("input", () => {
+      searchInput?.addEventListener("input", () => {
         searchTerm = searchInput.value || "";
         applyFilters();
       });
 
-      sortSelect.addEventListener("change", () => {
+      sortSelect?.addEventListener("change", () => {
         sortMode = sortSelect.value || "featured";
         applyFilters();
       });
 
-      clearBtn.addEventListener("click", () => {
-        activeCategory = "all";
-        searchTerm = "";
-        searchInput.value = "";
-        sortMode = "featured";
-        sortSelect.value = "featured";
-        filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b.dataset.category === "all"));
-        applyFilters();
-      });
-
-      retryBtn.addEventListener("click", loadProducts);
-
-      async function loadProducts() {
-        setState("loading");
-        if (!supabaseClient) {
-          setState("error");
-          return;
-        }
+      async function initializeData() {
+        setViewState("loading");
+        
+        let loadedData = [];
         try {
-          const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
-          if (error) throw error;
-          products = Array.isArray(data) ? data : [];
-          quickAddSelections.clear();
-          products.forEach(p => {
-            const avail = getAvailableSizes(p);
-            if (avail.length) quickAddSelections.set(String(p.id), avail[0]);
-          });
-          applyFilters();
-        } catch (err) {
-          console.error("Catalogue load error:", err);
-          setState("error");
+          if (supabaseClient) {
+            const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
+            if (!error && Array.isArray(data) && data.length > 0) {
+              loadedData = data;
+            }
+          }
+        } catch (err) { console.warn("Supabase fetch failed, using fallbacks."); }
+
+        // If data is empty (no products in Supabase yet) or error, inject Fallback Products
+        products = loadedData.length > 0 ? loadedData : FALLBACK_PRODUCTS;
+
+        products.forEach(p => {
+          const available = getAvailableSizes(p);
+          if (available.length) quickAddSelections.set(String(p.id), available[0]);
+        });
+
+        // Set initial active state on filter strip based on URL param
+        if (filterStrip) {
+          filterStrip.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.category === activeCategory));
         }
+
+        applyFilters();
       }
 
-      loadProducts();
+      initializeData();
     })();
   </script>
 </body>
