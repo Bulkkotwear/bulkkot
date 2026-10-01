@@ -157,7 +157,6 @@
       border-color: #fff;
     }
 
-    /* Mobile: 3 Circles strictly side-by-side (no broken stack) */
     @media (max-width: 768px) {
       .circle-collections-section {
         padding: 26px 0 22px !important;
@@ -326,7 +325,7 @@
       </div>
     </section>
 
-    <!-- 3 CIRCLES COLLECTIONS SECTION (MYNTRA-GRADE CIRCLE GATEWAY) -->
+    <!-- 3 CIRCLES COLLECTIONS SECTION -->
     <section class="circle-collections-section" id="collections">
       <div class="circle-collections-inner">
         <div class="circle-collections-head">
@@ -335,7 +334,6 @@
         </div>
 
         <div class="circle-items-row">
-          <!-- CIRCLE 1: TEES -->
           <a href="shop.html?category=tees" class="collection-circle-card">
             <div class="circle-frame">
               <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="Oversized Tees">
@@ -347,7 +345,6 @@
             </div>
           </a>
 
-          <!-- CIRCLE 2: HOODS -->
           <a href="shop.html?category=hoods" class="collection-circle-card">
             <div class="circle-frame">
               <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="Oversized Hoods">
@@ -359,7 +356,6 @@
             </div>
           </a>
 
-          <!-- CIRCLE 3: SWEATS -->
           <a href="shop.html?category=sweats" class="collection-circle-card">
             <div class="circle-frame">
               <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="Oversized Sweats">
@@ -374,11 +370,10 @@
       </div>
     </section>
 
- <!-- EDITORIAL / LATEST NEWS CAROUSEL (LUXURY EDITORIAL SLIDER) -->
+    <!-- EDITORIAL / LATEST NEWS CAROUSEL -->
     <section class="editorial-section" aria-label="Latest News & Editorial">
       <div class="editorial-carousel" data-carousel id="editorialCarousel">
         <div class="editorial-track" data-carousel-track>
-          <!-- SLIDE 1: GENESIS / DROP 001 -->
           <article class="editorial-slide is-active" data-slide="0">
             <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Drop 001 Editorial" loading="lazy">
             <div class="editorial-slide__overlay"></div>
@@ -392,7 +387,6 @@
             </div>
           </article>
 
-          <!-- SLIDE 2: FABRIC ARCHITECTURE -->
           <article class="editorial-slide" data-slide="1">
             <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Heavy Fleece" loading="lazy">
             <div class="editorial-slide__overlay"></div>
@@ -406,7 +400,6 @@
             </div>
           </article>
 
-          <!-- SLIDE 3: PHILOSOPHY & STREETWEAR -->
           <article class="editorial-slide" data-slide="2">
             <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Silhouette" loading="lazy">
             <div class="editorial-slide__overlay"></div>
@@ -420,7 +413,6 @@
             </div>
           </article>
 
-          <!-- SLIDE 4: LIMITED EDITION RUNS -->
           <article class="editorial-slide" data-slide="3">
             <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Limited Tees" loading="lazy">
             <div class="editorial-slide__overlay"></div>
@@ -435,7 +427,6 @@
           </article>
         </div>
 
-        <!-- Sleek Minimalist Controls -->
         <button type="button" class="carousel-control carousel-control--prev" aria-label="Previous slide" data-carousel-prev>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
@@ -443,7 +434,6 @@
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
         </button>
 
-        <!-- Vogue / Myntra Style Sleek Line Indicators -->
         <div class="carousel-indicators" role="tablist" aria-label="Slider Indicators">
           <button type="button" class="carousel-indicator is-active" data-slide-indicator="0" aria-label="Slide 1"><span class="indicator-bar"></span></button>
           <button type="button" class="carousel-indicator" data-slide-indicator="1" aria-label="Slide 2"><span class="indicator-bar"></span></button>
@@ -473,7 +463,6 @@
         <a href="shop.html" class="section-status" style="color:var(--bk-red); text-decoration:none; font-weight:800;">OPEN FULL CATALOGUE →</a>
       </div>
 
-      <!-- SHOP TOOLBAR -->
       <div class="shop-toolbar">
         <div class="shop-filters" role="group" aria-label="Product categories">
           <button type="button" class="shop-filter is-active" data-shop-category="all">ALL</button>
@@ -496,7 +485,6 @@
         </div>
       </div>
 
-      <!-- DYNAMIC PRODUCT GRID -->
       <div class="product-grid" id="products-grid" aria-live="polite">
         <p class="catalog-message">Loading catalog...</p>
       </div>
@@ -648,12 +636,9 @@
       <p style="font-size:12px; color:#aaa; line-height:1.6; margin:0 0 20px;">
         Sign in to save shipping addresses, track drop shipments in real time, and unlock Drop 001.
       </p>
-      <button type="button" class="button button--primary" style="width:100%; margin-bottom:10px;" id="welcomeGoogleBtn">
-        CONTINUE WITH GOOGLE
-      </button>
-      <button type="button" class="text-button" id="welcomeEmailBtn" style="font-size:11px; color:#888;">
-        Or sign in with Email →
-      </button>
+      <a href="signin.html" class="button button--primary" style="width:100%; margin-bottom:10px; display:inline-block; text-align:center; text-decoration:none;" id="welcomeEmailBtn">
+        SIGN IN / CREATE ACCOUNT
+      </a>
     </div>
   </div>
 
@@ -676,65 +661,13 @@
     <div class="drawer__body" id="cart-content"></div>
   </aside>
 
-  <!-- CUSTOMER ACCOUNT MODAL -->
+  <!-- CUSTOMER ACCOUNT DASHBOARD MODAL (Only shows for logged-in users) -->
   <div class="account-modal" data-account-modal aria-hidden="true">
     <div class="account-backdrop" data-account-close></div>
     <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button type="button" class="account-close" data-account-close aria-label="Close account">×</button>
 
-      <div class="account-auth-view" data-account-auth>
-        <div class="auth-banner-wrap">
-          <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Drop 001">
-          <div class="auth-banner-overlay">
-            <h2 id="auth-mode-text">Login <span style="font-weight:400; font-size:18px;">or</span> Signup</h2>
-            <p>Get exclusive access to Drop 001 and save your details.</p>
-          </div>
-        </div>
-
-        <form class="account-auth-form" data-account-login-form data-mode="signin" novalidate>
-          <div class="bk-input-group" id="account-name-field" style="display: none;">
-            <span>FULL NAME</span>
-            <input id="account-name-input" type="text" class="bk-input" name="name" autocomplete="name" placeholder="Enter your full name">
-          </div>
-
-          <div class="bk-input-group">
-            <span>EMAIL ADDRESS</span>
-            <input id="account-email" type="email" class="bk-input" name="email" autocomplete="email" placeholder="you@example.com" required>
-          </div>
-          
-          <div class="bk-input-group">
-            <span>PASSWORD</span>
-            <input id="account-password" type="password" class="bk-input" name="password" autocomplete="current-password" placeholder="••••••••" required>
-          </div>
-
-          <p class="auth-terms">By continuing, I agree to the <a href="#" data-open-policy="terms">Terms of Use</a> & <a href="#" data-open-policy="privacy">Privacy Policy</a></p>
-
-          <button type="submit" class="bk-btn-primary account-submit" style="margin-top:8px;">CONTINUE</button>
-          <div id="authInlineError" style="color: #ff7777; font-size: 11px; margin-top: 10px; text-align:center; min-height:16px;"></div>
-        </form>
-
-        <div class="account-divider" style="display:flex; align-items:center; gap:12px; margin:24px 0; color:#555; font-size:10px; font-weight:700;">
-          <span style="flex:1; height:1px; background:#222;"></span>
-          OR
-          <span style="flex:1; height:1px; background:#222;"></span>
-        </div>
-
-        <button type="button" class="google-premium-btn" data-google-login>
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          CONTINUE WITH GOOGLE
-        </button>
-
-        <button type="button" class="auth-toggle-btn" data-account-signup-toggle>
-          New to BULKKOT? <strong>Create an account</strong>
-        </button>
-      </div>
-
-      <div class="account-user-view" data-account-user hidden>
+      <div class="account-user-view" data-account-user>
         <div class="account-header" style="margin-bottom:24px;">
           <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">AUTHENTICATED</p>
           <h2 style="font-size:24px; margin:0 0 4px;">MY PROFILE</h2>
