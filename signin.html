@@ -254,48 +254,6 @@
       border-bottom-color: var(--red);
     }
 
-    /* GOOGLE OAUTH */
-    .luxury-google-btn {
-      width: 100%;
-      min-height: 48px;
-      background: #fff;
-      color: #000;
-      border: 1px solid #fff;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease;
-    }
-
-    .luxury-google-btn:hover {
-      background: #f0f0f0;
-      transform: translateY(-1px);
-    }
-
-    .auth-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 22px 0;
-      color: #444;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.15em;
-    }
-
-    .auth-divider::before, .auth-divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
     /* FORM FIELDS */
     .form-field-wrap {
       margin-bottom: 18px;
@@ -550,35 +508,31 @@
           <button type="button" class="auth-switch-btn" id="btnTabSignup">CREATE ACCOUNT</button>
         </div>
 
-        <!-- Google OAuth Button -->
-        <button type="button" class="luxury-google-btn" id="btnGoogleAuth">
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          <span>Continue with Google</span>
-        </button>
-
-        <div class="auth-divider">
-          <span>OR CONTINUE WITH EMAIL</span>
-        </div>
-
         <!-- Form Elements -->
         <form id="authMainForm" novalidate>
+          
+          <!-- FULL NAME (Only for Signup) -->
           <div class="form-field-wrap signup-field" id="wrapFullName" style="display: none;">
             <label for="inputFullName">FULL NAME</label>
             <input type="text" id="inputFullName" name="full_name" placeholder="e.g. Garima Singh" autocomplete="name">
             <span class="field-error-msg" id="errFullName"></span>
           </div>
 
+          <!-- MOBILE NUMBER (Only for Signup - Mandatory) -->
+          <div class="form-field-wrap signup-field" id="wrapMobile" style="display: none;">
+            <label for="inputMobile">MOBILE NUMBER</label>
+            <input type="tel" id="inputMobile" name="phone" placeholder="10-digit mobile number" autocomplete="tel">
+            <span class="field-error-msg" id="errMobile"></span>
+          </div>
+
+          <!-- EMAIL ADDRESS -->
           <div class="form-field-wrap">
             <label for="inputEmail">EMAIL ADDRESS</label>
             <input type="email" id="inputEmail" name="email" placeholder="name@domain.com" autocomplete="email" required>
             <span class="field-error-msg" id="errEmail"></span>
           </div>
 
+          <!-- PASSWORD -->
           <div class="form-field-wrap">
             <div class="field-label-split">
               <label for="inputPassword">PASSWORD</label>
@@ -591,20 +545,24 @@
             <span class="field-error-msg" id="errPassword"></span>
           </div>
 
+          <!-- CONFIRM PASSWORD (Only for Signup) -->
           <div class="form-field-wrap signup-field" id="wrapConfirmPwd" style="display: none;">
             <label for="inputConfirmPassword">CONFIRM PASSWORD</label>
             <input type="password" id="inputConfirmPassword" name="confirm_password" placeholder="Repeat your password" autocomplete="new-password">
             <span class="field-error-msg" id="errConfirmPwd"></span>
           </div>
 
+          <!-- FEEDBACK BANNER -->
           <div class="auth-feedback-banner" id="authFeedbackBanner" role="alert"></div>
 
+          <!-- SUBMIT BUTTON -->
           <button type="submit" class="auth-submit-btn" id="btnSubmitAuth">
             <span id="txtSubmit">SIGN IN</span>
             <div class="btn-spinner" id="spinSubmit"></div>
           </button>
         </form>
 
+        <!-- LEGAL TEXT -->
         <div class="auth-legal-note">
           <p>By proceeding, you agree to BULKKOT's <a href="./index.html#terms">Terms of Service</a> & <a href="./index.html#privacy">Privacy Protocol</a>.</p>
         </div>
@@ -621,6 +579,186 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./js/signin.js"></script>
+  
+  <!-- JAVASCRIPT LOGIC EMBEDDED TO AVOID EXTERNAL FILE ISSUES -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const supabase = window.supabase.createClient(window.BULKKOT_CONFIG.SUPABASE_URL, window.BULKKOT_CONFIG.SUPABASE_ANON_KEY);
+      
+      let isSignUpMode = false;
+
+      // DOM Elements
+      const btnTabLogin = document.getElementById("btnTabLogin");
+      const btnTabSignup = document.getElementById("btnTabSignup");
+      const authModeHeading = document.getElementById("authModeHeading");
+      const authModeSubtitle = document.getElementById("authModeSubtitle");
+      
+      const wrapFullName = document.getElementById("wrapFullName");
+      const wrapMobile = document.getElementById("wrapMobile");
+      const wrapConfirmPwd = document.getElementById("wrapConfirmPwd");
+      const btnForgotPwd = document.getElementById("btnForgotPwd");
+      
+      const txtSubmit = document.getElementById("txtSubmit");
+      const btnSubmitAuth = document.getElementById("btnSubmitAuth");
+      const authFeedbackBanner = document.getElementById("authFeedbackBanner");
+
+      const inputFullName = document.getElementById("inputFullName");
+      const inputMobile = document.getElementById("inputMobile");
+      const inputEmail = document.getElementById("inputEmail");
+      const inputPassword = document.getElementById("inputPassword");
+      const inputConfirmPassword = document.getElementById("inputConfirmPassword");
+      
+      const btnTogglePwd = document.getElementById("btnTogglePwd");
+
+      // Password Toggle
+      btnTogglePwd.addEventListener("click", () => {
+        const type = inputPassword.type === "password" ? "text" : "password";
+        inputPassword.type = type;
+        btnTogglePwd.textContent = type === "password" ? "SHOW" : "HIDE";
+      });
+
+      // Tab Switch Logic
+      function toggleMode(mode) {
+        isSignUpMode = mode === 'signup';
+        
+        btnTabLogin.classList.toggle("active", !isSignUpMode);
+        btnTabSignup.classList.toggle("active", isSignUpMode);
+        
+        if (isSignUpMode) {
+          authModeHeading.textContent = "CREATE ACCOUNT";
+          authModeSubtitle.textContent = "Join the VIP list to secure your silhouettes and track shipments.";
+          txtSubmit.textContent = "CREATE ACCOUNT";
+          
+          wrapFullName.style.display = "flex";
+          wrapMobile.style.display = "flex";
+          wrapConfirmPwd.style.display = "flex";
+          btnForgotPwd.style.display = "none";
+          
+          inputFullName.required = true;
+          inputMobile.required = true;
+          inputConfirmPassword.required = true;
+        } else {
+          authModeHeading.textContent = "SIGN IN";
+          authModeSubtitle.textContent = "Access your saved dispatch addresses, track shipments live, and secure your silhouettes.";
+          txtSubmit.textContent = "SIGN IN";
+          
+          wrapFullName.style.display = "none";
+          wrapMobile.style.display = "none";
+          wrapConfirmPwd.style.display = "none";
+          btnForgotPwd.style.display = "block";
+          
+          inputFullName.required = false;
+          inputMobile.required = false;
+          inputConfirmPassword.required = false;
+        }
+        
+        authFeedbackBanner.className = "auth-feedback-banner";
+        authFeedbackBanner.textContent = "";
+      }
+
+      btnTabLogin.addEventListener("click", () => toggleMode('signin'));
+      btnTabSignup.addEventListener("click", () => toggleMode('signup'));
+
+      // Form Submit (Persistence Logic)
+      document.getElementById("authMainForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        // Reset feedback
+        authFeedbackBanner.className = "auth-feedback-banner";
+        authFeedbackBanner.textContent = "";
+
+        const email = inputEmail.value.trim();
+        const password = inputPassword.value;
+        const fullName = inputFullName.value.trim();
+        const mobile = inputMobile.value.trim();
+        const confirmPassword = inputConfirmPassword.value;
+
+        // Basic Validation
+        if (!email || !password) {
+          showError("Please fill in email and password.");
+          return;
+        }
+
+        if (isSignUpMode) {
+          if (!fullName || !mobile) {
+            showError("Full Name and Mobile Number are required for registration.");
+            return;
+          }
+          if (password !== confirmPassword) {
+            showError("Passwords do not match.");
+            return;
+          }
+          if (mobile.replace(/\D/g, '').length < 10) {
+             showError("Please enter a valid 10-digit mobile number.");
+             return;
+          }
+        }
+
+        // Loading State
+        btnSubmitAuth.classList.add("is-loading");
+        btnSubmitAuth.disabled = true;
+
+        try {
+          if (isSignUpMode) {
+            // SIGN UP
+            const { data, error } = await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                data: {
+                  full_name: fullName,
+                  phone: mobile
+                }
+              }
+            });
+
+            if (error) throw error;
+
+            if (data?.user) {
+              // Save details to database for persistence
+              await supabase.from('customer_profiles').upsert({
+                id: data.user.id,
+                full_name: fullName,
+                phone: mobile,
+                updated_at: new Date().toISOString()
+              });
+            }
+
+            showSuccess("Account created successfully! Redirecting to storefront...");
+            setTimeout(() => window.location.href = "./index.html", 2000);
+
+          } else {
+            // SIGN IN
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+              if (error.message.toLowerCase().includes('invalid login credentials')) {
+                throw new Error("Incorrect email or password. Are you trying to Create an Account?");
+              }
+              throw error;
+            }
+
+            showSuccess("Welcome back! Redirecting...");
+            setTimeout(() => window.location.href = "./index.html", 1500);
+          }
+        } catch (err) {
+          showError(err.message || "Authentication failed. Please try again.");
+        } finally {
+          btnSubmitAuth.classList.remove("is-loading");
+          btnSubmitAuth.disabled = false;
+        }
+      });
+
+      function showError(msg) {
+        authFeedbackBanner.textContent = msg;
+        authFeedbackBanner.className = "auth-feedback-banner is-error";
+      }
+
+      function showSuccess(msg) {
+        authFeedbackBanner.textContent = msg;
+        authFeedbackBanner.className = "auth-feedback-banner is-success";
+      }
+    });
+  </script>
 </body>
 </html>
