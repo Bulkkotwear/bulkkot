@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 13.2 (Hardened Auth, Smart Error Handling, RLS Bypass & Seamless UI)
+ * Version: 13.3 (Smart Routing to Dedicated Signin Page, Clean Dashboard Modal)
  */
 (function () {
   'use strict';
@@ -149,15 +149,17 @@
   }
 
   /* =========================================================
-     FIRST-VISIT WELCOME POP-UP
+     SMART FIRST-VISIT WELCOME POP-UP
      ========================================================= */
-  function initWelcomePopup() {
+  async function initWelcomePopup() {
     const popup = document.getElementById('welcomePopupModal');
     const closeBtn = document.getElementById('welcomePopupClose');
-    const googleBtn = document.getElementById('welcomeGoogleBtn');
-    const emailBtn = document.getElementById('welcomeEmailBtn');
 
-    if (!popup) return;
+    if (!popup || !supabase) return;
+
+    // SIRF GUEST (logged-out) USERS KO DIKHEGA
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) return; 
 
     const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
     if (!hasSeen) {
@@ -176,34 +178,6 @@
     closeBtn?.addEventListener('click', dismissPopup);
     popup.addEventListener('click', (e) => {
       if (e.target === popup) dismissPopup();
-    });
-
-    googleBtn?.addEventListener('click', async () => {
-      dismissPopup();
-      if (!supabase) return;
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: window.location.origin }
-        });
-        if (error) throw error;
-      } catch (err) {
-        const accountModal = document.querySelector('[data-account-modal]');
-        accountModal?.classList.add('is-open');
-        document.body.classList.add('modal-open');
-        const msgEl = document.getElementById('authInlineError');
-        if (msgEl) {
-          msgEl.style.color = '#ff7777';
-          msgEl.textContent = 'Google sign-in unavailable. Please sign up with Email.';
-        }
-      }
-    });
-
-    emailBtn?.addEventListener('click', () => {
-      dismissPopup();
-      const accountModal = document.querySelector('[data-account-modal]');
-      accountModal?.classList.add('is-open');
-      document.body.classList.add('modal-open');
     });
   }
 
@@ -248,7 +222,7 @@
   }
 
   /* =========================================================
-     AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP) - FULLY HARDENED
+     AUTH DASHBOARD (DEDICATED ROUTING)
      ========================================================= */
   async function initAuth() {
     if (!supabase) return;
@@ -256,22 +230,16 @@
     async function updateAuthUI() {
       const { data: { user } } = await supabase.auth.getUser();
       const accountLabel = document.querySelector('[data-account-label]');
-      const authView = document.querySelector('[data-account-auth]');
-      const userView = document.querySelector('[data-account-user]');
       const userEmailEl = document.querySelector('[data-account-user-email]');
 
       if (user) {
         const displayName = (user.user_metadata?.full_name || user.email.split('@')[0]).toUpperCase();
         if (accountLabel) accountLabel.textContent = displayName;
-        if (authView) authView.hidden = true;
-        if (userView) userView.hidden = false;
         if (userEmailEl) userEmailEl.textContent = user.email;
         loadCustomerProfile(user.id);
         loadCustomerOrders(user.id);
       } else {
-        if (accountLabel) accountLabel.textContent = 'ACCOUNT';
-        if (authView) authView.hidden = false;
-        if (userView) userView.hidden = true;
+        if (accountLabel) accountLabel.textContent = 'SIGN IN';
       }
     }
 
@@ -282,125 +250,12 @@
 
     updateAuthUI();
 
-    const loginForm = document.querySelector('[data-account-login-form]');
-    const msgEl = document.getElementById('authInlineError');
-    const signupToggle = document.querySelector('[data-account-signup-toggle]');
-    const modeText = document.getElementById('auth-mode-text');
-    const nameField = document.getElementById('account-name-field');
-    const nameInput = document.getElementById('account-name-input');
-
-    signupToggle?.addEventListener('click', () => {
-      const isSignUp = loginForm.dataset.mode === 'signup';
-      const submitBtn = loginForm.querySelector('.account-submit');
-      if (msgEl) msgEl.textContent = '';
-
-      if (isSignUp) {
-        loginForm.dataset.mode = 'signin';
-        if (nameField) nameField.style.display = 'none';
-        nameInput?.removeAttribute('required');
-        if (modeText) modeText.innerHTML = 'Login <span style="font-weight:400; font-size:18px;">or</span> Signup';
-        if (submitBtn) submitBtn.textContent = 'CONTINUE';
-        signupToggle.innerHTML = 'New to BULKKOT? <strong>Create an account</strong>';
-      } else {
-        loginForm.dataset.mode = 'signup';
-        if (nameField) nameField.style.display = 'flex';
-        nameInput?.setAttribute('required', 'true');
-        if (modeText) modeText.innerHTML = 'Create Account';
-        if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
-        signupToggle.innerHTML = 'Already have an account? <strong>Login here</strong>';
-      }
-    });
-
-    loginForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = loginForm.querySelector('#account-email')?.value.trim();
-      const password = loginForm.querySelector('#account-password')?.value;
-      const fullName = nameInput?.value.trim();
-      const submitBtn = loginForm.querySelector('.account-submit');
-      const isSignUp = loginForm.dataset.mode === 'signup';
-
-      if (!email || !password || (isSignUp && !fullName)) {
-        if (msgEl) {
-          msgEl.style.color = '#ff7777';
-          msgEl.textContent = 'Please fill in all required fields.';
-        }
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'PROCESSING...';
-      if (msgEl) msgEl.textContent = '';
-
-      try {
-        if (isSignUp) {
-          const { data, error } = await supabase.auth.signUp({
-            email, 
-            password,
-            options: { data: { full_name: fullName } }
-          });
-          
-          if (error) throw error;
-          
-          if (data?.user) {
-            // FIRE AND FORGET - Safely insert profile without blocking UI if Email Verif is active
-            supabase.from('customer_profiles').upsert({
-              id: data.user.id,
-              full_name: fullName,
-              updated_at: new Date().toISOString()
-            }).then(({error: upsertErr}) => {
-              if(upsertErr) console.warn("Profile creation deferred until verification completed.");
-            });
-          }
-          
-          if (msgEl) {
-            msgEl.style.color = '#31c48d';
-            if (data?.user && !data?.session) {
-              msgEl.textContent = 'Verification email sent! Please check your inbox to continue.';
-            } else {
-              msgEl.textContent = 'Account created successfully!';
-            }
-          }
-        } else {
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) {
-            // Smart error message handling
-            if (error.message.toLowerCase().includes('invalid login credentials')) {
-              throw new Error('Incorrect email or password. Are you trying to Sign Up?');
-            }
-            throw error;
-          }
-        }
-      } catch (err) {
-        if (msgEl) {
-          msgEl.style.color = '#ff7777';
-          msgEl.textContent = err.message || 'Authentication failed.';
-        }
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'CONTINUE';
-      }
-    });
-
-    document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: window.location.origin }
-        });
-        if (error) throw error;
-      } catch (err) {
-        if (msgEl) {
-          msgEl.style.color = '#ff7777';
-          msgEl.textContent = 'Google sign-in is currently unavailable. Please use email.';
-        }
-      }
-    });
-
     const signoutBtn = document.querySelector('[data-account-signout]');
     signoutBtn?.addEventListener('click', async () => {
       signoutBtn.textContent = 'SIGNING OUT...';
       await supabase.auth.signOut();
       signoutBtn.textContent = 'SIGN OUT';
+      window.location.reload();
     });
 
     const profileForm = document.querySelector('[data-account-profile-form]');
@@ -1216,10 +1071,19 @@
     const openAccountBtns = document.querySelectorAll("[data-open-account]");
     const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
 
-    function openAccount() {
-      accountModal?.classList.add("is-open");
-      accountModal?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
+    // SMART ROUTING LOGIC (Checks if user is logged in before opening Dashboard)
+    async function openAccount() {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        // Logged In -> Open Dashboard
+        accountModal?.classList.add("is-open");
+        accountModal?.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+      } else {
+        // Not Logged In -> Redirect to Signin Page
+        window.location.href = "signin.html";
+      }
     }
 
     function closeAccount() {
