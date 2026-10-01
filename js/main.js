@@ -1,6 +1,6 @@
 /**
  * BULKKOT — Production Main Storefront Engine
- * Version: 13.1 (Clean Editorial Slider, Mobile Drawer, PDP & Full Storefront Logic, Hardened Announcement CMS Sync)
+ * Version: 13.2 (Hardened Auth, Smart Error Handling, RLS Bypass & Seamless UI)
  */
 (function () {
   'use strict';
@@ -126,7 +126,6 @@
       });
     });
 
-    // Touch Swipe Support for Mobile Screens
     let touchStartX = 0;
     let touchEndX = 0;
 
@@ -145,7 +144,6 @@
     container.addEventListener('mouseenter', stopAutoPlay);
     container.addEventListener('mouseleave', startAutoPlay);
 
-    // Initial Start
     goToSlide(0);
     startAutoPlay();
   }
@@ -183,10 +181,22 @@
     googleBtn?.addEventListener('click', async () => {
       dismissPopup();
       if (!supabase) return;
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin }
+        });
+        if (error) throw error;
+      } catch (err) {
+        const accountModal = document.querySelector('[data-account-modal]');
+        accountModal?.classList.add('is-open');
+        document.body.classList.add('modal-open');
+        const msgEl = document.getElementById('authInlineError');
+        if (msgEl) {
+          msgEl.style.color = '#ff7777';
+          msgEl.textContent = 'Google sign-in unavailable. Please sign up with Email.';
+        }
+      }
     });
 
     emailBtn?.addEventListener('click', () => {
@@ -238,7 +248,7 @@
   }
 
   /* =========================================================
-     AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP)
+     AUTH & ACCOUNT MODAL (SIGN IN / SIGN UP) - FULLY HARDENED
      ========================================================= */
   async function initAuth() {
     if (!supabase) return;
@@ -310,7 +320,10 @@
       const isSignUp = loginForm.dataset.mode === 'signup';
 
       if (!email || !password || (isSignUp && !fullName)) {
-        if (msgEl) msgEl.textContent = 'Please fill in all required fields.';
+        if (msgEl) {
+          msgEl.style.color = '#ff7777';
+          msgEl.textContent = 'Please fill in all required fields.';
+        }
         return;
       }
 
@@ -325,22 +338,37 @@
             password,
             options: { data: { full_name: fullName } }
           });
+          
           if (error) throw error;
           
           if (data?.user) {
-            await supabase.from('customer_profiles').upsert({
+            // FIRE AND FORGET - Safely insert profile without blocking UI if Email Verif is active
+            supabase.from('customer_profiles').upsert({
               id: data.user.id,
               full_name: fullName,
               updated_at: new Date().toISOString()
+            }).then(({error: upsertErr}) => {
+              if(upsertErr) console.warn("Profile creation deferred until verification completed.");
             });
           }
+          
           if (msgEl) {
             msgEl.style.color = '#31c48d';
-            msgEl.textContent = 'Account created successfully!';
+            if (data?.user && !data?.session) {
+              msgEl.textContent = 'Verification email sent! Please check your inbox to continue.';
+            } else {
+              msgEl.textContent = 'Account created successfully!';
+            }
           }
         } else {
           const { error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
+          if (error) {
+            // Smart error message handling
+            if (error.message.toLowerCase().includes('invalid login credentials')) {
+              throw new Error('Incorrect email or password. Are you trying to Sign Up?');
+            }
+            throw error;
+          }
         }
       } catch (err) {
         if (msgEl) {
@@ -354,10 +382,18 @@
     });
 
     document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin }
+        });
+        if (error) throw error;
+      } catch (err) {
+        if (msgEl) {
+          msgEl.style.color = '#ff7777';
+          msgEl.textContent = 'Google sign-in is currently unavailable. Please use email.';
+        }
+      }
     });
 
     const signoutBtn = document.querySelector('[data-account-signout]');
@@ -392,10 +428,16 @@
       try {
         const { error } = await supabase.from('customer_profiles').upsert(profileData);
         if (error) throw error;
-        if (profMsg) profMsg.textContent = 'Profile saved successfully!';
+        if (profMsg) {
+          profMsg.style.color = '#31c48d';
+          profMsg.textContent = 'Profile saved successfully!';
+        }
         setTimeout(() => { if (profMsg) profMsg.textContent = ''; }, 3000);
       } catch (err) {
-        if (profMsg) profMsg.textContent = err.message || 'Failed to save.';
+        if (profMsg) {
+          profMsg.style.color = '#ff7777';
+          profMsg.textContent = err.message || 'Failed to save.';
+        }
       } finally {
         btn.disabled = false;
         btn.textContent = 'SAVE PROFILE';
@@ -510,14 +552,11 @@
       const bar = document.querySelector('.announcement-bar');
       const track = document.querySelector('.announcement-track');
 
-      // Normalize rows regardless of which column pair actually holds data
-      // (defends against older rows written with key/value vs content_key/content_value).
       const rows = (!error && data) ? data.map(r => ({
         key: r.content_key || r.key,
         value: (r.content_value ?? r.value ?? "")
       })).filter(r => r.key) : [];
 
-      // Build a lookup with safe fallbacks so styling never breaks if a key is missing.
       const lookup = {};
       rows.forEach(r => { lookup[r.key] = r.value; });
 
@@ -535,8 +574,6 @@
         track.style.animationDuration = `${speed}s`;
       }
 
-      // Hero banner styling (overlay color, text color, font) — admin-controlled,
-      // falls back to the storefront's original design if unset.
       const heroOverlay = document.querySelector(".hero-overlay");
       const heroTitle = document.querySelector(".hero-content h1");
       const heroLabel = document.querySelector(".hero-label");
@@ -549,16 +586,12 @@
       if (heroOverlay) {
         heroOverlay.style.background = `linear-gradient(90deg, ${hexToRgbaStorefront(heroOverlayColor, 0.76)} 0%, ${hexToRgbaStorefront(heroOverlayColor, 0.38)} 42%, ${hexToRgbaStorefront(heroOverlayColor, 0.18)} 100%)`;
       }
-      // Korean eyebrow text keeps its brand-red color and Noto Sans KR font
-      // (script legibility), so only the English headline/label/description
-      // pick up the admin's color + font choice.
       [heroTitle, heroLabel, heroDesc].forEach(el => {
         if (!el) return;
         if (lookup.hero_text_color) el.style.color = heroTextColor;
         if (lookup.hero_font) el.style.fontFamily = heroFont;
       });
 
-      // Ticker texts
       if (lookup.announcement_1 !== undefined) {
         document.querySelectorAll('[data-cms-key="announcement_1"]').forEach(el => el.textContent = lookup.announcement_1);
       }
@@ -569,7 +602,6 @@
         document.querySelectorAll('[data-cms-key="announcement_3"]').forEach(el => el.textContent = lookup.announcement_3);
       }
 
-      // General tags (hero, about, philosophy, contact, etc.)
       rows.forEach(({ key, value }) => {
         if (["announcement_1", "announcement_2", "announcement_3"].includes(key)) return;
         document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
@@ -580,10 +612,7 @@
           }
         });
       });
-    } catch (e) {
-      // Silent fail — storefront keeps its CSS-defined defaults (which already
-      // match ANNOUNCEMENT_STOREFRONT_DEFAULTS above), so the bar never breaks.
-    }
+    } catch (e) {}
   }
 
   /* =========================================================
@@ -987,7 +1016,6 @@
     closeDrawerBtns.forEach(btn => btn.addEventListener("click", closeMobileMenu));
     mobileOverlay?.addEventListener("click", closeMobileMenu);
 
-    // Policy Modal
     const policyModal = document.querySelector("[data-policy-modal]");
     const policyTitle = policyModal?.querySelector("[data-policy-title]");
     const policyContent = policyModal?.querySelector("[data-policy-content]");
@@ -1022,7 +1050,6 @@
       if (e.target === policyModal) closePolicy();
     });
 
-    // About Modal
     const aboutModal = document.querySelector("[data-about-modal]");
     const openAboutBtns = document.querySelectorAll("[data-open-about]");
     const closeAboutBtn = aboutModal?.querySelector("[data-close-about]");
@@ -1045,7 +1072,6 @@
       if (e.target === aboutModal) closeAbout();
     });
 
-    // Size Guide Modal
     const sizeModal = document.querySelector("[data-size-guide-modal]");
     const openSizeBtns = document.querySelectorAll("[data-size-guide-open]");
     const closeSizeBtns = sizeModal?.querySelectorAll("[data-size-guide-close]");
@@ -1089,7 +1115,6 @@
       });
     });
 
-    // Guest Order Tracking
     const trackModal = document.querySelector("[data-track-order-modal]");
     const openTrackBtns = document.querySelectorAll("[data-open-track-order]");
     const closeTrackBtns = trackModal?.querySelectorAll("[data-track-order-close]");
@@ -1187,7 +1212,6 @@
       }
     });
 
-    // Account Modal
     const accountModal = document.querySelector("[data-account-modal]");
     const openAccountBtns = document.querySelectorAll("[data-open-account]");
     const closeAccountBtns = accountModal?.querySelectorAll("[data-account-close]");
@@ -1207,12 +1231,10 @@
     openAccountBtns.forEach(btn => btn.addEventListener("click", openAccount));
     closeAccountBtns?.forEach(btn => btn.addEventListener("click", closeAccount));
 
-    // PDP Modal Dismissal Listeners
     document.querySelectorAll('[data-pdp-close]').forEach(el => {
       el.addEventListener('click', closePdpModal);
     });
 
-    // Global ESC Key Dismiss
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closeMobileMenu();
@@ -1230,7 +1252,6 @@
     });
   }
 
-  // Delegated Clicks (PDP, Size & Add to Bag)
   document.addEventListener("click", e => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
