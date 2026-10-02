@@ -44,7 +44,7 @@
     input[type="color"]{ padding:3px; height:40px; cursor:pointer; }
     input[type="file"]{ padding:8px; }
     select option{ background:#111; color:#fff; }
-    a{ color:inherit; }
+    a{ color:inherit; text-decoration: none; }
 
     .hidden{ display:none!important; }
     .muted{ color:var(--muted); }
@@ -59,7 +59,7 @@
     .loading-card{ width:min(340px,100%); padding:28px; background:#101010; border:1px solid var(--border); border-radius:14px; text-align:center; box-shadow:var(--shadow); }
     .spinner{ width:34px; height:34px; border:2px solid #292929; border-top-color:var(--red); border-radius:50%; margin:0 auto 14px; animation:spin .7s linear infinite; }
     @keyframes spin{ to{transform:rotate(360deg)} }
-    #loadingText{ color:#ddd; font-size:11px; font-weight:800; letter-spacing:.08em; }
+    #loadingText{ color:#ddd; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 
     /* LOGIN */
     #loginScreen{ min-height:100vh; min-height:100dvh; display:grid; place-items:center; padding:20px; background:radial-gradient(circle at 50% 0,rgba(227,27,35,.17),transparent 45%), #070707; }
@@ -72,7 +72,7 @@
 
     /* BUTTONS */
     .btn{ min-height:38px; padding:8px 13px; border-radius:var(--radius2); border:1px solid transparent; background:#202020; color:#fff; font-size:11px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:.15s ease; text-decoration:none; }
-    .btn:hover{ background:#2a2a2a; }
+    .btn:hover{ background:#2a2a2a; color:#fff; }
     .btn-primary{ background:var(--red); border-color:var(--red); color:#fff; }
     .btn-primary:hover{ background:var(--red2); border-color:var(--red2); }
     .btn-danger{ color:#ff7777; border-color:rgba(239,68,68,.25); background:rgba(239,68,68,.09); }
@@ -203,6 +203,7 @@
     .hero-preview{ min-height:380px; position:relative; display:flex; align-items:flex-end; padding:34px; background-size:cover; background-position:center; isolation:isolate; }
     .hero-preview:before{ content:""; position:absolute; inset:0; background:var(--preview-overlay,rgba(0,0,0,.45)); z-index:-1; }
     .hero-preview-content{ max-width:680px; color:var(--preview-text,#fff); }
+    .eyebrow{ font-size:9px; font-weight:900; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
     .hero-preview h2{ font-size:42px; line-height:.95; margin:0 0 12px; letter-spacing:-1.7px; }
     .hero-preview p{ margin:0 0 16px; max-width:580px; font-size:12px; line-height:1.5; opacity:.86; }
     .preview-cta{ display:inline-flex; padding:10px 15px; border:1px solid currentColor; font-size:9px; font-weight:900; text-transform:uppercase; }
@@ -594,10 +595,15 @@
       <section id="page-policies" class="page">
         <div class="panel">
           <div class="panel-header">
-            <div><div class="panel-title">Legal Policies & Info Pages</div></div>
+            <div>
+              <div class="panel-title">Legal Policies & Info Pages</div>
+              <div class="panel-subtitle">Edit the content displayed in storefront modals</div>
+            </div>
             <select id="policySelector" style="max-width:250px;">
-              <option value="faq">FAQ</option><option value="shipping">Shipping Policy</option>
-              <option value="returns">Returns & Exchange</option><option value="terms">Terms & Conditions</option>
+              <option value="faq">FAQ</option>
+              <option value="shipping">Shipping Policy</option>
+              <option value="returns">Returns & Exchange</option>
+              <option value="terms">Terms & Conditions</option>
               <option value="privacy">Privacy Policy</option>
             </select>
           </div>
@@ -606,7 +612,7 @@
               <label>Policy Content (HTML Supported)</label>
               <textarea id="policyContentEditor" style="min-height:300px; font-family:monospace; font-size:12px;"></textarea>
             </div>
-            <div class="field-help" style="margin-bottom:15px;">Use basic HTML like &lt;h3&gt;Title&lt;/h3&gt; and &lt;p&gt;Paragraph text&lt;/p&gt;.</div>
+            <div class="field-help" style="margin-bottom:15px;">Use basic HTML like &lt;h3&gt;Title&lt;/h3&gt; and &lt;p&gt;Paragraph text&lt;/p&gt; for formatting.</div>
             <button id="savePolicyButton" class="btn btn-primary" type="button">Save Policy</button>
           </div>
         </div>
@@ -645,37 +651,40 @@
   <div class="modal-box large">
     <div class="modal-head"><b id="productModalTitle">Add Product</b><button class="close-btn" data-close="productModal" type="button">✕</button></div>
     <div class="modal-body">
-      <input id="productId" type="hidden">
-      <div class="form-grid">
-        <div class="field"><label>Name</label><input id="productName" type="text" required></div>
-        <div class="field"><label>Category</label><select id="productCategory"></select></div>
-        <div class="field"><label>Price (₹)</label><input id="productPrice" type="number" min="0" step="1"></div>
-        <div class="field"><label>Live Status</label>
-          <div class="switch-row" style="min-height:40px">
-            <label class="switch"><input id="productActive" type="checkbox" checked><span class="slider"></span></label>
-            <span id="productActiveLabel" class="small">Visible on store</span>
+      <form id="productForm">
+        <input id="productId" type="hidden">
+        <div class="form-grid">
+          <div class="field"><label>Name</label><input id="productName" type="text" required></div>
+          <div class="field"><label>Category</label><select id="productCategory"></select></div>
+          <div class="field"><label>Price (₹)</label><input id="productPrice" type="number" min="0" step="1" required></div>
+          <div class="field"><label>Live Status</label>
+            <div class="switch-row" style="min-height:40px">
+              <label class="switch"><input id="productActive" type="checkbox" checked><span class="slider"></span></label>
+              <span id="productActiveLabel" class="small">Visible on store</span>
+            </div>
           </div>
+          <div class="field full"><label>Description</label><textarea id="productDescription"></textarea></div>
         </div>
-        <div class="field full"><label>Description</label><textarea id="productDescription"></textarea></div>
-      </div>
-      <div class="divider"></div>
-      <div class="section-title">Size Inventory</div>
-      <div class="form-grid four">
-        <div class="field"><label>S Stock</label><input id="stockS" type="number" min="0" step="1" value="0"></div>
-        <div class="field"><label>M Stock</label><input id="stockM" type="number" min="0" step="1" value="0"></div>
-        <div class="field"><label>L Stock</label><input id="stockL" type="number" min="0" step="1" value="0"></div>
-        <div class="field"><label>XL Stock</label><input id="stockXL" type="number" min="0" step="1" value="0"></div>
-      </div>
-      <div class="divider"></div>
-      <div class="section-title">Product Images — Max 5</div>
-      <div id="productImageGrid" class="image-upload-grid"></div>
-      <div style="margin-top:10px">
-        <input id="productImageFiles" type="file" accept="image/*" multiple>
-      </div>
-      <div class="modal-footer" style="margin-top:20px;">
-        <button class="btn btn-outline" data-close="productModal" type="button">Cancel</button>
-        <button id="saveProductButton" class="btn btn-primary" type="button">Save Product</button>
-      </div>
+        <div class="divider"></div>
+        <div class="section-title">Size Inventory</div>
+        <div class="form-grid four">
+          <div class="field"><label>S Stock</label><input id="stockS" type="number" min="0" step="1" value="0"></div>
+          <div class="field"><label>M Stock</label><input id="stockM" type="number" min="0" step="1" value="0"></div>
+          <div class="field"><label>L Stock</label><input id="stockL" type="number" min="0" step="1" value="0"></div>
+          <div class="field"><label>XL Stock</label><input id="stockXL" type="number" min="0" step="1" value="0"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-title">Product Images — Max 5</div>
+        <div id="productImageGrid" class="image-upload-grid"></div>
+        <div style="margin-top:10px">
+          <input id="productImageFiles" type="file" accept="image/*" multiple>
+        </div>
+        <div class="modal-footer" style="margin-top:20px;">
+          <button class="btn btn-outline" data-close="productModal" type="button">Cancel</button>
+          <button id="deleteProductBtn" class="btn btn-danger hidden" type="button">Delete</button>
+          <button id="saveProductButton" class="btn btn-primary" type="submit">Save Product</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -685,15 +694,17 @@
   <div class="modal-box" style="max-width:500px">
     <div class="modal-head"><b id="categoryModalTitle">Category</b><button class="close-btn" data-close="categoryModal" type="button">✕</button></div>
     <div class="modal-body">
-      <input id="categoryId" type="hidden">
-      <div class="form-grid">
-        <div class="field full"><label>Slug (URL Format)</label><input id="categorySlug" required placeholder="e.g. jackets"></div>
-        <div class="field"><label>English Name</label><input id="categoryEn" required placeholder="JACKETS"></div>
-        <div class="field"><label>Korean Name</label><input id="categoryKo" required placeholder="재킷"></div>
-        <div class="field"><label>Sort Order</label><input id="categorySort" type="number" value="0"></div>
-        <div class="field"><label>Status</label><select id="categoryActive"><option value="true">Active</option><option value="false">Hidden</option></select></div>
-      </div>
-      <button id="saveCategoryButton" class="btn btn-primary btn-full" type="button" style="margin-top:16px">SAVE CATEGORY</button>
+      <form id="categoryForm">
+        <input id="categoryId" type="hidden">
+        <div class="form-grid">
+          <div class="field full"><label>Slug (URL Format)</label><input id="categorySlug" required placeholder="e.g. jackets"></div>
+          <div class="field"><label>English Name</label><input id="categoryEn" required placeholder="JACKETS"></div>
+          <div class="field"><label>Korean Name</label><input id="categoryKo" required placeholder="재킷"></div>
+          <div class="field"><label>Sort Order</label><input id="categorySort" type="number" value="0"></div>
+          <div class="field"><label>Status</label><select id="categoryActive"><option value="true">Active</option><option value="false">Hidden</option></select></div>
+        </div>
+        <button id="saveCategoryButton" class="btn btn-primary btn-full" type="submit" style="margin-top:16px">SAVE CATEGORY</button>
+      </form>
     </div>
   </div>
 </div>
@@ -704,19 +715,21 @@
     <div class="modal-head"><b id="orderModalTitle">Order</b><button class="close-btn" data-close="orderModal" type="button">✕</button></div>
     <div class="modal-body">
       <div id="orderDetails"></div>
-      <input id="oId" type="hidden">
-      <div class="form-grid" style="margin-top:15px">
-        <div class="field"><label>Order Status</label><select id="oStatus"><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select></div>
-        <div class="field"><label>Payment Status</label><select id="oPayment"><option>PENDING</option><option>PAID</option><option>COD</option><option>FAILED</option><option>REFUNDED</option></select></div>
-        <div class="field"><label>Courier</label><input id="oCourier"></div>
-        <div class="field"><label>Tracking / AWB Number</label><input id="oTracking"></div>
-        <div class="field full"><label>Admin Note</label><textarea id="oNote"></textarea></div>
-      </div>
-      <div class="modal-footer" style="margin-top:20px;">
-        <button id="printOrderButton" class="btn btn-outline" type="button">Print Packing Slip</button>
-        <button id="deleteOrderButton" class="btn btn-danger" type="button">Permanently Delete</button>
-        <button id="saveOrderButton" class="btn btn-primary" type="button">Save Order</button>
-      </div>
+      <form id="orderForm" style="margin-top:15px">
+        <input id="oId" type="hidden">
+        <div class="form-grid">
+          <div class="field"><label>Order Status</label><select id="oStatus"><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select></div>
+          <div class="field"><label>Payment Status</label><select id="oPayment"><option>PENDING</option><option>PAID</option><option>COD</option><option>FAILED</option><option>REFUNDED</option></select></div>
+          <div class="field"><label>Courier</label><input id="oCourier"></div>
+          <div class="field"><label>Tracking / AWB Number</label><input id="oTracking"></div>
+          <div class="field full"><label>Admin Note</label><textarea id="oNote"></textarea></div>
+        </div>
+        <div class="modal-footer" style="margin-top:20px;">
+          <button id="printOrderButton" class="btn btn-outline" type="button">Print Packing Slip</button>
+          <button id="deleteOrderButton" class="btn btn-danger" type="button">Permanently Delete</button>
+          <button id="saveOrderButton" class="btn btn-primary" type="submit">Save Order</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -729,13 +742,15 @@
   <div class="modal-box" style="max-width:500px">
     <div class="modal-head"><b>Coupon</b><button class="close-btn" data-close="couponModal" type="button">✕</button></div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="field"><label>Code</label><input id="couponCode" required placeholder="BULKKOT10"></div>
-        <div class="field"><label>Discount Value (₹)</label><input id="couponDiscount" type="number" min="0" required></div>
-        <div class="field"><label>Minimum Order (₹)</label><input id="couponMin" type="number" min="0" value="0"></div>
-        <div class="field"><label>Active</label><select id="couponActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
-      </div>
-      <button id="saveCouponButton" class="btn btn-primary btn-full" type="button" style="margin-top:16px">CREATE COUPON</button>
+      <form id="couponForm">
+        <div class="form-grid">
+          <div class="field"><label>Code</label><input id="couponCode" required placeholder="BULKKOT10"></div>
+          <div class="field"><label>Discount Value (₹)</label><input id="couponDiscount" type="number" min="0" required></div>
+          <div class="field"><label>Minimum Order (₹)</label><input id="couponMin" type="number" min="0" value="0"></div>
+          <div class="field"><label>Active</label><select id="couponActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
+        </div>
+        <button id="saveCouponButton" class="btn btn-primary btn-full" type="submit" style="margin-top:16px">CREATE COUPON</button>
+      </form>
     </div>
   </div>
 </div>
@@ -758,13 +773,17 @@
 
   window.bulkkotSupabase = sb;
 
-  const state = { session: null, user: null, products: [], categories: [], policies: [], orders: [], orderItems: {}, customers: [], coupons: [], waitlist: [], storeSettings: null, cms: {}, currentOrder: null, currentCustomer: null, currentProductImages: [], currentProductImageUrls: [] };
+  const state = { session: null, user: null, initialized: false, loading: false, products: [], categories: [], policies: [], orders: [], orderItems: {}, customers: [], coupons: [], waitlist: [], storeSettings: null, cms: {}, currentOrder: null, currentCustomer: null, currentProductImages: [], currentProductImageUrls: [] };
 
+  const ORDER_STATUSES = ["PLACED", "PACKED", "SHIPPED", "OUT FOR DELIVERY", "DELIVERED", "CANCELLED"];
   const CMS_DEFAULTS = {
     hero_image_url:"", hero_eyebrow:"서울에서 영감을 받은", hero_title:"LESS NOISE. MORE PRESENCE.", hero_subtitle:"", hero_description:"Premium oversized essentials designed with a Korean-inspired point of view.", hero_cta:"SHOP DROP 001", hero_overlay:"#000000", hero_text_color:"#ffffff", hero_font:"Inter, sans-serif",
     ticker_1:"DROP 001 IS LIVE", ticker_2:"PREMIUM OVERSIZED ESSENTIALS", ticker_3:"FREE SHIPPING ABOVE ₹1499", ticker_bg:"#ffffff", ticker_text:"#000000", ticker_speed:"35",
-    circle_1_img:"", circle_1_en:"", circle_1_ko:"", circle_1_link:"", circle_2_img:"", circle_2_en:"", circle_2_ko:"", circle_2_link:"", circle_3_img:"", circle_3_en:"", circle_3_ko:"", circle_3_link:"",
-    waitlist_eyebrow:"", waitlist_title:"", waitlist_ko:"", waitlist_desc:"", brand_eyebrow:"", brand_title:"", brand_sub:"", brand_desc:""
+    circle_1_img:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png", circle_1_en:"TEES", circle_1_ko:"티셔츠", circle_1_link:"tees",
+    circle_2_img:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png", circle_2_en:"HOODIES", circle_2_ko:"헤비 후드", circle_2_link:"hoods",
+    circle_3_img:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png", circle_3_en:"SWEATS", circle_3_ko:"스웨트", circle_3_link:"sweats",
+    waitlist_eyebrow:"DROP 001", waitlist_title:"BE FIRST TO KNOW", waitlist_ko:"가장 먼저 만나보세요", waitlist_desc:"Join the VIP waitlist to receive access before Drop 001 goes live.",
+    brand_eyebrow:"THE BRAND · 브랜드", brand_title:"불꽃", brand_sub:"THE SPARK", brand_desc:"Premium clothing shouldn't feel unreachable."
   };
 
   // --- SAFE DOM HELPERS ---
@@ -799,22 +818,56 @@
   }
 
   // --- AUTH ---
-  async function getValidSession(){ try { const {data,error} = await sb.auth.getSession(); if(error || !data?.session) return null; return data.session; } catch(e){ return null; } }
+  async function getValidSession(){ try { const {data,error} = await sb.auth.getSession(); if(error || !data?.session) return null; state.session = data.session; state.user = data.session.user; return data.session; } catch(e){ return null; } }
   async function requireSession(){ const s = await getValidSession(); if(!s) throw new Error("Session expired."); return s; }
-  function showLogin(){ if($("loginView")) $("loginView").classList.remove("hidden"); if($("app")) $("app").classList.add("hidden"); }
-  function showApp(email){ if($("loginView")) $("loginView").classList.add("hidden"); if($("app")) $("app").classList.remove("hidden"); if($("userEmail")) $("userEmail").textContent = email; }
+  
+  function requireAdminUI(){ if($("loginScreen")) $("loginScreen").classList.add("hidden"); if($("app")) $("app").classList.remove("hidden"); if($("userEmail")) $("userEmail").textContent = state.user?.email || "Admin"; }
+  function showLoginUI(){ if($("app")) $("app").classList.add("hidden"); if($("loginScreen")) $("loginScreen").classList.remove("hidden"); }
+
+  async function openDashboard(){ if(!isAuthenticated()) return; requireAdminUI(); if(state.initialized) return; state.initialized = true; await loadAll(); setLoading(false); }
+  function isAuthenticated(){ return Boolean(state.session && state.user); }
+
+  async function login(){
+    if(state.loading) return; const email = $("loginEmail")?$("loginEmail").value.trim().toLowerCase():""; const password = $("loginPassword")?$("loginPassword").value:"";
+    if(!email || !password){ if($("loginError")) $("loginError").textContent="Enter email and password."; return; }
+    state.loading = true; if($("loginButton")) { $("loginButton").disabled = true; $("loginButton").textContent = "VERIFYING..."; } if($("loginError")) $("loginError").textContent=""; setLoading(true,"AUTHENTICATING...");
+    try{ 
+      const {data,error} = await sb.auth.signInWithPassword({email,password}); 
+      if(error) throw error; 
+      if(data.session?.user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){ await sb.auth.signOut(); throw new Error("Not an admin account."); }
+      state.session = data.session; state.user = data.user; state.initialized = false; 
+      requireAdminUI(); await openDashboard(); 
+    } catch(e) { if($("loginError")) $("loginError").textContent = e.message || "Failed."; showLoginUI(); setLoading(false); } 
+    finally { state.loading = false; if($("loginButton")) { $("loginButton").disabled = false; $("loginButton").textContent = "SIGN IN TO PORTAL"; } }
+  }
+
+  async function logout(){ await sb.auth.signOut(); state.session = null; state.user = null; state.initialized = false; showLoginUI(); }
+
+  sb.auth.onAuthStateChange((event, session)=>{
+    if(session){ state.session = session; state.user = session.user; if(event==="SIGNED_IN" && !state.initialized) setTimeout(()=>openDashboard(),0); }else if(event==="SIGNED_OUT" || event==="USER_DELETED"){ logout(); }
+  });
+
+  // Attach auth events
+  if($("loginForm")) $("loginForm").onsubmit = (e) => { e.preventDefault(); login(); };
+  if($("logoutButton")) $("logoutButton").onclick = () => { logout(); };
 
   // --- BOOTSTRAP ---
+  async function boot(){
+    setLoading(true,"CHECKING SESSION...");
+    const session = await getValidSession();
+    if(session){ requireAdminUI(); await openDashboard(); } else { showLoginUI(); setLoading(false); }
+  }
+
+  // --- DATA LOADERS ---
   async function loadAll(){
+    setLoading(true, "FETCHING STORE DATA...");
     try {
-      setLoading(true, "LOADING STORE DATA...");
       await requireSession();
       await Promise.allSettled([ loadCMS(), loadCategories(), loadProducts(), loadOrders(), loadCustomers(), loadCoupons(), loadWaitlist(), loadSettings(), loadPolicies() ]);
       renderEverything();
     } catch (err) { console.error("LoadAll Error:", err); toast(err.message, "error"); } finally { setLoading(false); }
   }
 
-  // --- LOADERS ---
   async function loadCMS(){ const {data} = await safeQuery(sb.from("site_content").select("content_key, content_value"), "CMS"); state.cms = {}; (data||[]).forEach(r => state.cms[r.content_key] = r.content_value??""); }
   async function loadCategories(){ const {data} = await safeQuery(sb.from("categories").select("*").order("sort_order",{ascending:true}), "Categories"); state.categories = data||[]; }
   async function loadProducts(){ const {data} = await safeQuery(sb.from("products").select("*").order("created_at",{ascending:false}), "Products"); state.products = data||[]; }
@@ -825,14 +878,13 @@
   async function loadSettings(){ const {data} = await safeQuery(sb.from("store_settings").select("*").eq("id",1).maybeSingle(), "Settings"); state.storeSettings = data||null; }
   async function loadPolicies(){ const {data} = await safeQuery(sb.from("policies").select("*"), "Policies"); state.policies = data||[]; }
 
-  // --- RENDER EVERYTHING ---
+  function stockTotal(p){ const s = p.stock||{}; return Object.values(s).reduce((a,v)=>a+Number(v||0),0); }
+
   function renderEverything(){
     try {
       renderDashboard(); renderCategories(); renderProducts(); renderOrders(); renderCustomers(); renderCoupons(); renderWaitlist(); renderInventorySnapshot(); updateProductCategoriesDropdown(); renderEditorialForms(); populateCMS(); populateSettings(); populatePolicyEditor();
     } catch(e) { console.error("Render Error:", e); }
   }
-
-  function stockTotal(p){ const s = p.stock||{}; return Object.values(s).reduce((a,v)=>a+Number(v||0),0); }
 
   // --- DASHBOARD ---
   function renderDashboard(){
@@ -871,7 +923,7 @@
     setVal("categoryId",c.id); setVal("categorySlug",c.slug); setVal("categoryEn",c.name_en); setVal("categoryKo",c.name_ko); setVal("categorySort",c.sort_order||0); if($("categoryActive")) $("categoryActive").value=String(c.is_active!==false);
     setText("categoryModalTitle","Edit Category"); openModal("categoryModal");
   }
-  if($("saveCategoryButton")) $("saveCategoryButton").onclick = async (e) => {
+  if($("categoryForm")) $("categoryForm").onsubmit = async (e) => {
     e.preventDefault(); const slug = $("categorySlug").value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
     if(!slug || !$("categoryEn").value.trim() || !$("categoryKo").value.trim()) return toast("Required fields missing.","error");
     setLoading(true, "SAVING CATEGORY...");
@@ -898,7 +950,7 @@
     $("productsGrid").querySelectorAll("[data-delete-product]").forEach(b=>b.addEventListener("click",()=>deleteProduct(b.dataset.deleteProduct)));
   }
   if($("productSearch")) $("productSearch").addEventListener("input",renderProducts); if($("productCategoryFilter")) $("productCategoryFilter").addEventListener("change",renderProducts);
-  function resetProductEditor(){ setVal("productId",""); setVal("productName",""); if($("productCategory")) $("productCategory").selectedIndex=0; setVal("productPrice",""); setVal("productDescription",""); if($("productActive")) $("productActive").checked=true; setVal("stockS",0); setVal("stockM",0); setVal("stockL",0); setVal("stockXL",0); state.currentProductImages=[]; state.currentProductImageUrls=[]; renderProductImageSlots(); setText("productModalTitle","Add Product"); }
+  function resetProductEditor(){ setVal("productId",""); setVal("productName",""); if($("productCategory")) $("productCategory").selectedIndex=0; setVal("productPrice",""); setVal("productDescription",""); if($("productActive")) $("productActive").checked=true; setVal("stockS",0); setVal("stockM",0); setVal("stockL",0); setVal("stockXL",0); state.currentProductImages=[]; state.currentProductImageUrls=[]; renderProductImageSlots(); setText("productModalTitle","Add Product"); if($("deleteProductBtn")) $("deleteProductBtn").classList.add("hidden"); }
   if($("addProductButton")) $("addProductButton").addEventListener("click",()=>{ resetProductEditor(); openModal("productModal"); });
   if($("productActive")) $("productActive").addEventListener("change",()=>{ if($("productActiveLabel")) $("productActiveLabel").textContent=$("productActive").checked?"Visible on store":"Hidden from store"; });
   function openProductEditor(id){
@@ -906,7 +958,7 @@
     setVal("productId",p.id); setVal("productName",p.name||""); setVal("productCategory",p.category||""); setVal("productPrice",p.price??""); setVal("productDescription",p.description||""); if($("productActive")) $("productActive").checked=p.active!==false;
     const st = normalizeStockObj(p.stock); setVal("stockS",st.S); setVal("stockM",st.M); setVal("stockL",st.L); setVal("stockXL",st.XL);
     let imgs=[]; if(Array.isArray(p.images)) imgs=p.images.filter(Boolean); else if(typeof p.images==="string") try{imgs=JSON.parse(p.images).filter(Boolean);}catch{} if(!imgs.length && p.image_url) imgs=[p.image_url];
-    state.currentProductImageUrls = imgs.slice(0,5); state.currentProductImages = []; renderProductImageSlots(); setText("productModalTitle","Edit Product"); openModal("productModal");
+    state.currentProductImageUrls = imgs.slice(0,5); state.currentProductImages = []; renderProductImageSlots(); setText("productModalTitle","Edit Product"); if($("deleteProductBtn")) $("deleteProductBtn").classList.remove("hidden"); openModal("productModal");
   }
   function renderProductImageSlots(){
     if(!$("productImageGrid")) return; const slots=[];
@@ -917,22 +969,24 @@
   }
   if($("productImageFiles")) $("productImageFiles").addEventListener("change",e=>{ const files=[...e.target.files]; const ex=state.currentProductImageUrls.length; if(ex+state.currentProductImages.length+files.length>5) toast("Max 5 images.","warning"); const avail=Math.max(0, 5-ex-state.currentProductImages.length); state.currentProductImages.push(...files.slice(0,avail)); renderProductImageSlots(); e.target.value=""; });
   async function uploadProductImg(file){ await requireSession(); const ext=(file.name.split(".").pop()||"jpg").toLowerCase(); const path=`products/${crypto.randomUUID()}-${String(file.name).toLowerCase().replace(/[^a-z0-9._-]/g,"-")}.${ext}`; const {error}=await sb.storage.from("product-images").upload(path,file,{cacheControl:"31536000", upsert:false, contentType:file.type||"image/jpeg"}); if(error) throw error; const {data}=sb.storage.from("product-images").getPublicUrl(path); if(!data?.publicUrl) throw new Error("Upload failed."); return data.publicUrl; }
-  if($("saveProductButton")) $("saveProductButton").addEventListener("click",async(e)=>{
+  if($("productForm")) $("productForm").onsubmit = async(e) => {
     e.preventDefault(); const name=$("productName").value.trim(); if(!name) return toast("Name is required.","error"); const price=Number($("productPrice").value); if(!Number.isFinite(price)||price<0) return toast("Invalid price.","error");
     setLoading(true, "SAVING PRODUCT...");
-    try{ await requireSession(); const pid=$("productId").value.trim(); let urls=[...state.currentProductImageUrls]; for(const f of state.currentProductImages) urls.push(await uploadProductImg(f)); urls=urls.slice(0,5); const stock={S:Math.max(0,Number($("stockS").value)\vert{}\vert{}0), M:Math.max(0,Number($("stockM").value)||0), L:Math.max(0,Number($("stockL").value)\vert{}\vert{}0), XL:Math.max(0,Number($("stockXL").value)||0)}; const payload={name, category:$("productCategory").value.trim()||null, price, active:$("productActive").checked, image_url:urls[0]\vert{}\vert{}null, images:urls, description:$("productDescription").value.trim()||null, stock, updated_at:new Date().toISOString()}; if(pid) await sb.from("products").update(payload).eq("id",pid); else await sb.from("products").insert({...payload, created_at:new Date().toISOString()}); await loadProducts(); renderEverything(); closeModal("productModal"); toast("Product saved."); }catch(e){ toast(e.message, true); }finally{ setLoading(false); }
-  });
+    try{ await requireSession(); const pid=$("productId").value.trim(); let urls=[...state.currentProductImageUrls]; for(const f of state.currentProductImages) urls.push(await uploadProductImg(f)); urls=urls.slice(0,5); const stock={S:Math.max(0,Number($("stockS").value)||0), M:Math.max(0,Number($("stockM").value)||0), L:Math.max(0,Number($("stockL").value)||0), XL:Math.max(0,Number($("stockXL").value)||0)}; const payload={name, category:$("productCategory").value.trim()||null, price, active:$("productActive").checked, image_url:urls[0]||null, images:urls, description:$("productDescription").value.trim()||null, stock, updated_at:new Date().toISOString()}; 
+      if(pid) await sb.from("products").update(payload).eq("id",pid); else await sb.from("products").insert({...payload, created_at:new Date().toISOString()}); await loadProducts(); renderEverything(); closeModal("productModal"); toast("Product saved."); }catch(e){ toast(e.message, true); }finally{ setLoading(false); }
+  };
   async function toggleProduct(id){ const p=state.products.find(x=>x.id==id); if(!p) return; setLoading(true); try{ await requireSession(); const newActive=!p.active; await sb.from("products").update({active:newActive, updated_at:new Date().toISOString()}).eq("id",id); Object.assign(p, {active:newActive}); renderEverything(); toast(newActive?"Product is live.":"Product hidden."); }catch(e){ toast(e.message, true); }finally{ setLoading(false); } }
-  async function deleteProduct(id){ const p=state.products.find(x=>x.id==id); if(!p) return; if(!confirm(`Permanently delete "${p.name}"?`)) return; setLoading(true); try{ await requireSession(); await sb.from("products").delete().eq("id",id); state.products=state.products.filter(x=>x.id!=id); renderEverything(); toast("Product deleted."); }catch(e){ toast(e.message, true); }finally{ setLoading(false); } }
+  async function deleteProduct(id){ const p=state.products.find(x=>x.id==id); if(!p) return; if(!confirm(`Permanently delete "${p.name}"?`)) return; setLoading(true); try{ await requireSession(); await sb.from("products").delete().eq("id",id); state.products=state.products.filter(x=>x.id!=id); renderEverything(); toast("Product deleted."); closeModal("productModal"); }catch(e){ toast(e.message, true); }finally{ setLoading(false); } }
+  if($("deleteProductBtn")) $("deleteProductBtn").addEventListener("click",()=>deleteProduct($("productId").value));
 
   function renderInventorySnapshot(){ if(!$("inventorySnapshotBody")) return; const low = state.products.filter(p=>stockTotal(p.stock)<=5); $("inventorySnapshotBody").innerHTML = low.length ? low.map(p=>{ const st = normalizeStockObj(p.stock); const catObj = state.categories.find(c => c.slug === p.category); return `<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(catObj?catObj.name_en:p.category)}</td><td>${st.S}</td><td>${st.M}</td><td>${st.L}</td><td>${st.XL}</td><td><strong>${stockTotal(p)}</strong></td></tr>`; }).join("") : `<tr><td colspan="7" class="empty">No low-stock products.</td></tr>`; }
 
   // --- ORDERS ---
   if($("ordersRefreshButton")) $("ordersRefreshButton").addEventListener("click",async()=>{ setLoading(true,"REFRESHING ORDERS..."); try{ await loadOrders(); await loadCustomers(); renderEverything(); toast("Orders refreshed."); } catch(e){ toast(e.message,true); } finally { setLoading(false); } });
+  function filteredOrders(){ const q=$("orderSearch")?$("orderSearch").value.trim().toLowerCase():""; const s=$("orderStatusFilter")?$("orderStatusFilter").value:""; return state.orders.filter(o=>{ const ns = normalizeStatus(o.order_status); if(s&&ns!==s) return false; if(!q) return true; return [o.order_number,o.customer_name,o.customer_email,o.customer_phone,o.courier,o.tracking_number,o.id].join(" ").toLowerCase().includes(q); }); }
   function renderOrders(){
     if(!$("ordersBody")) return;
-    const q = $("orderSearch")?$("orderSearch").value.trim().toLowerCase():""; const s = $("orderStatusFilter")?$("orderStatusFilter").value:"";
-    const ords = state.orders.filter(o=>{ const ns=normalizeStatus(o.order_status); if(s&&ns!==s) return false; if(!q) return true; return [o.order_number,o.customer_name,o.customer_email,o.customer_phone,o.courier,o.tracking_number,o.id].join(" ").toLowerCase().includes(q); });
+    const ords = filteredOrders();
     $("ordersBody").innerHTML = ords.length ? ords.map(o=>`<tr><td><strong>${esc(o.order_number||String(o.id).slice(0,8))}</strong></td><td><strong>${esc(o.customer_name||"Guest")}</strong><div class="tiny muted">${esc(o.customer_phone||o.customer_email||"")}</div></td><td>${money(o.total)}</td><td>${esc(o.payment_method||"—")}</td><td>${statusBadge(o.order_status)}</td><td><div>${esc(o.courier||"—")}</div><div class="tiny muted">${esc(o.tracking_number||"")}</div></td><td>${dateOnly(o.created_at)}</td><td><div class="actions"><button class="btn small" data-view-order="${esc(o.id)}">Manage</button></div></td></tr>`).join("") : `<tr><td colspan="8" class="empty">No matching orders.</td></tr>`;
     bindOrderViewButtons($("ordersBody"));
   }
@@ -986,15 +1040,18 @@
     if(!code) return toast("Code required.","error"); setLoading(true,"CREATING COUPON...");
     try{ await requireSession(); const {error}=await sb.from("coupons").insert({code, discount_value:disc, min_order_value:Math.max(0,min), active:bool($("couponActive").value)}); if(error) throw error; await loadCoupons(); renderEverything(); closeModal("couponModal"); toast("Coupon created."); }catch(e){ toast(e.message,true); }finally{ setLoading(false); }
   };
-  async function toggleCoupon(id){ const c = state.coupons.find(x=>String(x.id)===String(id)); if(!c) return; setLoading(true); try{ await requireSession(); await sb.from("coupons").update({active:!c.active}).eq("id",id); await loadCoupons(); renderEverything(); toast(c.active?"Deactivated.":"Activated."); }catch(e){ toast(e.message,true); }finally{ setLoading(false); } }
+  async function toggleCoupon(id){ const c = state.coupons.find(x=>String(x.id)===String(id)); if(!c) return; setLoading(true); try{ await requireSession(); await sb.from("coupons").update({active:!c.active}).eq("id",c.id); await loadCoupons(); renderEverything(); toast(c.active?"Deactivated.":"Activated."); }catch(e){ toast(e.message,true); }finally{ setLoading(false); } }
 
   // --- WAITLIST ---
-  function renderWaitlist(){ if($("waitlistBody")) $("waitlistBody").innerHTML = state.waitlist.length ? state.waitlist.map(w=>`<tr><td><strong>${esc(w.email||"")}</strong></td><td>${esc(w.phone||"—")}</td><td>${date(w.created_at)}</td></tr>`).join("") : `<tr><td colspan="3" class="empty">No waitlist entries.</td></tr>`; }
+  function renderWaitlist(){ if($("waitlistBody")) $("waitlistBody").innerHTML = state.waitlist.length ? state.waitlist.map(w=>`<tr><td><strong>${esc(w.email||"")}</strong></td><td>${esc(w.phone||w.source||"—")}</td><td>${date(w.created_at)}</td></tr>`).join("") : `<tr><td colspan="3" class="empty">No waitlist entries.</td></tr>`; }
   if($("refreshWaitlistButton")) $("refreshWaitlistButton").addEventListener("click",async()=>{ setLoading(true); try{ await loadWaitlist(); renderEverything(); toast("Waitlist refreshed."); }catch(e){toast(e.message,true);}finally{setLoading(false);} });
-  if($("exportWaitlistButton")) $("exportWaitlistButton").addEventListener("click",()=>{ if(!state.waitlist.length) return toast("No entries to export.","warning"); const csv="Email,Phone,Date\n"+state.waitlist.map(w=>`"${(w.email||"").replace(/"/g,'""')}","${(w.phone||"").replace(/"/g,'""')}","${w.created_at||""}"`).join("\n"); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); });
+  if($("exportWaitlistButton")) $("exportWaitlistButton").addEventListener("click",()=>{ if(!state.waitlist.length) return toast("No entries to export.","warning"); const csv="Email,Phone,Source,Date\n"+state.waitlist.map(w=>`"${(w.email||"").replace(/"/g,'""')}","${(w.phone||"").replace(/"/g,'""')}","${(w.source||"").replace(/"/g,'""')}","${w.created_at||""}"`).join("\n"); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); });
 
   // --- CMS ---
   function contentValue(key){ return state.cms[key] ?? CMS_DEFAULTS[key] ?? ""; }
+  function normalizeHex(value,fallback){ const v = String(value || "").trim(); if(/^#[0-9a-fA-F]{6}$/.test(v) \vert{}\vert{} /^#[0-9a-fA-F]{3}$/.test(v)) return v; return fallback; }
+  function hexToRgba(hex,alpha){ const value = String(hex || "#000000").replace("#",""); let r=0,g=0,b=0; if(value.length===3){ r=parseInt(value[0]+value[0],16); g=parseInt(value[1]+value[1],16); b=parseInt(value[2]+value[2],16); }else{ r=parseInt(value.slice(0,2),16); g=parseInt(value.slice(2,4),16); b=parseInt(value.slice(4,6),16); } if([r,g,b].some(Number.isNaN)) return `rgba(0,0,0,${alpha})`; return `rgba(${r},${g},${b},${alpha})`; }
+
   function populateCMS(){
     setVal("heroImageUrl", contentValue("hero_image_url")); setVal("heroEyebrow", contentValue("hero_eyebrow")); setVal("heroTitle", contentValue("hero_title")); setVal("heroSubtitle", contentValue("hero_subtitle")); setVal("heroDescription", contentValue("hero_description")); setVal("heroCta", contentValue("hero_cta")); setVal("heroOverlay", contentValue("hero_overlay")||"#000000"); setVal("heroTextColor", contentValue("hero_text_color")||"#ffffff"); setVal("heroFont", contentValue("hero_font")||"Inter, sans-serif");
     setVal("ticker1", contentValue("ticker_1")); setVal("ticker2", contentValue("ticker_2")); setVal("ticker3", contentValue("ticker_3")); setVal("tickerBg", contentValue("ticker_bg")||"#ffffff"); setVal("tickerText", contentValue("ticker_text")||"#000000"); setVal("tickerSpeed", contentValue("ticker_speed")||"35");
@@ -1005,16 +1062,18 @@
     setVal("brandEyebrow", contentValue("brand_eyebrow")); setVal("brandTitle", contentValue("brand_title")); setVal("brandSub", contentValue("brand_sub")); setVal("brandDesc", contentValue("brand_desc"));
     updateHeroPreview(); updateTickerPreview();
   }
-  function hexToRgba(hex,a){ const h=String(hex||"#000").replace("#",""); let r=0,g=0,b=0; if(h.length===3){r=parseInt(h[0]+h[0],16);g=parseInt(h[1]+h[1],16);b=parseInt(h[2]+h[2],16);}else{r=parseInt(h.slice(0,2),16);g=parseInt(h.slice(2,4),16);b=parseInt(h.slice(4,6),16);} return `rgba(${r||0},${g||0},${b||0},${a})`; }
+
   function updateHeroPreview(){
     const p=$("heroPreview"); if(!p) return; const img=$("heroImageUrl").value.trim(); p.style.backgroundImage=img?`url("${img.replace(/"/g,"%22")}")`:"linear-gradient(135deg,#151515,#080808)"; p.style.setProperty("--preview-text",$("heroTextColor").value); p.style.setProperty("--preview-overlay",hexToRgba($("heroOverlay").value,.56));
     setText("previewHeroEyebrow",$("heroEyebrow").value\vert{}\vert{}"서울에서 영감을 받은"); setText("previewHeroTitle",$("heroTitle").value||"LESS NOISE. MORE PRESENCE."); setText("previewHeroDescription",$("heroDescription").value||"Premium oversized essentials designed with a Korean-inspired point of view."); setText("previewHeroCta",$("heroCta").value||"SHOP DROP 001");
   }
+
   function updateTickerPreview(){
     const p=$("tickerPreview"); if(!p) return; p.style.background=$("tickerBg").value; p.style.color=$("tickerText").value;
     const msgs=[$("ticker1").value||"DROP 001 IS LIVE", $("ticker2").value||"PREMIUM OVERSIZED ESSENTIALS", $("ticker3").value||"FREE SHIPPING ABOVE ₹1499"];
     if($("tickerPreviewTrack")) { $("tickerPreviewTrack").innerHTML=msgs.map(m=>`<span>${esc(m)}</span>`).join(""); const spd=Math.max(5,Math.min(120,Number($("tickerSpeed").value)\vert{}\vert{}35)); $("tickerPreviewTrack").style.animation=`tickerDemo ${Math.max(4,130-spd/2)}s linear infinite`; }
   }
+
   function renderEditorialForms(){
     if(!$("editorialForms")) return; const slides=[];
     for(let i=1;i<=4;i++){ slides.push(`<div class="panel" style="margin-bottom:12px"><div class="panel-header"><div><div class="panel-title">Slide ${i}</div></div></div><div class="panel-body"><div class="form-grid"><div class="field"><label>Badge</label><input id="editorial${i}Badge" type="text" value="${esc(contentValue(`editorial_${i}_badge`))}"></div><div class="field"><label>Title</label><input id="editorial${i}Title" type="text" value="${esc(contentValue(`editorial_${i}_title`))}"></div><div class="field full"><label>Subtitle</label><input id="editorial${i}Subtitle" type="text" value="${esc(contentValue(`editorial_${i}_subtitle`))}"></div><div class="field full"><label>Image URL</label><input id="editorial${i}Image" type="url" value="${esc(contentValue(`editorial_${i}_image`))}"></div><div class="field full"><label>Description</label><textarea id="editorial${i}Description">${esc(contentValue(`editorial_${i}_description`))}</textarea></div></div></div></div>`); }
@@ -1024,6 +1083,7 @@
   async function saveCMSContent(key,val){
     const {error}=await sb.from("site_content").upsert({content_key:key, content_value:String(val??""), updated_at:new Date().toISOString()},{onConflict:"content_key"}); if(error) throw error; state.cms[key]=String(val??"");
   }
+
   if($("saveHeroButton")) $("saveHeroButton").addEventListener("click",async()=>{ setLoading(true,"SAVING..."); try{ await requireSession(); await saveCMSContent("hero_image_url",$("heroImageUrl").value.trim()); await saveCMSContent("hero_eyebrow",$("heroEyebrow").value.trim()); await saveCMSContent("hero_title",$("heroTitle").value.trim()); await saveCMSContent("hero_subtitle",$("heroSubtitle").value.trim()); await saveCMSContent("hero_description",$("heroDescription").value.trim()); await saveCMSContent("hero_cta",$("heroCta").value.trim()); await saveCMSContent("hero_overlay",$("heroOverlay").value); await saveCMSContent("hero_text_color",$("heroTextColor").value); await saveCMSContent("hero_font",$("heroFont").value); toast("Hero saved."); }catch(e){ toast(e.message,true); }finally{ setLoading(false); } });
   if($("saveTickerButton")) $("saveTickerButton").addEventListener("click",async()=>{ setLoading(true,"SAVING..."); try{ await requireSession(); await saveCMSContent("ticker_1",$("ticker1").value.trim()); await saveCMSContent("ticker_2",$("ticker2").value.trim()); await saveCMSContent("ticker_3",$("ticker3").value.trim()); await saveCMSContent("ticker_bg",$("tickerBg").value); await saveCMSContent("ticker_text",$("tickerText").value); await saveCMSContent("ticker_speed",$("tickerSpeed").value); toast("Ticker saved."); }catch(e){ toast(e.message,true); }finally{ setLoading(false); } });
   if($("saveEditorialButton")) $("saveEditorialButton").addEventListener("click",async()=>{ setLoading(true,"SAVING..."); try{ await requireSession(); for(let i=1;i<=4;i++){ await saveCMSContent(`editorial_${i}_badge`,$(`editorial${i}Badge`).value.trim()); await saveCMSContent(`editorial_${i}_title`,$(`editorial${i}Title`).value.trim()); await saveCMSContent(`editorial_${i}_subtitle`,$(`editorial${i}Subtitle`).value.trim()); await saveCMSContent(`editorial_${i}_image`,$(`editorial${i}Image`).value.trim()); await saveCMSContent(`editorial_${i}_description`,$(`editorial${i}Description`).value.trim()); } toast("Editorials saved."); }catch(e){ toast(e.message,true); }finally{ setLoading(false); } });
@@ -1070,7 +1130,7 @@
   async function boot(){
     setLoading(true,"CHECKING SESSION...");
     const session = await getValidSession();
-    if(session){ showApp(session.user.email); await loadAll(); } else { showLogin(); setLoading(false); }
+    if(session){ showApp(session.user.email); await loadAll(); } else { showLoginUI(); setLoading(false); }
   }
   boot();
 
