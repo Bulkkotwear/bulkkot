@@ -1,55 +1,175 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BULKKOT — God Mode Admin</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-:root{--bg:#070707;--panel:#0d0d0f;--panel2:#111114;--line:#242428;--muted:#85858d;--text:#f5f5f5;--red:#e31b23;--green:#35d49a;--amber:#f2b84b;--blue:#6ca8ff;--radius:14px}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font:13px Inter,system-ui,-apple-system,Segoe UI,sans-serif}
-button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit}.hidden{display:none!important}
-.app{min-height:100vh;display:grid;grid-template-columns:250px 1fr}
-.sidebar{position:sticky;top:0;height:100vh;background:#09090a;border-right:1px solid var(--line);padding:18px 12px;overflow:auto}
-.brand{display:flex;align-items:center;gap:10px;padding:8px 10px 20px;border-bottom:1px solid var(--line);margin-bottom:12px}
-.brand img{width:38px;height:38px;object-fit:contain}.brand b{font-size:16px;letter-spacing:.08em}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:.18em;margin-top:3px}
-.nav{display:grid;gap:4px}.nav button{border:0;background:transparent;color:#aaa;text-align:left;padding:11px 12px;border-radius:9px;display:flex;justify-content:space-between;align-items:center}.nav button:hover,.nav button.active{background:#17171a;color:#fff}.nav .count{font-size:10px;color:#666}.nav button.active .count{color:var(--red)}
-.sidebar-foot{border-top:1px solid var(--line);margin-top:15px;padding:14px 10px;color:#777;font-size:10px;line-height:1.6}
-.main{min-width:0}.topbar{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 25px;background:rgba(7,7,7,.92);position:sticky;top:0;z-index:20;backdrop-filter:blur(12px)}
-.topbar h1{font-size:17px;margin:0}.topbar .right{display:flex;gap:8px;align-items:center}.status{font-size:10px;color:var(--muted)}
-.content{padding:24px;max-width:1700px;margin:auto}.page{display:none}.page.active{display:block}
-.grid{display:grid;gap:14px}.grid.kpi{grid-template-columns:repeat(5,minmax(0,1fr))}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
-.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.card{padding:18px}.panel-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center}.panel-head h2,.panel-head h3{margin:0;font-size:13px;letter-spacing:.05em}.panel-body{padding:18px}.muted{color:var(--muted)}.metric{font-size:28px;font-weight:900;margin-top:8px}.eyebrow{font-size:9px;letter-spacing:.18em;color:var(--red);font-weight:800;text-transform:uppercase}
-.btn{border:1px solid var(--line);background:#17171a;color:#ddd;padding:9px 12px;border-radius:8px;font-weight:800;font-size:10px;letter-spacing:.06em}.btn:hover{border-color:#444;color:#fff}.btn.primary{background:var(--red);border-color:var(--red);color:#fff}.btn.danger{border-color:#572025;color:#ff777e}.btn.success{border-color:#214d3e;color:var(--green)}.btn.small{padding:6px 9px;font-size:9px}
-.toolbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}.toolbar .left,.toolbar .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-input,select,textarea{width:100%;background:#09090b;border:1px solid #2a2a2e;color:#eee;border-radius:8px;padding:10px 11px;outline:none}input:focus,select:focus,textarea:focus{border-color:#666}textarea{min-height:100px;resize:vertical}.field{display:grid;gap:6px}.field label{font-size:9px;color:#888;letter-spacing:.12em;text-transform:uppercase;font-weight:800}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field.full{grid-column:1/-1}
-.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:760px}.table th,.table td{padding:11px 10px;border-bottom:1px solid #1c1c20;text-align:left;vertical-align:top}.table th{font-size:9px;letter-spacing:.12em;color:#777;text-transform:uppercase}.table td{font-size:11px}.table tr:hover td{background:#101013}
-.badge{display:inline-flex;border:1px solid #333;padding:3px 7px;border-radius:99px;font-size:9px;color:#aaa}.badge.green{color:var(--green);border-color:#214d3e}.badge.red{color:#ff777e;border-color:#572025}.badge.amber{color:var(--amber);border-color:#57451f}
-.tabs{display:flex;gap:6px;overflow:auto;padding-bottom:10px;margin-bottom:12px}.tabs button{white-space:nowrap}.tabs button.active{background:#fff;color:#000;border-color:#fff}
-.preview{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0b0b0c}.preview img{width:100%;height:190px;object-fit:cover;display:block}.preview-body{padding:12px}.preview h3{margin:0 0 6px}.preview p{color:#999;font-size:11px;line-height:1.5}
-.media-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.media-card{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0c0c0d}.media-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}.media-card div{padding:8px;font-size:9px;word-break:break-all;color:#888}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal.open{display:flex}.modal-box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#0c0c0e;border:1px solid #333;border-radius:16px}.modal-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modal-body{padding:18px}.toast{position:fixed;right:20px;bottom:20px;z-index:200;background:#f4f4f4;color:#050505;padding:12px 16px;border-radius:10px;font-weight:800;display:none}.toast.show{display:block}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.login-box{width:min(430px,100%);background:#0d0d0f;border:1px solid var(--line);border-radius:18px;padding:28px}.login-box h1{margin:0 0 8px}.login-box form{display:grid;gap:12px;margin-top:20px}
-.json{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;white-space:pre-wrap;color:#bbb;background:#08080a;border:1px solid #222;padding:12px;border-radius:8px}
-@media(max-width:1050px){.app{grid-template-columns:78px 1fr}.sidebar{padding:12px 8px}.brand b,.brand small,.nav button span.label,.sidebar-foot{display:none}.nav button{justify-content:center}.grid.kpi{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:700px){.app{display:block}.sidebar{position:fixed;left:-260px;width:250px;z-index:80;transition:.2s}.sidebar.open{left:0}.topbar{padding:0 14px}.content{padding:14px}.grid.kpi,.grid.two,.grid.three,.form-grid{grid-template-columns:1fr}.media-grid{grid-template-columns:repeat(2,1fr)}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>BULKKOT — God Mode Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #070707;
+      --panel: #0d0d0f;
+      --panel2: #111114;
+      --line: #242428;
+      --muted: #85858d;
+      --text: #f5f5f5;
+      --red: #e31b23;
+      --green: #35d49a;
+      --amber: #f2b84b;
+      --blue: #6ca8ff;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 13px Inter, system-ui, -apple-system, Segoe UI, sans-serif; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    .hidden { display: none !important; }
+    
+    .app { min-height: 100vh; display: grid; grid-template-columns: 250px 1fr; }
+    .sidebar { position: sticky; top: 0; height: 100vh; background: #09090a; border-right: 1px solid var(--line); padding: 18px 12px; overflow: auto; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 8px 10px 20px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+    .brand img { width: 38px; height: 38px; object-fit: contain; }
+    .brand b { font-size: 16px; letter-spacing: .08em; }
+    .brand small { display: block; color: var(--muted); font-size: 9px; letter-spacing: .18em; margin-top: 3px; }
+    
+    .nav { display: grid; gap: 4px; }
+    .nav button { border: 0; background: transparent; color: #aaa; text-align: left; padding: 11px 12px; border-radius: 9px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+    .nav button:hover, .nav button.active { background: #17171a; color: #fff; }
+    .nav .count { font-size: 10px; color: #666; }
+    .nav button.active .count { color: var(--red); }
+    .sidebar-foot { border-top: 1px solid var(--line); margin-top: 15px; padding: 14px 10px; color: #777; font-size: 10px; line-height: 1.6; }
+    
+    .main { min-width: 0; }
+    .topbar { height: 68px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: rgba(7,7,7,.92); position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); }
+    .topbar h1 { font-size: 17px; margin: 0; }
+    .topbar .right { display: flex; gap: 8px; align-items: center; }
+    .status { font-size: 10px; color: var(--muted); }
+    .content { padding: 24px; max-width: 1700px; margin: auto; }
+    
+    .page { display: none; animation: fadeIn 0.2s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    
+    .grid { display: grid; gap: 14px; }
+    .grid.kpi { grid-template-columns: repeat(5, minmax(0,1fr)); }
+    .grid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    
+    .card, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .card { padding: 18px; }
+    .panel-head { padding: 15px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .panel-head h2, .panel-head h3 { margin: 0; font-size: 13px; letter-spacing: .05em; }
+    .panel-body { padding: 18px; }
+    .muted { color: var(--muted); }
+    .metric { font-size: 28px; font-weight: 900; margin-top: 8px; }
+    .eyebrow { font-size: 9px; letter-spacing: .18em; color: var(--red); font-weight: 800; text-transform: uppercase; }
+    
+    .btn { border: 1px solid var(--line); background: #17171a; color: #ddd; padding: 9px 12px; border-radius: 8px; font-weight: 800; font-size: 10px; letter-spacing: .06em; transition: 0.15s; }
+    .btn:hover { border-color: #444; color: #fff; }
+    .btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+    .btn.primary:hover { background: var(--red2); border-color: var(--red2); }
+    .btn.danger { border-color: #572025; color: #ff777e; background: rgba(239,68,68,0.1); }
+    .btn.success { border-color: #214d3e; color: var(--green); background: rgba(49,196,141,0.1); }
+    .btn.small { padding: 6px 9px; font-size: 9px; }
+    
+    .toolbar { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .toolbar .left, .toolbar .right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    
+    input, select, textarea { width: 100%; background: #09090b; border: 1px solid #2a2a2e; color: #eee; border-radius: 8px; padding: 10px 11px; outline: none; transition: 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: #666; }
+    textarea { min-height: 100px; resize: vertical; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 9px; color: #888; letter-spacing: .12em; text-transform: uppercase; font-weight: 800; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    .field.full { grid-column: 1 / -1; }
+    
+    .table-wrap { overflow: auto; }
+    .table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    .table th, .table td { padding: 11px 10px; border-bottom: 1px solid #1c1c20; text-align: left; vertical-align: top; }
+    .table th { font-size: 9px; letter-spacing: .12em; color: #777; text-transform: uppercase; }
+    .table td { font-size: 11px; }
+    .table tr:hover td { background: #101013; }
+    
+    .badge { display: inline-flex; border: 1px solid #333; padding: 3px 7px; border-radius: 99px; font-size: 9px; color: #aaa; background: rgba(255,255,255,0.05); }
+    .badge.green { color: var(--green); border-color: #214d3e; background: rgba(49,196,141,0.1); }
+    .badge.red { color: #ff777e; border-color: #572025; background: rgba(239,68,68,0.1); }
+    .badge.amber { color: var(--amber); border-color: #57451f; background: rgba(245,197,66,0.1); }
+    
+    .tabs { display: flex; gap: 6px; overflow: auto; padding-bottom: 10px; margin-bottom: 12px; }
+    .tabs button { white-space: nowrap; }
+    .tabs button.active { background: #fff; color: #000; border-color: #fff; }
+    
+    .media-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+    .media-card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #0c0c0d; }
+    .media-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+    .media-card div { padding: 8px; font-size: 9px; word-break: break-all; color: #888; }
+    
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.78); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 100; backdrop-filter: blur(4px); }
+    .modal.open { display: flex; }
+    .modal-box { width: min(900px, 100%); max-height: 92vh; overflow: auto; background: #0c0c0e; border: 1px solid #333; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    .modal-head { padding: 16px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: #0c0c0e; z-index: 10; }
+    .modal-body { padding: 18px; }
+    
+    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 200; background: #f4f4f4; color: #050505; padding: 12px 16px; border-radius: 10px; font-weight: 800; transform: translateY(100px); opacity: 0; transition: 0.3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    
+    .login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+    .login-box { width: min(430px, 100%); background: #0d0d0f; border: 1px solid var(--line); border-radius: 18px; padding: 35px; box-shadow: 0 30px 100px rgba(0,0,0,.65); }
+    .login-box h1 { margin: 0 0 8px; }
+    .login-box form { display: grid; gap: 14px; margin-top: 24px; }
+    
+    .json { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; white-space: pre-wrap; color: #bbb; background: #08080a; border: 1px solid #222; padding: 12px; border-radius: 8px; }
+    
+    #loadingOverlay { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,.88); display: grid; place-items: center; padding: 20px; backdrop-filter: blur(7px); }
+    .spinner { width: 34px; height: 34px; border: 2px solid #292929; border-top-color: var(--red); border-radius: 50%; margin: 0 auto 14px; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loadingText { color: #ddd; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+
+    @media(max-width:1050px) {
+      .app { grid-template-columns: 78px 1fr; }
+      .sidebar { padding: 12px 8px; }
+      .brand b, .brand small, .nav button span.label, .sidebar-foot { display: none; }
+      .nav button { justify-content: center; }
+      .grid.kpi { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media(max-width:700px) {
+      .app { display: block; }
+      .sidebar { position: fixed; left: -260px; width: 250px; z-index: 80; transition: .2s; }
+      .sidebar.open { left: 0; }
+      .topbar { padding: 0 14px; }
+      .content { padding: 14px; }
+      .grid.kpi, .grid.two, .grid.three, .form-grid { grid-template-columns: 1fr; }
+      .media-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
 </head>
 <body>
 
-<div id="loginView" class="login">
+<!-- LOADING SPINNER -->
+<div id="loadingOverlay" class="hidden">
+  <div>
+    <div class="spinner"></div>
+    <div id="loadingText">AUTHENTICATING...</div>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginView" class="login hidden">
   <div class="login-box">
     <div class="eyebrow">BULKKOT · PRIVATE CONTROL CENTER</div>
     <h1>GOD MODE</h1>
     <p class="muted">Supabase-authenticated enterprise storefront control.</p>
     <form id="loginForm">
-      <div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="username" required value="bulkkotwear@gmail.com"></div>
-      <div class="field"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
-      <button class="btn primary" type="submit">AUTHENTICATE</button>
+      <div class="field"><label>Admin Email</label><input id="loginEmail" type="email" autocomplete="username" required value="bulkkotwear@gmail.com"></div>
+      <div class="field"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+      <button class="btn primary" type="submit" id="loginBtn">AUTHENTICATE</button>
     </form>
-    <p id="loginError" class="muted" style="color:#ff777e;margin-bottom:0"></p>
+    <p id="loginError" class="muted" style="color:#ff777e; margin-bottom:0; margin-top:10px;"></p>
   </div>
 </div>
 
+<!-- APP DASHBOARD -->
 <div id="app" class="app hidden">
   <aside id="sidebar" class="sidebar">
     <div class="brand">
@@ -60,11 +180,12 @@ input,select,textarea{width:100%;background:#09090b;border:1px solid #2a2a2e;col
       <button data-page="dashboard" class="active"><span class="label">Dashboard</span><span class="count" id="navDash">—</span></button>
       <button data-page="content"><span class="label">Storefront CMS</span><span class="count">CMS</span></button>
       <button data-page="products"><span class="label">Products</span><span class="count" id="navProducts">0</span></button>
+      <button data-page="categories"><span class="label">Categories</span><span class="count" id="navCategories">0</span></button>
       <button data-page="orders"><span class="label">Orders</span><span class="count" id="navOrders">0</span></button>
       <button data-page="customers"><span class="label">Customers CRM</span><span class="count" id="navCustomers">0</span></button>
       <button data-page="coupons"><span class="label">Coupons</span><span class="count" id="navCoupons">0</span></button>
       <button data-page="waitlist"><span class="label">VIP Waitlist</span><span class="count" id="navWaitlist">0</span></button>
-      <button data-page="media"><span class="label">Media</span><span class="count">STORAGE</span></button>
+      <button data-page="media"><span class="label">Media Library</span><span class="count">STORAGE</span></button>
       <button data-page="settings"><span class="label">Store Settings</span><span class="count">CORE</span></button>
       <button data-page="schema"><span class="label">Schema Blueprint</span><span class="count">SQL</span></button>
     </nav>
@@ -81,7 +202,7 @@ input,select,textarea{width:100%;background:#09090b;border:1px solid #2a2a2e;col
     </header>
 
     <div class="content">
-
+      <!-- DASHBOARD PAGE -->
       <section id="page-dashboard" class="page active">
         <div class="toolbar"><div><div class="eyebrow">CONTROL CENTER</div><h2 style="margin:4px 0">Store at a glance</h2></div></div>
         <div class="grid kpi">
@@ -98,43 +219,57 @@ input,select,textarea{width:100%;background:#09090b;border:1px solid #2a2a2e;col
         <div class="panel" style="margin-top:14px"><div class="panel-head"><h2>CMS COVERAGE</h2><span class="badge green">KEY/VALUE READY</span></div><div class="panel-body"><p class="muted">Every storefront text/image/link that should be editable is represented by a namespaced CMS key. The admin writes these to <code>site_content</code>; your storefront must read/render those keys.</p><div id="cmsCoverage" class="json"></div></div></div>
       </section>
 
+      <!-- CONTENT CMS PAGE -->
       <section id="page-content" class="page">
         <div class="toolbar"><div><div class="eyebrow">STOREFRONT CONTROL</div><h2 style="margin:4px 0">Content Management</h2></div><button class="btn primary" id="saveContentBtn">SAVE CURRENT SECTION</button></div>
         <div class="tabs" id="contentTabs"></div>
         <div id="contentEditor"></div>
       </section>
 
+      <!-- PRODUCTS PAGE -->
       <section id="page-products" class="page">
         <div class="toolbar"><div><div class="eyebrow">CATALOG</div><h2 style="margin:4px 0">Products</h2></div><div class="right"><input id="productSearch" placeholder="Search name / SKU" style="width:220px"><button class="btn primary" id="addProductBtn">+ NEW PRODUCT</button></div></div>
         <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Live</th><th></th></tr></thead><tbody id="productsRows"></tbody></table></div></div>
       </section>
 
+      <!-- CATEGORIES PAGE -->
+      <section id="page-categories" class="page">
+        <div class="toolbar"><div><div class="eyebrow">TAXONOMY</div><h2 style="margin:4px 0">Categories</h2></div><div class="right"><button class="btn primary" id="addCategoryBtn">+ NEW CATEGORY</button></div></div>
+        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Slug</th><th>English</th><th>Korean</th><th>Status</th><th></th></tr></thead><tbody id="categoriesRows"></tbody></table></div></div>
+      </section>
+
+      <!-- ORDERS PAGE -->
       <section id="page-orders" class="page">
         <div class="toolbar"><div><div class="eyebrow">FULFILMENT</div><h2 style="margin:4px 0">Orders</h2></div><div class="right"><select id="orderStatusFilter" style="width:160px"><option value="">ALL STATUS</option><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select><input id="orderSearch" placeholder="Order / phone / email" style="width:220px"></div></div>
         <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th><th>Created</th><th></th></tr></thead><tbody id="ordersRows"></tbody></table></div></div>
       </section>
 
+      <!-- CUSTOMERS PAGE -->
       <section id="page-customers" class="page">
         <div class="toolbar"><div><div class="eyebrow">CRM</div><h2 style="margin:4px 0">Customer Profiles</h2></div><input id="customerSearch" placeholder="Search customer / phone / email" style="width:280px"></div>
         <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Customer</th><th>Phone</th><th>Email/Auth ID</th><th>Location</th><th>Updated</th><th></th></tr></thead><tbody id="customersRows"></tbody></table></div></div>
       </section>
 
+      <!-- COUPONS PAGE -->
       <section id="page-coupons" class="page">
         <div class="toolbar"><div><div class="eyebrow">PROMOTIONS</div><h2 style="margin:4px 0">Coupons</h2></div><button class="btn primary" id="addCouponBtn">+ NEW COUPON</button></div>
         <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Active</th><th>Created</th><th></th></tr></thead><tbody id="couponsRows"></tbody></table></div></div>
       </section>
 
+      <!-- WAITLIST PAGE -->
       <section id="page-waitlist" class="page">
         <div class="toolbar"><div><div class="eyebrow">LEADS</div><h2 style="margin:4px 0">VIP Waitlist</h2></div><div class="right"><button class="btn small" id="refreshWaitlistBtn">↻ REFRESH</button><button class="btn primary" id="exportWaitlistBtn">↓ EXPORT CSV</button></div></div>
         <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Email</th><th>Source</th><th>Created</th></tr></thead><tbody id="waitlistRows"></tbody></table></div></div>
       </section>
 
+      <!-- MEDIA PAGE -->
       <section id="page-media" class="page">
         <div class="toolbar"><div><div class="eyebrow">SUPABASE STORAGE</div><h2 style="margin:4px 0">Media Library</h2></div><div class="right"><input id="mediaFile" type="file" accept="image/*"><button class="btn primary" id="uploadMediaBtn">UPLOAD</button></div></div>
-        <div class="card"><p class="muted">Uploads go to <b>site-content-images</b>. Product uploads can use <b>product-media</b>. Public URLs can then be pasted into CMS/image fields.</p></div>
+        <div class="card"><p class="muted">Uploads go to <b>site-content-images</b>. Public URLs can then be pasted into CMS/image fields.</p></div>
         <div id="mediaGrid" class="media-grid" style="margin-top:14px"></div>
       </section>
 
+      <!-- SETTINGS PAGE -->
       <section id="page-settings" class="page">
         <div class="toolbar"><div><div class="eyebrow">STORE INFRASTRUCTURE</div><h2 style="margin:4px 0">Store Settings</h2></div><button class="btn primary" id="saveSettingsBtn">SAVE SETTINGS</button></div>
         <div class="panel"><div class="panel-body"><div class="form-grid">
@@ -150,19 +285,23 @@ input,select,textarea{width:100%;background:#09090b;border:1px solid #2a2a2e;col
         </div></div></div>
       </section>
 
+      <!-- SCHEMA PAGE -->
       <section id="page-schema" class="page">
         <div class="toolbar"><div><div class="eyebrow">SUPABASE BLUEPRINT</div><h2 style="margin:4px 0">Required Database Structure</h2></div><button class="btn" id="copySqlBtn">COPY SQL</button></div>
-        <div class="panel"><div class="panel-body"><p class="muted">Run this in Supabase SQL Editor before using the full control center. Existing columns can be retained; add missing fields rather than dropping production data.</p><pre id="sqlPreview" class="json"></pre></div></div>
+        <div class="panel"><div class="panel-body"><p class="muted">Run this in Supabase SQL Editor before using the full control center.</p><pre id="sqlPreview" class="json"></pre></div></div>
       </section>
 
     </div>
   </main>
 </div>
 
+<!-- MODALS -->
+<!-- Product Modal -->
 <div id="productModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="productModalTitle">PRODUCT</b><button class="btn small" data-close="productModal">CLOSE</button></div><div class="modal-body">
 <form id="productForm"><input id="pId" type="hidden"><div class="form-grid">
-<div class="field"><label>Name</label><input id="pName" required></div><div class="field"><label>SKU</label><input id="pSku"></div>
-<div class="field"><label>Category</label><select id="pCategory"><option value="tees">Tees</option><option value="hoods">Hoods</option><option value="sweats">Sweats</option></select></div>
+<div class="field"><label>Name</label><input id="pName" required></div>
+<div class="field"><label>SKU</label><input id="pSku"></div>
+<div class="field"><label>Category</label><select id="pCategory"><option value="tees">Tees</option></select></div>
 <div class="field"><label>Price</label><input id="pPrice" type="number" min="0" required></div>
 <div class="field"><label>Compare-at Price</label><input id="pCompare" type="number" min="0"></div>
 <div class="field"><label>Featured</label><select id="pFeatured"><option value="true">Yes</option><option value="false">No</option></select></div>
@@ -175,6 +314,18 @@ input,select,textarea{width:100%;background:#09090b;border:1px solid #2a2a2e;col
 </div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn primary" type="submit">SAVE PRODUCT</button><button class="btn danger" type="button" id="deleteProductBtn">DELETE</button></div></form>
 </div></div></div>
 
+<!-- Category Modal -->
+<div id="categoryModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="categoryModalTitle">CATEGORY</b><button class="btn small" data-close="categoryModal">CLOSE</button></div><div class="modal-body">
+<form id="categoryForm"><input id="cId" type="hidden"><div class="form-grid">
+<div class="field full"><label>Slug (e.g. jackets)</label><input id="cSlug" required></div>
+<div class="field"><label>English Name</label><input id="cEn" required></div>
+<div class="field"><label>Korean Name</label><input id="cKo" required></div>
+<div class="field"><label>Sort Order</label><input id="cSort" type="number" value="0"></div>
+<div class="field"><label>Active</label><select id="cActiveStatus"><option value="true">Live</option><option value="false">Hidden</option></select></div>
+</div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn primary" type="submit">SAVE CATEGORY</button></div></form>
+</div></div></div>
+
+<!-- Order Modal -->
 <div id="orderModal" class="modal"><div class="modal-box"><div class="modal-head"><b>ORDER CONTROL</b><button class="btn small" data-close="orderModal">CLOSE</button></div><div class="modal-body"><div id="orderDetails"></div><form id="orderForm" style="margin-top:15px"><input id="oId" type="hidden"><div class="form-grid">
 <div class="field"><label>Order Status</label><select id="oStatus"><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select></div>
 <div class="field"><label>Payment Status</label><select id="oPayment"><option>PENDING</option><option>PAID</option><option>COD</option><option>FAILED</option><option>REFUNDED</option></select></div>
@@ -183,193 +334,388 @@ input,select,textarea{width:100%;background:#09090b;border:1px solid #2a2a2e;col
 <div class="field full"><label>Admin Note</label><textarea id="oNote"></textarea></div>
 </div><button class="btn primary" type="submit" style="margin-top:14px">SAVE ORDER</button></form></div></div></div>
 
+<!-- Customer Modal -->
 <div id="customerModal" class="modal"><div class="modal-box"><div class="modal-head"><b>CUSTOMER</b><button class="btn small" data-close="customerModal">CLOSE</button></div><div class="modal-body" id="customerDetails"></div></div></div>
 
+<!-- Coupon Modal -->
 <div id="couponModal" class="modal"><div class="modal-box"><div class="modal-head"><b>COUPON</b><button class="btn small" data-close="couponModal">CLOSE</button></div><div class="modal-body"><form id="couponForm"><div class="form-grid">
 <div class="field"><label>Code</label><input id="cCode" required></div><div class="field"><label>Discount Value</label><input id="cDiscount" type="number" min="0" required></div>
 <div class="field"><label>Minimum Order</label><input id="cMin" type="number" min="0" value="0"></div><div class="field"><label>Active</label><select id="cActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
 </div><button class="btn primary" type="submit" style="margin-top:14px">CREATE COUPON</button></form></div></div></div>
 
+<!-- Toast -->
 <div id="toast" class="toast"></div>
 
 <script>
-const SUPABASE_URL="https://pgubjluqgqvrybvehzeh.supabase.co";
-const SUPABASE_ANON_KEY="sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-const ADMIN_EMAIL="bulkkotwear@gmail.com";
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+// --- REAL SUPABASE KEYS ---
+const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+const ADMIN_EMAIL = "bulkkotwear@gmail.com";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const CMS_GROUPS={
- general:{label:"General / Brand",keys:["brand_name","brand_korean","brand_tagline","meta_title","meta_description","theme_red","logo_url","favicon_url"]},
- ticker:{label:"Announcement Ticker",keys:["announcement_1","announcement_2","announcement_3","announcement_bg","announcement_color","announcement_font","announcement_speed"]},
- hero:{label:"Hero",keys:["hero_image","hero_image_url","hero_eyebrow","hero_title","hero_subtitle","hero_label","hero_description","hero_cta","hero_cta_url","hero_overlay_color","hero_text_color","hero_font"]},
- collections:{label:"3 Circle Collections",keys:["collections_eyebrow","collections_title","collection_1_label","collection_1_korean","collection_1_image","collection_1_url","collection_1_cta","collection_2_label","collection_2_korean","collection_2_image","collection_2_url","collection_2_cta","collection_3_label","collection_3_korean","collection_3_image","collection_3_url","collection_3_cta"]},
- editorial:{label:"Editorial Slider",keys:["editorial_1_badge","editorial_1_korean","editorial_1_title","editorial_1_subtitle","editorial_1_description","editorial_1_image","editorial_1_cta","editorial_1_url","editorial_2_badge","editorial_2_korean","editorial_2_title","editorial_2_subtitle","editorial_2_description","editorial_2_image","editorial_2_cta","editorial_2_url","editorial_3_badge","editorial_3_korean","editorial_3_title","editorial_3_subtitle","editorial_3_description","editorial_3_image","editorial_3_cta","editorial_3_url","editorial_4_badge","editorial_4_korean","editorial_4_title","editorial_4_subtitle","editorial_4_description","editorial_4_image","editorial_4_cta","editorial_4_url"]},
-drop:{label:"Drop Banner",keys:["drop_eyebrow","drop_title","drop_description","drop_cta","drop_cta_url"]},
-shop:{label:"Shop Section",keys:["shop_eyebrow","shop_title","shop_catalogue_cta","shop_catalogue_url","shop_empty_message","shop_all_label","shop_tees_label","shop_hoods_label","shop_sweats_label","shop_sort_featured","shop_sort_newest","shop_sort_low","shop_sort_high"]},
-values:{label:"Why BULKKOT / Values",keys:["values_eyebrow","values_title","value_1_title","value_1_korean","value_1_description","value_2_title","value_2_korean","value_2_description","value_3_title","value_3_korean","value_3_description","value_4_title","value_4_korean","value_4_description"]},
-about:{label:"About / Story",keys:["about_eyebrow","about_title","about_subtitle","about_lead","about_body_1","about_body_2","about_signature","about_cta","about_story_modal_title","about_story_modal_body"]},
-philosophy:{label:"Philosophy",keys:["philosophy_korean","philosophy_title","philosophy_subtitle","philosophy_description"]},
-social:{label:"Social",keys:["social_eyebrow","social_title","social_korean","instagram_url","instagram_handle"]},
-waitlist:{label:"Waitlist Content",keys:["waitlist_eyebrow","waitlist_title","waitlist_korean","waitlist_description","waitlist_email_label","waitlist_placeholder","waitlist_button","waitlist_success","waitlist_duplicate","waitlist_error"]},
-contact:{label:"Contact",keys:["contact_eyebrow","contact_title","contact_email_label","contact_email","collab_label","collab_subject","contact_whatsapp_label"]},
-footer:{label:"Footer",keys:["footer_description","footer_tagline","footer_shop_title","footer_about_title","footer_help_title","footer_legal_title","footer_connect_title","footer_copyright","footer_country"]},
-policies:{label:"Legal Policies",keys:["policy_faq_title","policy_faq_body","policy_shipping_title","policy_shipping_body","policy_returns_title","policy_returns_body","policy_privacy_title","policy_privacy_body","policy_terms_title","policy_terms_body"]},
-popup:{label:"Welcome Popup",keys:["popup_eyebrow","popup_title","popup_body","popup_cta","popup_cta_url","popup_enabled"]},
-size:{label:"Size Guide",keys:["size_guide_title","size_guide_intro","size_guide_tees","size_guide_hoods","size_guide_sweats","size_guide_note"]},
-navigation:{label:"Navigation / Search",keys:["nav_home","nav_shop","nav_drop","nav_collections","nav_about","nav_contact","nav_size_guide","nav_track_order","nav_account","search_placeholder","search_trending_label","search_tag_1","search_tag_2","search_tag_3","search_tag_4"]},
-whatsapp:{label:"WhatsApp / Support",keys:["whatsapp_number","whatsapp_message","whatsapp_label","whatsapp_subtitle"]}
+const CMS_GROUPS = {
+ general: {label:"General / Brand",keys:["brand_name","brand_korean","brand_tagline","meta_title","meta_description","theme_red","logo_url","favicon_url"]},
+ ticker: {label:"Announcement Ticker",keys:["announcement_1","announcement_2","announcement_3","announcement_bg","announcement_color","announcement_font","announcement_speed"]},
+ hero: {label:"Hero",keys:["hero_image","hero_image_url","hero_eyebrow","hero_title","hero_subtitle","hero_label","hero_description","hero_cta","hero_cta_url","hero_overlay_color","hero_text_color","hero_font"]},
+ collections: {label:"3 Circle Collections",keys:["collections_eyebrow","collections_title","collection_1_label","collection_1_korean","collection_1_image","collection_1_url","collection_1_cta","collection_2_label","collection_2_korean","collection_2_image","collection_2_url","collection_2_cta","collection_3_label","collection_3_korean","collection_3_image","collection_3_url","collection_3_cta"]},
+ editorial: {label:"Editorial Slider",keys:["editorial_1_badge","editorial_1_korean","editorial_1_title","editorial_1_subtitle","editorial_1_description","editorial_1_image","editorial_1_cta","editorial_1_url","editorial_2_badge","editorial_2_korean","editorial_2_title","editorial_2_subtitle","editorial_2_description","editorial_2_image","editorial_2_cta","editorial_2_url","editorial_3_badge","editorial_3_korean","editorial_3_title","editorial_3_subtitle","editorial_3_description","editorial_3_image","editorial_3_cta","editorial_3_url","editorial_4_badge","editorial_4_korean","editorial_4_title","editorial_4_subtitle","editorial_4_description","editorial_4_image","editorial_4_cta","editorial_4_url"]},
+ drop: {label:"Drop Banner",keys:["drop_eyebrow","drop_title","drop_description","drop_cta","drop_cta_url"]},
+ shop: {label:"Shop Section",keys:["shop_eyebrow","shop_title","shop_catalogue_cta","shop_catalogue_url","shop_empty_message","shop_all_label","shop_tees_label","shop_hoods_label","shop_sweats_label","shop_sort_featured","shop_sort_newest","shop_sort_low","shop_sort_high"]},
+ values: {label:"Why BULKKOT / Values",keys:["values_eyebrow","values_title","value_1_title","value_1_korean","value_1_description","value_2_title","value_2_korean","value_2_description","value_3_title","value_3_korean","value_3_description","value_4_title","value_4_korean","value_4_description"]},
+ about: {label:"About / Story",keys:["about_eyebrow","about_title","about_subtitle","about_lead","about_body_1","about_body_2","about_signature","about_cta","about_story_modal_title","about_story_modal_body"]},
+ philosophy: {label:"Philosophy",keys:["philosophy_korean","philosophy_title","philosophy_subtitle","philosophy_description"]},
+ social: {label:"Social",keys:["social_eyebrow","social_title","social_korean","instagram_url","instagram_handle"]},
+ waitlist: {label:"Waitlist Content",keys:["waitlist_eyebrow","waitlist_title","waitlist_korean","waitlist_description","waitlist_email_label","waitlist_placeholder","waitlist_button","waitlist_success","waitlist_duplicate","waitlist_error"]},
+ contact: {label:"Contact",keys:["contact_eyebrow","contact_title","contact_email_label","contact_email","collab_label","collab_subject","contact_whatsapp_label"]},
+ footer: {label:"Footer",keys:["footer_description","footer_tagline","footer_shop_title","footer_about_title","footer_help_title","footer_legal_title","footer_connect_title","footer_copyright","footer_country"]},
+ policies: {label:"Legal Policies",keys:["policy_faq_title","policy_faq_body","policy_shipping_title","policy_shipping_body","policy_returns_title","policy_returns_body","policy_privacy_title","policy_privacy_body","policy_terms_title","policy_terms_body"]},
+ popup: {label:"Welcome Popup",keys:["popup_eyebrow","popup_title","popup_body","popup_cta","popup_cta_url","popup_enabled"]},
+ size: {label:"Size Guide",keys:["size_guide_title","size_guide_intro","size_guide_tees","size_guide_hoods","size_guide_sweats","size_guide_note"]},
+ navigation: {label:"Navigation / Search",keys:["nav_home","nav_shop","nav_drop","nav_collections","nav_about","nav_contact","nav_size_guide","nav_track_order","nav_account","search_placeholder","search_trending_label","search_tag_1","search_tag_2","search_tag_3","search_tag_4"]},
+ whatsapp: {label:"WhatsApp / Support",keys:["whatsapp_number","whatsapp_message","whatsapp_label","whatsapp_subtitle"]}
 };
 
-const DEFAULTS={
-brand_name:"BULKKOT",brand_korean:"불꽃",brand_tagline:"Less noise. More presence.",meta_title:"BULKKOT (불꽃) — Premium Everyday Wear",meta_description:"Korean-inspired premium everyday wear.",theme_red:"#e31b23",
-announcement_1:"DROP 001 — DROPPING SOON",announcement_2:"불꽃 DROP 001 — COMING SOON",announcement_3:"JOIN THE VIP WAITLIST",announcement_bg:"#e31b23",announcement_color:"#ffffff",announcement_font:"'Inter',sans-serif",announcement_speed:"20",
-hero_image:"",hero_image_url:"",hero_eyebrow:"불꽃",hero_title:"BULKKOT",hero_subtitle:"PREMIUM EVERYDAY WEAR",hero_label:"PREMIUM EVERYDAY WEAR",hero_description:"Korean-inspired minimalist heavyweight essentials.",hero_cta:"EXPLORE DROP 001",hero_cta_url:"#drop-001",hero_overlay_color:"#000000",hero_text_color:"#ffffff",hero_font:"'Montserrat',sans-serif",
-collections_eyebrow:"DROP 001 LINEUP",collections_title:"THE SILHOUETTES",collection_1_label:"TEES",collection_1_korean:"티셔츠",collection_1_image:"",collection_1_url:"shop.html?category=tees",collection_1_cta:"VIEW ALL →",collection_2_label:"HOODIES",collection_2_korean:"헤비 후드",collection_2_image:"",collection_2_url:"shop.html?category=hoods",collection_2_cta:"VIEW ALL →",collection_3_label:"SWEATS",collection_3_korean:"스웨트",collection_3_image:"",collection_3_url:"shop.html?category=sweats",collection_3_cta:"VIEW ALL →",
-drop_eyebrow:"DROP 001 · 첫 번째 드롭",drop_title:"COMING SOON",drop_description:"The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.",drop_cta:"JOIN WAITLIST",drop_cta_url:"#waitlist",
-shop_eyebrow:"SHOP · 쇼핑",shop_title:"LATEST RELEASES",shop_catalogue_cta:"OPEN FULL CATALOGUE →",shop_catalogue_url:"shop.html",shop_empty_message:"No garments found matching your filter.",shop_all_label:"ALL",shop_tees_label:"TEES",shop_hoods_label:"HOODS",shop_sweats_label:"SWEATS",
-values_eyebrow:"WHY BULKKOT · 왜 불꽃인가",values_title:"BUILT WITH INTENT.",value_1_title:"PREMIUM QUALITY",value_1_korean:"프리미엄 퀄리티",value_1_description:"Heavyweight combed cotton and custom drapes.",value_2_title:"OVERSIZED FIT",value_2_korean:"오버사이즈 핏",value_2_description:"Relaxed drop-shoulder cuts for modern comfort.",value_3_title:"CLEAN DESIGN",value_3_korean:"클린 디자인",value_3_description:"Zero unnecessary noise. Pure timeless silhouette.",value_4_title:"EVERYDAY ESSENTIAL",value_4_korean:"데일리 에센셜",value_4_description:"Garments crafted to live beyond seasonal trends.",
-about_eyebrow:"THE BRAND · 브랜드",about_title:"불꽃",about_subtitle:"THE SPARK",about_lead:"Premium clothing shouldn't feel unreachable.",about_body_1:"BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.",about_body_2:"We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.",about_signature:"Less noise. More presence.",about_cta:"READ OUR STORY →",
-philosophy_korean:"불꽃의 철학",philosophy_title:"LESS NOISE.",philosophy_subtitle:"MORE PRESENCE.",philosophy_description:"Quiet design. Strong identity.",
-social_eyebrow:"SOCIAL · 소셜",social_title:"FOLLOW BULKKOT",social_korean:"불꽃을 팔로우하세요",instagram_url:"https://www.instagram.com/bulkkot.wear/",instagram_handle:"@bulkkot.wear",
-waitlist_eyebrow:"DROP 001",waitlist_title:"BE FIRST TO KNOW",waitlist_korean:"가장 먼저 만나보세요",waitlist_description:"Join the VIP waitlist to receive access before Drop 001 goes live.",waitlist_email_label:"EMAIL ADDRESS",waitlist_placeholder:"your@email.com",waitlist_button:"JOIN",
-contact_eyebrow:"CONTACT · 문의",contact_title:"GET IN TOUCH",contact_email_label:"GENERAL ENQUIRIES",contact_email:"bulkkotwear@gmail.com",collab_label:"COLLABORATIONS",collab_subject:"BULKKOT Collaboration",contact_whatsapp_label:"CHAT WITH US",
-footer_description:"Korean-inspired premium everyday wear.",footer_tagline:"Less noise. More presence.",footer_shop_title:"SHOP",footer_about_title:"ABOUT",footer_help_title:"HELP",footer_legal_title:"LEGAL",footer_connect_title:"CONNECT",footer_copyright:"© 2026 BULKKOT (불꽃). ALL RIGHTS RESERVED.",footer_country:"INDIA",
-popup_eyebrow:"불꽃 · EXCLUSIVE ACCESS",popup_title:"WELCOME TO BULKKOT",popup_body:"Sign in to save shipping addresses, track drop shipments in real time, and unlock Drop 001.",popup_cta:"SIGN IN / CREATE ACCOUNT",popup_cta_url:"signin.html",popup_enabled:"true",
-size_guide_title:"SIZE GUIDE",size_guide_intro:"Choose your usual size for the intended oversized silhouette.",size_guide_tees:"S: Chest 40 / Length 27 | M: Chest 42 / Length 28 | L: Chest 44 / Length 29 | XL: Chest 46 / Length 30",size_guide_hoods:"S: Chest 42 / Length 26 | M: Chest 44 / Length 27 | L: Chest 46 / Length 28 | XL: Chest 48 / Length 29",size_guide_sweats:"S: Waist 28 / Length 39 | M: Waist 30 / Length 40 | L: Waist 32 / Length 41 | XL: Waist 34 / Length 42",size_guide_note:"Measurements are approximate. Check the product-specific guide before ordering.",
-nav_home:"HOME",nav_shop:"SHOP",nav_drop:"DROP 001",nav_collections:"COLLECTIONS",nav_about:"ABOUT",nav_contact:"CONTACT",nav_size_guide:"SIZE GUIDE",nav_track_order:"TRACK ORDER",nav_account:"ACCOUNT",search_placeholder:"SEARCH HEAVYWEIGHT TEES, HOODIES, SILHOUETTES...",search_trending_label:"TRENDING:",search_tag_1:"OVERSIZED",search_tag_2:"HEAVYWEIGHT",search_tag_3:"TEE",search_tag_4:"HOOD",
-whatsapp_number:"919876543210",whatsapp_message:"Hi BULKKOT, I have an inquiry about Drop 001.",whatsapp_label:"CHAT WITH US",whatsapp_subtitle:"Need help?"
+const DEFAULTS = {
+ brand_name:"BULKKOT",brand_korean:"불꽃",brand_tagline:"Less noise. More presence.",meta_title:"BULKKOT (불꽃) — Premium Everyday Wear",
+ announcement_1:"DROP 001 — DROPPING SOON",announcement_bg:"#e31b23",announcement_color:"#ffffff",announcement_speed:"20",
+ hero_image_url:"",hero_eyebrow:"불꽃",hero_title:"BULKKOT",hero_description:"Korean-inspired minimalist heavyweight essentials."
 };
 
-const state={cms:{},products:[],orders:[],customers:[],coupons:[],waitlist:[],settings:null,currentContent:"general"};
+const state = { cms:{}, products:[], categories:[], orders:[], customers:[], coupons:[], waitlist:[], settings:null, currentContent:"general" };
 
-function $(id){return document.getElementById(id)}
-function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600)}
-function money(v){return "₹"+Number(v||0).toLocaleString("en-IN")}
-function date(v){return v?new Date(v).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}):"—"}
-function bool(v){return v===true||v==="true"}
-function openModal(id){$(id).classList.add("open")}
-function closeModal(id){$(id).classList.remove("open")}
-
-async function requireAdmin(){
- const {data}=await sb.auth.getSession(); const s=data.session;
- if(!s||s.user.email?.toLowerCase()!==ADMIN_EMAIL.toLowerCase()){showLogin();throw new Error("Unauthorized")}
- return s;
+// --- UTILS ---
+function $(id){ return document.getElementById(id); }
+function esc(v){ return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
+function toast(msg, type="success"){ 
+  const t = $("toast"); if(!t) return;
+  t.textContent = msg; 
+  t.style.background = type === "error" ? "#ff777e" : (type === "warning" ? "#f2b84b" : "#f4f4f4");
+  t.style.color = type === "success" ? "#050505" : "#fff";
+  t.classList.add("show"); 
+  setTimeout(()=>t.classList.remove("show"), 2600); 
 }
-function showLogin(){ $("loginView").classList.remove("hidden");$("app").classList.add("hidden") }
-function showApp(session){$("loginView").classList.add("hidden");$("app").classList.remove("hidden");$("authStatus").textContent="● "+session.user.email}
+function money(v){ return "₹"+Number(v||0).toLocaleString("en-IN"); }
+function date(v){ return v?new Date(v).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}):"—"; }
+function bool(v){ return v===true||v==="true"; }
+function openModal(id){ const m = $(id); if(m) m.classList.add("open"); }
+function closeModal(id){ const m = $(id); if(m) m.classList.remove("open"); }
 
+// *** THE CRITICAL LOADING FIX ***
+function setLoading(show, text="LOADING...") {
+  const overlay = $("loadingOverlay");
+  const textEl = $("loadingText");
+  if (overlay) {
+    if (show) {
+      overlay.classList.remove("hidden");
+      if (textEl) textEl.textContent = text;
+    } else {
+      overlay.classList.add("hidden");
+    }
+  }
+}
+
+function showLogin(){ 
+  const l = $("loginView"), a = $("app");
+  if(l) l.classList.remove("hidden"); 
+  if(a) a.classList.add("hidden"); 
+}
+function showApp(email){ 
+  const l = $("loginView"), a = $("app"), s = $("authStatus");
+  if(l) l.classList.add("hidden"); 
+  if(a) a.classList.remove("hidden"); 
+  if(s) s.textContent = "● " + email; 
+}
+
+// --- DATA FETCHING ---
 async function loadCMS(){
- const {data,error}=await sb.from("site_content").select("key,value,content_key,content_value");
- if(error){console.warn(error);return}
- state.cms={};(data||[]).forEach(r=>{const k=r.content_key||r.key;if(k)state.cms[k]=r.content_value??r.value??""});
+  const {data,error} = await sb.from("site_content").select("content_key,content_value");
+  state.cms={}; if(!error && data) { data.forEach(r => { if(r.content_key) state.cms[r.content_key]=r.content_value??""; }); }
 }
-function cms(k){return state.cms[k]!==undefined?state.cms[k]:(DEFAULTS[k]??"")}
-function renderContentTabs(){
- const el=$("contentTabs");el.innerHTML=Object.entries(CMS_GROUPS).map(([k,g])=>`<button class="btn small ${k===state.currentContent?"active":""}" data-content-tab="${k}">${esc(g.label)}</button>`).join("");
- el.querySelectorAll("[data-content-tab]").forEach(b=>b.onclick=()=>{state.currentContent=b.dataset.contentTab;renderContentTabs();renderContentEditor()});
-}
-function renderContentEditor(){
- const keys=CMS_GROUPS[state.currentContent].keys;
- $("contentEditor").innerHTML=`<div class="panel"><div class="panel-head"><div><h2>${esc(CMS_GROUPS[state.currentContent].label)}</h2><span class="muted">Changes are saved to site_content by key.</span></div><span class="badge">FIELDS ${keys.length}</span></div><div class="panel-body"><div class="form-grid">${keys.map(k=>{
- const value=cms(k);const multi=value.length>180||k.includes("body")||k.includes("description")||k.includes("note")||k.includes("size_");
- return `<div class="field ${multi?"full":""}"><label>${esc(k)}</label>${multi?`<textarea data-cms-field="${esc(k)}">${esc(value)}</textarea>`:`<input data-cms-field="${esc(k)}" value="${esc(value)}" ${k.includes("color")?"type=color":""}>`}</div>`}).join("")}</div></div></div>`;
-}
-async function saveCurrentContent(){
- await requireAdmin();const fields=[...document.querySelectorAll("[data-cms-field]")];
- for(const f of fields){
-   const key=f.dataset.cmsField,value=f.value;
-   let res=await sb.from("site_content").upsert({content_key:key,content_value:value,content_type:key.includes("image")?"image":"text",updated_at:new Date().toISOString()},{onConflict:"content_key"});
-   if(res.error){
-     res=await sb.from("site_content").upsert({key,value},{onConflict:"key"});
-   }
-   if(res.error)throw res.error;
-   state.cms[key]=value;
- }
- toast("CMS section saved.");renderContentEditor();
-}
+function cms(k){ return state.cms[k]!==undefined ? state.cms[k] : (DEFAULTS[k]??""); }
+
+async function loadCategories(){ const {data} = await sb.from("categories").select("*").order("sort_order",{ascending:true}); state.categories=data||[]; }
+async function loadProducts(){ const {data} = await sb.from("products").select("*").order("created_at",{ascending:false}); state.products=data||[]; }
+async function loadOrders(){ const {data} = await sb.from("orders").select("*").order("created_at",{ascending:false}); state.orders=data||[]; }
+async function loadCustomers(){ const {data} = await sb.from("customer_profiles").select("*"); state.customers=data||[]; }
+async function loadCoupons(){ const {data} = await sb.from("coupons").select("*").order("created_at",{ascending:false}); state.coupons=data||[]; }
+async function loadWaitlist(){ const {data} = await sb.from("waitlist").select("*").order("created_at",{ascending:false}); state.waitlist=data||[]; }
+async function loadSettings(){ const {data} = await sb.from("store_settings").select("*").eq("id",1).maybeSingle(); state.settings=data; }
 
 async function loadAll(){
- await requireAdmin();
- await Promise.all([loadCMS(),loadProducts(),loadOrders(),loadCustomers(),loadCoupons(),loadWaitlist(),loadSettings()]);
- renderAll();renderContentTabs();renderContentEditor();
+  setLoading(true, "FETCHING STORE DATA...");
+  try {
+    await Promise.all([ loadCMS(), loadCategories(), loadProducts(), loadOrders(), loadCustomers(), loadCoupons(), loadWaitlist(), loadSettings() ]);
+    renderAll();
+    renderContentTabs();
+    renderContentEditor();
+  } catch(e) {
+    console.error(e); toast("Failed to load data.", "error");
+  } finally {
+    setLoading(false);
+  }
 }
-async function loadProducts(){const {data,error}=await sb.from("products").select("*").order("created_at",{ascending:false});if(error){console.warn(error);state.products=[]}else state.products=data||[]}
-async function loadOrders(){const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false});if(error){console.warn(error);state.orders=[]}else state.orders=data||[]}
-async function loadCustomers(){const {data,error}=await sb.from("customer_profiles").select("*").order("updated_at",{ascending:false});if(error){console.warn(error);state.customers=[]}else state.customers=data||[]}
-async function loadCoupons(){const {data,error}=await sb.from("coupons").select("*").order("created_at",{ascending:false});if(error){console.warn(error);state.coupons=[]}else state.coupons=data||[]}
-async function loadWaitlist(){
- let {data,error}=await sb.from("waitlist").select("*").order("created_at",{ascending:false});
- if(error){const r=await sb.from("newsletter").select("*").order("created_at",{ascending:false});data=r.data;error=r.error}
- state.waitlist=error?[]:(data||[]);
-}
-async function loadSettings(){const {data,error}=await sb.from("store_settings").select("*").eq("id",1).maybeSingle();if(!error)state.settings=data}
 
-function stockTotal(p){const s=p.stock||{};return Object.values(s).reduce((a,v)=>a+Number(v||0),0)}
+// --- RENDERING LOGIC ---
+function stockTotal(p){ const s=p.stock||{}; return Object.values(s).reduce((a,v)=>a+Number(v||0),0); }
+
 function renderAll(){
- $("kProducts").textContent=state.products.filter(p=>p.active!==false&&p.visibility!==false).length;
- $("kOrders").textContent=state.orders.length;$("kCustomers").textContent=state.customers.length;$("kWaitlist").textContent=state.waitlist.length;
- $("kLowStock").textContent=state.products.filter(p=>stockTotal(p)<=5).length;
- $("navProducts").textContent=state.products.length;$("navOrders").textContent=state.orders.length;$("navCustomers").textContent=state.customers.length;$("navCoupons").textContent=state.coupons.length;$("navWaitlist").textContent=state.waitlist.length;$("navDash").textContent="LIVE";
- $("recentOrders").innerHTML=state.orders.slice(0,8).map(o=>`<tr><td><b>${esc(o.order_number||String(o.id).slice(0,8))}</b></td><td>${esc(o.customer_name||o.full_name||o.email||"—")}</td><td>${money(o.total)}</td><td><span class="badge">${esc(o.order_status||"PLACED")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="muted">No orders.</td></tr>`;
- $("lowStockRows").innerHTML=state.products.filter(p=>stockTotal(p)<=5).slice(0,8).map(p=>`<tr><td>${esc(p.sku||"—")}</td><td>${esc(p.name)}</td><td><span class="badge ${stockTotal(p)<=0?"red":"amber"}">${stockTotal(p)}</span></td></tr>`).join("")||`<tr><td colspan="3" class="muted">No low-stock items.</td></tr>`;
- $("cmsCoverage").textContent=Object.entries(CMS_GROUPS).map(([k,g])=>`${g.label}: ${g.keys.filter(x=>state.cms[x]!==undefined).length}/${g.keys.length} keys present`).join("\n");
- renderProducts();renderOrders();renderCustomers();renderCoupons();renderWaitlist();renderSettings();
+  if($("kProducts")) $("kProducts").textContent=state.products.filter(p=>p.active!==false).length;
+  if($("kOrders")) $("kOrders").textContent=state.orders.length; 
+  if($("kCustomers")) $("kCustomers").textContent=state.customers.length; 
+  if($("kWaitlist")) $("kWaitlist").textContent=state.waitlist.length;
+  if($("kLowStock")) $("kLowStock").textContent=state.products.filter(p=>stockTotal(p)<=5).length;
+  
+  if($("navProducts")) $("navProducts").textContent=state.products.length; 
+  if($("navCategories")) $("navCategories").textContent=state.categories.length; 
+  if($("navOrders")) $("navOrders").textContent=state.orders.length;
+  if($("navCustomers")) $("navCustomers").textContent=state.customers.length; 
+  if($("navCoupons")) $("navCoupons").textContent=state.coupons.length; 
+  if($("navWaitlist")) $("navWaitlist").textContent=state.waitlist.length;
+
+  if($("recentOrders")) $("recentOrders").innerHTML=state.orders.slice(0,8).map(o=>`<tr><td><b>${esc(o.order_number||String(o.id).slice(0,8))}</b></td><td>${esc(o.customer_name||o.email||"—")}</td><td>${money(o.total)}</td><td><span class="badge">${esc(o.order_status||"PLACED")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="muted">No orders.</td></tr>`;
+  if($("lowStockRows")) $("lowStockRows").innerHTML=state.products.filter(p=>stockTotal(p)<=5).slice(0,8).map(p=>`<tr><td>${esc(p.sku||"—")}</td><td>${esc(p.name)}</td><td><span class="badge ${stockTotal(p)<=0?"red":"amber"}">${stockTotal(p)}</span></td></tr>`).join("")||`<tr><td colspan="3" class="muted">No low-stock items.</td></tr>`;
+  
+  if($("cmsCoverage")) $("cmsCoverage").textContent=Object.entries(CMS_GROUPS).map(([k,g])=>`${g.label}: ${g.keys.filter(x=>state.cms[x]!==undefined).length}/${g.keys.length} keys present`).join("\n");
+  
+  renderCategories(); renderProducts(); renderOrders(); renderCustomers(); renderCoupons(); renderWaitlist(); renderSettings();
 }
+
+function renderContentTabs(){
+  const el=$("contentTabs"); if(!el) return;
+  el.innerHTML=Object.entries(CMS_GROUPS).map(([k,g])=>`<button class="btn small ${k===state.currentContent?"active":""}" data-content-tab="${k}">${esc(g.label)}</button>`).join("");
+  el.querySelectorAll("[data-content-tab]").forEach(b=>b.onclick=()=>{ state.currentContent=b.dataset.contentTab; renderContentTabs(); renderContentEditor(); });
+}
+function renderContentEditor(){
+  const el=$("contentEditor"); if(!el) return;
+  const keys=CMS_GROUPS[state.currentContent].keys;
+  el.innerHTML=`<div class="panel"><div class="panel-head"><div><h2>${esc(CMS_GROUPS[state.currentContent].label)}</h2><span class="muted">Saved to site_content.</span></div><span class="badge">FIELDS ${keys.length}</span></div><div class="panel-body"><div class="form-grid">${keys.map(k=>{
+    const value=cms(k); const multi=value.length>150||k.includes("body")||k.includes("description")||k.includes("policy");
+    return `<div class="field ${multi?"full":""}"><label>${esc(k)}</label>${multi?`<textarea data-cms-field="${esc(k)}">${esc(value)}</textarea>`:`<input data-cms-field="${esc(k)}" value="${esc(value)}" ${k.includes("color")?"type=color":""}>`}</div>`;
+  }).join("")}</div></div></div>`;
+}
+
+if($("saveContentBtn")) $("saveContentBtn").onclick = async () => {
+  setLoading(true, "SAVING CMS...");
+  try {
+    const fields=[...document.querySelectorAll("[data-cms-field]")];
+    for(const f of fields){
+      const key=f.dataset.cmsField, value=f.value;
+      const {error}=await sb.from("site_content").upsert({content_key:key, content_value:value, updated_at:new Date().toISOString()},{onConflict:"content_key"});
+      if(error) throw error;
+      state.cms[key]=value;
+    }
+    toast("CMS section saved."); renderContentEditor();
+  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
+};
+
+// --- CATEGORIES LOGIC ---
+function renderCategories(){
+  const el=$("categoriesRows"); if(!el) return;
+  el.innerHTML=state.categories.map(c=>`<tr><td><b>${esc(c.slug)}</b></td><td>${esc(c.name_en)}</td><td>${esc(c.name_ko)}</td><td>${bool(c.is_active)?"<span class='badge green'>ACTIVE</span>":"<span class='badge red'>HIDDEN</span>"}</td><td><button class="btn small" data-edit-cat="${c.id}">EDIT</button></td></tr>`).join("")||`<tr><td colspan="5" class="muted">No categories.</td></tr>`;
+  document.querySelectorAll("[data-edit-cat]").forEach(b=>b.onclick=()=>editCategory(b.dataset.editCat));
+  
+  // Update Product form dropdown
+  const pCat = $("pCategory");
+  if(pCat) { pCat.innerHTML = state.categories.filter(c=>c.is_active).map(c=>`<option value="${esc(c.slug)}">${esc(c.name_en)}</option>`).join("") || `<option value="tees">Tees</option>`; }
+}
+if($("addCategoryBtn")) $("addCategoryBtn").onclick = () => { $("cId").value=""; $("categoryForm").reset(); $("categoryModalTitle").textContent="NEW CATEGORY"; openModal("categoryModal"); };
+function editCategory(id){
+  const c=state.categories.find(x=>x.id==id); if(!c) return;
+  $("cId").value=c.id; $("cSlug").value=c.slug; $("cEn").value=c.name_en; $("cKo").value=c.name_ko; $("cSort").value=c.sort_order\vert{}\vert{}0; $("cActiveStatus").value=String(c.is_active!==false);
+  $("categoryModalTitle").textContent="EDIT CATEGORY"; openModal("categoryModal");
+}
+if($("categoryForm")) $("categoryForm").onsubmit = async (e) => {
+  e.preventDefault(); setLoading(true, "SAVING CATEGORY...");
+  try {
+    const slug = $("cSlug").value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+    const payload = { slug, name_en:$("cEn").value.trim(), name_ko:$("cKo").value.trim(), sort_order:Number($("cSort").value\vert{}\vert{}0), is_active:bool($("cActiveStatus").value) };
+    const id = $("cId").value;
+    const {error} = id ? await sb.from("categories").update(payload).eq("id",id) : await sb.from("categories").insert(payload);
+    if(error) throw error;
+    closeModal("categoryModal"); await loadCategories(); renderAll(); toast("Category saved.");
+  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
+};
+
+// --- PRODUCTS LOGIC ---
 function renderProducts(){
- const q=$("productSearch").value.toLowerCase();
- const rows=state.products.filter(p=>`${p.name||""} ${p.sku||""}`.toLowerCase().includes(q));
- $("productsRows").innerHTML=rows.map(p=>`<tr><td><b>${esc(p.name)}</b><div class="muted">${esc(p.slug||"")}</div></td><td>${esc(p.sku||"—")}</td><td>${esc(p.category||"—")}</td><td>${money(p.price)}</td><td>${stockTotal(p)}</td><td>${bool(p.active??p.visibility)?"<span class='badge green'>LIVE</span>":"<span class='badge red'>HIDDEN</span>"}</td><td><button class="btn small" data-edit-product="${esc(p.id)}">EDIT</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">No products.</td></tr>`;
- document.querySelectorAll("[data-edit-product]").forEach(b=>b.onclick=()=>editProduct(b.dataset.editProduct));
+  const q=$("productSearch")?$("productSearch").value.toLowerCase():"";
+  const rows=state.products.filter(p=>`${p.name||""} ${p.sku||""}`.toLowerCase().includes(q));
+  if($("productsRows")) $("productsRows").innerHTML=rows.map(p=>`<tr><td><b>${esc(p.name)}</b><div class="muted">${esc(p.slug||"")}</div></td><td>${esc(p.sku||"—")}</td><td>${esc(p.category||"—")}</td><td>${money(p.price)}</td><td>${stockTotal(p)}</td><td>${bool(p.active)?"<span class='badge green'>LIVE</span>":"<span class='badge red'>HIDDEN</span>"}</td><td><button class="btn small" data-edit-product="${esc(p.id)}">EDIT</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">No products.</td></tr>`;
+  document.querySelectorAll("[data-edit-product]").forEach(b=>b.onclick=()=>editProduct(b.dataset.editProduct));
 }
+if($("productSearch")) $("productSearch").oninput=renderProducts;
+if($("addProductBtn")) $("addProductBtn").onclick=()=>{ $("pId").value=""; $("productForm").reset(); $("pStock").value='{"S":0,"M":0,"L":0,"XL":0}'; $("pImages").value='[]'; $("pTags").value='[]'; $("deleteProductBtn").style.display="none"; $("productModalTitle").textContent="NEW PRODUCT"; openModal("productModal"); };
 function editProduct(id){
- const p=state.products.find(x=>String(x.id)===String(id))||{};
- $("productModalTitle").textContent=p.id?"EDIT PRODUCT":"NEW PRODUCT";$("pId").value=p.id||"";$("pName").value=p.name||"";$("pSku").value=p.sku||"";$("pCategory").value=(p.category||"tees").toLowerCase();$("pPrice").value=p.price||0;$("pCompare").value=p.compare_at_price||"";$("pFeatured").value=String(bool(p.featured));$("pActive").value=String(p.active!==false);$("pVisibility").value=String(p.visibility!==false);$("pDescription").value=p.description||"";$("pStock").value=JSON.stringify(p.stock||{S:0,M:0,L:0,XL:0});$("pImages").value=JSON.stringify(p.images||[]);$("pTags").value=JSON.stringify(p.tags||[]);$("deleteProductBtn").style.display=p.id?"block":"none";openModal("productModal");
+  const p=state.products.find(x=>String(x.id)===String(id))||{};
+  $("productModalTitle").textContent=p.id?"EDIT PRODUCT":"NEW PRODUCT"; $("pId").value=p.id\vert{}\vert{}""; $("pName").value=p.name||""; $("pSku").value=p.sku\vert{}\vert{}""; $("pCategory").value=(p.category||"").toLowerCase(); $("pPrice").value=p.price\vert{}\vert{}0; $("pCompare").value=p.compare_at_price||""; $("pFeatured").value=String(bool(p.featured)); $("pActive").value=String(p.active!==false); $("pVisibility").value=String(p.visibility!==false); $("pDescription").value=p.description||""; $("pStock").value=JSON.stringify(p.stock\vert{}\vert{}{S:0,M:0,L:0,XL:0}); $("pImages").value=JSON.stringify(p.images||[]); $("pTags").value=JSON.stringify(p.tags\vert{}\vert{}[]); $("deleteProductBtn").style.display=p.id?"block":"none"; openModal("productModal");
 }
-async function saveProduct(e){
- e.preventDefault();await requireAdmin();
- let stock,images,tags;try{stock=JSON.parse($("pStock").value||"{}");images=JSON.parse($("pImages").value||"[]");tags=JSON.parse($("pTags").value||"[]")}catch{toast("Invalid JSON in product fields");return}
- const name=$("pName").value.trim(),slug=(name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""))+"-"+Date.now();
- const payload={name,sku:$("pSku").value.trim(),category:$("pCategory").value,price:Number($("pPrice").value||0),compare_at_price:Number($("pCompare").value||0)||null,featured:bool($("pFeatured").value),active:bool($("pActive").value),visibility:bool($("pVisibility").value),description:$("pDescription").value,stock,images,tags,updated_at:new Date().toISOString()};
- const id=$("pId").value;let q=id?sb.from("products").update(payload).eq("id",id):sb.from("products").insert({...payload,slug}).select().single();const {error}=await q;if(error){toast(error.message);return}closeModal("productModal");await loadProducts();renderAll();toast("Product saved.")}
-async function deleteProduct(){const id=$("pId").value;if(!id)return;if(!confirm("Delete this product?"))return;await requireAdmin();const {error}=await sb.from("products").delete().eq("id",id);if(error)toast(error.message);else{closeModal("productModal");await loadProducts();renderAll();toast("Product deleted.")}}
+if($("productForm")) $("productForm").onsubmit = async (e) => {
+  e.preventDefault(); setLoading(true, "SAVING PRODUCT...");
+  try {
+    let stock, images, tags; try{ stock=JSON.parse($("pStock").value||"{}"); images=JSON.parse($("pImages").value\vert{}\vert{}"[]"); tags=JSON.parse($("pTags").value||"[]"); } catch{ throw new Error("Invalid JSON in fields"); }
+    const name=$("pName").value.trim(), slug=(name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-\vert{}-$/g,""))+"-"+Date.now();
+    const payload={name, sku:$("pSku").value.trim(), category:$("pCategory").value, price:Number($("pPrice").value\vert{}\vert{}0), compare_at_price:Number($("pCompare").value||0)||null, featured:bool($("pFeatured").value), active:bool($("pActive").value), visibility:bool($("pVisibility").value), description:$("pDescription").value, stock, images, tags, updated_at:new Date().toISOString()};
+    const id=$("pId").value;
+    const {error} = id ? await sb.from("products").update(payload).eq("id",id) : await sb.from("products").insert({...payload,slug});
+    if(error) throw error;
+    closeModal("productModal"); await loadProducts(); renderAll(); toast("Product saved.");
+  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
+};
+if($("deleteProductBtn")) $("deleteProductBtn").onclick = async () => {
+  const id=$("pId").value; if(!id) return; if(!confirm("Delete this product?")) return;
+  setLoading(true); try { await sb.from("products").delete().eq("id",id); closeModal("productModal"); await loadProducts(); renderAll(); toast("Product deleted."); } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
+};
 
+// --- ORDERS LOGIC ---
 function renderOrders(){
- const q=$("orderSearch").value.toLowerCase(),st=$("orderStatusFilter").value;
- const rows=state.orders.filter(o=>(!st||(o.order_status||"PLACED")===st)&&`${o.order_number||""} ${o.customer_name||""} ${o.phone||""} ${o.email||""}`.toLowerCase().includes(q));
- $("ordersRows").innerHTML=rows.map(o=>`<tr><td><b>${esc(o.order_number||String(o.id).slice(0,8))}</b><div class="muted">${esc(o.id)}</div></td><td>${esc(o.customer_name||o.full_name||"—")}<div class="muted">${esc(o.phone||o.email||"")}</div></td><td>${money(o.total)}</td><td>${esc(o.payment_status||o.payment_mode||"—")}</td><td><span class="badge">${esc(o.order_status||"PLACED")}</span></td><td>${date(o.created_at)}</td><td><button class="btn small" data-edit-order="${esc(o.id)}">MANAGE</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">No orders.</td></tr>`;
- document.querySelectorAll("[data-edit-order]").forEach(b=>b.onclick=()=>editOrder(b.dataset.editOrder));
+  const q=$("orderSearch")?$("orderSearch").value.toLowerCase():"", st=$("orderStatusFilter")?$("orderStatusFilter").value:"";
+  const rows=state.orders.filter(o=>(!st||(o.order_status||"PLACED")===st)&&`${o.order_number||""} ${o.customer_name||""} ${o.phone||""} ${o.email||""}`.toLowerCase().includes(q));
+  if($("ordersRows")) $("ordersRows").innerHTML=rows.map(o=>`<tr><td><b>${esc(o.order_number||String(o.id).slice(0,8))}</b></td><td>${esc(o.customer_name||o.email||"—")}</td><td>${money(o.total)}</td><td>${esc(o.payment_status||"—")}</td><td><span class="badge">${esc(o.order_status||"PLACED")}</span></td><td>${date(o.created_at)}</td><td><button class="btn small" data-edit-order="${esc(o.id)}">MANAGE</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">No orders.</td></tr>`;
+  document.querySelectorAll("[data-edit-order]").forEach(b=>b.onclick=()=>editOrder(b.dataset.editOrder));
 }
+if($("orderSearch")) $("orderSearch").oninput=renderOrders; if($("orderStatusFilter")) $("orderStatusFilter").onchange=renderOrders;
 function editOrder(id){
- const o=state.orders.find(x=>String(x.id)===String(id));if(!o)return;$("oId").value=o.id;$("oStatus").value=o.order_status||"PLACED";$("oPayment").value=o.payment_status||"PENDING";$("oFulfillment").value=o.fulfillment_status||"PENDING";$("oTracking").value=o.tracking_number||"";$("oNote").value=o.admin_note||"";$("orderDetails").innerHTML=`<div class="grid three"><div class="card"><b>CUSTOMER</b><p>${esc(o.customer_name||o.full_name||"—")}<br>${esc(o.email||"")}<br>${esc(o.phone||"")}</p></div><div class="card"><b>SHIPPING</b><p>${esc(o.address||o.shipping_address||"—")}<br>${esc(o.city||o.shipping_city||"")} ${esc(o.state||o.shipping_state||"")} ${esc(o.pincode||o.shipping_pincode||"")}</p></div><div class="card"><b>TOTAL</b><div class="metric" style="font-size:22px">${money(o.total)}</div></div></div><div class="card" style="margin-top:12px"><b>RAW ORDER</b><pre class="json">${esc(JSON.stringify(o,null,2))}</pre></div>`;openModal("orderModal")}
-async function saveOrder(e){e.preventDefault();await requireAdmin();const id=$("oId").value;const payload={order_status:$("oStatus").value,payment_status:$("oPayment").value,fulfillment_status:$("oFulfillment").value,tracking_number:$("oTracking").value.trim(),admin_note:$("oNote").value,updated_at:new Date().toISOString()};const {error}=await sb.from("orders").update(payload).eq("id",id);if(error)toast(error.message);else{closeModal("orderModal");await loadOrders();renderAll();toast("Order updated.")}}
+  const o=state.orders.find(x=>String(x.id)===String(id)); if(!o) return;
+  $("oId").value=o.id; $("oStatus").value=o.order_status||"PLACED"; $("oPayment").value=o.payment_status\vert{}\vert{}"PENDING"; $("oFulfillment").value=o.fulfillment_status||"PENDING"; $("oTracking").value=o.tracking_number\vert{}\vert{}""; $("oNote").value=o.admin_note||"";
+  $("orderDetails").innerHTML=`<div class="grid three"><div class="card"><b>CUSTOMER</b><p>${esc(o.customer_name||"—")}<br>${esc(o.email||"")}<br>${esc(o.phone||"")}</p></div><div class="card"><b>SHIPPING</b><p>${esc(o.shipping_address||"—")}<br>${esc(o.shipping_city||"")} ${esc(o.shipping_state||"")}</p></div><div class="card"><b>TOTAL</b><div class="metric" style="font-size:22px">${money(o.total)}</div></div></div>`;
+  openModal("orderModal");
+}
+if($("orderForm")) $("orderForm").onsubmit = async (e) => {
+  e.preventDefault(); setLoading(true, "SAVING ORDER...");
+  try {
+    const payload={ order_status:$("oStatus").value, payment_status:$("oPayment").value, fulfillment_status:$("oFulfillment").value, tracking_number:$("oTracking").value.trim(), admin_note:$("oNote").value, updated_at:new Date().toISOString() };
+    const {error}=await sb.from("orders").update(payload).eq("id",$("oId").value);
+    if(error) throw error;
+    closeModal("orderModal"); await loadOrders(); renderAll(); toast("Order updated.");
+  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
+};
 
+// --- CUSTOMERS LOGIC ---
 function renderCustomers(){
- const q=$("customerSearch").value.toLowerCase();const rows=state.customers.filter(c=>`${c.full_name||""} ${c.phone||""} ${c.id||""}`.toLowerCase().includes(q));
- $("customersRows").innerHTML=rows.map(c=>`<tr><td><b>${esc(c.full_name||"Unnamed")}</b></td><td>${esc(c.phone||"—")}</td><td><code>${esc(c.id||"—")}</code></td><td>${esc([c.shipping_city,c.shipping_state,c.shipping_pincode].filter(Boolean).join(", ")||"—")}</td><td>${date(c.updated_at)}</td><td><button class="btn small" data-customer="${esc(c.id)}">VIEW</button></td></tr>`).join("")||`<tr><td colspan="6" class="muted">No customer profiles.</td></tr>`;
- document.querySelectorAll("[data-customer]").forEach(b=>b.onclick=()=>viewCustomer(b.dataset.customer));
+  const q=$("customerSearch")?$("customerSearch").value.toLowerCase():""; const rows=state.customers.filter(c=>`${c.full_name||""} ${c.phone||""} ${c.id||""}`.toLowerCase().includes(q));
+  if($("customersRows")) $("customersRows").innerHTML=rows.map(c=>`<tr><td><b>${esc(c.full_name||"Unnamed")}</b></td><td>${esc(c.phone||"—")}</td><td><code>${esc(c.id||"—")}</code></td><td>${esc([c.shipping_city,c.shipping_state].filter(Boolean).join(", ")||"—")}</td><td>${date(c.updated_at)}</td><td><button class="btn small" data-customer="${esc(c.id)}">VIEW</button></td></tr>`).join("")||`<tr><td colspan="6" class="muted">No customer profiles.</td></tr>`;
+  document.querySelectorAll("[data-customer]").forEach(b=>b.onclick=()=>viewCustomer(b.dataset.customer));
 }
-function viewCustomer(id){const c=state.customers.find(x=>String(x.id)===String(id));if(!c)return;$("customerDetails").innerHTML=`<div class="grid two"><div class="card"><div class="eyebrow">PROFILE</div><h2>${esc(c.full_name||"Unnamed")}</h2><p>${esc(c.phone||"—")}<br>${esc(c.id||"—")}</p></div><div class="card"><div class="eyebrow">ADDRESS</div><p>${esc(c.shipping_address||"—")}<br>${esc([c.shipping_city,c.shipping_state,c.shipping_pincode].filter(Boolean).join(", "))}</p></div></div><div class="card" style="margin-top:12px"><pre class="json">${esc(JSON.stringify(c,null,2))}</pre></div>`;openModal("customerModal")}
+if($("customerSearch")) $("customerSearch").oninput=renderCustomers;
+function viewCustomer(id){ const c=state.customers.find(x=>String(x.id)===String(id)); if(!c) return; $("customerDetails").innerHTML=`<div class="grid two"><div class="card"><div class="eyebrow">PROFILE</div><h2>${esc(c.full_name||"Unnamed")}</h2><p>${esc(c.phone||"—")}<br>${esc(c.id||"—")}</p></div><div class="card"><div class="eyebrow">ADDRESS</div><p>${esc(c.shipping_address||"—")}<br>${esc([c.shipping_city,c.shipping_state,c.shipping_pincode].filter(Boolean).join(", "))}</p></div></div>`; openModal("customerModal"); }
 
+// --- COUPONS LOGIC ---
 function renderCoupons(){
- $("couponsRows").innerHTML=state.coupons.map(c=>`<tr><td><b>${esc(c.code)}</b></td><td>${esc(c.discount_value??c.discount??"—")}</td><td>${money(c.min_order_value||0)}</td><td>${bool(c.active)?"<span class='badge green'>ACTIVE</span>":"<span class='badge red'>OFF</span>"}</td><td>${date(c.created_at)}</td><td><button class="btn small" data-toggle-coupon="${esc(c.id)}">${bool(c.active)?"DEACTIVATE":"ACTIVATE"}</button></td></tr>`).join("")||`<tr><td colspan="6" class="muted">No coupons.</td></tr>`;
- document.querySelectorAll("[data-toggle-coupon]").forEach(b=>b.onclick=()=>toggleCoupon(b.dataset.toggleCoupon));
+  if($("couponsRows")) $("couponsRows").innerHTML=state.coupons.map(c=>`<tr><td><b>${esc(c.code)}</b></td><td>${esc(c.discount_value)}</td><td>${money(c.min_order_value)}</td><td>${bool(c.active)?"<span class='badge green'>ACTIVE</span>":"<span class='badge red'>OFF</span>"}</td><td>${date(c.created_at)}</td><td><button class="btn small" data-toggle-coupon="${esc(c.id)}">${bool(c.active)?"DISABLE":"ENABLE"}</button></td></tr>`).join("")||`<tr><td colspan="6" class="muted">No coupons.</td></tr>`;
+  document.querySelectorAll("[data-toggle-coupon]").forEach(b=>b.onclick=()=>toggleCoupon(b.dataset.toggleCoupon));
 }
-async function toggleCoupon(id){await requireAdmin();const c=state.coupons.find(x=>String(x.id)===String(id));if(!c)return;const {error}=await sb.from("coupons").update({active:!bool(c.active)}).eq("id",id);if(error)toast(error.message);else{await loadCoupons();renderAll();toast("Coupon updated.")}}
-async function createCoupon(e){e.preventDefault();await requireAdmin();const payload={code:$("cCode").value.trim().toUpperCase(),discount_value:Number($("cDiscount").value||0),min_order_value:Number($("cMin").value||0),active:bool($("cActive").value)};const {error}=await sb.from("coupons").insert(payload);if(error)toast(error.message);else{closeModal("couponModal");$("couponForm").reset();await loadCoupons();renderAll();toast("Coupon created.")}}
+if($("addCouponBtn")) $("addCouponBtn").onclick=()=>{ $("couponForm").reset(); openModal("couponModal"); };
+if($("couponForm")) $("couponForm").onsubmit = async (e) => {
+  e.preventDefault(); setLoading(true, "CREATING COUPON...");
+  try {
+    const payload={code:$("cCode").value.trim().toUpperCase(), discount_value:Number($("cDiscount").value||0), min_order_value:Number($("cMin").value\vert{}\vert{}0), active:bool($("cActive").value)};
+    const {error}=await sb.from("coupons").insert(payload); if(error) throw error;
+    closeModal("couponModal"); await loadCoupons(); renderAll(); toast("Coupon created.");
+  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
+};
+async function toggleCoupon(id){ setLoading(true); try { const c=state.coupons.find(x=>String(x.id)===String(id)); await sb.from("coupons").update({active:!bool(c.active)}).eq("id",id); await loadCoupons(); renderAll(); toast("Coupon toggled."); } catch(e){ toast(e.message,"error"); } finally { setLoading(false); } }
 
-function renderWaitlist(){$("waitlistRows").innerHTML=state.waitlist.map(r=>`<tr><td><b>${esc(r.email||"—")}</b></td><td>${esc(r.source||"—")}</td><td>${date(r.created_at)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">No waitlist entries.</td></tr>`}
-function exportCSV(){
- if(!state.waitlist.length){toast("No waitlist entries");return}
- const rows=[["email","source","created_at"],...state.waitlist.map(r=>[r.email||"",r.source||"",r.created_at||""])];
- const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=`bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href)
+// --- WAITLIST LOGIC ---
+function renderWaitlist(){ if($("waitlistRows")) $("waitlistRows").innerHTML=state.waitlist.map(r=>`<tr><td><b>${esc(r.email||"—")}</b></td><td>${esc(r.source||"—")}</td><td>${date(r.created_at)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">No waitlist entries.</td></tr>`; }
+if($("refreshWaitlistBtn")) $("refreshWaitlistBtn").onclick=async()=>{ setLoading(true); await loadWaitlist(); renderAll(); setLoading(false); toast("Waitlist refreshed."); };
+if($("exportWaitlistBtn")) $("exportWaitlistBtn").onclick=()=>{
+  if(!state.waitlist.length) return toast("No waitlist entries", "warning");
+  const rows=[["email","source","created_at"],...state.waitlist.map(r=>[r.email||"",r.source||"",r.created_at||""])];
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\r\n"); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+};
+
+// --- SETTINGS LOGIC ---
+function renderSettings(){
+  const s=state.settings||{};
+  if($("sStoreName")) $("sStoreName").value=s.store_name||""; if($("sEmail")) $("sEmail").value=s.support_email||""; if($("sPhone")) $("sPhone").value=s.support_phone||""; if($("sCurrency")) $("sCurrency").value=s.currency||"INR"; if($("sShipping")) $("sShipping").value=s.shipping_fee??0; if($("sFreeShip")) $("sFreeShip").value=s.free_shipping_threshold??0; if($("sAddress")) $("sAddress").value=s.store_address||""; if($("sInstagram")) $("sInstagram").value=s.instagram_url||cms("instagram_url"); if($("sWebsite")) $("sWebsite").value=s.website_url||"";
+}
+if($("saveSettingsBtn")) $("saveSettingsBtn").onclick = async () => {
+  setLoading(true, "SAVING SETTINGS...");
+  try {
+    const payload={id:1, store_name:$("sStoreName").value.trim(), support_email:$("sEmail").value.trim(), support_phone:$("sPhone").value.trim(), currency:$("sCurrency").value.trim()\vert{}\vert{}"INR", shipping_fee:Number($("sShipping").value||0), free_shipping_threshold:Number($("sFreeShip").value\vert{}\vert{}0), store_address:$("sAddress").value.trim(), instagram_url:$("sInstagram").value.trim(), website_url:$("sWebsite").value.trim(), updated_at:new Date().toISOString()};
+    const {error}=await sb.from("store_settings").upsert(payload,{onConflict:"id"}); if(error) throw error;
+    await loadSettings(); toast("Settings saved.");
+  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
+};
+
+// --- MEDIA LOGIC ---
+if($("uploadMediaBtn")) $("uploadMediaBtn").onclick = async () => {
+  const f=$("mediaFile").files[0]; if(!f) return toast("Choose an image", "warning");
+  setLoading(true, "UPLOADING...");
+  try {
+    const path=`site-content/${crypto.randomUUID()}-${f.name.replace(/[^a-zA-Z0-9._-]/g,"-")}`;
+    const {error}=await sb.storage.from("site-content-images").upload(path,f,{upsert:false,contentType:f.type}); if(error) throw error;
+    const {data}=sb.storage.from("site-content-images").getPublicUrl(path); navigator.clipboard?.writeText(data.publicUrl); toast("Uploaded. URL copied."); $("mediaFile").value="";
+  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
+};
+
+// --- NAVIGATION & UI SETUP ---
+function renderPage(page){
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  const target = $("page-"+page); if(target) target.classList.add("active");
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+  const labels={dashboard:"Dashboard",content:"Storefront CMS",products:"Products",categories:"Categories",orders:"Orders",customers:"Customers CRM",coupons:"Coupons",waitlist:"VIP Waitlist",media:"Media Library",settings:"Store Settings",schema:"Schema Blueprint"};
+  if($("pageTitle")) $("pageTitle").textContent=labels[page]||page;
+  if(innerWidth<700 && $("sidebar")) $("sidebar").classList.remove("open");
+}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>renderPage(b.dataset.page));
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>renderPage(b.dataset.go));
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
+document.querySelectorAll(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.remove("open")});
+if($("menuBtn")) $("menuBtn").onclick=()=>{ if(innerWidth<700 && $("sidebar")) $("sidebar").classList.toggle("open"); };
+if($("refreshBtn")) $("refreshBtn").onclick=async()=>{ try{ await loadAll(); toast("Refreshed."); }catch(e){toast(e.message,"error");} };
+if($("copySqlBtn")) $("copySqlBtn").onclick=async()=>{ await navigator.clipboard.writeText($("sqlPreview").textContent); toast("SQL copied."); };
+
+// --- BOOT PROCESS ---
+async function boot() {
+  setLoading(true, "CHECKING SESSION...");
+  const session = await getValidSession();
+  if (session && session.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    showApp(session.user.email);
+    await loadAll();
+  } else {
+    showLogin();
+    setLoading(false);
+  }
 }
 
-function renderSettings(){const s=state.settings||{};$("sStoreName").value=s.store_name||"";$("sEmail").value=s.support_email||"";$("sPhone").value=s.support_phone||"";$("sCurrency").value=s.currency||"INR";$("sShipping").value=s.shipping_fee??0;$("sFreeShip").value=s.free_shipping_threshold??0;$("sAddress").value=s.store_address||"";$("sInstagram").value=s.instagram_url||cms("instagram_url");$("sWebsite").value=s.website_url||""}
-async function saveSettings(){await requireAdmin();const payload={id:1,store_name:$("sStoreName").value.trim(),support_email:$("sEmail").value.trim(),support_phone:$("sPhone").value.trim(),currency:$("sCurrency").value.trim()||"INR",shipping_fee:Number($("sShipping").value||0),free_shipping_threshold:Number($("sFreeShip").value||0),store_address:$("sAddress").value.trim(),instagram_url:$("sInstagram").value.trim(),website_url:$("sWebsite").value.trim(),updated_at:new Date().toISOString()};const {error}=await sb.from("store_settings").upsert(payload,{onConflict:"id"});if(error)toast(error.message);else{await loadSettings();toast("Settings saved.")}}
+// --- AUTH LISTENER (SAFE) ---
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT" || event === "USER_DELETED") {
+    showLogin();
+  }
+});
 
-async function uploadMedia(){
- const f=$("mediaFile").files[0];if(!f)return toast("Choose an image first");await requireAdmin();const path=`site-content/${crypto.randomUUID()}-${f.name.replace(/[^a-zA-Z0-9._-]/g,"-")}`;const {error}=await sb.storage.from("site-content-images").upload(path,f,{upsert:false,contentType:f.type});if(error)toast(error.message);else{const {data}=sb.storage.from("site-content-images").getPublicUrl(path);navigator.clipboard?.writeText(data.publicUrl);toast("Uploaded. Public URL copied.");$("mediaFile").value=""}}
+// --- LOGIN SUBMIT HANDLER ---
+if ($("loginForm")) {
+  $("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); // Stop page refresh!
+    $("loginError").textContent = "";
+    setLoading(true, "AUTHENTICATING...");
+    try {
+      const email = $("loginEmail").value.trim();
+      const password = $("loginPassword").value;
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      
+      const session = data?.session;
+      if (!session || session.user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+        await sb.auth.signOut();
+        throw new Error("This account is not authorized for BULKKOT admin.");
+      }
+      
+      showApp(session.user.email);
+      await loadAll();
+    } catch (err) {
+      $("loginError").textContent = err.message || "Authentication failed.";
+      setLoading(false); // Only stop loading if failed, otherwise loadAll stops it
+    }
+  });
+}
+
+// Start app
+boot();
+
 const SQL=`-- BULKKOT GOD MODE / SUPABASE BLUEPRINT
 create extension if not exists pgcrypto;
 
@@ -378,9 +724,17 @@ create table if not exists site_content (
  content_key text unique,
  content_value text,
  content_type text default 'text',
- key text,
- value text,
  updated_at timestamptz default now()
+);
+
+create table if not exists categories (
+ id uuid primary key default gen_random_uuid(),
+ slug text unique not null,
+ name_en text not null,
+ name_ko text not null,
+ is_active boolean default true,
+ sort_order integer default 0,
+ created_at timestamptz default now()
 );
 
 create table if not exists products (
@@ -402,47 +756,29 @@ create table if not exists products (
  updated_at timestamptz default now()
 );
 
-create table if not exists customer_profiles (
- id uuid primary key references auth.users(id) on delete cascade,
- full_name text, phone text, shipping_address text, shipping_city text,
- shipping_state text, shipping_pincode text, created_at timestamptz default now(),
- updated_at timestamptz default now()
-);
-
 create table if not exists orders (
  id uuid primary key default gen_random_uuid(),
- user_id uuid references auth.users(id) on delete set null,
  order_number text unique,
  customer_name text, email text, phone text,
- address text, city text, state text, pincode text,
  shipping_address text, shipping_city text, shipping_state text, shipping_pincode text,
- subtotal numeric(12,2) default 0, discount numeric(12,2) default 0,
- shipping_fee numeric(12,2) default 0, total numeric(12,2) default 0,
- payment_mode text, payment_status text default 'PENDING',
+ subtotal numeric(12,2) default 0, total numeric(12,2) default 0,
+ payment_status text default 'PENDING',
  order_status text default 'PLACED', fulfillment_status text default 'PENDING',
  tracking_number text, admin_note text,
  created_at timestamptz default now(), updated_at timestamptz default now()
 );
 
-create table if not exists order_items (
- id uuid primary key default gen_random_uuid(),
- order_id uuid references orders(id) on delete cascade,
- product_id uuid references products(id) on delete set null,
- product_name text, sku text, size text, quantity integer default 1,
- unit_price numeric(12,2) default 0, line_total numeric(12,2) default 0,
- created_at timestamptz default now()
+create table if not exists customer_profiles (
+ id uuid primary key,
+ full_name text, phone text, shipping_address text, shipping_city text,
+ shipping_state text, shipping_pincode text, created_at timestamptz default now(),
+ updated_at timestamptz default now()
 );
 
 create table if not exists coupons (
  id uuid primary key default gen_random_uuid(),
  code text unique not null, discount_value numeric(12,2) default 0,
  min_order_value numeric(12,2) default 0, active boolean default true,
- created_at timestamptz default now(), updated_at timestamptz default now()
-);
-
-create table if not exists newsletter (
- id uuid primary key default gen_random_uuid(),
- email text not null, source text default 'homepage_waitlist',
  created_at timestamptz default now()
 );
 
@@ -461,43 +797,10 @@ create table if not exists store_settings (
  store_address text, instagram_url text, website_url text,
  updated_at timestamptz default now()
 );
-
-insert into store_settings(id,store_name,currency) values(1,'BULKKOT','INR')
-on conflict(id) do nothing;
-
--- Storage buckets (create in Dashboard if these statements are not enabled):
--- product-media
--- site-content-images
-
--- IMPORTANT: enable RLS and write explicit policies for your admin email/role.
--- Never expose a service_role key in admin.html.
 `;
-$("sqlPreview").textContent=SQL;
+if($("sqlPreview")) $("sqlPreview").textContent=SQL;
 
-function renderPage(page){
- document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$("page-"+page).classList.add("active");
- document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
- const labels={dashboard:"Dashboard",content:"Storefront CMS",products:"Products",orders:"Orders",customers:"Customers CRM",coupons:"Coupons",waitlist:"VIP Waitlist",media:"Media Library",settings:"Store Settings",schema:"Schema Blueprint"};$("pageTitle").textContent=labels[page]||page;
- if(innerWidth<700)$("sidebar").classList.remove("open");
-}
-
-$("loginForm").onsubmit=async e=>{e.preventDefault();$("loginError").textContent="";try{const emailEl=$("loginEmail");const passwordEl=$("loginPassword");if(!emailEl||!passwordEl)throw new Error("Login form is unavailable. Please reload the page.");const {data,error}=await sb.auth.signInWithPassword({email:emailEl.value.trim(),password:passwordEl.value});if(error)throw error;const session=data?.session;if(!session||session.user?.email?.toLowerCase()!==ADMIN_EMAIL.toLowerCase()){await sb.auth.signOut();throw new Error("This account is not authorized for BULKKOT admin.")}showApp(session);await loadAll()}catch(err){const errorEl=$("loginError");if(errorEl)errorEl.textContent=err.message||"Authentication failed."}};
-$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};
-$("refreshBtn").onclick=async()=>{try{await loadAll();toast("Control center refreshed.")}catch(e){toast(e.message)}};
-$("menuBtn").onclick=()=>{if(innerWidth<700)$("sidebar").classList.toggle("open")};
-document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>renderPage(b.dataset.page));
-document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>renderPage(b.dataset.go));
-document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
-document.querySelectorAll(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.remove("open")});
-$("saveContentBtn").onclick=()=>saveCurrentContent().catch(e=>toast(e.message));
-$("productSearch").oninput=renderProducts;$("addProductBtn").onclick=()=>editProduct("");$("productForm").onsubmit=saveProduct;$("deleteProductBtn").onclick=deleteProduct;
-$("orderSearch").oninput=renderOrders;$("orderStatusFilter").onchange=renderOrders;$("orderForm").onsubmit=saveOrder;
-$("customerSearch").oninput=renderCustomers;$("addCouponBtn").onclick=()=>openModal("couponModal");$("couponForm").onsubmit=createCoupon;
-$("refreshWaitlistBtn").onclick=async()=>{await loadWaitlist();renderAll();toast("Waitlist refreshed.")};$("exportWaitlistBtn").onclick=exportCSV;
-$("saveSettingsBtn").onclick=()=>saveSettings().catch(e=>toast(e.message));$("uploadMediaBtn").onclick=()=>uploadMedia().catch(e=>toast(e.message));
-$("copySqlBtn").onclick=async()=>{await navigator.clipboard.writeText(SQL);toast("SQL copied.")};
-
-sb.auth.onAuthStateChange(async (event, session)=>{try{if(session?.user?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase()){showApp(session);if(event!=="INITIAL_SESSION")await loadAll()}else{showLogin()}}catch(error){console.error("Auth state error:",error);showLogin()}});
+})();
 </script>
 </body>
 </html>
