@@ -1,805 +1,786 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>BULKKOT — God Mode Admin</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg: #070707;
-      --panel: #0d0d0f;
-      --panel2: #111114;
-      --line: #242428;
-      --muted: #85858d;
-      --text: #f5f5f5;
-      --red: #e31b23;
-      --green: #35d49a;
-      --amber: #f2b84b;
-      --blue: #6ca8ff;
-      --radius: 14px;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; background: var(--bg); color: var(--text); font: 13px Inter, system-ui, -apple-system, Segoe UI, sans-serif; }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    a { color: inherit; text-decoration: none; }
-    .hidden { display: none !important; }
-    
-    .app { min-height: 100vh; display: grid; grid-template-columns: 250px 1fr; }
-    .sidebar { position: sticky; top: 0; height: 100vh; background: #09090a; border-right: 1px solid var(--line); padding: 18px 12px; overflow: auto; }
-    .brand { display: flex; align-items: center; gap: 10px; padding: 8px 10px 20px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
-    .brand img { width: 38px; height: 38px; object-fit: contain; }
-    .brand b { font-size: 16px; letter-spacing: .08em; }
-    .brand small { display: block; color: var(--muted); font-size: 9px; letter-spacing: .18em; margin-top: 3px; }
-    
-    .nav { display: grid; gap: 4px; }
-    .nav button { border: 0; background: transparent; color: #aaa; text-align: left; padding: 11px 12px; border-radius: 9px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-    .nav button:hover, .nav button.active { background: #17171a; color: #fff; }
-    .nav .count { font-size: 10px; color: #666; }
-    .nav button.active .count { color: var(--red); }
-    .sidebar-foot { border-top: 1px solid var(--line); margin-top: 15px; padding: 14px 10px; color: #777; font-size: 10px; line-height: 1.6; }
-    
-    .main { min-width: 0; }
-    .topbar { height: 68px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: rgba(7,7,7,.92); position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); }
-    .topbar h1 { font-size: 17px; margin: 0; }
-    .topbar .right { display: flex; gap: 8px; align-items: center; }
-    .status { font-size: 10px; color: var(--muted); }
-    .content { padding: 24px; max-width: 1700px; margin: auto; }
-    
-    .page { display: none; animation: fadeIn 0.2s ease; }
-    .page.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-    
-    .grid { display: grid; gap: 14px; }
-    .grid.kpi { grid-template-columns: repeat(5, minmax(0,1fr)); }
-    .grid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
-    .grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
-    
-    .card, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-    .card { padding: 18px; }
-    .panel-head { padding: 15px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; align-items: center; }
-    .panel-head h2, .panel-head h3 { margin: 0; font-size: 13px; letter-spacing: .05em; }
-    .panel-body { padding: 18px; }
-    .muted { color: var(--muted); }
-    .metric { font-size: 28px; font-weight: 900; margin-top: 8px; }
-    .eyebrow { font-size: 9px; letter-spacing: .18em; color: var(--red); font-weight: 800; text-transform: uppercase; }
-    
-    .btn { border: 1px solid var(--line); background: #17171a; color: #ddd; padding: 9px 12px; border-radius: 8px; font-weight: 800; font-size: 10px; letter-spacing: .06em; transition: 0.15s; }
-    .btn:hover { border-color: #444; color: #fff; }
-    .btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
-    .btn.primary:hover { background: var(--red2); border-color: var(--red2); }
-    .btn.danger { border-color: #572025; color: #ff777e; background: rgba(239,68,68,0.1); }
-    .btn.success { border-color: #214d3e; color: var(--green); background: rgba(49,196,141,0.1); }
-    .btn.small { padding: 6px 9px; font-size: 9px; }
-    
-    .toolbar { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-    .toolbar .left, .toolbar .right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    
-    input, select, textarea { width: 100%; background: #09090b; border: 1px solid #2a2a2e; color: #eee; border-radius: 8px; padding: 10px 11px; outline: none; transition: 0.2s; }
-    input:focus, select:focus, textarea:focus { border-color: #666; }
-    textarea { min-height: 100px; resize: vertical; }
-    .field { display: grid; gap: 6px; }
-    .field label { font-size: 9px; color: #888; letter-spacing: .12em; text-transform: uppercase; font-weight: 800; }
-    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
-    .field.full { grid-column: 1 / -1; }
-    
-    .table-wrap { overflow: auto; }
-    .table { width: 100%; border-collapse: collapse; min-width: 760px; }
-    .table th, .table td { padding: 11px 10px; border-bottom: 1px solid #1c1c20; text-align: left; vertical-align: top; }
-    .table th { font-size: 9px; letter-spacing: .12em; color: #777; text-transform: uppercase; }
-    .table td { font-size: 11px; }
-    .table tr:hover td { background: #101013; }
-    
-    .badge { display: inline-flex; border: 1px solid #333; padding: 3px 7px; border-radius: 99px; font-size: 9px; color: #aaa; background: rgba(255,255,255,0.05); }
-    .badge.green { color: var(--green); border-color: #214d3e; background: rgba(49,196,141,0.1); }
-    .badge.red { color: #ff777e; border-color: #572025; background: rgba(239,68,68,0.1); }
-    .badge.amber { color: var(--amber); border-color: #57451f; background: rgba(245,197,66,0.1); }
-    
-    .tabs { display: flex; gap: 6px; overflow: auto; padding-bottom: 10px; margin-bottom: 12px; }
-    .tabs button { white-space: nowrap; }
-    .tabs button.active { background: #fff; color: #000; border-color: #fff; }
-    
-    .media-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
-    .media-card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #0c0c0d; }
-    .media-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
-    .media-card div { padding: 8px; font-size: 9px; word-break: break-all; color: #888; }
-    
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.78); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 100; backdrop-filter: blur(4px); }
-    .modal.open { display: flex; }
-    .modal-box { width: min(900px, 100%); max-height: 92vh; overflow: auto; background: #0c0c0e; border: 1px solid #333; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-    .modal-head { padding: 16px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: #0c0c0e; z-index: 10; }
-    .modal-body { padding: 18px; }
-    
-    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 200; background: #f4f4f4; color: #050505; padding: 12px 16px; border-radius: 10px; font-weight: 800; transform: translateY(100px); opacity: 0; transition: 0.3s ease; }
-    .toast.show { transform: translateY(0); opacity: 1; }
-    
-    .login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
-    .login-box { width: min(430px, 100%); background: #0d0d0f; border: 1px solid var(--line); border-radius: 18px; padding: 35px; box-shadow: 0 30px 100px rgba(0,0,0,.65); }
-    .login-box h1 { margin: 0 0 8px; }
-    .login-box form { display: grid; gap: 14px; margin-top: 24px; }
-    
-    .json { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; white-space: pre-wrap; color: #bbb; background: #08080a; border: 1px solid #222; padding: 12px; border-radius: 8px; }
-    
-    #loadingOverlay { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,.88); display: grid; place-items: center; padding: 20px; backdrop-filter: blur(7px); }
-    .spinner { width: 34px; height: 34px; border: 2px solid #292929; border-top-color: var(--red); border-radius: 50%; margin: 0 auto 14px; animation: spin .7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #loadingText { color: #ddd; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
-
-    @media(max-width:1050px) {
-      .app { grid-template-columns: 78px 1fr; }
-      .sidebar { padding: 12px 8px; }
-      .brand b, .brand small, .nav button span.label, .sidebar-foot { display: none; }
-      .nav button { justify-content: center; }
-      .grid.kpi { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media(max-width:700px) {
-      .app { display: block; }
-      .sidebar { position: fixed; left: -260px; width: 250px; z-index: 80; transition: .2s; }
-      .sidebar.open { left: 0; }
-      .topbar { padding: 0 14px; }
-      .content { padding: 14px; }
-      .grid.kpi, .grid.two, .grid.three, .form-grid { grid-template-columns: 1fr; }
-      .media-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BULKKOT — Admin Control Center</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#070707;--panel:#101010;--panel2:#151515;--line:#292929;--text:#f5f5f5;--muted:#888;--red:#e31b23;--green:#39cf98;--yellow:#e5b64e;--radius:14px}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:13px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.login-card{width:min(430px,100%);padding:32px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 25px 80px #0008}.mark{width:52px;height:52px;display:grid;place-items:center;background:var(--red);border-radius:12px;font-weight:900;margin-bottom:18px}.login h1{margin:0;font-size:28px}.login p{color:var(--muted);line-height:1.6}.form{display:grid;gap:13px;margin-top:22px}.field{display:grid;gap:6px}.field label{color:#8d8d8d;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.field input,.field select,.field textarea,.search{width:100%;padding:10px 11px;background:#090909;color:#eee;border:1px solid #2c2c2c;border-radius:8px;outline:none}.field textarea{min-height:105px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus,.search:focus{border-color:#666}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.full{grid-column:1/-1}.btn{border:1px solid var(--line);background:#171717;color:#ddd;border-radius:8px;padding:9px 12px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.btn:hover{border-color:#555;color:#fff}.primary{background:var(--red);border-color:var(--red);color:#fff}.danger{color:#ff777e;border-color:#572329}.app{min-height:100vh;display:grid;grid-template-columns:245px 1fr}.sidebar{position:sticky;top:0;height:100vh;overflow:auto;background:#090909;border-right:1px solid var(--line);padding:18px 12px}.brand{padding:8px 10px 20px;border-bottom:1px solid var(--line);margin-bottom:13px}.brand b{display:block;font-size:17px;letter-spacing:.12em}.brand small{color:var(--muted);font-size:9px;letter-spacing:.18em}.nav{display:grid;gap:5px}.nav button{width:100%;display:flex;justify-content:space-between;gap:8px;background:transparent;color:#aaa;border:1px solid transparent;border-radius:9px;padding:11px 12px;text-align:left}.nav button:hover,.nav button.active{background:#171717;color:#fff;border-color:var(--line)}.count{color:#666;font-size:10px}.sidefoot{margin-top:16px;padding:14px 10px;border-top:1px solid var(--line);color:#666;font-size:10px;line-height:1.6}.main{min-width:0}.topbar{position:sticky;top:0;z-index:20;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 24px;background:#070707ee;border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}.top-left,.top-right{display:flex;align-items:center;gap:9px}.topbar h1{margin:0;font-size:17px}.status{color:var(--muted);font-size:10px}.content{max-width:1700px;margin:auto;padding:24px}.page{display:none}.page.active{display:block}.heading{margin-bottom:18px}.heading .eyebrow,.eyebrow{color:var(--red);font-size:9px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}.heading h2{margin:4px 0;font-size:26px}.heading p{margin:6px 0;color:var(--muted)}.grid{display:grid;gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.four{grid-template-columns:repeat(4,minmax(0,1fr))}.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.card{padding:18px}.metric{margin-top:8px;font-size:29px;font-weight:900}.muted{color:var(--muted)}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line)}.panel-head h3{margin:0;font-size:12px;letter-spacing:.08em}.panel-body{padding:18px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.table-wrap{overflow:auto}table{width:100%;min-width:760px;border-collapse:collapse}th,td{padding:11px 10px;border-bottom:1px solid #202020;text-align:left;vertical-align:middle}th{color:#777;font-size:9px;letter-spacing:.12em;text-transform:uppercase}td{font-size:11px}tbody tr:hover td{background:#131313}.badge{display:inline-flex;padding:4px 8px;border:1px solid #383838;border-radius:99px;color:#aaa;font-size:9px}.green{color:var(--green);border-color:#20513f}.red{color:#ff777e;border-color:#572329}.yellow{color:var(--yellow);border-color:#5a4920}.tabs{display:flex;gap:6px;overflow:auto;margin-bottom:12px;padding-bottom:5px}.tab.active{background:#fff;color:#000;border-color:#fff}.modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px;background:#000c}.modal.open{display:grid}.modal-box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#0d0d0d;border:1px solid #333;border-radius:16px}.modal-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line)}.modal-body{padding:18px}.json{max-height:300px;overflow:auto;background:#080808;border:1px solid #222;border-radius:8px;padding:12px;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.image-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.image-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid var(--line)}.toast{position:fixed;right:20px;bottom:20px;z-index:200;display:none;max-width:420px;padding:12px 15px;background:#f2f2f2;color:#050505;border-radius:10px;font-weight:800}.toast.show{display:block}.mobile{display:none}@media(max-width:1050px){.app{grid-template-columns:75px 1fr}.brand b,.brand small,.nav .label,.sidefoot{display:none}.nav button{justify-content:center}.kpis{grid-template-columns:repeat(2,1fr)}.three,.four{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.app{display:block}.sidebar{position:fixed;left:-260px;width:245px;z-index:90;transition:left .2s}.sidebar.open{left:0}.brand b,.brand small,.nav .label,.sidefoot{display:block}.nav button{justify-content:space-between}.mobile{display:inline-block}.content{padding:14px}.topbar{padding:12px 14px}.kpis,.two,.three,.four,.form-grid{grid-template-columns:1fr}.image-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
 </head>
 <body>
 
-<!-- LOADING SPINNER -->
-<div id="loadingOverlay" class="hidden">
-  <div>
-    <div class="spinner"></div>
-    <div id="loadingText">AUTHENTICATING...</div>
-  </div>
-</div>
-
-<!-- LOGIN SCREEN -->
-<div id="loginView" class="login hidden">
-  <div class="login-box">
-    <div class="eyebrow">BULKKOT · PRIVATE CONTROL CENTER</div>
-    <h1>GOD MODE</h1>
-    <p class="muted">Supabase-authenticated enterprise storefront control.</p>
-    <form id="loginForm">
-      <div class="field"><label>Admin Email</label><input id="loginEmail" type="email" autocomplete="username" required value="bulkkotwear@gmail.com"></div>
-      <div class="field"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
-      <button class="btn primary" type="submit" id="loginBtn">AUTHENTICATE</button>
-    </form>
-    <p id="loginError" class="muted" style="color:#ff777e; margin-bottom:0; margin-top:10px;"></p>
-  </div>
-</div>
-
-<!-- APP DASHBOARD -->
-<div id="app" class="app hidden">
-  <aside id="sidebar" class="sidebar">
-    <div class="brand">
-      <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" onerror="this.style.display='none'">
-      <div><b>BULKKOT</b><small>GOD MODE</small></div>
+<section id="loginView" class="login">
+    <div class="login-card">
+        <div class="mark">BK</div>
+        <div class="eyebrow">BULKKOT ADMIN</div>
+        <h1>Control Center</h1>
+        <p>Private commerce administration. Only bulkkotwear@gmail.com is authorized.</p>
+        <form id="loginForm" class="form">
+            <div class="field"><label for="loginEmail">Admin Email</label><input id="loginEmail" type="email" value="bulkkotwear@gmail.com" autocomplete="username" required></div>
+            <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+            <div id="loginError" class="red"></div>
+            <button id="loginButton" class="btn primary" type="submit">Sign In</button>
+        </form>
     </div>
-    <nav class="nav" id="nav">
-      <button data-page="dashboard" class="active"><span class="label">Dashboard</span><span class="count" id="navDash">—</span></button>
-      <button data-page="content"><span class="label">Storefront CMS</span><span class="count">CMS</span></button>
-      <button data-page="products"><span class="label">Products</span><span class="count" id="navProducts">0</span></button>
-      <button data-page="categories"><span class="label">Categories</span><span class="count" id="navCategories">0</span></button>
-      <button data-page="orders"><span class="label">Orders</span><span class="count" id="navOrders">0</span></button>
-      <button data-page="customers"><span class="label">Customers CRM</span><span class="count" id="navCustomers">0</span></button>
-      <button data-page="coupons"><span class="label">Coupons</span><span class="count" id="navCoupons">0</span></button>
-      <button data-page="waitlist"><span class="label">VIP Waitlist</span><span class="count" id="navWaitlist">0</span></button>
-      <button data-page="media"><span class="label">Media Library</span><span class="count">STORAGE</span></button>
-      <button data-page="settings"><span class="label">Store Settings</span><span class="count">CORE</span></button>
-      <button data-page="schema"><span class="label">Schema Blueprint</span><span class="count">SQL</span></button>
-    </nav>
-    <div class="sidebar-foot">Read/write operations are protected by Supabase Auth + RLS. Keep the anon key public only with proper RLS policies.</div>
-  </aside>
+</section>
 
-  <main class="main">
-    <header class="topbar">
-      <div style="display:flex;gap:10px;align-items:center">
-        <button class="btn small" id="menuBtn">☰</button>
-        <div><h1 id="pageTitle">Dashboard</h1><div class="status" id="authStatus">Checking session…</div></div>
-      </div>
-      <div class="right"><button class="btn small" id="refreshBtn">↻ REFRESH</button><button class="btn small" id="logoutBtn">LOGOUT</button></div>
-    </header>
+<section id="app" class="app hidden">
+    <aside id="sidebar" class="sidebar">
+        <div class="brand"><b>BULKKOT</b><small>ENTERPRISE ADMIN</small></div>
+        <nav id="nav" class="nav">
+            <button class="active" data-page="dashboard" type="button"><span class="label">Dashboard</span><span class="count" id="navDashboard">LIVE</span></button>
+            <button data-page="categories" type="button"><span class="label">Categories</span><span class="count" id="navCategories">0</span></button>
+            <button data-page="products" type="button"><span class="label">Products</span><span class="count" id="navProducts">0</span></button>
+            <button data-page="orders" type="button"><span class="label">Orders</span><span class="count" id="navOrders">0</span></button>
+            <button data-page="customers" type="button"><span class="label">Customers</span><span class="count" id="navCustomers">0</span></button>
+            <button data-page="coupons" type="button"><span class="label">Coupons</span><span class="count" id="navCoupons">0</span></button>
+            <button data-page="waitlist" type="button"><span class="label">Waitlist</span><span class="count" id="navWaitlist">0</span></button>
+            <button data-page="cms" type="button"><span class="label">Storefront CMS</span><span class="count">CMS</span></button>
+            <button data-page="legal" type="button"><span class="label">Legal Policies</span><span class="count">5</span></button>
+            <button data-page="settings" type="button"><span class="label">Store Settings</span><span class="count">CFG</span></button>
+        </nav>
+        <div class="sidefoot">BULKKOT · Less noise. More presence.<br><br>Never put a service-role key in this file. RLS must protect the database.</div>
+    </aside>
 
-    <div class="content">
-      <!-- DASHBOARD PAGE -->
-      <section id="page-dashboard" class="page active">
-        <div class="toolbar"><div><div class="eyebrow">CONTROL CENTER</div><h2 style="margin:4px 0">Store at a glance</h2></div></div>
-        <div class="grid kpi">
-          <div class="card"><div class="muted">ACTIVE PRODUCTS</div><div class="metric" id="kProducts">0</div></div>
-          <div class="card"><div class="muted">ORDERS</div><div class="metric" id="kOrders">0</div></div>
-          <div class="card"><div class="muted">CUSTOMERS</div><div class="metric" id="kCustomers">0</div></div>
-          <div class="card"><div class="muted">WAITLIST</div><div class="metric" id="kWaitlist">0</div></div>
-          <div class="card"><div class="muted">LOW STOCK SKUs</div><div class="metric" id="kLowStock">0</div></div>
+    <main class="main">
+        <header class="topbar">
+            <div class="top-left"><button id="menuButton" class="btn mobile" type="button">MENU</button><div><h1 id="pageTitle">Dashboard</h1><div id="authStatus" class="status">Checking session…</div></div></div>
+            <div class="top-right"><button id="refreshButton" class="btn" type="button">Refresh</button><button id="logoutButton" class="btn danger" type="button">Logout</button></div>
+        </header>
+
+        <div class="content">
+            <section id="page-dashboard" class="page active">
+                <div class="heading"><div class="eyebrow">CONTROL CENTER</div><h2>Dashboard</h2><p>Orders, revenue, customers and recent activity.</p></div>
+                <div class="grid kpis">
+                    <div class="card"><div class="muted">TOTAL ORDERS</div><div id="kpiOrders" class="metric">0</div></div>
+                    <div class="card"><div class="muted">REVENUE</div><div id="kpiRevenue" class="metric">₹0</div></div>
+                    <div class="card"><div class="muted">CUSTOMERS</div><div id="kpiCustomers" class="metric">0</div></div>
+                    <div class="card"><div class="muted">ACTIVE PRODUCTS</div><div id="kpiProducts" class="metric">0</div></div>
+                </div>
+                <div class="grid two" style="margin-top:14px">
+                    <div class="panel"><div class="panel-head"><h3>RECENT ORDERS</h3></div><div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="recentOrdersBody"></tbody></table></div></div>
+                    <div class="panel"><div class="panel-head"><h3>LOW STOCK</h3><span id="lowStockBadge" class="badge yellow">0</span></div><div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Units</th></tr></thead><tbody id="lowStockBody"></tbody></table></div></div>
+                </div>
+            </section>
+
+            <section id="page-categories" class="page">
+                <div class="heading"><div class="eyebrow">CATALOGUE STRUCTURE</div><h2>Categories</h2><p>These categories populate the Product dropdown.</p></div>
+                <div class="toolbar"><button id="newCategoryButton" class="btn primary" type="button">+ New Category</button></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Slug</th><th>English Name</th><th>Korean Name</th><th>Actions</th></tr></thead><tbody id="categoriesBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-products" class="page">
+                <div class="heading"><div class="eyebrow">CATALOGUE</div><h2>Products</h2><p>CRUD, visibility, size stock and up to five Supabase Storage images.</p></div>
+                <div class="toolbar"><button id="newProductButton" class="btn primary" type="button">+ New Product</button><input id="productSearch" class="search" type="search" placeholder="Search products…" style="width:250px"></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Live</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-orders" class="page">
+                <div class="heading"><div class="eyebrow">FULFILMENT</div><h2>Orders</h2><p>Update status, courier and tracking/AWB numbers.</p></div>
+                <div class="toolbar"><select id="orderStatusFilter" class="search" style="width:180px"><option value="">All Statuses</option><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select><input id="orderSearch" class="search" type="search" placeholder="Search orders…" style="width:250px"></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Tracking</th><th>Date</th><th>Actions</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-customers" class="page">
+                <div class="heading"><div class="eyebrow">CRM</div><h2>Customers</h2><p>Customer records with Lifetime Value calculated from orders.</p></div>
+                <div class="toolbar"><input id="customerSearch" class="search" type="search" placeholder="Search customer…" style="width:270px"></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Contact</th><th>Orders</th><th>LTV</th><th>Last Order</th></tr></thead><tbody id="customersBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-coupons" class="page">
+                <div class="heading"><div class="eyebrow">PROMOTIONS</div><h2>Coupons</h2><p>Create discount codes with minimum order values.</p></div>
+                <div class="toolbar"><button id="newCouponButton" class="btn primary" type="button">+ New Coupon</button></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Active</th><th>Actions</th></tr></thead><tbody id="couponsBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-waitlist" class="page">
+                <div class="heading"><div class="eyebrow">LEADS</div><h2>Waitlist</h2><p>View email/phone records and export them as CSV.</p></div>
+                <div class="toolbar"><button id="refreshWaitlistButton" class="btn" type="button">Refresh</button><button id="exportWaitlistButton" class="btn primary" type="button">Export CSV</button></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Email</th><th>Phone</th><th>Source</th><th>Created</th></tr></thead><tbody id="waitlistBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-cms" class="page">
+                <div class="heading"><div class="eyebrow">STOREFRONT CONTROL</div><h2>Storefront CMS</h2><p>Update Hero, ticker, editorial copy and the three-circle collection gateway.</p></div>
+                <div id="cmsTabs" class="tabs"></div>
+                <div id="cmsEditor"></div>
+                <button id="saveCmsButton" class="btn primary" type="button" style="margin-top:14px">Save CMS Changes</button>
+            </section>
+
+            <section id="page-legal" class="page">
+                <div class="heading"><div class="eyebrow">COMPLIANCE</div><h2>Legal Policies</h2><p>FAQ, Shipping, Returns, Privacy and Terms.</p></div>
+                <form id="legalForm"><div class="grid two">
+                    <div class="card field"><label for="policyFaq">FAQ</label><textarea id="policyFaq"></textarea></div>
+                    <div class="card field"><label for="policyShipping">Shipping</label><textarea id="policyShipping"></textarea></div>
+                    <div class="card field"><label for="policyReturns">Returns</label><textarea id="policyReturns"></textarea></div>
+                    <div class="card field"><label for="policyPrivacy">Privacy</label><textarea id="policyPrivacy"></textarea></div>
+                    <div class="card field"><label for="policyTerms">Terms</label><textarea id="policyTerms"></textarea></div>
+                </div><button class="btn primary" type="submit" style="margin-top:14px">Save Policies</button></form>
+            </section>
+
+            <section id="page-settings" class="page">
+                <div class="heading"><div class="eyebrow">STORE CONFIGURATION</div><h2>Store Settings</h2><p>Store identity and customer support information.</p></div>
+                <form id="settingsForm"><div class="grid two">
+                    <div class="card field"><label for="storeName">Store Name</label><input id="storeName"></div>
+                    <div class="card field"><label for="supportEmail">Support Email</label><input id="supportEmail" type="email"></div>
+                    <div class="card field"><label for="whatsappNumber">WhatsApp Number</label><input id="whatsappNumber"></div>
+                    <div class="card field"><label for="currency">Currency</label><input id="currency" value="INR"></div>
+                </div><button class="btn primary" type="submit" style="margin-top:14px">Save Settings</button></form>
+            </section>
         </div>
-        <div class="grid two" style="margin-top:14px">
-          <div class="panel"><div class="panel-head"><h2>RECENT ORDERS</h2><button class="btn small" data-go="orders">VIEW ALL</button></div><div class="table-wrap"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="recentOrders"></tbody></table></div></div>
-          <div class="panel"><div class="panel-head"><h2>LOW STOCK</h2><button class="btn small" data-go="products">PRODUCTS</button></div><div class="table-wrap"><table class="table"><thead><tr><th>SKU</th><th>Product</th><th>Stock</th></tr></thead><tbody id="lowStockRows"></tbody></table></div></div>
-        </div>
-        <div class="panel" style="margin-top:14px"><div class="panel-head"><h2>CMS COVERAGE</h2><span class="badge green">KEY/VALUE READY</span></div><div class="panel-body"><p class="muted">Every storefront text/image/link that should be editable is represented by a namespaced CMS key. The admin writes these to <code>site_content</code>; your storefront must read/render those keys.</p><div id="cmsCoverage" class="json"></div></div></div>
-      </section>
+    </main>
+</section>
 
-      <!-- CONTENT CMS PAGE -->
-      <section id="page-content" class="page">
-        <div class="toolbar"><div><div class="eyebrow">STOREFRONT CONTROL</div><h2 style="margin:4px 0">Content Management</h2></div><button class="btn primary" id="saveContentBtn">SAVE CURRENT SECTION</button></div>
-        <div class="tabs" id="contentTabs"></div>
-        <div id="contentEditor"></div>
-      </section>
+<div id="categoryModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="categoryModalTitle">CATEGORY</b><button class="btn" type="button" data-close="categoryModal">Close</button></div><div class="modal-body"><form id="categoryForm"><input id="categoryId" type="hidden"><div class="form-grid"><div class="field"><label for="categorySlug">Slug</label><input id="categorySlug" required></div><div class="field"><label for="categoryEnglish">English Name</label><input id="categoryEnglish" required></div><div class="field"><label for="categoryKorean">Korean Name</label><input id="categoryKorean"></div></div><div style="display:flex;justify-content:space-between;margin-top:16px"><button id="deleteCategoryButton" class="btn danger hidden" type="button">Delete</button><button class="btn primary" type="submit">Save Category</button></div></form></div></div></div>
 
-      <!-- PRODUCTS PAGE -->
-      <section id="page-products" class="page">
-        <div class="toolbar"><div><div class="eyebrow">CATALOG</div><h2 style="margin:4px 0">Products</h2></div><div class="right"><input id="productSearch" placeholder="Search name / SKU" style="width:220px"><button class="btn primary" id="addProductBtn">+ NEW PRODUCT</button></div></div>
-        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Live</th><th></th></tr></thead><tbody id="productsRows"></tbody></table></div></div>
-      </section>
+<div id="productModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="productModalTitle">PRODUCT</b><button class="btn" type="button" data-close="productModal">Close</button></div><div class="modal-body"><form id="productForm"><input id="productId" type="hidden"><div class="form-grid"><div class="field"><label for="productName">Name</label><input id="productName" required></div><div class="field"><label for="productSku">SKU</label><input id="productSku"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory" required></select></div><div class="field"><label for="productPrice">Price</label><input id="productPrice" type="number" min="0" required></div><div class="field"><label for="productCompare">Compare-at Price</label><input id="productCompare" type="number" min="0"></div><div class="field"><label for="productActive">Live / Hidden</label><select id="productActive"><option value="true">LIVE</option><option value="false">HIDDEN</option></select></div><div class="field full"><label for="productDescription">Description</label><textarea id="productDescription"></textarea></div></div><div class="card" style="margin-top:14px"><div class="eyebrow">INVENTORY JSON</div><div class="grid four" style="margin-top:10px"><div class="field"><label>S</label><input id="stockS" type="number" min="0" value="0"></div><div class="field"><label>M</label><input id="stockM" type="number" min="0" value="0"></div><div class="field"><label>L</label><input id="stockL" type="number" min="0" value="0"></div><div class="field"><label>XL</label><input id="stockXL" type="number" min="0" value="0"></div></div></div><div class="card" style="margin-top:14px"><div class="field"><label for="productImageFiles">Product Images — max 5</label><input id="productImageFiles" type="file" accept="image/*" multiple></div><div id="productImagePreview" class="image-grid" style="margin-top:10px"></div></div><div style="display:flex;justify-content:space-between;margin-top:16px"><button id="deleteProductButton" class="btn danger hidden" type="button">Delete</button><button class="btn primary" type="submit">Save Product</button></div></form></div></div></div>
 
-      <!-- CATEGORIES PAGE -->
-      <section id="page-categories" class="page">
-        <div class="toolbar"><div><div class="eyebrow">TAXONOMY</div><h2 style="margin:4px 0">Categories</h2></div><div class="right"><button class="btn primary" id="addCategoryBtn">+ NEW CATEGORY</button></div></div>
-        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Slug</th><th>English</th><th>Korean</th><th>Status</th><th></th></tr></thead><tbody id="categoriesRows"></tbody></table></div></div>
-      </section>
+<div id="orderModal" class="modal"><div class="modal-box"><div class="modal-head"><b>ORDER CONTROL</b><button class="btn" type="button" data-close="orderModal">Close</button></div><div class="modal-body"><div id="orderDetails"></div><form id="orderForm" style="margin-top:14px"><input id="orderId" type="hidden"><div class="form-grid"><div class="field"><label>Status</label><select id="orderStatus"><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select></div><div class="field"><label>Payment Status</label><select id="orderPayment"><option>PENDING</option><option>PAID</option><option>FAILED</option><option>REFUNDED</option></select></div><div class="field"><label>Courier</label><input id="orderCourier"></div><div class="field"><label>Tracking / AWB</label><input id="orderTracking"></div><div class="field full"><label>Admin Note</label><textarea id="orderNote"></textarea></div></div><div style="display:flex;justify-content:space-between;margin-top:14px"><button id="printPackingSlipButton" class="btn" type="button">Print Packing Slip</button><button class="btn primary" type="submit">Save Order</button></div></form></div></div></div>
 
-      <!-- ORDERS PAGE -->
-      <section id="page-orders" class="page">
-        <div class="toolbar"><div><div class="eyebrow">FULFILMENT</div><h2 style="margin:4px 0">Orders</h2></div><div class="right"><select id="orderStatusFilter" style="width:160px"><option value="">ALL STATUS</option><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select><input id="orderSearch" placeholder="Order / phone / email" style="width:220px"></div></div>
-        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th><th>Created</th><th></th></tr></thead><tbody id="ordersRows"></tbody></table></div></div>
-      </section>
+<div id="couponModal" class="modal"><div class="modal-box"><div class="modal-head"><b>NEW COUPON</b><button class="btn" type="button" data-close="couponModal">Close</button></div><div class="modal-body"><form id="couponForm"><div class="form-grid"><div class="field"><label>Code</label><input id="couponCode" required></div><div class="field"><label>Discount Value</label><input id="couponDiscount" type="number" min="0" required></div><div class="field"><label>Minimum Order</label><input id="couponMinimum" type="number" min="0" value="0"></div><div class="field"><label>Discount Type</label><select id="couponType"><option value="PERCENT">Percent</option><option value="FIXED">Fixed</option></select></div></div><button class="btn primary" type="submit" style="margin-top:14px">Create Coupon</button></form></div></div></div>
 
-      <!-- CUSTOMERS PAGE -->
-      <section id="page-customers" class="page">
-        <div class="toolbar"><div><div class="eyebrow">CRM</div><h2 style="margin:4px 0">Customer Profiles</h2></div><input id="customerSearch" placeholder="Search customer / phone / email" style="width:280px"></div>
-        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Customer</th><th>Phone</th><th>Email/Auth ID</th><th>Location</th><th>Updated</th><th></th></tr></thead><tbody id="customersRows"></tbody></table></div></div>
-      </section>
-
-      <!-- COUPONS PAGE -->
-      <section id="page-coupons" class="page">
-        <div class="toolbar"><div><div class="eyebrow">PROMOTIONS</div><h2 style="margin:4px 0">Coupons</h2></div><button class="btn primary" id="addCouponBtn">+ NEW COUPON</button></div>
-        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Active</th><th>Created</th><th></th></tr></thead><tbody id="couponsRows"></tbody></table></div></div>
-      </section>
-
-      <!-- WAITLIST PAGE -->
-      <section id="page-waitlist" class="page">
-        <div class="toolbar"><div><div class="eyebrow">LEADS</div><h2 style="margin:4px 0">VIP Waitlist</h2></div><div class="right"><button class="btn small" id="refreshWaitlistBtn">↻ REFRESH</button><button class="btn primary" id="exportWaitlistBtn">↓ EXPORT CSV</button></div></div>
-        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Email</th><th>Source</th><th>Created</th></tr></thead><tbody id="waitlistRows"></tbody></table></div></div>
-      </section>
-
-      <!-- MEDIA PAGE -->
-      <section id="page-media" class="page">
-        <div class="toolbar"><div><div class="eyebrow">SUPABASE STORAGE</div><h2 style="margin:4px 0">Media Library</h2></div><div class="right"><input id="mediaFile" type="file" accept="image/*"><button class="btn primary" id="uploadMediaBtn">UPLOAD</button></div></div>
-        <div class="card"><p class="muted">Uploads go to <b>site-content-images</b>. Public URLs can then be pasted into CMS/image fields.</p></div>
-        <div id="mediaGrid" class="media-grid" style="margin-top:14px"></div>
-      </section>
-
-      <!-- SETTINGS PAGE -->
-      <section id="page-settings" class="page">
-        <div class="toolbar"><div><div class="eyebrow">STORE INFRASTRUCTURE</div><h2 style="margin:4px 0">Store Settings</h2></div><button class="btn primary" id="saveSettingsBtn">SAVE SETTINGS</button></div>
-        <div class="panel"><div class="panel-body"><div class="form-grid">
-          <div class="field"><label>Store Name</label><input id="sStoreName"></div>
-          <div class="field"><label>Support Email</label><input id="sEmail" type="email"></div>
-          <div class="field"><label>Support Phone / WhatsApp</label><input id="sPhone"></div>
-          <div class="field"><label>Currency</label><input id="sCurrency" value="INR"></div>
-          <div class="field"><label>Shipping Fee</label><input id="sShipping" type="number" min="0"></div>
-          <div class="field"><label>Free Shipping Threshold</label><input id="sFreeShip" type="number" min="0"></div>
-          <div class="field full"><label>Store Address</label><textarea id="sAddress"></textarea></div>
-          <div class="field"><label>Instagram URL</label><input id="sInstagram"></div>
-          <div class="field"><label>Website / Canonical URL</label><input id="sWebsite"></div>
-        </div></div></div>
-      </section>
-
-      <!-- SCHEMA PAGE -->
-      <section id="page-schema" class="page">
-        <div class="toolbar"><div><div class="eyebrow">SUPABASE BLUEPRINT</div><h2 style="margin:4px 0">Required Database Structure</h2></div><button class="btn" id="copySqlBtn">COPY SQL</button></div>
-        <div class="panel"><div class="panel-body"><p class="muted">Run this in Supabase SQL Editor before using the full control center.</p><pre id="sqlPreview" class="json"></pre></div></div>
-      </section>
-
-    </div>
-  </main>
-</div>
-
-<!-- MODALS -->
-<!-- Product Modal -->
-<div id="productModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="productModalTitle">PRODUCT</b><button class="btn small" data-close="productModal">CLOSE</button></div><div class="modal-body">
-<form id="productForm"><input id="pId" type="hidden"><div class="form-grid">
-<div class="field"><label>Name</label><input id="pName" required></div>
-<div class="field"><label>SKU</label><input id="pSku"></div>
-<div class="field"><label>Category</label><select id="pCategory"><option value="tees">Tees</option></select></div>
-<div class="field"><label>Price</label><input id="pPrice" type="number" min="0" required></div>
-<div class="field"><label>Compare-at Price</label><input id="pCompare" type="number" min="0"></div>
-<div class="field"><label>Featured</label><select id="pFeatured"><option value="true">Yes</option><option value="false">No</option></select></div>
-<div class="field"><label>Active</label><select id="pActive"><option value="true">Live</option><option value="false">Hidden</option></select></div>
-<div class="field"><label>Visibility</label><select id="pVisibility"><option value="true">Visible</option><option value="false">Hidden</option></select></div>
-<div class="field full"><label>Description</label><textarea id="pDescription"></textarea></div>
-<div class="field"><label>Stock JSON</label><input id="pStock" value='{"S":0,"M":0,"L":0,"XL":0}'></div>
-<div class="field"><label>Images JSON array</label><input id="pImages" value='[]'></div>
-<div class="field full"><label>Tags JSON array</label><input id="pTags" value='[]'></div>
-</div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn primary" type="submit">SAVE PRODUCT</button><button class="btn danger" type="button" id="deleteProductBtn">DELETE</button></div></form>
-</div></div></div>
-
-<!-- Category Modal -->
-<div id="categoryModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="categoryModalTitle">CATEGORY</b><button class="btn small" data-close="categoryModal">CLOSE</button></div><div class="modal-body">
-<form id="categoryForm"><input id="cId" type="hidden"><div class="form-grid">
-<div class="field full"><label>Slug (e.g. jackets)</label><input id="cSlug" required></div>
-<div class="field"><label>English Name</label><input id="cEn" required></div>
-<div class="field"><label>Korean Name</label><input id="cKo" required></div>
-<div class="field"><label>Sort Order</label><input id="cSort" type="number" value="0"></div>
-<div class="field"><label>Active</label><select id="cActiveStatus"><option value="true">Live</option><option value="false">Hidden</option></select></div>
-</div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn primary" type="submit">SAVE CATEGORY</button></div></form>
-</div></div></div>
-
-<!-- Order Modal -->
-<div id="orderModal" class="modal"><div class="modal-box"><div class="modal-head"><b>ORDER CONTROL</b><button class="btn small" data-close="orderModal">CLOSE</button></div><div class="modal-body"><div id="orderDetails"></div><form id="orderForm" style="margin-top:15px"><input id="oId" type="hidden"><div class="form-grid">
-<div class="field"><label>Order Status</label><select id="oStatus"><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select></div>
-<div class="field"><label>Payment Status</label><select id="oPayment"><option>PENDING</option><option>PAID</option><option>COD</option><option>FAILED</option><option>REFUNDED</option></select></div>
-<div class="field"><label>Fulfillment Status</label><select id="oFulfillment"><option>PENDING</option><option>PACKED</option><option>SHIPPED</option><option>DELIVERED</option><option>RETURNED</option></select></div>
-<div class="field"><label>Tracking Number</label><input id="oTracking"></div>
-<div class="field full"><label>Admin Note</label><textarea id="oNote"></textarea></div>
-</div><button class="btn primary" type="submit" style="margin-top:14px">SAVE ORDER</button></form></div></div></div>
-
-<!-- Customer Modal -->
-<div id="customerModal" class="modal"><div class="modal-box"><div class="modal-head"><b>CUSTOMER</b><button class="btn small" data-close="customerModal">CLOSE</button></div><div class="modal-body" id="customerDetails"></div></div></div>
-
-<!-- Coupon Modal -->
-<div id="couponModal" class="modal"><div class="modal-box"><div class="modal-head"><b>COUPON</b><button class="btn small" data-close="couponModal">CLOSE</button></div><div class="modal-body"><form id="couponForm"><div class="form-grid">
-<div class="field"><label>Code</label><input id="cCode" required></div><div class="field"><label>Discount Value</label><input id="cDiscount" type="number" min="0" required></div>
-<div class="field"><label>Minimum Order</label><input id="cMin" type="number" min="0" value="0"></div><div class="field"><label>Active</label><select id="cActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
-</div><button class="btn primary" type="submit" style="margin-top:14px">CREATE COUPON</button></form></div></div></div>
-
-<!-- Toast -->
 <div id="toast" class="toast"></div>
 
 <script>
-// --- REAL SUPABASE KEYS ---
-const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-const ADMIN_EMAIL = "bulkkotwear@gmail.com";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+(function () {
+    "use strict";
 
-const CMS_GROUPS = {
- general: {label:"General / Brand",keys:["brand_name","brand_korean","brand_tagline","meta_title","meta_description","theme_red","logo_url","favicon_url"]},
- ticker: {label:"Announcement Ticker",keys:["announcement_1","announcement_2","announcement_3","announcement_bg","announcement_color","announcement_font","announcement_speed"]},
- hero: {label:"Hero",keys:["hero_image","hero_image_url","hero_eyebrow","hero_title","hero_subtitle","hero_label","hero_description","hero_cta","hero_cta_url","hero_overlay_color","hero_text_color","hero_font"]},
- collections: {label:"3 Circle Collections",keys:["collections_eyebrow","collections_title","collection_1_label","collection_1_korean","collection_1_image","collection_1_url","collection_1_cta","collection_2_label","collection_2_korean","collection_2_image","collection_2_url","collection_2_cta","collection_3_label","collection_3_korean","collection_3_image","collection_3_url","collection_3_cta"]},
- editorial: {label:"Editorial Slider",keys:["editorial_1_badge","editorial_1_korean","editorial_1_title","editorial_1_subtitle","editorial_1_description","editorial_1_image","editorial_1_cta","editorial_1_url","editorial_2_badge","editorial_2_korean","editorial_2_title","editorial_2_subtitle","editorial_2_description","editorial_2_image","editorial_2_cta","editorial_2_url","editorial_3_badge","editorial_3_korean","editorial_3_title","editorial_3_subtitle","editorial_3_description","editorial_3_image","editorial_3_cta","editorial_3_url","editorial_4_badge","editorial_4_korean","editorial_4_title","editorial_4_subtitle","editorial_4_description","editorial_4_image","editorial_4_cta","editorial_4_url"]},
- drop: {label:"Drop Banner",keys:["drop_eyebrow","drop_title","drop_description","drop_cta","drop_cta_url"]},
- shop: {label:"Shop Section",keys:["shop_eyebrow","shop_title","shop_catalogue_cta","shop_catalogue_url","shop_empty_message","shop_all_label","shop_tees_label","shop_hoods_label","shop_sweats_label","shop_sort_featured","shop_sort_newest","shop_sort_low","shop_sort_high"]},
- values: {label:"Why BULKKOT / Values",keys:["values_eyebrow","values_title","value_1_title","value_1_korean","value_1_description","value_2_title","value_2_korean","value_2_description","value_3_title","value_3_korean","value_3_description","value_4_title","value_4_korean","value_4_description"]},
- about: {label:"About / Story",keys:["about_eyebrow","about_title","about_subtitle","about_lead","about_body_1","about_body_2","about_signature","about_cta","about_story_modal_title","about_story_modal_body"]},
- philosophy: {label:"Philosophy",keys:["philosophy_korean","philosophy_title","philosophy_subtitle","philosophy_description"]},
- social: {label:"Social",keys:["social_eyebrow","social_title","social_korean","instagram_url","instagram_handle"]},
- waitlist: {label:"Waitlist Content",keys:["waitlist_eyebrow","waitlist_title","waitlist_korean","waitlist_description","waitlist_email_label","waitlist_placeholder","waitlist_button","waitlist_success","waitlist_duplicate","waitlist_error"]},
- contact: {label:"Contact",keys:["contact_eyebrow","contact_title","contact_email_label","contact_email","collab_label","collab_subject","contact_whatsapp_label"]},
- footer: {label:"Footer",keys:["footer_description","footer_tagline","footer_shop_title","footer_about_title","footer_help_title","footer_legal_title","footer_connect_title","footer_copyright","footer_country"]},
- policies: {label:"Legal Policies",keys:["policy_faq_title","policy_faq_body","policy_shipping_title","policy_shipping_body","policy_returns_title","policy_returns_body","policy_privacy_title","policy_privacy_body","policy_terms_title","policy_terms_body"]},
- popup: {label:"Welcome Popup",keys:["popup_eyebrow","popup_title","popup_body","popup_cta","popup_cta_url","popup_enabled"]},
- size: {label:"Size Guide",keys:["size_guide_title","size_guide_intro","size_guide_tees","size_guide_hoods","size_guide_sweats","size_guide_note"]},
- navigation: {label:"Navigation / Search",keys:["nav_home","nav_shop","nav_drop","nav_collections","nav_about","nav_contact","nav_size_guide","nav_track_order","nav_account","search_placeholder","search_trending_label","search_tag_1","search_tag_2","search_tag_3","search_tag_4"]},
- whatsapp: {label:"WhatsApp / Support",keys:["whatsapp_number","whatsapp_message","whatsapp_label","whatsapp_subtitle"]}
-};
+    const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+    const ADMIN_EMAIL = "bulkkotwear@gmail.com";
+    const PRODUCT_BUCKET = "product-media";
+    const MAX_IMAGES = 5;
 
-const DEFAULTS = {
- brand_name:"BULKKOT",brand_korean:"불꽃",brand_tagline:"Less noise. More presence.",meta_title:"BULKKOT (불꽃) — Premium Everyday Wear",
- announcement_1:"DROP 001 — DROPPING SOON",announcement_bg:"#e31b23",announcement_color:"#ffffff",announcement_speed:"20",
- hero_image_url:"",hero_eyebrow:"불꽃",hero_title:"BULKKOT",hero_description:"Korean-inspired minimalist heavyweight essentials."
-};
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const state = { cms:{}, products:[], categories:[], orders:[], customers:[], coupons:[], waitlist:[], settings:null, currentContent:"general" };
+    const state = {
+        session: null,
+        page: "dashboard",
+        cmsGroup: "hero",
+        categories: [],
+        products: [],
+        orders: [],
+        customers: [],
+        coupons: [],
+        waitlist: [],
+        cms: {},
+        settings: {},
+        editingProductImages: []
+    };
 
-// --- UTILS ---
-function $(id){ return document.getElementById(id); }
-function esc(v){ return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
-function toast(msg, type="success"){ 
-  const t = $("toast"); if(!t) return;
-  t.textContent = msg; 
-  t.style.background = type === "error" ? "#ff777e" : (type === "warning" ? "#f2b84b" : "#f4f4f4");
-  t.style.color = type === "success" ? "#050505" : "#fff";
-  t.classList.add("show"); 
-  setTimeout(()=>t.classList.remove("show"), 2600); 
-}
-function money(v){ return "₹"+Number(v||0).toLocaleString("en-IN"); }
-function date(v){ return v?new Date(v).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}):"—"; }
-function bool(v){ return v===true||v==="true"; }
-function openModal(id){ const m = $(id); if(m) m.classList.add("open"); }
-function closeModal(id){ const m = $(id); if(m) m.classList.remove("open"); }
+    const CMS_GROUPS = {
+        hero: { label: "Hero", keys: ["hero_image_url", "hero_eyebrow", "hero_title", "hero_subtitle", "hero_description", "hero_cta", "hero_cta_url"] },
+        ticker: { label: "Announcement Ticker", keys: ["announcement_1", "announcement_2", "announcement_3"] },
+        editorial: { label: "Editorial", keys: ["editorial_1_title", "editorial_1_subtitle", "editorial_1_text", "editorial_2_title", "editorial_2_subtitle", "editorial_2_text", "editorial_3_title", "editorial_3_subtitle", "editorial_3_text", "editorial_4_title", "editorial_4_subtitle", "editorial_4_text"] },
+        collections: { label: "3-Circle Collections", keys: ["collection_1_image", "collection_1_label", "collection_1_korean", "collection_1_url", "collection_2_image", "collection_2_label", "collection_2_korean", "collection_2_url", "collection_3_image", "collection_3_label", "collection_3_korean", "collection_3_url"] }
+    };
 
-// *** THE CRITICAL LOADING FIX ***
-function setLoading(show, text="LOADING...") {
-  const overlay = $("loadingOverlay");
-  const textEl = $("loadingText");
-  if (overlay) {
-    if (show) {
-      overlay.classList.remove("hidden");
-      if (textEl) textEl.textContent = text;
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function setText(id, value) {
+        const element = $(id);
+        if (element) element.textContent = value == null ? "" : String(value);
+    }
+
+    function setHTML(id, value) {
+        const element = $(id);
+        if (element) element.innerHTML = value == null ? "" : String(value);
+    }
+
+    function setValue(id, value) {
+        const element = $(id);
+        if (element) element.value = value == null ? "" : String(value);
+    }
+
+    function valueOf(id, fallback) {
+        const element = $(id);
+        return element ? element.value : fallback;
+    }
+
+    function toggleHidden(id, hidden) {
+        const element = $(id);
+        if (element) element.classList.toggle("hidden", Boolean(hidden));
+    }
+
+    function escapeHTML(value) {
+        return String(value == null ? "" : value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function money(value) {
+        return new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 2
+        }).format(Number(value || 0));
+    }
+
+    function date(value) {
+        if (!value) return "—";
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? "—" : parsed.toLocaleString("en-IN");
+    }
+
+    function toast(message) {
+        const element = $("toast");
+        if (!element) return;
+        element.textContent = message || "";
+        element.classList.add("show");
+        window.clearTimeout(toast.timer);
+        toast.timer = window.setTimeout(function () {
+            if (element) element.classList.remove("show");
+        }, 2800);
+    }
+
+    function openModal(id) {
+        const element = $(id);
+        if (element) element.classList.add("open");
+    }
+
+    function closeModal(id) {
+        const element = $(id);
+        if (element) element.classList.remove("open");
+    }
+
+    function authorized(session) {
+        const email = session && session.user && session.user.email;
+        return Boolean(email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+    }
+
+    function showLogin(message) {
+        const loginView = $("loginView");
+        const app = $("app");
+        const error = $("loginError");
+        if (loginView) loginView.classList.remove("hidden");
+        if (app) app.classList.add("hidden");
+        if (error && message) error.textContent = message;
+    }
+
+    function showAdmin(session) {
+        const loginView = $("loginView");
+        const app = $("app");
+        if (loginView) loginView.classList.add("hidden");
+        if (app) app.classList.remove("hidden");
+        state.session = session;
+        setText("authStatus", "● " + (session.user.email || ADMIN_EMAIL));
+    }
+
+    async function requireAdmin() {
+        const result = await supabaseClient.auth.getSession();
+        const session = result.data ? result.data.session : null;
+        if (!authorized(session)) {
+            showLogin("Admin authorization required.");
+            throw new Error("Admin authorization required.");
+        }
+        state.session = session;
+        return session;
+    }
+
+    async function loadCategories() {
+        const result = await supabaseClient.from("categories").select("*").order("english_name", { ascending: true });
+        if (result.error) throw result.error;
+        state.categories = result.data || [];
+    }
+
+    async function loadProducts() {
+        const result = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
+        if (result.error) throw result.error;
+        state.products = result.data || [];
+    }
+
+    async function loadOrders() {
+        const result = await supabaseClient.from("orders").select("*").order("created_at", { ascending: false });
+        if (result.error) throw result.error;
+        state.orders = result.data || [];
+    }
+
+    async function loadCoupons() {
+        const result = await supabaseClient.from("coupons").select("*").order("created_at", { ascending: false });
+        if (result.error) throw result.error;
+        state.coupons = result.data || [];
+    }
+
+    async function loadWaitlist() {
+        const result = await supabaseClient.from("waitlist").select("*").order("created_at", { ascending: false });
+        if (result.error) throw result.error;
+        state.waitlist = result.data || [];
+    }
+
+    async function loadCMS() {
+        const result = await supabaseClient.from("site_content").select("*");
+        if (result.error) throw result.error;
+        state.cms = {};
+        (result.data || []).forEach(function (row) {
+            const key = row.content_key || row.key || row.slug;
+            if (key) state.cms[key] = row.content_value ?? row.value ?? "";
+        });
+    }
+
+    async function loadSettings() {
+        const result = await supabaseClient.from("store_settings").select("*").eq("id", 1).maybeSingle();
+        if (result.error) throw result.error;
+        state.settings = result.data || {};
+    }
+
+    async function loadCustomers() {
+        const result = await supabaseClient.from("customer_profiles").select("*");
+        if (result.error) throw result.error;
+        const map = new Map();
+        (result.data || []).forEach(function (profile) {
+            const key = String(profile.email || profile.phone || profile.id || "").toLowerCase();
+            if (!key) return;
+            map.set(key, { name: profile.full_name || profile.name || "Unnamed", email: profile.email || "", phone: profile.phone || "", orders: 0, ltv: 0, lastOrder: null });
+        });
+        state.orders.forEach(function (order) {
+            const key = String(order.email || order.customer_email || order.phone || order.customer_phone || "").toLowerCase();
+            if (!key) return;
+            if (!map.has(key)) map.set(key, { name: order.customer_name || order.full_name || "Order Customer", email: order.email || order.customer_email || "", phone: order.phone || order.customer_phone || "", orders: 0, ltv: 0, lastOrder: null });
+            const customer = map.get(key);
+            const status = String(order.order_status || "PLACED").toUpperCase();
+            if (status !== "CANCELLED" && status !== "RETURNED") {
+                customer.orders += 1;
+                customer.ltv += Number(order.total || 0);
+                if (!customer.lastOrder || new Date(order.created_at) > new Date(customer.lastOrder)) customer.lastOrder = order.created_at;
+            }
+        });
+        state.customers = Array.from(map.values());
+    }
+
+    async function loadAll() {
+        await Promise.all([loadCategories(), loadProducts(), loadOrders(), loadCoupons(), loadWaitlist(), loadCMS(), loadSettings()]);
+        await loadCustomers();
+        renderAll();
+    }
+
+    function stock(product) {
+        const data = product && product.stock ? product.stock : {};
+        return { S: Number(data.S || 0), M: Number(data.M || 0), L: Number(data.L || 0), XL: Number(data.XL || 0) };
+    }
+
+    function totalStock(product) {
+        const s = stock(product);
+        return s.S + s.M + s.L + s.XL;
+    }
+
+    function live(product) {
+        return product && product.active !== false && product.visibility !== false;
+    }
+
+    function renderDashboard() {
+        const revenue = state.orders.reduce(function (sum, order) {
+            const status = String(order.order_status || "PLACED").toUpperCase();
+            return status === "CANCELLED" || status === "RETURNED" ? sum : sum + Number(order.total || 0);
+        }, 0);
+        setText("kpiOrders", state.orders.length);
+        setText("kpiRevenue", money(revenue));
+        setText("kpiCustomers", state.customers.length);
+        setText("kpiProducts", state.products.filter(live).length);
+        setText("navCategories", state.categories.length);
+        setText("navProducts", state.products.length);
+        setText("navOrders", state.orders.length);
+        setText("navCustomers", state.customers.length);
+        setText("navCoupons", state.coupons.length);
+        setText("navWaitlist", state.waitlist.length);
+        const recent = state.orders.slice(0, 8);
+        setHTML("recentOrdersBody", recent.length ? recent.map(function (o) { return `<tr><td><b>${escapeHTML(o.order_number || String(o.id || "").slice(0, 8))}</b></td><td>${escapeHTML(o.customer_name || o.full_name || o.email || "—")}</td><td>${money(o.total)}</td><td><span class="badge">${escapeHTML(o.order_status || "PLACED")}</span></td></tr>`; }).join("") : '<tr><td colspan="4" class="muted">No orders.</td></tr>');
+        const low = state.products.filter(function (p) { return totalStock(p) <= 5; }).slice(0, 8);
+        setText("lowStockBadge", state.products.filter(function (p) { return totalStock(p) <= 5; }).length);
+        setHTML("lowStockBody", low.length ? low.map(function (p) { return `<tr><td>${escapeHTML(p.name || "—")}</td><td>${escapeHTML(p.sku || "—")}</td><td><span class="badge yellow">${totalStock(p)}</span></td></tr>`; }).join("") : '<tr><td colspan="3" class="muted">No low-stock products.</td></tr>');
+    }
+
+    function renderCategories() {
+        setHTML("categoriesBody", state.categories.length ? state.categories.map(function (c) { return `<tr><td><code>${escapeHTML(c.slug || "")}</code></td><td>${escapeHTML(c.english_name || c.name || "")}</td><td>${escapeHTML(c.korean_name || "—")}</td><td><button class="btn" type="button" data-edit-category="${escapeHTML(c.id)}">Edit</button></td></tr>`; }).join("") : '<tr><td colspan="4" class="muted">No categories.</td></tr>');
+        document.querySelectorAll("[data-edit-category]").forEach(function (button) { button.onclick = function () { openCategory(button.dataset.editCategory); }; });
+        const select = $("productCategory");
+        if (select) select.innerHTML = '<option value="">Select category</option>' + state.categories.map(function (c) { return `<option value="${escapeHTML(c.slug || "")}">${escapeHTML(c.english_name || c.name || c.slug || "")}</option>`; }).join("");
+    }
+
+    function renderProducts() {
+        const q = String(valueOf("productSearch", "")).toLowerCase();
+        const rows = state.products.filter(function (p) { return !q || `${p.name || ""} ${p.sku || ""} ${p.category || ""}`.toLowerCase().includes(q); });
+        setHTML("productsBody", rows.length ? rows.map(function (p) { return `<tr><td><b>${escapeHTML(p.name || "Unnamed")}</b><div class="muted">${escapeHTML(p.sku || "")}</div></td><td>${escapeHTML(p.category || "—")}</td><td>${money(p.price)}</td><td>${totalStock(p)}</td><td><span class="badge ${live(p) ? "green" : "red"}">${live(p) ? "LIVE" : "HIDDEN"}</span></td><td><button class="btn" type="button" data-edit-product="${escapeHTML(p.id)}">Edit</button></td></tr>`; }).join("") : '<tr><td colspan="6" class="muted">No products.</td></tr>');
+        document.querySelectorAll("[data-edit-product]").forEach(function (button) { button.onclick = function () { openProduct(button.dataset.editProduct); }; });
+    }
+
+    function renderOrders() {
+        const q = String(valueOf("orderSearch", "")).toLowerCase();
+        const filter = valueOf("orderStatusFilter", "");
+        const rows = state.orders.filter(function (o) { return (!filter || String(o.order_status || "PLACED") === filter) && `${o.order_number || ""} ${o.customer_name || ""} ${o.email || ""} ${o.phone || ""} ${o.tracking_number || ""}`.toLowerCase().includes(q); });
+        setHTML("ordersBody", rows.length ? rows.map(function (o) { return `<tr><td><b>${escapeHTML(o.order_number || String(o.id || "").slice(0, 8))}</b></td><td>${escapeHTML(o.customer_name || o.full_name || o.email || "—")}</td><td>${money(o.total)}</td><td><span class="badge">${escapeHTML(o.order_status || "PLACED")}</span></td><td>${escapeHTML(o.tracking_number || o.awb || "—")}</td><td>${date(o.created_at)}</td><td><button class="btn" type="button" data-edit-order="${escapeHTML(o.id)}">Manage</button></td></tr>`; }).join("") : '<tr><td colspan="7" class="muted">No orders.</td></tr>');
+        document.querySelectorAll("[data-edit-order]").forEach(function (button) { button.onclick = function () { openOrder(button.dataset.editOrder); }; });
+    }
+
+    function renderCustomers() {
+        const q = String(valueOf("customerSearch", "")).toLowerCase();
+        const rows = state.customers.filter(function (c) { return `${c.name || ""} ${c.email || ""} ${c.phone || ""}`.toLowerCase().includes(q); });
+        setHTML("customersBody", rows.length ? rows.map(function (c) { return `<tr><td><b>${escapeHTML(c.name)}</b></td><td>${escapeHTML(c.email || "—")}<div class="muted">${escapeHTML(c.phone || "")}</div></td><td>${c.orders}</td><td>${money(c.ltv)}</td><td>${date(c.lastOrder)}</td></tr>`; }).join("") : '<tr><td colspan="5" class="muted">No customers.</td></tr>');
+    }
+
+    function renderCoupons() {
+        setHTML("couponsBody", state.coupons.length ? state.coupons.map(function (c) { return `<tr><td><b>${escapeHTML(c.code || "")}</b></td><td>${escapeHTML(c.discount_value ?? c.discount ?? 0)} ${escapeHTML(c.discount_type || "")}</td><td>${money(c.min_order_value || 0)}</td><td><span class="badge ${c.active ? "green" : "red"}">${c.active ? "ACTIVE" : "OFF"}</span></td><td><button class="btn" type="button" data-toggle-coupon="${escapeHTML(c.id)}">${c.active ? "Deactivate" : "Activate"}</button></td></tr>`; }).join("") : '<tr><td colspan="5" class="muted">No coupons.</td></tr>');
+        document.querySelectorAll("[data-toggle-coupon]").forEach(function (button) { button.onclick = function () { toggleCoupon(button.dataset.toggleCoupon); }; });
+    }
+
+    function renderWaitlist() {
+        setHTML("waitlistBody", state.waitlist.length ? state.waitlist.map(function (r) { return `<tr><td>${escapeHTML(r.email || "—")}</td><td>${escapeHTML(r.phone || "—")}</td><td>${escapeHTML(r.source || "—")}</td><td>${date(r.created_at)}</td></tr>`; }).join("") : '<tr><td colspan="4" class="muted">No waitlist entries.</td></tr>');
+    }
+
+    function renderCMS() {
+        const tabs = $("cmsTabs");
+        const editor = $("cmsEditor");
+        if (!tabs || !editor) return;
+        tabs.innerHTML = Object.keys(CMS_GROUPS).map(function (key) { return `<button class="btn tab ${state.cmsGroup === key ? "active" : ""}" type="button" data-cms-group="${key}">${escapeHTML(CMS_GROUPS[key].label)}</button>`; }).join("");
+        tabs.querySelectorAll("[data-cms-group]").forEach(function (button) { button.onclick = function () { state.cmsGroup = button.dataset.cmsGroup; renderCMS(); }; });
+        const group = CMS_GROUPS[state.cmsGroup];
+        editor.innerHTML = `<div class="panel"><div class="panel-head"><h3>${escapeHTML(group.label)}</h3><span class="muted">site_content key/value</span></div><div class="panel-body"><div class="form-grid">${group.keys.map(function (key) { const value = state.cms[key] || ""; const textarea = key.includes("description") || key.includes("text"); return `<div class="field ${textarea ? "full" : ""}"><label>${escapeHTML(key)}</label>${textarea ? `<textarea data-cms-key="${escapeHTML(key)}">${escapeHTML(value)}</textarea>` : `<input data-cms-key="${escapeHTML(key)}" value="${escapeHTML(value)}">`}</div>`; }).join("")}</div></div></div>`;
+    }
+
+    function renderLegal() {
+        setValue("policyFaq", state.cms.policy_faq || state.cms.policy_faq_body || "");
+        setValue("policyShipping", state.cms.policy_shipping || state.cms.policy_shipping_body || "");
+        setValue("policyReturns", state.cms.policy_returns || state.cms.policy_returns_body || "");
+        setValue("policyPrivacy", state.cms.policy_privacy || state.cms.policy_privacy_body || "");
+        setValue("policyTerms", state.cms.policy_terms || state.cms.policy_terms_body || "");
+    }
+
+    function renderSettings() {
+        setValue("storeName", state.settings.store_name || "BULKKOT");
+        setValue("supportEmail", state.settings.support_email || ADMIN_EMAIL);
+        setValue("whatsappNumber", state.settings.whatsapp_number || state.settings.support_phone || state.cms.whatsapp_number || "");
+        setValue("currency", state.settings.currency || "INR");
+    }
+
+    function renderAll() {
+        renderDashboard();
+        renderCategories();
+        renderProducts();
+        renderOrders();
+        renderCustomers();
+        renderCoupons();
+        renderWaitlist();
+        renderCMS();
+        renderLegal();
+        renderSettings();
+    }
+
+    function navigate(page) {
+        state.page = page;
+        document.querySelectorAll(".page").forEach(function (element) { element.classList.toggle("active", element.id === "page-" + page); });
+        document.querySelectorAll("#nav button").forEach(function (button) { button.classList.toggle("active", button.dataset.page === page); });
+        const labels = { dashboard: "Dashboard", categories: "Categories", products: "Products", orders: "Orders", customers: "Customers", coupons: "Coupons", waitlist: "Waitlist", cms: "Storefront CMS", legal: "Legal Policies", settings: "Store Settings" };
+        setText("pageTitle", labels[page] || page);
+        const sidebar = $("sidebar");
+        if (sidebar && window.innerWidth <= 700) sidebar.classList.remove("open");
+    }
+
+    function resetCategory() {
+        setValue("categoryId", ""); setValue("categorySlug", ""); setValue("categoryEnglish", ""); setValue("categoryKorean", "");
+        setText("categoryModalTitle", "NEW CATEGORY"); toggleHidden("deleteCategoryButton", true);
+    }
+
+    function openCategory(id) {
+        const category = state.categories.find(function (c) { return String(c.id) === String(id); });
+        if (!category) return;
+        setValue("categoryId", category.id); setValue("categorySlug", category.slug || ""); setValue("categoryEnglish", category.english_name || category.name || ""); setValue("categoryKorean", category.korean_name || "");
+        setText("categoryModalTitle", "EDIT CATEGORY"); toggleHidden("deleteCategoryButton", false); openModal("categoryModal");
+    }
+
+    async function saveCategory(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const id = valueOf("categoryId", "").trim();
+            const slug = valueOf("categorySlug", "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+            const englishName = valueOf("categoryEnglish", "").trim();
+            const koreanName = valueOf("categoryKorean", "").trim();
+            if (!slug || !englishName) throw new Error("Slug and English Name are required.");
+            const payload = { slug: slug, english_name: englishName, korean_name: koreanName };
+            const result = id ? await supabaseClient.from("categories").update(payload).eq("id", id) : await supabaseClient.from("categories").insert(payload);
+            if (result.error) throw result.error;
+            closeModal("categoryModal"); await loadCategories(); renderAll(); toast("Category saved.");
+        } catch (error) { toast(error.message || "Category save failed."); }
+    }
+
+    async function deleteCategory() {
+        try {
+            await requireAdmin();
+            const id = valueOf("categoryId", "");
+            if (!id || !window.confirm("Delete this category?")) return;
+            const result = await supabaseClient.from("categories").delete().eq("id", id);
+            if (result.error) throw result.error;
+            closeModal("categoryModal"); await loadCategories(); renderAll(); toast("Category deleted.");
+        } catch (error) { toast(error.message || "Category delete failed."); }
+    }
+
+    function resetProduct() {
+        setValue("productId", ""); setValue("productName", ""); setValue("productSku", ""); setValue("productCategory", ""); setValue("productPrice", "0"); setValue("productCompare", ""); setValue("productActive", "true"); setValue("productDescription", ""); setValue("stockS", "0"); setValue("stockM", "0"); setValue("stockL", "0"); setValue("stockXL", "0");
+        state.editingProductImages = [];
+        setHTML("productImagePreview", "");
+        toggleHidden("deleteProductButton", true);
+        setText("productModalTitle", "NEW PRODUCT");
+    }
+
+    function renderProductImages() {
+        setHTML("productImagePreview", state.editingProductImages.length ? state.editingProductImages.map(function (url) { return `<img src="${escapeHTML(url)}" alt="Product image">`; }).join("") : '<span class="muted">No images yet.</span>');
+    }
+
+    function openProduct(id) {
+        resetProduct();
+        const product = state.products.find(function (p) { return String(p.id) === String(id); });
+        if (!product) return;
+        const s = stock(product);
+        state.editingProductImages = Array.isArray(product.images) ? product.images.slice(0, MAX_IMAGES) : [];
+        setValue("productId", product.id); setValue("productName", product.name || ""); setValue("productSku", product.sku || ""); setValue("productCategory", product.category || ""); setValue("productPrice", product.price || 0); setValue("productCompare", product.compare_at_price || ""); setValue("productActive", String(live(product))); setValue("productDescription", product.description || ""); setValue("stockS", s.S); setValue("stockM", s.M); setValue("stockL", s.L); setValue("stockXL", s.XL);
+        toggleHidden("deleteProductButton", false); setText("productModalTitle", "EDIT PRODUCT"); renderProductImages(); openModal("productModal");
+    }
+
+    async function uploadProductImages() {
+        const input = $("productImageFiles");
+        const files = input && input.files ? Array.from(input.files) : [];
+        if (!files.length) return [];
+        if (state.editingProductImages.length + files.length > MAX_IMAGES) throw new Error("A product can have a maximum of 5 images.");
+        const urls = [];
+        for (const file of files) {
+            const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+            const path = `products/${crypto.randomUUID()}-${safe}`;
+            const upload = await supabaseClient.storage.from(PRODUCT_BUCKET).upload(path, file, { upsert: false, contentType: file.type });
+            if (upload.error) throw upload.error;
+            const publicUrl = supabaseClient.storage.from(PRODUCT_BUCKET).getPublicUrl(path).data.publicUrl;
+            if (publicUrl) urls.push(publicUrl);
+        }
+        return urls;
+    }
+
+    async function saveProduct(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const id = valueOf("productId", "").trim();
+            const name = valueOf("productName", "").trim();
+            const category = valueOf("productCategory", "").trim();
+            if (!name || !category) throw new Error("Product Name and Category are required.");
+            const newImages = await uploadProductImages();
+            const images = state.editingProductImages.concat(newImages).slice(0, MAX_IMAGES);
+            const payload = { name: name, sku: valueOf("productSku", "").trim(), category: category, price: Number(valueOf("productPrice", 0)), compare_at_price: Number(valueOf("productCompare", 0)) || null, active: valueOf("productActive", "true") === "true", visibility: valueOf("productActive", "true") === "true", description: valueOf("productDescription", "").trim(), stock: { S: Number(valueOf("stockS", 0)), M: Number(valueOf("stockM", 0)), L: Number(valueOf("stockL", 0)), XL: Number(valueOf("stockXL", 0)) }, images: images, updated_at: new Date().toISOString() };
+            let result;
+            if (id) result = await supabaseClient.from("products").update(payload).eq("id", id);
+            else result = await supabaseClient.from("products").insert({ ...payload, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") + "-" + Date.now() });
+            if (result.error) throw result.error;
+            closeModal("productModal"); await loadProducts(); renderAll(); toast("Product saved.");
+        } catch (error) { toast(error.message || "Product save failed."); }
+    }
+
+    async function deleteProduct() {
+        try {
+            await requireAdmin();
+            const id = valueOf("productId", "");
+            if (!id || !window.confirm("Delete this product?")) return;
+            const result = await supabaseClient.from("products").delete().eq("id", id);
+            if (result.error) throw result.error;
+            closeModal("productModal"); await loadProducts(); renderAll(); toast("Product deleted.");
+        } catch (error) { toast(error.message || "Product delete failed."); }
+    }
+
+    function openOrder(id) {
+        const order = state.orders.find(function (o) { return String(o.id) === String(id); });
+        if (!order) return;
+        setValue("orderId", order.id); setValue("orderStatus", order.order_status || "PLACED"); setValue("orderPayment", order.payment_status || "PENDING"); setValue("orderCourier", order.courier || order.courier_name || ""); setValue("orderTracking", order.tracking_number || order.awb || ""); setValue("orderNote", order.admin_note || "");
+        setHTML("orderDetails", `<div class="grid three"><div class="card"><b>CUSTOMER</b><p>${escapeHTML(order.customer_name || order.full_name || order.email || "—")}<br>${escapeHTML(order.email || "")}<br>${escapeHTML(order.phone || "")}</p></div><div class="card"><b>SHIPPING</b><p>${escapeHTML(order.shipping_address || order.address || "—")}<br>${escapeHTML(order.shipping_city || order.city || "")} ${escapeHTML(order.shipping_state || order.state || "")} ${escapeHTML(order.shipping_pincode || order.pincode || "")}</p></div><div class="card"><b>TOTAL</b><div class="metric">${money(order.total)}</div></div></div>`);
+        openModal("orderModal");
+    }
+
+    async function saveOrder(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const id = valueOf("orderId", "");
+            const payload = { order_status: valueOf("orderStatus", "PLACED"), payment_status: valueOf("orderPayment", "PENDING"), courier: valueOf("orderCourier", "").trim(), tracking_number: valueOf("orderTracking", "").trim(), admin_note: valueOf("orderNote", "").trim(), updated_at: new Date().toISOString() };
+            const result = await supabaseClient.from("orders").update(payload).eq("id", id);
+            if (result.error) throw result.error;
+            closeModal("orderModal"); await loadOrders(); await loadCustomers(); renderAll(); toast("Order updated.");
+        } catch (error) { toast(error.message || "Order update failed."); }
+    }
+
+    function printPackingSlip() {
+        const id = valueOf("orderId", "");
+        const order = state.orders.find(function (o) { return String(o.id) === String(id); });
+        if (!order) return toast("Order not found.");
+        const win = window.open("", "_blank", "width=900,height=900");
+        if (!win) return toast("Popup blocked. Allow popups to print.");
+        const items = Array.isArray(order.items) ? order.items : Array.isArray(order.order_items) ? order.order_items : [];
+        const itemRows = items.length ? items.map(function (item) { return `<tr><td>${escapeHTML(item.name || item.product_name || "Product")}</td><td>${escapeHTML(item.size || "—")}</td><td>${Number(item.quantity || 1)}</td><td>₹${Number(item.price || item.unit_price || 0).toFixed(2)}</td></tr>`; }).join("") : '<tr><td colspan="4">Order items are stored in the order record.</td></tr>';
+        win.document.write(`<!doctype html><html><head><title>BULKKOT Packing Slip</title><style>body{font-family:Arial,sans-serif;padding:35px;color:#111}header{display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:15px}h1{margin:0;letter-spacing:.08em}.section{margin-top:25px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}.total{text-align:right;font-size:22px;font-weight:800;margin-top:18px}@media print{body{padding:15px}}</style></head><body><header><div><h1>BULKKOT</h1><small>Less noise. More presence.</small></div><div><b>PACKING SLIP</b><br>${escapeHTML(order.order_number || String(order.id).slice(0,8))}</div></header><div class="section"><b>SHIP TO</b><p>${escapeHTML(order.customer_name || order.full_name || order.email || "Customer")}<br>${escapeHTML(order.shipping_address || order.address || "")}<br>${escapeHTML(order.shipping_city || order.city || "")} ${escapeHTML(order.shipping_state || order.state || "")} ${escapeHTML(order.shipping_pincode || order.pincode || "")}</p></div><div class="section"><b>COURIER:</b> ${escapeHTML(order.courier || order.courier_name || "—")}<br><b>TRACKING:</b> ${escapeHTML(order.tracking_number || order.awb || "—")}</div><div class="section"><table><thead><tr><th>Item</th><th>Size</th><th>Qty</th><th>Price</th></tr></thead><tbody>${itemRows}</tbody></table></div><div class="total">Total: ${money(order.total)}</div></body></html>`);
+        win.document.close();
+        win.onload = function () { win.focus(); win.print(); };
+    }
+
+    async function toggleCoupon(id) {
+        try {
+            await requireAdmin();
+            const coupon = state.coupons.find(function (c) { return String(c.id) === String(id); });
+            if (!coupon) return;
+            const result = await supabaseClient.from("coupons").update({ active: !Boolean(coupon.active) }).eq("id", id);
+            if (result.error) throw result.error;
+            await loadCoupons(); renderAll(); toast("Coupon updated.");
+        } catch (error) { toast(error.message || "Coupon update failed."); }
+    }
+
+    async function createCoupon(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const payload = { code: valueOf("couponCode", "").trim().toUpperCase(), discount_value: Number(valueOf("couponDiscount", 0)), discount_type: valueOf("couponType", "PERCENT"), min_order_value: Number(valueOf("couponMinimum", 0)), active: true };
+            if (!payload.code) throw new Error("Coupon code is required.");
+            const result = await supabaseClient.from("coupons").insert(payload);
+            if (result.error) throw result.error;
+            closeModal("couponModal"); await loadCoupons(); renderAll(); toast("Coupon created.");
+        } catch (error) { toast(error.message || "Coupon create failed."); }
+    }
+
+    function exportWaitlist() {
+        if (!state.waitlist.length) return toast("No waitlist entries.");
+        const rows = [["email", "phone", "source", "created_at"]].concat(state.waitlist.map(function (r) { return [r.email || "", r.phone || "", r.source || "", r.created_at || ""]; }));
+        const csv = rows.map(function (row) { return row.map(function (value) { return `"${String(value).replace(/"/g, '""')}"`; }).join(","); }).join("\r\n");
+        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url; link.download = `bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    }
+
+    async function saveCMS() {
+        try {
+            await requireAdmin();
+            const fields = document.querySelectorAll("[data-cms-key]");
+            for (const field of fields) {
+                const result = await supabaseClient.from("site_content").upsert({ content_key: field.dataset.cmsKey, content_value: field.value }, { onConflict: "content_key" });
+                if (result.error) throw result.error;
+            }
+            await loadCMS(); renderCMS(); renderLegal(); toast("CMS saved.");
+        } catch (error) { toast(error.message || "CMS save failed."); }
+    }
+
+    async function saveLegal(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const rows = [["policy_faq", valueOf("policyFaq", "")], ["policy_shipping", valueOf("policyShipping", "")], ["policy_returns", valueOf("policyReturns", "")], ["policy_privacy", valueOf("policyPrivacy", "")], ["policy_terms", valueOf("policyTerms", "")]];
+            for (const row of rows) {
+                const result = await supabaseClient.from("site_content").upsert({ content_key: row[0], content_value: row[1] }, { onConflict: "content_key" });
+                if (result.error) throw result.error;
+            }
+            await loadCMS(); renderLegal(); toast("Policies saved.");
+        } catch (error) { toast(error.message || "Policy save failed."); }
+    }
+
+    async function saveSettings(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const payload = { id: 1, store_name: valueOf("storeName", "BULKKOT").trim(), support_email: valueOf("supportEmail", "").trim(), whatsapp_number: valueOf("whatsappNumber", "").trim(), currency: valueOf("currency", "INR").trim() || "INR", updated_at: new Date().toISOString() };
+            const result = await supabaseClient.from("store_settings").upsert(payload, { onConflict: "id" });
+            if (result.error) throw result.error;
+            await loadSettings(); renderSettings(); toast("Store settings saved.");
+        } catch (error) { toast(error.message || "Settings save failed."); }
+    }
+
+    async function login(event) {
+        event.preventDefault();
+        const errorElement = $("loginError");
+        const button = $("loginButton");
+        if (errorElement) errorElement.textContent = "";
+        if (button) { button.disabled = true; button.textContent = "Signing in…"; }
+        try {
+            const email = valueOf("loginEmail", "").trim().toLowerCase();
+            const password = valueOf("loginPassword", "");
+            if (email !== ADMIN_EMAIL.toLowerCase()) throw new Error("This email is not authorized for BULKKOT Admin.");
+            if (!password) throw new Error("Enter your password.");
+            const result = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+            if (result.error) throw result.error;
+            const session = result.data ? result.data.session : null;
+            if (!authorized(session)) {
+                await supabaseClient.auth.signOut();
+                throw new Error("Authenticated account is not authorized.");
+            }
+            window.location.reload();
+        } catch (error) {
+            if (errorElement) errorElement.textContent = error.message || "Authentication failed.";
+        } finally {
+            if (button) { button.disabled = false; button.textContent = "Sign In"; }
+        }
+    }
+
+    async function logout() {
+        await supabaseClient.auth.signOut();
+        window.location.reload();
+    }
+
+    function bindEvents() {
+        const loginForm = $("loginForm"); if (loginForm) loginForm.addEventListener("submit", login);
+        const logoutButton = $("logoutButton"); if (logoutButton) logoutButton.addEventListener("click", logout);
+        const refreshButton = $("refreshButton"); if (refreshButton) refreshButton.addEventListener("click", async function () { try { await requireAdmin(); await loadAll(); toast("Refreshed."); } catch (error) { toast(error.message); } });
+        const menuButton = $("menuButton"); if (menuButton) menuButton.addEventListener("click", function () { const sidebar = $("sidebar"); if (sidebar) sidebar.classList.toggle("open"); });
+        document.querySelectorAll("#nav button").forEach(function (button) { button.addEventListener("click", function () { navigate(button.dataset.page); }); });
+        document.querySelectorAll("[data-close]").forEach(function (button) { button.addEventListener("click", function () { closeModal(button.dataset.close); }); });
+        document.querySelectorAll(".modal").forEach(function (modal) { modal.addEventListener("click", function (event) { if (event.target === modal) closeModal(modal.id); }); });
+        const newCategory = $("newCategoryButton"); if (newCategory) newCategory.addEventListener("click", function () { resetCategory(); openModal("categoryModal"); });
+        const categoryForm = $("categoryForm"); if (categoryForm) categoryForm.addEventListener("submit", saveCategory);
+        const deleteCategoryButton = $("deleteCategoryButton"); if (deleteCategoryButton) deleteCategoryButton.addEventListener("click", deleteCategory);
+        const newProduct = $("newProductButton"); if (newProduct) newProduct.addEventListener("click", function () { resetProduct(); renderCategories(); openModal("productModal"); });
+        const productForm = $("productForm"); if (productForm) productForm.addEventListener("submit", saveProduct);
+        const deleteProductButton = $("deleteProductButton"); if (deleteProductButton) deleteProductButton.addEventListener("click", deleteProduct);
+        const productSearch = $("productSearch"); if (productSearch) productSearch.addEventListener("input", renderProducts);
+        const orderForm = $("orderForm"); if (orderForm) orderForm.addEventListener("submit", saveOrder);
+        const orderSearch = $("orderSearch"); if (orderSearch) orderSearch.addEventListener("input", renderOrders);
+        const orderFilter = $("orderStatusFilter"); if (orderFilter) orderFilter.addEventListener("change", renderOrders);
+        const printButton = $("printPackingSlipButton"); if (printButton) printButton.addEventListener("click", printPackingSlip);
+        const customerSearch = $("customerSearch"); if (customerSearch) customerSearch.addEventListener("input", renderCustomers);
+        const newCoupon = $("newCouponButton"); if (newCoupon) newCoupon.addEventListener("click", function () { const form = $("couponForm"); if (form) form.reset(); openModal("couponModal"); });
+        const couponForm = $("couponForm"); if (couponForm) couponForm.addEventListener("submit", createCoupon);
+        const refreshWaitlist = $("refreshWaitlistButton"); if (refreshWaitlist) refreshWaitlist.addEventListener("click", async function () { try { await loadWaitlist(); renderWaitlist(); setText("navWaitlist", state.waitlist.length); toast("Waitlist refreshed."); } catch (error) { toast(error.message); } });
+        const exportButton = $("exportWaitlistButton"); if (exportButton) exportButton.addEventListener("click", exportWaitlist);
+        const cmsButton = $("saveCmsButton"); if (cmsButton) cmsButton.addEventListener("click", saveCMS);
+        const legalForm = $("legalForm"); if (legalForm) legalForm.addEventListener("submit", saveLegal);
+        const settingsForm = $("settingsForm"); if (settingsForm) settingsForm.addEventListener("submit", saveSettings);
+    }
+
+    async function initialize() {
+        showLogin();
+        bindEvents();
+        try {
+            const result = await supabaseClient.auth.getSession();
+            if (result.error) throw result.error;
+            const session = result.data ? result.data.session : null;
+            if (!authorized(session)) {
+                showLogin();
+            } else {
+                showAdmin(session);
+                await loadAll();
+            }
+        } catch (error) {
+            console.error("Session initialization failed:", error);
+            showLogin("Could not verify the Supabase session.");
+        }
+
+        supabaseClient.auth.onAuthStateChange(function (_event, session) {
+            if (!authorized(session)) {
+                showLogin();
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialize, { once: true });
     } else {
-      overlay.classList.add("hidden");
+        initialize();
     }
-  }
-}
-
-function showLogin(){ 
-  const l = $("loginView"), a = $("app");
-  if(l) l.classList.remove("hidden"); 
-  if(a) a.classList.add("hidden"); 
-}
-function showApp(email){ 
-  const l = $("loginView"), a = $("app"), s = $("authStatus");
-  if(l) l.classList.add("hidden"); 
-  if(a) a.classList.remove("hidden"); 
-  if(s) s.textContent = "● " + email; 
-}
-
-// --- DATA FETCHING ---
-async function loadCMS(){
-  const {data,error} = await sb.from("site_content").select("content_key,content_value");
-  state.cms={}; if(!error && data) { data.forEach(r => { if(r.content_key) state.cms[r.content_key]=r.content_value??""; }); }
-}
-function cms(k){ return state.cms[k]!==undefined ? state.cms[k] : (DEFAULTS[k]??""); }
-
-async function loadCategories(){ const {data} = await sb.from("categories").select("*").order("sort_order",{ascending:true}); state.categories=data||[]; }
-async function loadProducts(){ const {data} = await sb.from("products").select("*").order("created_at",{ascending:false}); state.products=data||[]; }
-async function loadOrders(){ const {data} = await sb.from("orders").select("*").order("created_at",{ascending:false}); state.orders=data||[]; }
-async function loadCustomers(){ const {data} = await sb.from("customer_profiles").select("*"); state.customers=data||[]; }
-async function loadCoupons(){ const {data} = await sb.from("coupons").select("*").order("created_at",{ascending:false}); state.coupons=data||[]; }
-async function loadWaitlist(){ const {data} = await sb.from("waitlist").select("*").order("created_at",{ascending:false}); state.waitlist=data||[]; }
-async function loadSettings(){ const {data} = await sb.from("store_settings").select("*").eq("id",1).maybeSingle(); state.settings=data; }
-
-async function loadAll(){
-  setLoading(true, "FETCHING STORE DATA...");
-  try {
-    await Promise.all([ loadCMS(), loadCategories(), loadProducts(), loadOrders(), loadCustomers(), loadCoupons(), loadWaitlist(), loadSettings() ]);
-    renderAll();
-    renderContentTabs();
-    renderContentEditor();
-  } catch(e) {
-    console.error(e); toast("Failed to load data.", "error");
-  } finally {
-    setLoading(false);
-  }
-}
-
-// --- RENDERING LOGIC ---
-function stockTotal(p){ const s=p.stock||{}; return Object.values(s).reduce((a,v)=>a+Number(v||0),0); }
-
-function renderAll(){
-  if($("kProducts")) $("kProducts").textContent=state.products.filter(p=>p.active!==false).length;
-  if($("kOrders")) $("kOrders").textContent=state.orders.length; 
-  if($("kCustomers")) $("kCustomers").textContent=state.customers.length; 
-  if($("kWaitlist")) $("kWaitlist").textContent=state.waitlist.length;
-  if($("kLowStock")) $("kLowStock").textContent=state.products.filter(p=>stockTotal(p)<=5).length;
-  
-  if($("navProducts")) $("navProducts").textContent=state.products.length; 
-  if($("navCategories")) $("navCategories").textContent=state.categories.length; 
-  if($("navOrders")) $("navOrders").textContent=state.orders.length;
-  if($("navCustomers")) $("navCustomers").textContent=state.customers.length; 
-  if($("navCoupons")) $("navCoupons").textContent=state.coupons.length; 
-  if($("navWaitlist")) $("navWaitlist").textContent=state.waitlist.length;
-
-  if($("recentOrders")) $("recentOrders").innerHTML=state.orders.slice(0,8).map(o=>`<tr><td><b>${esc(o.order_number||String(o.id).slice(0,8))}</b></td><td>${esc(o.customer_name||o.email||"—")}</td><td>${money(o.total)}</td><td><span class="badge">${esc(o.order_status||"PLACED")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="muted">No orders.</td></tr>`;
-  if($("lowStockRows")) $("lowStockRows").innerHTML=state.products.filter(p=>stockTotal(p)<=5).slice(0,8).map(p=>`<tr><td>${esc(p.sku||"—")}</td><td>${esc(p.name)}</td><td><span class="badge ${stockTotal(p)<=0?"red":"amber"}">${stockTotal(p)}</span></td></tr>`).join("")||`<tr><td colspan="3" class="muted">No low-stock items.</td></tr>`;
-  
-  if($("cmsCoverage")) $("cmsCoverage").textContent=Object.entries(CMS_GROUPS).map(([k,g])=>`${g.label}: ${g.keys.filter(x=>state.cms[x]!==undefined).length}/${g.keys.length} keys present`).join("\n");
-  
-  renderCategories(); renderProducts(); renderOrders(); renderCustomers(); renderCoupons(); renderWaitlist(); renderSettings();
-}
-
-function renderContentTabs(){
-  const el=$("contentTabs"); if(!el) return;
-  el.innerHTML=Object.entries(CMS_GROUPS).map(([k,g])=>`<button class="btn small ${k===state.currentContent?"active":""}" data-content-tab="${k}">${esc(g.label)}</button>`).join("");
-  el.querySelectorAll("[data-content-tab]").forEach(b=>b.onclick=()=>{ state.currentContent=b.dataset.contentTab; renderContentTabs(); renderContentEditor(); });
-}
-function renderContentEditor(){
-  const el=$("contentEditor"); if(!el) return;
-  const keys=CMS_GROUPS[state.currentContent].keys;
-  el.innerHTML=`<div class="panel"><div class="panel-head"><div><h2>${esc(CMS_GROUPS[state.currentContent].label)}</h2><span class="muted">Saved to site_content.</span></div><span class="badge">FIELDS ${keys.length}</span></div><div class="panel-body"><div class="form-grid">${keys.map(k=>{
-    const value=cms(k); const multi=value.length>150||k.includes("body")||k.includes("description")||k.includes("policy");
-    return `<div class="field ${multi?"full":""}"><label>${esc(k)}</label>${multi?`<textarea data-cms-field="${esc(k)}">${esc(value)}</textarea>`:`<input data-cms-field="${esc(k)}" value="${esc(value)}" ${k.includes("color")?"type=color":""}>`}</div>`;
-  }).join("")}</div></div></div>`;
-}
-
-if($("saveContentBtn")) $("saveContentBtn").onclick = async () => {
-  setLoading(true, "SAVING CMS...");
-  try {
-    const fields=[...document.querySelectorAll("[data-cms-field]")];
-    for(const f of fields){
-      const key=f.dataset.cmsField, value=f.value;
-      const {error}=await sb.from("site_content").upsert({content_key:key, content_value:value, updated_at:new Date().toISOString()},{onConflict:"content_key"});
-      if(error) throw error;
-      state.cms[key]=value;
-    }
-    toast("CMS section saved."); renderContentEditor();
-  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
-};
-
-// --- CATEGORIES LOGIC ---
-function renderCategories(){
-  const el=$("categoriesRows"); if(!el) return;
-  el.innerHTML=state.categories.map(c=>`<tr><td><b>${esc(c.slug)}</b></td><td>${esc(c.name_en)}</td><td>${esc(c.name_ko)}</td><td>${bool(c.is_active)?"<span class='badge green'>ACTIVE</span>":"<span class='badge red'>HIDDEN</span>"}</td><td><button class="btn small" data-edit-cat="${c.id}">EDIT</button></td></tr>`).join("")||`<tr><td colspan="5" class="muted">No categories.</td></tr>`;
-  document.querySelectorAll("[data-edit-cat]").forEach(b=>b.onclick=()=>editCategory(b.dataset.editCat));
-  
-  // Update Product form dropdown
-  const pCat = $("pCategory");
-  if(pCat) { pCat.innerHTML = state.categories.filter(c=>c.is_active).map(c=>`<option value="${esc(c.slug)}">${esc(c.name_en)}</option>`).join("") || `<option value="tees">Tees</option>`; }
-}
-if($("addCategoryBtn")) $("addCategoryBtn").onclick = () => { $("cId").value=""; $("categoryForm").reset(); $("categoryModalTitle").textContent="NEW CATEGORY"; openModal("categoryModal"); };
-function editCategory(id){
-  const c=state.categories.find(x=>x.id==id); if(!c) return;
-  $("cId").value=c.id; $("cSlug").value=c.slug; $("cEn").value=c.name_en; $("cKo").value=c.name_ko; $("cSort").value=c.sort_order\vert{}\vert{}0; $("cActiveStatus").value=String(c.is_active!==false);
-  $("categoryModalTitle").textContent="EDIT CATEGORY"; openModal("categoryModal");
-}
-if($("categoryForm")) $("categoryForm").onsubmit = async (e) => {
-  e.preventDefault(); setLoading(true, "SAVING CATEGORY...");
-  try {
-    const slug = $("cSlug").value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
-    const payload = { slug, name_en:$("cEn").value.trim(), name_ko:$("cKo").value.trim(), sort_order:Number($("cSort").value\vert{}\vert{}0), is_active:bool($("cActiveStatus").value) };
-    const id = $("cId").value;
-    const {error} = id ? await sb.from("categories").update(payload).eq("id",id) : await sb.from("categories").insert(payload);
-    if(error) throw error;
-    closeModal("categoryModal"); await loadCategories(); renderAll(); toast("Category saved.");
-  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
-};
-
-// --- PRODUCTS LOGIC ---
-function renderProducts(){
-  const q=$("productSearch")?$("productSearch").value.toLowerCase():"";
-  const rows=state.products.filter(p=>`${p.name||""} ${p.sku||""}`.toLowerCase().includes(q));
-  if($("productsRows")) $("productsRows").innerHTML=rows.map(p=>`<tr><td><b>${esc(p.name)}</b><div class="muted">${esc(p.slug||"")}</div></td><td>${esc(p.sku||"—")}</td><td>${esc(p.category||"—")}</td><td>${money(p.price)}</td><td>${stockTotal(p)}</td><td>${bool(p.active)?"<span class='badge green'>LIVE</span>":"<span class='badge red'>HIDDEN</span>"}</td><td><button class="btn small" data-edit-product="${esc(p.id)}">EDIT</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">No products.</td></tr>`;
-  document.querySelectorAll("[data-edit-product]").forEach(b=>b.onclick=()=>editProduct(b.dataset.editProduct));
-}
-if($("productSearch")) $("productSearch").oninput=renderProducts;
-if($("addProductBtn")) $("addProductBtn").onclick=()=>{ $("pId").value=""; $("productForm").reset(); $("pStock").value='{"S":0,"M":0,"L":0,"XL":0}'; $("pImages").value='[]'; $("pTags").value='[]'; $("deleteProductBtn").style.display="none"; $("productModalTitle").textContent="NEW PRODUCT"; openModal("productModal"); };
-function editProduct(id){
-  const p=state.products.find(x=>String(x.id)===String(id))||{};
-  $("productModalTitle").textContent=p.id?"EDIT PRODUCT":"NEW PRODUCT"; $("pId").value=p.id\vert{}\vert{}""; $("pName").value=p.name||""; $("pSku").value=p.sku\vert{}\vert{}""; $("pCategory").value=(p.category||"").toLowerCase(); $("pPrice").value=p.price\vert{}\vert{}0; $("pCompare").value=p.compare_at_price||""; $("pFeatured").value=String(bool(p.featured)); $("pActive").value=String(p.active!==false); $("pVisibility").value=String(p.visibility!==false); $("pDescription").value=p.description||""; $("pStock").value=JSON.stringify(p.stock\vert{}\vert{}{S:0,M:0,L:0,XL:0}); $("pImages").value=JSON.stringify(p.images||[]); $("pTags").value=JSON.stringify(p.tags\vert{}\vert{}[]); $("deleteProductBtn").style.display=p.id?"block":"none"; openModal("productModal");
-}
-if($("productForm")) $("productForm").onsubmit = async (e) => {
-  e.preventDefault(); setLoading(true, "SAVING PRODUCT...");
-  try {
-    let stock, images, tags; try{ stock=JSON.parse($("pStock").value||"{}"); images=JSON.parse($("pImages").value\vert{}\vert{}"[]"); tags=JSON.parse($("pTags").value||"[]"); } catch{ throw new Error("Invalid JSON in fields"); }
-    const name=$("pName").value.trim(), slug=(name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-\vert{}-$/g,""))+"-"+Date.now();
-    const payload={name, sku:$("pSku").value.trim(), category:$("pCategory").value, price:Number($("pPrice").value\vert{}\vert{}0), compare_at_price:Number($("pCompare").value||0)||null, featured:bool($("pFeatured").value), active:bool($("pActive").value), visibility:bool($("pVisibility").value), description:$("pDescription").value, stock, images, tags, updated_at:new Date().toISOString()};
-    const id=$("pId").value;
-    const {error} = id ? await sb.from("products").update(payload).eq("id",id) : await sb.from("products").insert({...payload,slug});
-    if(error) throw error;
-    closeModal("productModal"); await loadProducts(); renderAll(); toast("Product saved.");
-  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
-};
-if($("deleteProductBtn")) $("deleteProductBtn").onclick = async () => {
-  const id=$("pId").value; if(!id) return; if(!confirm("Delete this product?")) return;
-  setLoading(true); try { await sb.from("products").delete().eq("id",id); closeModal("productModal"); await loadProducts(); renderAll(); toast("Product deleted."); } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
-};
-
-// --- ORDERS LOGIC ---
-function renderOrders(){
-  const q=$("orderSearch")?$("orderSearch").value.toLowerCase():"", st=$("orderStatusFilter")?$("orderStatusFilter").value:"";
-  const rows=state.orders.filter(o=>(!st||(o.order_status||"PLACED")===st)&&`${o.order_number||""} ${o.customer_name||""} ${o.phone||""} ${o.email||""}`.toLowerCase().includes(q));
-  if($("ordersRows")) $("ordersRows").innerHTML=rows.map(o=>`<tr><td><b>${esc(o.order_number||String(o.id).slice(0,8))}</b></td><td>${esc(o.customer_name||o.email||"—")}</td><td>${money(o.total)}</td><td>${esc(o.payment_status||"—")}</td><td><span class="badge">${esc(o.order_status||"PLACED")}</span></td><td>${date(o.created_at)}</td><td><button class="btn small" data-edit-order="${esc(o.id)}">MANAGE</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">No orders.</td></tr>`;
-  document.querySelectorAll("[data-edit-order]").forEach(b=>b.onclick=()=>editOrder(b.dataset.editOrder));
-}
-if($("orderSearch")) $("orderSearch").oninput=renderOrders; if($("orderStatusFilter")) $("orderStatusFilter").onchange=renderOrders;
-function editOrder(id){
-  const o=state.orders.find(x=>String(x.id)===String(id)); if(!o) return;
-  $("oId").value=o.id; $("oStatus").value=o.order_status||"PLACED"; $("oPayment").value=o.payment_status\vert{}\vert{}"PENDING"; $("oFulfillment").value=o.fulfillment_status||"PENDING"; $("oTracking").value=o.tracking_number\vert{}\vert{}""; $("oNote").value=o.admin_note||"";
-  $("orderDetails").innerHTML=`<div class="grid three"><div class="card"><b>CUSTOMER</b><p>${esc(o.customer_name||"—")}<br>${esc(o.email||"")}<br>${esc(o.phone||"")}</p></div><div class="card"><b>SHIPPING</b><p>${esc(o.shipping_address||"—")}<br>${esc(o.shipping_city||"")} ${esc(o.shipping_state||"")}</p></div><div class="card"><b>TOTAL</b><div class="metric" style="font-size:22px">${money(o.total)}</div></div></div>`;
-  openModal("orderModal");
-}
-if($("orderForm")) $("orderForm").onsubmit = async (e) => {
-  e.preventDefault(); setLoading(true, "SAVING ORDER...");
-  try {
-    const payload={ order_status:$("oStatus").value, payment_status:$("oPayment").value, fulfillment_status:$("oFulfillment").value, tracking_number:$("oTracking").value.trim(), admin_note:$("oNote").value, updated_at:new Date().toISOString() };
-    const {error}=await sb.from("orders").update(payload).eq("id",$("oId").value);
-    if(error) throw error;
-    closeModal("orderModal"); await loadOrders(); renderAll(); toast("Order updated.");
-  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
-};
-
-// --- CUSTOMERS LOGIC ---
-function renderCustomers(){
-  const q=$("customerSearch")?$("customerSearch").value.toLowerCase():""; const rows=state.customers.filter(c=>`${c.full_name||""} ${c.phone||""} ${c.id||""}`.toLowerCase().includes(q));
-  if($("customersRows")) $("customersRows").innerHTML=rows.map(c=>`<tr><td><b>${esc(c.full_name||"Unnamed")}</b></td><td>${esc(c.phone||"—")}</td><td><code>${esc(c.id||"—")}</code></td><td>${esc([c.shipping_city,c.shipping_state].filter(Boolean).join(", ")||"—")}</td><td>${date(c.updated_at)}</td><td><button class="btn small" data-customer="${esc(c.id)}">VIEW</button></td></tr>`).join("")||`<tr><td colspan="6" class="muted">No customer profiles.</td></tr>`;
-  document.querySelectorAll("[data-customer]").forEach(b=>b.onclick=()=>viewCustomer(b.dataset.customer));
-}
-if($("customerSearch")) $("customerSearch").oninput=renderCustomers;
-function viewCustomer(id){ const c=state.customers.find(x=>String(x.id)===String(id)); if(!c) return; $("customerDetails").innerHTML=`<div class="grid two"><div class="card"><div class="eyebrow">PROFILE</div><h2>${esc(c.full_name||"Unnamed")}</h2><p>${esc(c.phone||"—")}<br>${esc(c.id||"—")}</p></div><div class="card"><div class="eyebrow">ADDRESS</div><p>${esc(c.shipping_address||"—")}<br>${esc([c.shipping_city,c.shipping_state,c.shipping_pincode].filter(Boolean).join(", "))}</p></div></div>`; openModal("customerModal"); }
-
-// --- COUPONS LOGIC ---
-function renderCoupons(){
-  if($("couponsRows")) $("couponsRows").innerHTML=state.coupons.map(c=>`<tr><td><b>${esc(c.code)}</b></td><td>${esc(c.discount_value)}</td><td>${money(c.min_order_value)}</td><td>${bool(c.active)?"<span class='badge green'>ACTIVE</span>":"<span class='badge red'>OFF</span>"}</td><td>${date(c.created_at)}</td><td><button class="btn small" data-toggle-coupon="${esc(c.id)}">${bool(c.active)?"DISABLE":"ENABLE"}</button></td></tr>`).join("")||`<tr><td colspan="6" class="muted">No coupons.</td></tr>`;
-  document.querySelectorAll("[data-toggle-coupon]").forEach(b=>b.onclick=()=>toggleCoupon(b.dataset.toggleCoupon));
-}
-if($("addCouponBtn")) $("addCouponBtn").onclick=()=>{ $("couponForm").reset(); openModal("couponModal"); };
-if($("couponForm")) $("couponForm").onsubmit = async (e) => {
-  e.preventDefault(); setLoading(true, "CREATING COUPON...");
-  try {
-    const payload={code:$("cCode").value.trim().toUpperCase(), discount_value:Number($("cDiscount").value||0), min_order_value:Number($("cMin").value\vert{}\vert{}0), active:bool($("cActive").value)};
-    const {error}=await sb.from("coupons").insert(payload); if(error) throw error;
-    closeModal("couponModal"); await loadCoupons(); renderAll(); toast("Coupon created.");
-  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
-};
-async function toggleCoupon(id){ setLoading(true); try { const c=state.coupons.find(x=>String(x.id)===String(id)); await sb.from("coupons").update({active:!bool(c.active)}).eq("id",id); await loadCoupons(); renderAll(); toast("Coupon toggled."); } catch(e){ toast(e.message,"error"); } finally { setLoading(false); } }
-
-// --- WAITLIST LOGIC ---
-function renderWaitlist(){ if($("waitlistRows")) $("waitlistRows").innerHTML=state.waitlist.map(r=>`<tr><td><b>${esc(r.email||"—")}</b></td><td>${esc(r.source||"—")}</td><td>${date(r.created_at)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">No waitlist entries.</td></tr>`; }
-if($("refreshWaitlistBtn")) $("refreshWaitlistBtn").onclick=async()=>{ setLoading(true); await loadWaitlist(); renderAll(); setLoading(false); toast("Waitlist refreshed."); };
-if($("exportWaitlistBtn")) $("exportWaitlistBtn").onclick=()=>{
-  if(!state.waitlist.length) return toast("No waitlist entries", "warning");
-  const rows=[["email","source","created_at"],...state.waitlist.map(r=>[r.email||"",r.source||"",r.created_at||""])];
-  const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\r\n"); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`; a.click();
-};
-
-// --- SETTINGS LOGIC ---
-function renderSettings(){
-  const s=state.settings||{};
-  if($("sStoreName")) $("sStoreName").value=s.store_name||""; if($("sEmail")) $("sEmail").value=s.support_email||""; if($("sPhone")) $("sPhone").value=s.support_phone||""; if($("sCurrency")) $("sCurrency").value=s.currency||"INR"; if($("sShipping")) $("sShipping").value=s.shipping_fee??0; if($("sFreeShip")) $("sFreeShip").value=s.free_shipping_threshold??0; if($("sAddress")) $("sAddress").value=s.store_address||""; if($("sInstagram")) $("sInstagram").value=s.instagram_url||cms("instagram_url"); if($("sWebsite")) $("sWebsite").value=s.website_url||"";
-}
-if($("saveSettingsBtn")) $("saveSettingsBtn").onclick = async () => {
-  setLoading(true, "SAVING SETTINGS...");
-  try {
-    const payload={id:1, store_name:$("sStoreName").value.trim(), support_email:$("sEmail").value.trim(), support_phone:$("sPhone").value.trim(), currency:$("sCurrency").value.trim()\vert{}\vert{}"INR", shipping_fee:Number($("sShipping").value||0), free_shipping_threshold:Number($("sFreeShip").value\vert{}\vert{}0), store_address:$("sAddress").value.trim(), instagram_url:$("sInstagram").value.trim(), website_url:$("sWebsite").value.trim(), updated_at:new Date().toISOString()};
-    const {error}=await sb.from("store_settings").upsert(payload,{onConflict:"id"}); if(error) throw error;
-    await loadSettings(); toast("Settings saved.");
-  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
-};
-
-// --- MEDIA LOGIC ---
-if($("uploadMediaBtn")) $("uploadMediaBtn").onclick = async () => {
-  const f=$("mediaFile").files[0]; if(!f) return toast("Choose an image", "warning");
-  setLoading(true, "UPLOADING...");
-  try {
-    const path=`site-content/${crypto.randomUUID()}-${f.name.replace(/[^a-zA-Z0-9._-]/g,"-")}`;
-    const {error}=await sb.storage.from("site-content-images").upload(path,f,{upsert:false,contentType:f.type}); if(error) throw error;
-    const {data}=sb.storage.from("site-content-images").getPublicUrl(path); navigator.clipboard?.writeText(data.publicUrl); toast("Uploaded. URL copied."); $("mediaFile").value="";
-  } catch(e) { toast(e.message, "error"); } finally { setLoading(false); }
-};
-
-// --- NAVIGATION & UI SETUP ---
-function renderPage(page){
-  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-  const target = $("page-"+page); if(target) target.classList.add("active");
-  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-  const labels={dashboard:"Dashboard",content:"Storefront CMS",products:"Products",categories:"Categories",orders:"Orders",customers:"Customers CRM",coupons:"Coupons",waitlist:"VIP Waitlist",media:"Media Library",settings:"Store Settings",schema:"Schema Blueprint"};
-  if($("pageTitle")) $("pageTitle").textContent=labels[page]||page;
-  if(innerWidth<700 && $("sidebar")) $("sidebar").classList.remove("open");
-}
-document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>renderPage(b.dataset.page));
-document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>renderPage(b.dataset.go));
-document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
-document.querySelectorAll(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.remove("open")});
-if($("menuBtn")) $("menuBtn").onclick=()=>{ if(innerWidth<700 && $("sidebar")) $("sidebar").classList.toggle("open"); };
-if($("refreshBtn")) $("refreshBtn").onclick=async()=>{ try{ await loadAll(); toast("Refreshed."); }catch(e){toast(e.message,"error");} };
-if($("copySqlBtn")) $("copySqlBtn").onclick=async()=>{ await navigator.clipboard.writeText($("sqlPreview").textContent); toast("SQL copied."); };
-
-// --- BOOT PROCESS ---
-async function boot() {
-  setLoading(true, "CHECKING SESSION...");
-  const session = await getValidSession();
-  if (session && session.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-    showApp(session.user.email);
-    await loadAll();
-  } else {
-    showLogin();
-    setLoading(false);
-  }
-}
-
-// --- AUTH LISTENER (SAFE) ---
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT" || event === "USER_DELETED") {
-    showLogin();
-  }
-});
-
-// --- LOGIN SUBMIT HANDLER ---
-if ($("loginForm")) {
-  $("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault(); // Stop page refresh!
-    $("loginError").textContent = "";
-    setLoading(true, "AUTHENTICATING...");
-    try {
-      const email = $("loginEmail").value.trim();
-      const password = $("loginPassword").value;
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      
-      const session = data?.session;
-      if (!session || session.user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-        await sb.auth.signOut();
-        throw new Error("This account is not authorized for BULKKOT admin.");
-      }
-      
-      showApp(session.user.email);
-      await loadAll();
-    } catch (err) {
-      $("loginError").textContent = err.message || "Authentication failed.";
-      setLoading(false); // Only stop loading if failed, otherwise loadAll stops it
-    }
-  });
-}
-
-// Start app
-boot();
-
-const SQL=`-- BULKKOT GOD MODE / SUPABASE BLUEPRINT
-create extension if not exists pgcrypto;
-
-create table if not exists site_content (
- id uuid primary key default gen_random_uuid(),
- content_key text unique,
- content_value text,
- content_type text default 'text',
- updated_at timestamptz default now()
-);
-
-create table if not exists categories (
- id uuid primary key default gen_random_uuid(),
- slug text unique not null,
- name_en text not null,
- name_ko text not null,
- is_active boolean default true,
- sort_order integer default 0,
- created_at timestamptz default now()
-);
-
-create table if not exists products (
- id uuid primary key default gen_random_uuid(),
- name text not null,
- slug text unique,
- sku text,
- category text,
- price numeric(12,2) default 0,
- compare_at_price numeric(12,2),
- description text,
- stock jsonb default '{"S":0,"M":0,"L":0,"XL":0}'::jsonb,
- images jsonb default '[]'::jsonb,
- tags jsonb default '[]'::jsonb,
- featured boolean default false,
- active boolean default true,
- visibility boolean default true,
- created_at timestamptz default now(),
- updated_at timestamptz default now()
-);
-
-create table if not exists orders (
- id uuid primary key default gen_random_uuid(),
- order_number text unique,
- customer_name text, email text, phone text,
- shipping_address text, shipping_city text, shipping_state text, shipping_pincode text,
- subtotal numeric(12,2) default 0, total numeric(12,2) default 0,
- payment_status text default 'PENDING',
- order_status text default 'PLACED', fulfillment_status text default 'PENDING',
- tracking_number text, admin_note text,
- created_at timestamptz default now(), updated_at timestamptz default now()
-);
-
-create table if not exists customer_profiles (
- id uuid primary key,
- full_name text, phone text, shipping_address text, shipping_city text,
- shipping_state text, shipping_pincode text, created_at timestamptz default now(),
- updated_at timestamptz default now()
-);
-
-create table if not exists coupons (
- id uuid primary key default gen_random_uuid(),
- code text unique not null, discount_value numeric(12,2) default 0,
- min_order_value numeric(12,2) default 0, active boolean default true,
- created_at timestamptz default now()
-);
-
-create table if not exists waitlist (
- id uuid primary key default gen_random_uuid(),
- email text not null, source text default 'homepage_waitlist',
- created_at timestamptz default now()
-);
-
-create table if not exists store_settings (
- id integer primary key default 1,
- store_name text default 'BULKKOT',
- support_email text, support_phone text,
- currency text default 'INR', shipping_fee numeric(12,2) default 0,
- free_shipping_threshold numeric(12,2) default 0,
- store_address text, instagram_url text, website_url text,
- updated_at timestamptz default now()
-);
-`;
-if($("sqlPreview")) $("sqlPreview").textContent=SQL;
-
 })();
 </script>
 </body>
