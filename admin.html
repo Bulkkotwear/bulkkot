@@ -6,1006 +6,653 @@
   <title>BULKKOT — Admin Control Center</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root{--bg:#070707;--panel:#101010;--panel2:#151515;--line:#292929;--text:#f5f5f5;--muted:#888;--red:#e31b23;--green:#39cf98;--yellow:#e5b64e;--radius:14px}
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:13px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    button,input,select,textarea{font:inherit}
-    button{cursor:pointer}
-    .hidden{display:none!important}
-    .login{min-height:100vh;display:grid;place-items:center;padding:20px}
-    .login-card{width:min(430px,100%);padding:32px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 25px 80px #0008}
-    .mark{width:52px;height:52px;display:grid;place-items:center;background:var(--red);border-radius:12px;font-weight:900;margin-bottom:18px}
-    .login h1{margin:0;font-size:28px}
-    .login p{color:var(--muted);line-height:1.6}
-    .form{display:grid;gap:13px;margin-top:22px}
-    .field{display:grid;gap:6px}
-    .field label{color:#8d8d8d;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
-    .field input,.field select,.field textarea,.search{width:100%;padding:10px 11px;background:#090909;color:#eee;border:1px solid #2c2c2c;border-radius:8px;outline:none;transition:0.2s ease}
-    .field textarea{min-height:105px;resize:vertical}
-    .field input:focus,.field select:focus,.field textarea:focus,.search:focus{border-color:#666}
-    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
-    .full{grid-column:1/-1}
-    .btn{border:1px solid var(--line);background:#171717;color:#ddd;border-radius:8px;padding:9px 12px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;transition:0.2s ease}
-    .btn:hover{border-color:#555;color:#fff}
-    .primary{background:var(--red);border-color:var(--red);color:#fff}
-    .primary:hover{background:#c0131b;border-color:#c0131b}
-    .danger{color:#ff777e;border-color:#572329;background:rgba(239,68,68,0.1)}
-    .danger:hover{background:rgba(239,68,68,0.2)}
-    .app{min-height:100vh;display:grid;grid-template-columns:245px 1fr}
-    .sidebar{position:sticky;top:0;height:100vh;overflow:auto;background:#090909;border-right:1px solid var(--line);padding:18px 12px}
-    .brand{padding:8px 10px 20px;border-bottom:1px solid var(--line);margin-bottom:13px}
-    .brand b{display:block;font-size:17px;letter-spacing:.12em}
-    .brand small{color:var(--muted);font-size:9px;letter-spacing:.18em}
-    .nav{display:grid;gap:5px}
-    .nav button{width:100%;display:flex;justify-content:space-between;gap:8px;background:transparent;color:#aaa;border:1px solid transparent;border-radius:9px;padding:11px 12px;text-align:left}
-    .nav button:hover,.nav button.active{background:#171717;color:#fff;border-color:var(--line)}
-    .count{color:#666;font-size:10px}
-    .nav button.active .count { color: var(--red); }
-    .sidefoot{margin-top:16px;padding:14px 10px;border-top:1px solid var(--line);color:#666;font-size:10px;line-height:1.6}
-    .main{min-width:0}
-    .topbar{position:sticky;top:0;z-index:20;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 24px;background:#070707ee;border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
-    .top-left,.top-right{display:flex;align-items:center;gap:9px}
-    .topbar h1{margin:0;font-size:17px}
-    .status{color:var(--muted);font-size:10px}
-    .content{max-width:1700px;margin:auto;padding:24px}
-    .page{display:none; animation: fadeIn 0.2s ease;}
-    .page.active{display:block}
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-    .heading{margin-bottom:18px}
-    .heading .eyebrow,.eyebrow{color:var(--red);font-size:9px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
-    .heading h2{margin:4px 0;font-size:26px}
-    .heading p{margin:6px 0;color:var(--muted)}
-    .grid{display:grid;gap:14px}
-    .two{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .three{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .four{grid-template-columns:repeat(4,minmax(0,1fr))}
-    .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
-    .card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-    .card{padding:18px}
-    .metric{margin-top:8px;font-size:29px;font-weight:900}
-    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line)}
-    .panel-head h3{margin:0;font-size:12px;letter-spacing:.08em}
-    .panel-body{padding:18px}
-    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-    .toolbar-left,.toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .table-wrap{overflow:auto}
-    table{width:100%;min-width:760px;border-collapse:collapse}
-    th,td{padding:11px 10px;border-bottom:1px solid #202020;text-align:left;vertical-align:middle}
-    th{color:#777;font-size:9px;letter-spacing:.12em;text-transform:uppercase}
-    td{font-size:11px}
-    tbody tr:hover td{background:#131313}
-    .badge{display:inline-flex;padding:4px 8px;border:1px solid #383838;border-radius:99px;color:#aaa;font-size:9px}
-    .green{color:var(--green);border-color:#20513f;background:rgba(57, 207, 152, 0.1);}
-    .red{color:#ff777e;border-color:#572329;background:rgba(255, 119, 126, 0.1);}
-    .yellow{color:var(--yellow);border-color:#5a4920;background:rgba(229, 182, 78, 0.1);}
-    .tabs{display:flex;gap:6px;overflow:auto;margin-bottom:12px;padding-bottom:5px}
-    .tab{border:1px solid var(--line);background:#171717;color:#ddd;border-radius:8px;padding:9px 12px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;transition:0.2s ease}
-    .tab:hover{border-color:#555;color:#fff}
-    .tab.active{background:#fff;color:#000;border-color:#fff}
-    .modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px;background:#000c;backdrop-filter:blur(4px)}
-    .modal.open{display:grid}
-    .modal-box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#0d0d0d;border:1px solid #333;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5)}
-    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#0d0d0d;z-index:10}
-    .modal-body{padding:18px}
-    .json{max-height:300px;overflow:auto;background:#080808;border:1px solid #222;border-radius:8px;padding:12px;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}
-    .image-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
-    .image-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+    :root {
+      --bg: #070707; --panel: #101010; --line: #292929; --text: #f5f5f5; 
+      --muted: #888; --red: #e31b23; --green: #39cf98; --yellow: #e5b64e; --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font: 13px Inter, system-ui, sans-serif; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
     
-    #toastContainer{position:fixed;right:20px;bottom:20px;z-index:6000;display:flex;flex-direction:column;gap:7px;pointer-events:none}
-    .toast{padding:12px 14px;background:#f2f2f2;color:#050505;border:1px solid var(--line);border-radius:8px;font-size:10px;font-weight:800;box-shadow:0 12px 40px rgba(0,0,0,.4);animation:toastIn .2s ease}
-    .toast.error{background:#151515;color:#ff777e;border-color:rgba(239,68,68,.3)}
-    .toast.warning{background:#151515;color:var(--yellow);border-color:rgba(245,197,66,.3)}
-    @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-
-    #loadingOverlay{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.88);display:none;place-items:center;padding:20px;backdrop-filter:blur(7px)}
-    #loadingOverlay.show{display:grid}
-    .spinner{width:34px;height:34px;border:2px solid #292929;border-top-color:var(--red);border-radius:50%;margin:0 auto 14px;animation:spin .7s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    #loadingText{color:#ddd;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;text-align:center}
-
-    .mobile{display:none}
-    @media(max-width:1050px){.app{grid-template-columns:75px 1fr}.brand b,.brand small,.nav .label,.sidefoot{display:none}.nav button{justify-content:center}.kpis{grid-template-columns:repeat(2,1fr)}.three,.four{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:700px){.app{display:block}.sidebar{position:fixed;left:-260px;width:245px;z-index:90;transition:left .2s}.sidebar.open{left:0}.brand b,.brand small,.nav .label,.sidefoot{display:block}.nav button{justify-content:space-between}.mobile{display:inline-block}.content{padding:14px}.topbar{padding:12px 14px}.kpis,.two,.three,.four,.form-grid{grid-template-columns:1fr}.image-grid{grid-template-columns:repeat(2,1fr)}}
+    /* Login Screen */
+    .login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+    .login-card { width: min(430px, 100%); padding: 32px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 25px 80px rgba(0,0,0,0.8); }
+    .mark { width: 52px; height: 52px; display: grid; place-items: center; background: var(--red); border-radius: 12px; font-weight: 900; margin-bottom: 18px; font-size: 18px; }
+    .login h1 { margin: 0; font-size: 28px; }
+    .login p { color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+    
+    /* Forms & Inputs */
+    .field { display: grid; gap: 6px; margin-bottom: 14px; }
+    .field label { color: #8d8d8d; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .field input, .field select, .field textarea { width: 100%; padding: 12px; background: #090909; color: #eee; border: 1px solid #2c2c2c; border-radius: 8px; outline: none; transition: 0.2s; }
+    .field textarea { min-height: 100px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #666; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .full { grid-column: 1 / -1; }
+    
+    /* Buttons */
+    .btn { border: 1px solid var(--line); background: #171717; color: #ddd; border-radius: 8px; padding: 10px 14px; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+    .btn:hover { border-color: #555; color: #fff; }
+    .btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+    .btn.primary:hover { background: #c0131b; border-color: #c0131b; }
+    .btn.danger { color: #ff777e; border-color: #572329; background: rgba(239,68,68,0.1); }
+    .btn-full { width: 100%; }
+    
+    /* App Layout */
+    .app { min-height: 100vh; display: grid; grid-template-columns: 245px 1fr; }
+    .sidebar { position: sticky; top: 0; height: 100vh; overflow: auto; background: #090909; border-right: 1px solid var(--line); padding: 18px 12px; }
+    .brand { padding: 8px 10px 20px; border-bottom: 1px solid var(--line); margin-bottom: 13px; }
+    .brand b { display: block; font-size: 17px; letter-spacing: .12em; }
+    .brand small { color: var(--red); font-size: 9px; letter-spacing: .18em; font-weight: 800; }
+    
+    .nav { display: grid; gap: 5px; }
+    .nav button { width: 100%; display: flex; justify-content: space-between; background: transparent; color: #aaa; border: 1px solid transparent; border-radius: 9px; padding: 11px 12px; text-align: left; }
+    .nav button:hover, .nav button.active { background: #171717; color: #fff; border-color: var(--line); }
+    .nav .count { color: #666; font-size: 10px; }
+    .nav button.active .count { color: var(--red); }
+    
+    .main { min-width: 0; }
+    .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: rgba(7,7,7,0.9); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
+    .topbar h1 { margin: 0; font-size: 17px; }
+    .content { padding: 24px; max-width: 1400px; margin: auto; }
+    
+    /* Pages & Cards */
+    .page { display: none; animation: fadeIn 0.2s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    
+    .heading { margin-bottom: 20px; }
+    .eyebrow { color: var(--red); font-size: 9px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
+    .heading h2 { margin: 4px 0; font-size: 24px; }
+    
+    .grid { display: grid; gap: 14px; }
+    .kpis { grid-template-columns: repeat(4, 1fr); }
+    .two { grid-template-columns: repeat(2, 1fr); margin-top: 14px; }
+    .card, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .card { padding: 18px; }
+    .metric { margin-top: 8px; font-size: 28px; font-weight: 900; }
+    .muted { color: var(--muted); }
+    
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid var(--line); }
+    .panel-head h3 { margin: 0; font-size: 12px; letter-spacing: .08em; }
+    
+    /* Tables */
+    .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .table-wrap { overflow: auto; }
+    table { width: 100%; min-width: 760px; border-collapse: collapse; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid #1a1a1a; text-align: left; }
+    th { color: #777; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    td { font-size: 12px; }
+    tbody tr:hover td { background: #131313; }
+    
+    .badge { display: inline-flex; padding: 4px 8px; border: 1px solid #383838; border-radius: 99px; color: #aaa; font-size: 9px; background: rgba(255,255,255,0.05); }
+    .badge.green { color: var(--green); border-color: #20513f; background: rgba(57, 207, 152, 0.1); }
+    .badge.red { color: #ff777e; border-color: #572329; background: rgba(255, 119, 126, 0.1); }
+    
+    /* Modals */
+    .modal { position: fixed; inset: 0; z-index: 100; display: none; place-items: center; padding: 20px; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
+    .modal.open { display: grid; }
+    .modal-box { width: min(800px, 100%); max-height: 90vh; overflow: auto; background: #0d0d0d; border: 1px solid #333; border-radius: 16px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 18px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #0d0d0d; z-index: 10; }
+    .modal-body { padding: 20px; }
+    
+    /* Overlays */
+    #loadingOverlay { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,.9); display: none; place-items: center; }
+    #loadingOverlay.show { display: grid; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #292929; border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 200; display: none; padding: 14px 20px; background: #f2f2f2; color: #000; border-radius: 10px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .toast.show { display: block; animation: toastIn 0.3s ease; }
+    @keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
   </style>
 </head>
 <body>
 
+<!-- GLOBAL LOADING SCREEN -->
 <div id="loadingOverlay">
-  <div>
+  <div style="text-align:center;">
     <div class="spinner"></div>
-    <div id="loadingText">AUTHENTICATING...</div>
+    <div id="loadingText" style="color:#fff; font-size:11px; font-weight:800; letter-spacing:0.1em;">AUTHENTICATING...</div>
   </div>
 </div>
 
+<!-- 100% REFRESH-PROOF LOGIN FORM -->
 <section id="loginView" class="login hidden">
   <div class="login-card">
     <div class="mark">BK</div>
     <div class="eyebrow">BULKKOT ADMIN</div>
     <h1>Control Center</h1>
-    <p>Private commerce administration. Only bulkkotwear@gmail.com is authorized.</p>
-    <form id="loginForm" class="form">
-      <div class="field"><label for="loginEmail">Admin Email</label><input id="loginEmail" type="email" value="bulkkotwear@gmail.com" autocomplete="username" required></div>
-      <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••••" required></div>
-      <div id="loginError" class="red" style="font-size: 11px; font-weight: 600;"></div>
-      <button id="loginButton" class="btn primary" type="submit" style="padding: 12px; font-size: 12px;">Sign In</button>
+    <p>Private enterprise administration. Only authorized personnel.</p>
+    
+    <!-- THE MAGIC FIX: onsubmit="return false;" prevents any page reload -->
+    <form id="loginForm" onsubmit="event.preventDefault(); appAdmin.login(); return false;">
+      <div class="field">
+        <label>Admin Email</label>
+        <input id="loginEmail" type="email" value="bulkkotwear@gmail.com" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="loginPassword" type="password" placeholder="••••••••••" required>
+      </div>
+      <div id="loginError" style="color:#ff777e; font-size:11px; font-weight:700; margin-bottom:12px;"></div>
+      <button id="loginBtn" class="btn primary btn-full" type="submit" style="padding:14px; font-size:12px;">SIGN IN SECURELY</button>
     </form>
   </div>
 </section>
 
+<!-- MAIN APP -->
 <section id="app" class="app hidden">
-  <aside id="sidebar" class="sidebar">
-    <div class="brand"><b>BULKKOT</b><small>ENTERPRISE ADMIN</small></div>
+  <aside class="sidebar">
+    <div class="brand"><b>BULKKOT</b><small>GOD MODE</small></div>
     <nav id="nav" class="nav">
-      <button class="active" data-page="dashboard" type="button"><span class="label">Dashboard</span><span class="count" id="navDashboard">LIVE</span></button>
-      <button data-page="categories" type="button"><span class="label">Categories</span><span class="count" id="navCategories">0</span></button>
-      <button data-page="products" type="button"><span class="label">Products</span><span class="count" id="navProducts">0</span></button>
-      <button data-page="orders" type="button"><span class="label">Orders</span><span class="count" id="navOrders">0</span></button>
-      <button data-page="customers" type="button"><span class="label">Customers</span><span class="count" id="navCustomers">0</span></button>
-      <button data-page="coupons" type="button"><span class="label">Coupons</span><span class="count" id="navCoupons">0</span></button>
-      <button data-page="waitlist" type="button"><span class="label">Waitlist</span><span class="count" id="navWaitlist">0</span></button>
-      <button data-page="cms" type="button"><span class="label">Storefront CMS</span><span class="count">CMS</span></button>
-      <button data-page="legal" type="button"><span class="label">Legal Policies</span><span class="count">5</span></button>
-      <button data-page="settings" type="button"><span class="label">Store Settings</span><span class="count">CFG</span></button>
+      <button class="active" onclick="appAdmin.go('dashboard')" type="button">Dashboard <span class="count" id="cDash">LIVE</span></button>
+      <button onclick="appAdmin.go('categories')" type="button">Categories <span class="count" id="cCat">0</span></button>
+      <button onclick="appAdmin.go('products')" type="button">Products <span class="count" id="cProd">0</span></button>
+      <button onclick="appAdmin.go('orders')" type="button">Orders <span class="count" id="cOrd">0</span></button>
+      <button onclick="appAdmin.go('customers')" type="button">Customers <span class="count" id="cCust">0</span></button>
+      <button onclick="appAdmin.go('cms')" type="button">Storefront CMS <span class="count">UI</span></button>
+      <button onclick="appAdmin.go('settings')" type="button">Settings <span class="count">CFG</span></button>
     </nav>
-    <div class="sidefoot">BULKKOT · Less noise. More presence.<br><br>Read/write protected by RLS.</div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <div class="top-left"><button id="menuButton" class="btn mobile" type="button">MENU</button><div><h1 id="pageTitle">Dashboard</h1><div id="authStatus" class="status">Session active</div></div></div>
-      <div class="top-right"><button id="refreshButton" class="btn" type="button">Refresh</button><button id="logoutButton" class="btn danger" type="button">Logout</button></div>
+      <h1 id="pageTitle">Dashboard</h1>
+      <div style="display:flex; gap:10px;">
+        <button class="btn" type="button" onclick="appAdmin.refresh()">Refresh</button>
+        <button class="btn danger" type="button" onclick="appAdmin.logout()">Logout</button>
+      </div>
     </header>
 
     <div class="content">
+      
       <!-- DASHBOARD -->
-      <section id="page-dashboard" class="page active">
-        <div class="heading"><div class="eyebrow">CONTROL CENTER</div><h2>Dashboard</h2><p>Orders, revenue, customers and recent activity.</p></div>
+      <div id="page-dashboard" class="page active">
+        <div class="heading"><div class="eyebrow">OVERVIEW</div><h2>Dashboard</h2></div>
         <div class="grid kpis">
-          <div class="card"><div class="muted">TOTAL ORDERS</div><div id="kpiOrders" class="metric">0</div></div>
-          <div class="card"><div class="muted">REVENUE</div><div id="kpiRevenue" class="metric">₹0</div></div>
-          <div class="card"><div class="muted">CUSTOMERS</div><div id="kpiCustomers" class="metric">0</div></div>
-          <div class="card"><div class="muted">ACTIVE PRODUCTS</div><div id="kpiProducts" class="metric">0</div></div>
+          <div class="card"><div class="muted">ORDERS</div><div id="kOrders" class="metric">0</div></div>
+          <div class="card"><div class="muted">REVENUE</div><div id="kRevenue" class="metric">₹0</div></div>
+          <div class="card"><div class="muted">CUSTOMERS</div><div id="kCustomers" class="metric">0</div></div>
+          <div class="card"><div class="muted">PRODUCTS</div><div id="kProducts" class="metric">0</div></div>
         </div>
-        <div class="grid two" style="margin-top:14px">
-          <div class="panel"><div class="panel-head"><h3>RECENT ORDERS</h3></div><div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="recentOrdersBody"></tbody></table></div></div>
-          <div class="panel"><div class="panel-head"><h3>LOW STOCK</h3><span id="lowStockBadge" class="badge yellow">0</span></div><div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Units</th></tr></thead><tbody id="lowStockBody"></tbody></table></div></div>
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-head"><h3>RECENT ORDERS</h3></div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="dashOrders"></tbody></table>
+          </div>
         </div>
-      </section>
+      </div>
 
       <!-- CATEGORIES -->
-      <section id="page-categories" class="page">
-        <div class="heading"><div class="eyebrow">CATALOGUE STRUCTURE</div><h2>Categories</h2><p>These categories populate the Product dropdown.</p></div>
-        <div class="toolbar"><button id="newCategoryButton" class="btn primary" type="button">+ New Category</button></div>
-        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Slug</th><th>English Name</th><th>Korean Name</th><th>Status</th><th>Actions</th></tr></thead><tbody id="categoriesBody"></tbody></table></div></div>
-      </section>
+      <div id="page-categories" class="page">
+        <div class="heading"><div class="eyebrow">CATALOGUE</div><h2>Categories</h2></div>
+        <div class="toolbar"><button class="btn primary" type="button" onclick="appAdmin.openCategoryModal()">+ New Category</button></div>
+        <div class="panel"><div class="table-wrap">
+          <table><thead><tr><th>Slug</th><th>English</th><th>Korean</th><th>Status</th><th>Actions</th></tr></thead><tbody id="catRows"></tbody></table>
+        </div></div>
+      </div>
 
       <!-- PRODUCTS -->
-      <section id="page-products" class="page">
-        <div class="heading"><div class="eyebrow">CATALOGUE</div><h2>Products</h2><p>CRUD, visibility, size stock and images.</p></div>
-        <div class="toolbar"><button id="newProductButton" class="btn primary" type="button">+ New Product</button><input id="productSearch" class="search" type="search" placeholder="Search products…" style="width:250px"></div>
-        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Live</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table></div></div>
-      </section>
+      <div id="page-products" class="page">
+        <div class="heading"><div class="eyebrow">INVENTORY</div><h2>Products</h2></div>
+        <div class="toolbar"><button class="btn primary" type="button" onclick="appAdmin.openProductModal()">+ New Product</button></div>
+        <div class="panel"><div class="table-wrap">
+          <table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Live</th><th>Actions</th></tr></thead><tbody id="prodRows"></tbody></table>
+        </div></div>
+      </div>
 
       <!-- ORDERS -->
-      <section id="page-orders" class="page">
-        <div class="heading"><div class="eyebrow">FULFILMENT</div><h2>Orders</h2><p>Update status, courier and tracking numbers.</p></div>
-        <div class="toolbar"><select id="orderStatusFilter" class="search" style="width:180px"><option value="">All Statuses</option><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select><input id="orderSearch" class="search" type="search" placeholder="Search orders…" style="width:250px"></div>
-        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Tracking</th><th>Date</th><th>Actions</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
-      </section>
+      <div id="page-orders" class="page">
+        <div class="heading"><div class="eyebrow">FULFILMENT</div><h2>Orders</h2></div>
+        <div class="panel"><div class="table-wrap">
+          <table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ordRows"></tbody></table>
+        </div></div>
+      </div>
 
       <!-- CUSTOMERS -->
-      <section id="page-customers" class="page">
-        <div class="heading"><div class="eyebrow">CRM</div><h2>Customers</h2><p>Customer records with Lifetime Value calculated from orders.</p></div>
-        <div class="toolbar"><input id="customerSearch" class="search" type="search" placeholder="Search customer…" style="width:270px"></div>
-        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Contact</th><th>Orders</th><th>LTV</th><th>Last Order</th></tr></thead><tbody id="customersBody"></tbody></table></div></div>
-      </section>
-
-      <!-- COUPONS -->
-      <section id="page-coupons" class="page">
-        <div class="heading"><div class="eyebrow">PROMOTIONS</div><h2>Coupons</h2><p>Create discount codes with minimum order values.</p></div>
-        <div class="toolbar"><button id="newCouponButton" class="btn primary" type="button">+ New Coupon</button></div>
-        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount (₹)</th><th>Min Order (₹)</th><th>Active</th><th>Actions</th></tr></thead><tbody id="couponsBody"></tbody></table></div></div>
-      </section>
-
-      <!-- WAITLIST -->
-      <section id="page-waitlist" class="page">
-        <div class="heading"><div class="eyebrow">LEADS</div><h2>Waitlist</h2><p>View records and export them as CSV.</p></div>
-        <div class="toolbar"><button id="refreshWaitlistButton" class="btn" type="button">Refresh</button><button id="exportWaitlistButton" class="btn primary" type="button">Export CSV</button></div>
-        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Email</th><th>Phone/Source</th><th>Created</th></tr></thead><tbody id="waitlistBody"></tbody></table></div></div>
-      </section>
+      <div id="page-customers" class="page">
+        <div class="heading"><div class="eyebrow">CRM</div><h2>Customers</h2></div>
+        <div class="panel"><div class="table-wrap">
+          <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>LTV</th></tr></thead><tbody id="custRows"></tbody></table>
+        </div></div>
+      </div>
 
       <!-- CMS -->
-      <section id="page-cms" class="page">
-        <div class="heading"><div class="eyebrow">STOREFRONT CONTROL</div><h2>Storefront CMS</h2><p>Update Hero, ticker, editorial copy and the 3-circle gateway.</p></div>
-        <div id="cmsTabs" class="tabs"></div>
-        <div id="cmsEditor"></div>
-        <button id="saveCmsButton" class="btn primary" type="button" style="margin-top:14px">Save CMS Changes</button>
-      </section>
-
-      <!-- LEGAL -->
-      <section id="page-legal" class="page">
-        <div class="heading"><div class="eyebrow">COMPLIANCE</div><h2>Legal Policies</h2><p>FAQ, Shipping, Returns, Privacy and Terms.</p></div>
-        <form id="legalForm"><div class="grid two">
-          <div class="card field"><label for="policyFaq">FAQ</label><textarea id="policyFaq"></textarea></div>
-          <div class="card field"><label for="policyShipping">Shipping</label><textarea id="policyShipping"></textarea></div>
-          <div class="card field"><label for="policyReturns">Returns</label><textarea id="policyReturns"></textarea></div>
-          <div class="card field"><label for="policyPrivacy">Privacy</label><textarea id="policyPrivacy"></textarea></div>
-          <div class="card field full"><label for="policyTerms">Terms</label><textarea id="policyTerms"></textarea></div>
-        </div><button class="btn primary" type="submit" style="margin-top:14px">Save Policies</button></form>
-      </section>
+      <div id="page-cms" class="page">
+        <div class="heading"><div class="eyebrow">FRONTEND</div><h2>Storefront CMS</h2></div>
+        <form onsubmit="event.preventDefault(); appAdmin.saveCMS(); return false;">
+          <div class="panel"><div class="panel-body form-grid">
+            <div class="field full"><label>Hero Headline</label><input id="cmsHero" type="text"></div>
+            <div class="field full"><label>Announcement Ticker</label><input id="cmsTicker" type="text"></div>
+            <div class="field full"><label>FAQ (HTML)</label><textarea id="cmsFaq"></textarea></div>
+          </div></div>
+          <button class="btn primary" type="submit" style="margin-top:14px">Save CMS Content</button>
+        </form>
+      </div>
 
       <!-- SETTINGS -->
-      <section id="page-settings" class="page">
-        <div class="heading"><div class="eyebrow">STORE CONFIGURATION</div><h2>Store Settings</h2><p>Store identity and customer support information.</p></div>
-        <form id="settingsForm"><div class="grid two">
-          <div class="card field"><label for="storeName">Store Name</label><input id="storeName"></div>
-          <div class="card field"><label for="supportEmail">Support Email</label><input id="supportEmail" type="email"></div>
-          <div class="card field"><label for="whatsappNumber">WhatsApp Number (w/ Country Code)</label><input id="whatsappNumber"></div>
-          <div class="card field"><label for="currency">Currency</label><input id="currency" value="INR"></div>
-          <div class="card field"><label>Shipping Fee (₹)</label><input id="shippingFee" type="number" min="0"></div>
-          <div class="card field"><label>Free Shipping Threshold (₹)</label><input id="freeShipping" type="number" min="0"></div>
-        </div><button class="btn primary" type="submit" style="margin-top:14px">Save Settings</button></form>
-      </section>
+      <div id="page-settings" class="page">
+        <div class="heading"><div class="eyebrow">CONFIG</div><h2>Store Settings</h2></div>
+        <form onsubmit="event.preventDefault(); appAdmin.saveSettings(); return false;">
+          <div class="panel"><div class="panel-body form-grid">
+            <div class="field"><label>Support Email</label><input id="setMail" type="email"></div>
+            <div class="field"><label>WhatsApp Number</label><input id="setPhone" type="text"></div>
+            <div class="field"><label>Shipping Fee</label><input id="setShip" type="number"></div>
+          </div></div>
+          <button class="btn primary" type="submit" style="margin-top:14px">Save Settings</button>
+        </form>
+      </div>
+
     </div>
   </main>
 </section>
 
 <!-- MODALS -->
-
 <!-- Category Modal -->
-<div id="categoryModal" class="modal"><div class="modal-box" style="max-width:500px"><div class="modal-head"><b id="categoryModalTitle">CATEGORY</b><button class="btn" type="button" data-close="categoryModal">Close</button></div><div class="modal-body"><form id="categoryForm"><input id="categoryId" type="hidden"><div class="form-grid"><div class="field full"><label for="categorySlug">Slug (e.g. jackets)</label><input id="categorySlug" required></div><div class="field"><label for="categoryEnglish">English Name</label><input id="categoryEnglish" required></div><div class="field"><label for="categoryKorean">Korean Name</label><input id="categoryKorean" required></div><div class="field"><label for="categorySort">Sort Order</label><input id="categorySort" type="number" value="0"></div><div class="field"><label for="categoryActiveStatus">Status</label><select id="categoryActiveStatus"><option value="true">Active</option><option value="false">Hidden</option></select></div></div><div style="display:flex;justify-content:space-between;margin-top:16px"><button id="deleteCategoryButton" class="btn danger hidden" type="button">Delete</button><button class="btn primary" type="submit">Save Category</button></div></form></div></div></div>
+<div id="catModal" class="modal"><div class="modal-box" style="max-width:500px">
+  <div class="modal-head"><b>CATEGORY</b><button class="btn" type="button" onclick="appAdmin.closeModal('catModal')">Close</button></div>
+  <div class="modal-body">
+    <form onsubmit="event.preventDefault(); appAdmin.saveCategory(); return false;">
+      <input type="hidden" id="cId">
+      <div class="field"><label>Slug (URL)</label><input id="cSlug" required></div>
+      <div class="field"><label>English Name</label><input id="cEn" required></div>
+      <div class="field"><label>Korean Name</label><input id="cKo" required></div>
+      <div class="field"><label>Active</label><select id="cActive"><option value="true">Active</option><option value="false">Hidden</option></select></div>
+      <button class="btn primary btn-full" type="submit" style="margin-top:14px">SAVE</button>
+    </form>
+  </div>
+</div></div>
 
 <!-- Product Modal -->
-<div id="productModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="productModalTitle">PRODUCT</b><button class="btn" type="button" data-close="productModal">Close</button></div><div class="modal-body"><form id="productForm"><input id="productId" type="hidden"><div class="form-grid"><div class="field"><label for="productName">Name</label><input id="productName" required></div><div class="field"><label for="productSku">SKU</label><input id="productSku"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory" required></select></div><div class="field"><label for="productPrice">Price (₹)</label><input id="productPrice" type="number" min="0" required></div><div class="field"><label for="productCompare">Compare-at Price</label><input id="productCompare" type="number" min="0"></div><div class="field"><label for="productActive">Live / Hidden</label><select id="productActive"><option value="true">LIVE</option><option value="false">HIDDEN</option></select></div><div class="field full"><label for="productDescription">Description</label><textarea id="productDescription"></textarea></div></div><div class="card" style="margin-top:14px"><div class="eyebrow">INVENTORY (UNITS)</div><div class="grid four" style="margin-top:10px"><div class="field"><label>S</label><input id="stockS" type="number" min="0" value="0"></div><div class="field"><label>M</label><input id="stockM" type="number" min="0" value="0"></div><div class="field"><label>L</label><input id="stockL" type="number" min="0" value="0"></div><div class="field"><label>XL</label><input id="stockXL" type="number" min="0" value="0"></div></div></div><div class="card" style="margin-top:14px"><div class="field"><label for="productImageFiles">Product Images — max 5</label><input id="productImageFiles" type="file" accept="image/*" multiple></div><div id="productImagePreview" class="image-grid" style="margin-top:10px"></div></div><div style="display:flex;justify-content:space-between;margin-top:16px"><button id="deleteProductButton" class="btn danger hidden" type="button">Delete</button><button class="btn primary" type="submit">Save Product</button></div></form></div></div></div>
+<div id="prodModal" class="modal"><div class="modal-box large">
+  <div class="modal-head"><b>PRODUCT</b><button class="btn" type="button" onclick="appAdmin.closeModal('prodModal')">Close</button></div>
+  <div class="modal-body">
+    <form onsubmit="event.preventDefault(); appAdmin.saveProduct(); return false;">
+      <input type="hidden" id="pId">
+      <div class="form-grid">
+        <div class="field"><label>Name</label><input id="pName" required></div>
+        <div class="field"><label>Category Slug</label><input id="pCat" required></div>
+        <div class="field"><label>Price</label><input id="pPrice" type="number" required></div>
+        <div class="field"><label>Active</label><select id="pActive"><option value="true">Live</option><option value="false">Hidden</option></select></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="eyebrow">STOCK QUANTITY</div>
+        <div class="grid" style="grid-template-columns:repeat(4,1fr); margin-top:10px;">
+          <div class="field"><label>S</label><input id="pS" type="number" value="0"></div>
+          <div class="field"><label>M</label><input id="pM" type="number" value="0"></div>
+          <div class="field"><label>L</label><input id="pL" type="number" value="0"></div>
+          <div class="field"><label>XL</label><input id="pXL" type="number" value="0"></div>
+        </div>
+      </div>
+      <button class="btn primary" type="submit" style="margin-top:20px">SAVE PRODUCT</button>
+    </form>
+  </div>
+</div></div>
 
 <!-- Order Modal -->
-<div id="orderModal" class="modal"><div class="modal-box"><div class="modal-head"><b>ORDER CONTROL</b><button class="btn" type="button" data-close="orderModal">Close</button></div><div class="modal-body"><div id="orderDetails"></div><form id="orderForm" style="margin-top:14px"><input id="orderId" type="hidden"><div class="form-grid"><div class="field"><label>Status</label><select id="orderStatus"><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select></div><div class="field"><label>Payment Status</label><select id="orderPayment"><option>PENDING</option><option>PAID</option><option>FAILED</option><option>REFUNDED</option></select></div><div class="field"><label>Courier</label><input id="orderCourier"></div><div class="field"><label>Tracking / AWB</label><input id="orderTracking"></div><div class="field full"><label>Admin Note</label><textarea id="orderNote"></textarea></div></div><div style="display:flex;justify-content:space-between;margin-top:14px"><button id="printPackingSlipButton" class="btn" type="button">Print Packing Slip</button><button class="btn primary" type="submit">Save Order</button></div></form></div></div></div>
+<div id="ordModal" class="modal"><div class="modal-box">
+  <div class="modal-head"><b>UPDATE ORDER</b><button class="btn" type="button" onclick="appAdmin.closeModal('ordModal')">Close</button></div>
+  <div class="modal-body">
+    <form onsubmit="event.preventDefault(); appAdmin.saveOrder(); return false;">
+      <input type="hidden" id="oId">
+      <div class="field"><label>Order Status</label><select id="oStatus"><option>PLACED</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option></select></div>
+      <div class="field"><label>Tracking Number</label><input id="oTrack"></div>
+      <button class="btn primary btn-full" type="submit" style="margin-top:14px">UPDATE STATUS</button>
+    </form>
+  </div>
+</div></div>
 
-<!-- Coupon Modal -->
-<div id="couponModal" class="modal"><div class="modal-box" style="max-width:500px"><div class="modal-head"><b>NEW COUPON</b><button class="btn" type="button" data-close="couponModal">Close</button></div><div class="modal-body"><form id="couponForm"><div class="form-grid"><div class="field"><label>Code</label><input id="couponCode" required></div><div class="field"><label>Discount Value (₹)</label><input id="couponDiscount" type="number" min="0" required></div><div class="field"><label>Minimum Order (₹)</label><input id="couponMinimum" type="number" min="0" value="0"></div><div class="field"><label>Status</label><select id="couponActive"><option value="true">Active</option><option value="false">Inactive</option></select></div></div><button class="btn primary" type="submit" style="margin-top:14px">Create Coupon</button></form></div></div></div>
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
 
-<!-- Toast Container -->
-<div id="toastContainer"></div>
-
+<!-- SUPER SAFE JAVASCRIPT -->
 <script>
-(function () {
-    "use strict";
-
-    // ----------------------------------------------------
-    // CONSTANTS & CONFIGURATION
-    // ----------------------------------------------------
-    const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-    const ADMIN_EMAIL = "bulkkotwear@gmail.com";
-    const PRODUCT_BUCKET = "product-media";
-    const MAX_IMAGES = 5;
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const state = {
-        session: null,
-        page: "dashboard",
-        cmsGroup: "hero",
-        categories: [],
-        products: [],
-        orders: [],
-        customers: [],
-        coupons: [],
-        waitlist: [],
-        cms: {},
-        settings: {},
-        editingProductImages: []
-    };
-
-    const CMS_GROUPS = {
-        hero: { label: "Hero", keys: ["hero_image_url", "hero_eyebrow", "hero_title", "hero_subtitle", "hero_description", "hero_cta", "hero_cta_url"] },
-        ticker: { label: "Announcement Ticker", keys: ["announcement_1", "announcement_2", "announcement_3"] },
-        editorial: { label: "Editorial", keys: ["editorial_1_title", "editorial_1_subtitle", "editorial_1_text", "editorial_2_title", "editorial_2_subtitle", "editorial_2_text", "editorial_3_title", "editorial_3_subtitle", "editorial_3_text", "editorial_4_title", "editorial_4_subtitle", "editorial_4_text"] },
-        collections: { label: "3-Circle Collections", keys: ["collection_1_image", "collection_1_label", "collection_1_korean", "collection_1_url", "collection_2_image", "collection_2_label", "collection_2_korean", "collection_2_url", "collection_3_image", "collection_3_label", "collection_3_korean", "collection_3_url"] }
-    };
-
-    // ----------------------------------------------------
-    // SAFE DOM HELPERS
-    // ----------------------------------------------------
-    function $(id) { return document.getElementById(id); }
-    
-    function setText(id, value) { const el = $(id); if (el) el.textContent = value == null ? "" : String(value); }
-    function setHTML(id, value) { const el = $(id); if (el) el.innerHTML = value == null ? "" : String(value); }
-    function setValue(id, value) { const el = $(id); if (el) el.value = value == null ? "" : String(value); }
-    function valueOf(id, fallback) { const el = $(id); return el ? el.value : fallback; }
-    function toggleHidden(id, hidden) { const el = $(id); if (el) el.classList.toggle("hidden", Boolean(hidden)); }
-
-    function escapeHTML(value) {
-        return String(value == null ? "" : value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    function money(value) {
-        return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(value || 0));
-    }
-
-    function date(value) {
-        if (!value) return "—";
-        const parsed = new Date(value);
-        return Number.isNaN(parsed.getTime()) ? "—" : parsed.toLocaleString("en-IN");
-    }
-
-    function toast(message, type="success") {
-        const container = $("toastContainer");
-        if (!container) return;
-        const el = document.createElement("div");
-        el.className = `toast ${type === "error" ? "error" : type === "warning" ? "warning" : ""}`;
-        el.textContent = message || "";
-        container.appendChild(el);
-        setTimeout(() => el.remove(), 4000);
-    }
-
-    function setLoading(show, text="LOADING...") {
-        const overlay = $("loadingOverlay");
-        const textEl = $("loadingText");
-        if(overlay) {
-            if(show) {
-                overlay.classList.add("show");
-                if(textEl) textEl.textContent = text;
-            } else {
-                overlay.classList.remove("show");
-            }
-        }
-    }
-
-    function openModal(id) { const el = $(id); if (el) el.classList.add("open"); }
-    function closeModal(id) { const el = $(id); if (el) el.classList.remove("open"); }
-
-    function authorized(session) {
-        const email = session && session.user && session.user.email;
-        return Boolean(email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
-    }
-
-    // ----------------------------------------------------
-    // AUTHENTICATION
-    // ----------------------------------------------------
-    function showLogin(message) {
-        const loginView = $("loginView");
-        const app = $("app");
-        const error = $("loginError");
-        if (loginView) loginView.classList.remove("hidden");
-        if (app) app.classList.add("hidden");
-        if (error && message) error.textContent = message;
-    }
-
-    function showAdmin(session) {
-        const loginView = $("loginView");
-        const app = $("app");
-        if (loginView) loginView.classList.add("hidden");
-        if (app) app.classList.remove("hidden");
-        state.session = session;
-        setText("authStatus", "● " + (session.user.email || ADMIN_EMAIL));
-    }
-
-    async function requireAdmin() {
-        const result = await supabaseClient.auth.getSession();
-        const session = result.data ? result.data.session : null;
-        if (!authorized(session)) {
-            showLogin("Admin authorization required.");
-            throw new Error("Admin authorization required.");
-        }
-        state.session = session;
-        return session;
-    }
-
-    async function handleLoginSubmit(event) {
-        event.preventDefault(); // SUPER IMPORTANT: STOPS REFRESH
-        const errorElement = $("loginError");
-        const button = $("loginButton");
-        if (errorElement) errorElement.textContent = "";
-        
-        try {
-            if (button) { button.disabled = true; button.textContent = "VERIFYING…"; }
-            setLoading(true, "AUTHENTICATING...");
-            
-            const email = valueOf("loginEmail", "").trim().toLowerCase();
-            const password = valueOf("loginPassword", "");
-            
-            if (email !== ADMIN_EMAIL.toLowerCase()) throw new Error("This email is not authorized for BULKKOT Admin.");
-            if (!password) throw new Error("Enter your password.");
-            
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            
-            const session = data ? data.session : null;
-            if (!authorized(session)) {
-                await supabaseClient.auth.signOut();
-                throw new Error("Authenticated account is not authorized.");
-            }
-            
-            // Clean login - Reload the dashboard to mount fresh state
-            window.location.reload();
-            
-        } catch (error) {
-            setLoading(false);
-            if (errorElement) errorElement.textContent = error.message || "Authentication failed.";
-        } finally {
-            if (button) { button.disabled = false; button.textContent = "Sign In"; }
-        }
-    }
-
-    async function logout() {
-        setLoading(true, "LOGGING OUT...");
-        await supabaseClient.auth.signOut();
-        window.location.reload();
-    }
-
-    // ----------------------------------------------------
-    // DATA FETCHING
-    // ----------------------------------------------------
-    async function loadAll() {
-        try {
-            await Promise.all([
-                loadCategories(),
-                loadProducts(),
-                loadOrders(),
-                loadCoupons(),
-                loadWaitlist(),
-                loadCMS(),
-                loadSettings()
-            ]);
-            await loadCustomers(); // Depends on orders
-            renderAll();
-        } catch (err) {
-            console.error("Data Load Error:", err);
-            toast("Failed to load store data. Please refresh.", "error");
-        }
-    }
-
-    async function loadCategories() {
-        const { data, error } = await supabaseClient.from("categories").select("*").order("sort_order", { ascending: true });
-        if (error) throw error;
-        state.categories = data || [];
-    }
-
-    async function loadProducts() {
-        const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
-        if (error) throw error;
-        state.products = data || [];
-    }
-
-    async function loadOrders() {
-        const { data, error } = await supabaseClient.from("orders").select("*").order("created_at", { ascending: false });
-        if (error) throw error;
-        state.orders = data || [];
-    }
-
-    async function loadCoupons() {
-        const { data, error } = await supabaseClient.from("coupons").select("*").order("created_at", { ascending: false });
-        if (error) throw error;
-        state.coupons = data || [];
-    }
-
-    async function loadWaitlist() {
-        const { data, error } = await supabaseClient.from("waitlist").select("*").order("created_at", { ascending: false });
-        if (error) throw error;
-        state.waitlist = data || [];
-    }
-
-    async function loadCMS() {
-        const { data, error } = await supabaseClient.from("site_content").select("*");
-        if (error) throw error;
-        state.cms = {};
-        (data || []).forEach(row => {
-            const key = row.content_key || row.key || row.slug;
-            if (key) state.cms[key] = row.content_value ?? row.value ?? "";
-        });
-    }
-
-    async function loadSettings() {
-        const { data, error } = await supabaseClient.from("store_settings").select("*").eq("id", 1).maybeSingle();
-        if (error) throw error;
-        state.settings = data || {};
-    }
-
-    async function loadCustomers() {
-        const map = new Map();
-        // Fallback to auth/profiles if table exists, else just derive from orders
-        const { data } = await supabaseClient.from("customer_profiles").select("*").catch(()=>({data:[]}));
-        
-        (data || []).forEach(profile => {
-            const key = String(profile.email || profile.phone || profile.id || "").toLowerCase();
-            if (!key) return;
-            map.set(key, { name: profile.full_name || profile.name || "Unnamed", email: profile.email || "", phone: profile.phone || "", orders: 0, ltv: 0, lastOrder: null });
-        });
-
-        state.orders.forEach(order => {
-            const key = String(order.email || order.customer_email || order.phone || order.customer_phone || "").toLowerCase();
-            if (!key) return;
-            if (!map.has(key)) {
-                map.set(key, { name: order.customer_name || order.full_name || "Guest", email: order.email || order.customer_email || "", phone: order.phone || order.customer_phone || "", orders: 0, ltv: 0, lastOrder: null });
-            }
-            const customer = map.get(key);
-            const status = String(order.order_status || "PLACED").toUpperCase();
-            if (status !== "CANCELLED" && status !== "RETURNED") {
-                customer.orders += 1;
-                customer.ltv += Number(order.total || 0);
-                if (!customer.lastOrder || new Date(order.created_at) > new Date(customer.lastOrder)) {
-                    customer.lastOrder = order.created_at;
-                }
-            }
-        });
-        state.customers = Array.from(map.values()).sort((a,b)=> b.ltv - a.ltv);
-    }
-
-    // ----------------------------------------------------
-    // RENDERING LOGIC
-    // ----------------------------------------------------
-    function stock(product) {
-        const data = product && product.stock ? product.stock : {};
-        return { S: Number(data.S || 0), M: Number(data.M || 0), L: Number(data.L || 0), XL: Number(data.XL || 0) };
-    }
-
-    function totalStock(product) {
-        const s = stock(product);
-        return s.S + s.M + s.L + s.XL;
-    }
-
-    function live(product) {
-        return product && product.active !== false && product.visibility !== false;
-    }
-
-    function renderAll() {
-        renderDashboard();
-        renderCategories();
-        renderProducts();
-        renderOrders();
-        renderCustomers();
-        renderCoupons();
-        renderWaitlist();
-        renderCMS();
-        renderLegal();
-        renderSettings();
-    }
-
-    function renderDashboard() {
-        const revenue = state.orders.reduce((sum, order) => {
-            const status = String(order.order_status || "PLACED").toUpperCase();
-            return status === "CANCELLED" || status === "RETURNED" ? sum : sum + Number(order.total || 0);
-        }, 0);
-        
-        setText("kpiOrders", state.orders.length);
-        setText("kpiRevenue", money(revenue));
-        setText("kpiCustomers", state.customers.length);
-        setText("kpiProducts", state.products.filter(live).length);
-        
-        setText("navCategories", state.categories.length);
-        setText("navProducts", state.products.length);
-        setText("navOrders", state.orders.length);
-        setText("navCustomers", state.customers.length);
-        setText("navCoupons", state.coupons.length);
-        setText("navWaitlist", state.waitlist.length);
-        
-        const recent = state.orders.slice(0, 8);
-        setHTML("recentOrdersBody", recent.length ? recent.map(o => `<tr><td><b>${escapeHTML(o.order_number || String(o.id || "").slice(0, 8))}</b></td><td>${escapeHTML(o.customer_name || o.email || "—")}</td><td>${money(o.total)}</td><td><span class="badge ${o.order_status==='DELIVERED'?'green':''}">${escapeHTML(o.order_status || "PLACED")}</span></td></tr>`).join("") : '<tr><td colspan="4" class="muted">No orders.</td></tr>');
-        
-        const low = state.products.filter(p => totalStock(p) <= 5).slice(0, 8);
-        setText("lowStockBadge", state.products.filter(p => totalStock(p) <= 5).length);
-        setHTML("lowStockBody", low.length ? low.map(p => `<tr><td>${escapeHTML(p.name || "—")}</td><td>${escapeHTML(p.sku || "—")}</td><td><span class="badge yellow">${totalStock(p)}</span></td></tr>`).join("") : '<tr><td colspan="3" class="muted">No low-stock products.</td></tr>');
-    }
-
-    function renderCategories() {
-        setHTML("categoriesBody", state.categories.length ? state.categories.map(c => `<tr><td><code>${escapeHTML(c.slug || "")}</code></td><td>${escapeHTML(c.english_name || c.name_en || c.name || "")}</td><td>${escapeHTML(c.korean_name || c.name_ko || "—")}</td><td><span class="badge ${c.is_active!==false?'green':'red'}">${c.is_active!==false?'ACTIVE':'HIDDEN'}</span></td><td><button class="btn" type="button" data-edit-category="${escapeHTML(c.id)}">Edit</button></td></tr>`).join("") : '<tr><td colspan="5" class="muted">No categories.</td></tr>');
-        document.querySelectorAll("[data-edit-category]").forEach(b => { b.onclick = () => openCategory(b.dataset.editCategory); });
-        
-        const select = $("productCategory");
-        if (select) select.innerHTML = '<option value="">Select category</option>' + state.categories.filter(c=>c.is_active!==false).map(c => `<option value="${escapeHTML(c.slug || "")}">${escapeHTML(c.english_name || c.name_en || c.name || c.slug || "")}</option>`).join("");
-    }
-
-    function renderProducts() {
-        const q = String(valueOf("productSearch", "")).toLowerCase();
-        const rows = state.products.filter(p => !q || `${p.name || ""} ${p.sku || ""} ${p.category || ""}`.toLowerCase().includes(q));
-        setHTML("productsBody", rows.length ? rows.map(p => {
-            const cat = state.categories.find(c=>c.slug === p.category);
-            const catName = cat ? (cat.english_name || cat.name_en) : (p.category || "—");
-            return `<tr><td><b>${escapeHTML(p.name || "Unnamed")}</b><div class="muted">${escapeHTML(p.sku || "")}</div></td><td>${escapeHTML(catName)}</td><td>${money(p.price)}</td><td>${totalStock(p)}</td><td><span class="badge ${live(p) ? "green" : "red"}">${live(p) ? "LIVE" : "HIDDEN"}</span></td><td><button class="btn" type="button" data-edit-product="${escapeHTML(p.id)}">Edit</button></td></tr>`;
-        }).join("") : '<tr><td colspan="6" class="muted">No products.</td></tr>');
-        document.querySelectorAll("[data-edit-product]").forEach(b => { b.onclick = () => openProduct(b.dataset.editProduct); });
-    }
-
-    function renderOrders() {
-        const q = String(valueOf("orderSearch", "")).toLowerCase();
-        const filter = valueOf("orderStatusFilter", "");
-        const rows = state.orders.filter(o => (!filter || String(o.order_status || "PLACED") === filter) && `${o.order_number || ""} ${o.customer_name || ""} ${o.email || ""} ${o.phone || ""} ${o.tracking_number || ""}`.toLowerCase().includes(q));
-        setHTML("ordersBody", rows.length ? rows.map(o => `<tr><td><b>${escapeHTML(o.order_number || String(o.id || "").slice(0, 8))}</b></td><td>${escapeHTML(o.customer_name || o.full_name || o.email || "—")}</td><td>${money(o.total)}</td><td><span class="badge ${o.order_status==='DELIVERED'?'green':o.order_status==='CANCELLED'?'red':''}">${escapeHTML(o.order_status || "PLACED")}</span></td><td>${escapeHTML(o.tracking_number || o.awb || "—")}</td><td>${date(o.created_at)}</td><td><button class="btn" type="button" data-edit-order="${escapeHTML(o.id)}">Manage</button></td></tr>`).join("") : '<tr><td colspan="7" class="muted">No orders.</td></tr>');
-        document.querySelectorAll("[data-edit-order]").forEach(b => { b.onclick = () => openOrder(b.dataset.editOrder); });
-    }
-
-    function renderCustomers() {
-        const q = String(valueOf("customerSearch", "")).toLowerCase();
-        const rows = state.customers.filter(c => `${c.name || ""} ${c.email || ""} ${c.phone || ""}`.toLowerCase().includes(q));
-        setHTML("customersBody", rows.length ? rows.map(c => `<tr><td><b>${escapeHTML(c.name)}</b></td><td>${escapeHTML(c.email || "—")}<div class="muted">${escapeHTML(c.phone || "")}</div></td><td>${c.orders}</td><td>${money(c.ltv)}</td><td>${date(c.lastOrder)}</td></tr>`).join("") : '<tr><td colspan="5" class="muted">No customers.</td></tr>');
-    }
-
-    function renderCoupons() {
-        setHTML("couponsBody", state.coupons.length ? state.coupons.map(c => `<tr><td><b>${escapeHTML(c.code || "")}</b></td><td>₹${escapeHTML(c.discount_value ?? c.discount ?? 0)}</td><td>${money(c.min_order_value || 0)}</td><td><span class="badge ${c.active ? "green" : "red"}">${c.active ? "ACTIVE" : "OFF"}</span></td><td><button class="btn" type="button" data-toggle-coupon="${escapeHTML(c.id)}">${c.active ? "Deactivate" : "Activate"}</button></td></tr>`).join("") : '<tr><td colspan="5" class="muted">No coupons.</td></tr>');
-        document.querySelectorAll("[data-toggle-coupon]").forEach(b => { b.onclick = () => toggleCoupon(b.dataset.toggleCoupon); });
-    }
-
-    function renderWaitlist() {
-        setHTML("waitlistBody", state.waitlist.length ? state.waitlist.map(r => `<tr><td>${escapeHTML(r.email || "—")}</td><td>${escapeHTML(r.phone || r.source || "—")}</td><td>${date(r.created_at)}</td></tr>`).join("") : '<tr><td colspan="3" class="muted">No waitlist entries.</td></tr>');
-    }
-
-    function renderCMS() {
-        const tabs = $("cmsTabs");
-        const editor = $("cmsEditor");
-        if (!tabs || !editor) return;
-        tabs.innerHTML = Object.keys(CMS_GROUPS).map(key => `<button class="btn tab ${state.cmsGroup === key ? "active" : ""}" type="button" data-cms-group="${key}">${escapeHTML(CMS_GROUPS[key].label)}</button>`).join("");
-        tabs.querySelectorAll("[data-cms-group]").forEach(b => { b.onclick = () => { state.cmsGroup = b.dataset.cmsGroup; renderCMS(); }; });
-        
-        const group = CMS_GROUPS[state.cmsGroup];
-        editor.innerHTML = `<div class="panel"><div class="panel-head"><h3>${escapeHTML(group.label)}</h3><span class="muted">Syncs to site_content</span></div><div class="panel-body"><div class="form-grid">${group.keys.map(key => { 
-            const value = state.cms[key] || ""; 
-            const textarea = key.includes("description") || key.includes("text") || value.length > 100; 
-            return `<div class="field ${textarea ? "full" : ""}"><label>${escapeHTML(key)}</label>${textarea ? `<textarea data-cms-key="${escapeHTML(key)}">${escapeHTML(value)}</textarea>` : `<input data-cms-key="${escapeHTML(key)}" value="${escapeHTML(value)}" ${key.includes('color')?'type="color"':''}>`}</div>`; 
-        }).join("")}</div></div></div>`;
-    }
-
-    function renderLegal() {
-        setValue("policyFaq", state.cms.policy_faq || state.cms.policy_faq_body || "");
-        setValue("policyShipping", state.cms.policy_shipping || state.cms.policy_shipping_body || "");
-        setValue("policyReturns", state.cms.policy_returns || state.cms.policy_returns_body || "");
-        setValue("policyPrivacy", state.cms.policy_privacy || state.cms.policy_privacy_body || "");
-        setValue("policyTerms", state.cms.policy_terms || state.cms.policy_terms_body || "");
-    }
-
-    function renderSettings() {
-        setValue("storeName", state.settings.store_name || "BULKKOT");
-        setValue("supportEmail", state.settings.support_email || ADMIN_EMAIL);
-        setValue("whatsappNumber", state.settings.whatsapp_number || state.settings.support_phone || state.cms.whatsapp_number || "");
-        setValue("currency", state.settings.currency || "INR");
-        setValue("shippingFee", state.settings.shipping_fee || 0);
-        setValue("freeShipping", state.settings.free_shipping_threshold || 0);
-    }
-
-    // ----------------------------------------------------
-    // CATEGORY ACTIONS
-    // ----------------------------------------------------
-    function resetCategory() {
-        setValue("categoryId", ""); setValue("categorySlug", ""); setValue("categoryEnglish", ""); setValue("categoryKorean", ""); setValue("categorySort", "0"); setValue("categoryActiveStatus", "true");
-        setText("categoryModalTitle", "NEW CATEGORY"); toggleHidden("deleteCategoryButton", true);
-    }
-
-    function openCategory(id) {
-        const cat = state.categories.find(c => String(c.id) === String(id));
-        if (!cat) return;
-        setValue("categoryId", cat.id); setValue("categorySlug", cat.slug || ""); setValue("categoryEnglish", cat.english_name || cat.name_en || cat.name || ""); setValue("categoryKorean", cat.korean_name || cat.name_ko || ""); setValue("categorySort", cat.sort_order || 0); setValue("categoryActiveStatus", String(cat.is_active !== false));
-        setText("categoryModalTitle", "EDIT CATEGORY"); toggleHidden("deleteCategoryButton", false); openModal("categoryModal");
-    }
-
-    async function saveCategory(event) {
-        event.preventDefault();
-        try {
-            await requireAdmin();
-            const id = valueOf("categoryId", "").trim();
-            const slug = valueOf("categorySlug", "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
-            const englishName = valueOf("categoryEnglish", "").trim();
-            const koreanName = valueOf("categoryKorean", "").trim();
-            
-            if (!slug || !englishName) throw new Error("Slug and English Name are required.");
-            setLoading(true, "SAVING CATEGORY...");
-            
-            const payload = { slug: slug, name_en: englishName, name_ko: koreanName, sort_order: Number(valueOf("categorySort", 0)), is_active: valueOf("categoryActiveStatus", "true") === "true" };
-            // Also support old schema just in case
-            payload.english_name = englishName; payload.korean_name = koreanName;
-
-            const {error} = id ? await supabaseClient.from("categories").update(payload).eq("id", id) : await supabaseClient.from("categories").insert(payload);
-            if (error) throw error;
-            
-            closeModal("categoryModal"); await loadCategories(); renderAll(); toast("Category saved.");
-        } catch (error) { toast(error.message || "Category save failed.", "error"); } finally { setLoading(false); }
-    }
-
-    async function deleteCategory() {
-        try {
-            const id = valueOf("categoryId", "");
-            if (!id || !window.confirm("Delete this category? Products using this may lose their mapping.")) return;
-            await requireAdmin();
-            setLoading(true, "DELETING...");
-            const {error} = await supabaseClient.from("categories").delete().eq("id", id);
-            if (error) throw error;
-            closeModal("categoryModal"); await loadCategories(); renderAll(); toast("Category deleted.");
-        } catch (error) { toast(error.message || "Category delete failed.", "error"); } finally { setLoading(false); }
-    }
-
-    // ----------------------------------------------------
-    // PRODUCT ACTIONS
-    // ----------------------------------------------------
-    function resetProduct() {
-        setValue("productId", ""); setValue("productName", ""); setValue("productSku", ""); setValue("productCategory", ""); setValue("productPrice", "0"); setValue("productCompare", ""); setValue("productActive", "true"); setValue("productDescription", ""); setValue("stockS", "0"); setValue("stockM", "0"); setValue("stockL", "0"); setValue("stockXL", "0");
-        state.editingProductImages = [];
-        renderProductImages();
-        toggleHidden("deleteProductButton", true);
-        setText("productModalTitle", "NEW PRODUCT");
-    }
-
-    function renderProductImages() {
-        setHTML("productImagePreview", state.editingProductImages.length ? state.editingProductImages.map((url, i) => `<div style="position:relative"><img src="${escapeHTML(url)}" alt="img"><button type="button" class="btn small danger" style="position:absolute;top:4px;right:4px;padding:2px 5px;" onclick="window.removeProductImg(${i})">X</button></div>`).join("") : '<span class="muted">No images yet.</span>');
-    }
-    
-    // Global helper for the inline onclick above
-    window.removeProductImg = function(index) {
-        state.editingProductImages.splice(index, 1);
-        renderProductImages();
-    };
-
-    function openProduct(id) {
-        resetProduct();
-        const product = state.products.find(p => String(p.id) === String(id));
-        if (!product) return;
-        const s = stock(product);
-        state.editingProductImages = Array.isArray(product.images) ? product.images.slice(0, MAX_IMAGES) : (product.image_url ? [product.image_url] : []);
-        
-        setValue("productId", product.id); setValue("productName", product.name || ""); setValue("productSku", product.sku || ""); setValue("productCategory", product.category || ""); setValue("productPrice", product.price || 0); setValue("productCompare", product.compare_at_price || ""); setValue("productActive", String(live(product))); setValue("productDescription", product.description || ""); setValue("stockS", s.S); setValue("stockM", s.M); setValue("stockL", s.L); setValue("stockXL", s.XL);
-        toggleHidden("deleteProductButton", false); setText("productModalTitle", "EDIT PRODUCT"); renderProductImages(); openModal("productModal");
-    }
-
-    async function uploadProductImages() {
-        const input = $("productImageFiles");
-        const files = input && input.files ? Array.from(input.files) : [];
-        if (!files.length) return [];
-        if (state.editingProductImages.length + files.length > MAX_IMAGES) throw new Error("Maximum 5 images allowed.");
-        const urls = [];
-        for (const file of files) {
-            const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-            const path = `products/${crypto.randomUUID()}-${safe}`;
-            const upload = await supabaseClient.storage.from(PRODUCT_BUCKET).upload(path, file, { upsert: false, contentType: file.type });
-            if (upload.error) throw upload.error;
-            const publicUrl = supabaseClient.storage.from(PRODUCT_BUCKET).getPublicUrl(path).data.publicUrl;
-            if (publicUrl) urls.push(publicUrl);
-        }
-        return urls;
-    }
-
-    async function saveProduct(event) {
-        event.preventDefault();
-        try {
-            await requireAdmin();
-            const id = valueOf("productId", "").trim();
-            const name = valueOf("productName", "").trim();
-            const category = valueOf("productCategory", "").trim();
-            if (!name || !category) throw new Error("Product Name and Category are required.");
-            
-            setLoading(true, "SAVING PRODUCT...");
-            const newImages = await uploadProductImages();
-            const images = state.editingProductImages.concat(newImages).slice(0, MAX_IMAGES);
-            const stockJson = { S: Number(valueOf("stockS", 0)), M: Number(valueOf("stockM", 0)), L: Number(valueOf("stockL", 0)), XL: Number(valueOf("stockXL", 0)) };
-            
-            const payload = { 
-                name: name, 
-                sku: valueOf("productSku", "").trim(), 
-                category: category, 
-                price: Number(valueOf("productPrice", 0)), 
-                compare_at_price: Number(valueOf("productCompare", 0)) || null, 
-                active: valueOf("productActive", "true") === "true", 
-                visibility: valueOf("productActive", "true") === "true", 
-                description: valueOf("productDescription", "").trim(), 
-                stock: stockJson, 
-                images: images, 
-                image_url: images[0] || null,
-                updated_at: new Date().toISOString() 
-            };
-            
-            if (id) {
-                const {error} = await supabaseClient.from("products").update(payload).eq("id", id);
-                if(error) throw error;
-            } else {
-                payload.slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") + "-" + Date.now();
-                const {error} = await supabaseClient.from("products").insert(payload);
-                if(error) throw error;
-            }
-            
-            closeModal("productModal"); await loadProducts(); renderAll(); toast("Product saved.");
-        } catch (error) { toast(error.message || "Product save failed.", "error"); } finally { setLoading(false); }
-    }
-
-    async function deleteProduct() {
-        try {
-            const id = valueOf("productId", "");
-            if (!id || !window.confirm("Delete this product permanently?")) return;
-            await requireAdmin();
-            setLoading(true, "DELETING...");
-            const {error} = await supabaseClient.from("products").delete().eq("id", id);
-            if (error) throw error;
-            closeModal("productModal"); await loadProducts(); renderAll(); toast("Product deleted.");
-        } catch (error) { toast(error.message || "Product delete failed.", "error"); } finally { setLoading(false); }
-    }
-
-    // ----------------------------------------------------
-    // ORDER ACTIONS
-    // ----------------------------------------------------
-    function openOrder(id) {
-        const order = state.orders.find(o => String(o.id) === String(id));
-        if (!order) return;
-        setValue("orderId", order.id); setValue("orderStatus", order.order_status || "PLACED"); setValue("orderPayment", order.payment_status || "PENDING"); setValue("orderCourier", order.courier || order.courier_name || ""); setValue("orderTracking", order.tracking_number || order.awb || ""); setValue("orderNote", order.admin_note || "");
-        setHTML("orderDetails", `<div class="grid three"><div class="card"><b>CUSTOMER</b><p>${escapeHTML(order.customer_name || order.full_name || order.email || "—")}<br>${escapeHTML(order.email || "")}<br>${escapeHTML(order.phone || "")}</p></div><div class="card"><b>SHIPPING</b><p>${escapeHTML(order.shipping_address || order.address || "—")}<br>${escapeHTML(order.shipping_city || order.city || "")} ${escapeHTML(order.shipping_state || order.state || "")} ${escapeHTML(order.shipping_pincode || order.pincode || "")}</p></div><div class="card"><b>TOTAL</b><div class="metric">${money(order.total)}</div></div></div>`);
-        openModal("orderModal");
-    }
-
-    async function saveOrder(event) {
-        event.preventDefault();
-        try {
-            await requireAdmin();
-            setLoading(true, "UPDATING ORDER...");
-            const id = valueOf("orderId", "");
-            const payload = { order_status: valueOf("orderStatus", "PLACED"), payment_status: valueOf("orderPayment", "PENDING"), courier: valueOf("orderCourier", "").trim(), tracking_number: valueOf("orderTracking", "").trim(), admin_note: valueOf("orderNote", "").trim(), updated_at: new Date().toISOString() };
-            const {error} = await supabaseClient.from("orders").update(payload).eq("id", id);
-            if (error) throw error;
-            closeModal("orderModal"); await loadOrders(); await loadCustomers(); renderAll(); toast("Order updated.");
-        } catch (error) { toast(error.message || "Order update failed.", "error"); } finally { setLoading(false); }
-    }
-
-    // ----------------------------------------------------
-    // COUPON ACTIONS
-    // ----------------------------------------------------
-    async function toggleCoupon(id) {
-        try {
-            await requireAdmin();
-            setLoading(true);
-            const coupon = state.coupons.find(c => String(c.id) === String(id));
-            if (!coupon) return;
-            const {error} = await supabaseClient.from("coupons").update({ active: !Boolean(coupon.active) }).eq("id", id);
-            if (error) throw error;
-            await loadCoupons(); renderAll(); toast("Coupon updated.");
-        } catch (error) { toast(error.message || "Coupon update failed.", "error"); } finally { setLoading(false); }
-    }
-
-    async function createCoupon(event) {
-        event.preventDefault();
-        try {
-            await requireAdmin();
-            setLoading(true, "CREATING...");
-            const payload = { code: valueOf("couponCode", "").trim().toUpperCase(), discount_value: Number(valueOf("couponDiscount", 0)), discount_type: "FIXED", min_order_value: Number(valueOf("couponMinimum", 0)), active: valueOf("couponActive")==="true" };
-            if (!payload.code) throw new Error("Coupon code is required.");
-            const {error} = await supabaseClient.from("coupons").insert(payload);
-            if (error) throw error;
-            closeModal("couponModal"); await loadCoupons(); renderAll(); toast("Coupon created.");
-        } catch (error) { toast(error.message || "Coupon create failed.", "error"); } finally { setLoading(false); }
-    }
-
-    // ----------------------------------------------------
-    // CMS & SETTINGS ACTIONS
-    // ----------------------------------------------------
-    async function saveCMS() {
-        try {
-            await requireAdmin();
-            setLoading(true, "SAVING CMS...");
-            const fields = document.querySelectorAll("[data-cms-key]");
-            for (const field of fields) {
-                const {error} = await supabaseClient.from("site_content").upsert({ content_key: field.dataset.cmsKey, content_value: field.value }, { onConflict: "content_key" });
-                if (error) throw error;
-            }
-            await loadCMS(); renderCMS(); renderLegal(); toast("CMS saved.");
-        } catch (error) { toast(error.message || "CMS save failed.", "error"); } finally { setLoading(false); }
-    }
-
-    async function saveLegal(event) {
-        event.preventDefault();
-        try {
-            await requireAdmin();
-            setLoading(true, "SAVING POLICIES...");
-            const rows = [["policy_faq", valueOf("policyFaq", "")], ["policy_shipping", valueOf("policyShipping", "")], ["policy_returns", valueOf("policyReturns", "")], ["policy_privacy", valueOf("policyPrivacy", "")], ["policy_terms", valueOf("policyTerms", "")]];
-            for (const row of rows) {
-                const {error} = await supabaseClient.from("site_content").upsert({ content_key: row[0], content_value: row[1] }, { onConflict: "content_key" });
-                if (error) throw error;
-            }
-            await loadCMS(); renderLegal(); toast("Policies saved.");
-        } catch (error) { toast(error.message || "Policy save failed.", "error"); } finally { setLoading(false); }
-    }
-
-    async function saveSettings(event) {
-        event.preventDefault();
-        try {
-            await requireAdmin();
-            setLoading(true, "SAVING CONFIG...");
-            const payload = { id: 1, store_name: valueOf("storeName", "BULKKOT").trim(), support_email: valueOf("supportEmail", "").trim(), whatsapp_number: valueOf("whatsappNumber", "").trim(), currency: valueOf("currency", "INR").trim() || "INR", shipping_fee: Number(valueOf("shippingFee",0)), free_shipping_threshold: Number(valueOf("freeShipping",0)), updated_at: new Date().toISOString() };
-            const {error} = await supabaseClient.from("store_settings").upsert(payload, { onConflict: "id" });
-            if (error) throw error;
-            await loadSettings(); renderSettings(); toast("Store settings saved.");
-        } catch (error) { toast(error.message || "Settings save failed.", "error"); } finally { setLoading(false); }
-    }
-    
-    function exportWaitlist() {
-        if (!state.waitlist.length) return toast("No waitlist entries.", "warning");
-        const rows = [["email", "phone", "source", "created_at"]].concat(state.waitlist.map(r => [r.email || "", r.phone || "", r.source || "", r.created_at || ""]));
-        const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(",")).join("\r\n");
-        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-        const link = document.createElement("a");
-        link.href = url; link.download = `bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`;
-        document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
-    }
-
-    // ----------------------------------------------------
-    // INITIALIZATION & EVENT BINDING
-    // ----------------------------------------------------
-    function navigate(page) {
-        state.page = page;
-        document.querySelectorAll(".page").forEach(el => el.classList.toggle("active", el.id === "page-" + page));
-        document.querySelectorAll("#nav button").forEach(btn => btn.classList.toggle("active", btn.dataset.page === page));
-        const labels = { dashboard: "Dashboard", categories: "Categories", products: "Products", orders: "Orders", customers: "Customers", coupons: "Coupons", waitlist: "Waitlist", cms: "Storefront CMS", legal: "Legal Policies", settings: "Store Settings" };
-        setText("pageTitle", labels[page] || page);
-        const sidebar = $("sidebar");
-        if (sidebar && window.innerWidth <= 700) sidebar.classList.remove("open");
-    }
-
-    function bindEvents() {
-        const _lForm = $("loginForm"); if (_lForm) _lForm.addEventListener("submit", handleLoginSubmit);
-        const _lOut = $("logoutButton"); if (_lOut) _lOut.addEventListener("click", logout);
-        const _refresh = $("refreshButton"); if (_refresh) _refresh.addEventListener("click", async () => { try { await requireAdmin(); await loadAll(); toast("Refreshed."); } catch (e) {} });
-        const _menu = $("menuButton"); if (_menu) _menu.addEventListener("click", () => { const s = $("sidebar"); if (s) s.classList.toggle("open"); });
-        
-        document.querySelectorAll("#nav button").forEach(btn => { btn.addEventListener("click", () => navigate(btn.dataset.page)); });
-        document.querySelectorAll("[data-goto]").forEach(btn => { btn.addEventListener("click", () => navigate(btn.dataset.goto)); });
-        document.querySelectorAll("[data-close]").forEach(btn => { btn.addEventListener("click", () => closeModal(btn.dataset.close)); });
-        document.querySelectorAll(".modal").forEach(modal => { modal.addEventListener("click", e => { if (e.target === modal) closeModal(modal.id); }); });
-        
-        const _nCat = $("newCategoryButton"); if (_nCat) _nCat.addEventListener("click", () => { resetCategory(); openModal("categoryModal"); });
-        const _cForm = $("categoryForm"); if (_cForm) _cForm.addEventListener("submit", saveCategory);
-        const _dCat = $("deleteCategoryButton"); if (_dCat) _dCat.addEventListener("click", deleteCategory);
-        
-        const _nProd = $("newProductButton"); if (_nProd) _nProd.addEventListener("click", () => { resetProduct(); openModal("productModal"); });
-        const _pForm = $("productForm"); if (_pForm) _pForm.addEventListener("submit", saveProduct);
-        const _dProd = $("deleteProductButton"); if (_dProd) _dProd.addEventListener("click", deleteProduct);
-        const _pSearch = $("productSearch"); if (_pSearch) _pSearch.addEventListener("input", renderProducts);
-        
-        const _oForm = $("orderForm"); if (_oForm) _oForm.addEventListener("submit", saveOrder);
-        const _oSearch = $("orderSearch"); if (_oSearch) _oSearch.addEventListener("input", renderOrders);
-        const _oFilter = $("orderStatusFilter"); if (_oFilter) _oFilter.addEventListener("change", renderOrders);
-        
-        const _cSearch = $("customerSearch"); if (_cSearch) _cSearch.addEventListener("input", renderCustomers);
-        
-        const _nCoup = $("newCouponButton"); if (_nCoup) _nCoup.addEventListener("click", () => { const f = $("couponForm"); if (f) f.reset(); openModal("couponModal"); });
-        const _coupForm = $("couponForm"); if (_coupForm) _coupForm.addEventListener("submit", createCoupon);
-        
-        const _rWait = $("refreshWaitlistButton"); if (_rWait) _rWait.addEventListener("click", async () => { setLoading(true); await loadWaitlist(); renderWaitlist(); setText("navWaitlist", state.waitlist.length); setLoading(false); toast("Waitlist refreshed."); });
-        const _eWait = $("exportWaitlistButton"); if (_eWait) _eWait.addEventListener("click", exportWaitlist);
-        
-        const _cmsBtn = $("saveCmsButton"); if (_cmsBtn) _cmsBtn.addEventListener("click", saveCMS);
-        const _lForm2 = $("legalForm"); if (_lForm2) _lForm2.addEventListener("submit", saveLegal);
-        const _sForm = $("settingsForm"); if (_sForm) _sForm.addEventListener("submit", saveSettings);
-    }
-
-    async function initialize() {
-        bindEvents();
-        try {
-            setLoading(true, "VERIFYING SESSION...");
-            const result = await supabaseClient.auth.getSession();
-            const session = result.data ? result.data.session : null;
-            if (!authorized(session)) {
-                showLogin();
-            } else {
-                showAdmin(session);
-                await loadAll();
-            }
-        } catch (error) {
-            console.error("Session init failed:", error);
-            showLogin("Could not verify session.");
-        } finally {
-            setLoading(false);
-        }
-
-        supabaseClient.auth.onAuthStateChange((_event, session) => {
-            if (!authorized(session)) {
-                showLogin();
-            }
-        });
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initialize, { once: true });
+// Database Connection Keys
+const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+const ADMIN_EMAIL = "bulkkotwear@gmail.com";
+
+// Initialize Supabase safely
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Global State
+const store = {
+  categories: [], products: [], orders: [], customers: [], cms: {}, settings: {}
+};
+
+// Application Controller
+window.appAdmin = {
+
+  // --- UI HELPERS ---
+  toast: function(msg, isError) {
+    const t = document.getElementById("toast");
+    if(!t) return;
+    t.textContent = msg;
+    t.style.background = isError ? "#ff777e" : "#f4f4f4";
+    t.style.color = "#000";
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 3000);
+  },
+  
+  load: function(show, text) {
+    const el = document.getElementById("loadingOverlay");
+    const txt = document.getElementById("loadingText");
+    if(!el) return;
+    if(show) {
+      if(txt) txt.textContent = text || "LOADING...";
+      el.classList.add("show");
     } else {
-        initialize();
+      el.classList.remove("show");
     }
-})();
+  },
+
+  go: function(pageId) {
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+    
+    const page = document.getElementById("page-" + pageId);
+    if(page) page.classList.add("active");
+    
+    const btn = document.querySelector(`[onclick="appAdmin.go('${pageId}')"]`);
+    if(btn) btn.classList.add("active");
+  },
+
+  openModal: function(id) {
+    const m = document.getElementById(id);
+    if(m) m.classList.add("open");
+  },
+  closeModal: function(id) {
+    const m = document.getElementById(id);
+    if(m) m.classList.remove("open");
+  },
+
+  // --- AUTHENTICATION ---
+  login: async function() {
+    this.load(true, "AUTHENTICATING...");
+    document.getElementById("loginError").textContent = "";
+    document.getElementById("loginBtn").disabled = true;
+
+    try {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      
+      if(email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+        throw new Error("Access Denied: Only Admin email is allowed.");
+      }
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      
+      // Clean refresh mounts the dashboard automatically via the auth listener below
+      window.location.reload();
+    } catch(err) {
+      document.getElementById("loginError").textContent = err.message;
+      this.load(false);
+      document.getElementById("loginBtn").disabled = false;
+    }
+  },
+
+  logout: async function() {
+    this.load(true, "LOGGING OUT...");
+    await sb.auth.signOut();
+    window.location.reload();
+  },
+
+  // --- DATA ENGINE ---
+  fetchData: async function() {
+    try {
+      this.load(true, "FETCHING STORE DATA...");
+      
+      // Safe DB queries - If table is missing, it returns empty array instead of crashing JS
+      const [cat, prod, ord, cms, set] = await Promise.all([
+        sb.from("categories").select("*").catch(()=>({data:[]})),
+        sb.from("products").select("*").catch(()=>({data:[]})),
+        sb.from("orders").select("*").catch(()=>({data:[]})),
+        sb.from("site_content").select("*").catch(()=>({data:[]})),
+        sb.from("store_settings").select("*").eq("id", 1).maybeSingle().catch(()=>({data:{}}))
+      ]);
+
+      store.categories = cat.data || [];
+      store.products = prod.data || [];
+      store.orders = ord.data || [];
+      store.settings = set.data || {};
+      
+      store.cms = {};
+      (cms.data || []).forEach(r => { if(r.content_key) store.cms[r.content_key] = r.content_value; });
+
+      this.render();
+    } catch(err) {
+      console.error(err);
+      this.toast("Data sync error", true);
+    } finally {
+      this.load(false);
+    }
+  },
+
+  render: function() {
+    // Top KPIs
+    if(document.getElementById("kOrders")) document.getElementById("kOrders").textContent = store.orders.length;
+    if(document.getElementById("kProducts")) document.getElementById("kProducts").textContent = store.products.length;
+    
+    let rev = 0;
+    store.orders.forEach(o => { if(o.order_status !== 'CANCELLED') rev += Number(o.total || 0); });
+    if(document.getElementById("kRevenue")) document.getElementById("kRevenue").textContent = "₹" + rev;
+
+    // Sidebar Counts
+    if(document.getElementById("cCat")) document.getElementById("cCat").textContent = store.categories.length;
+    if(document.getElementById("cProd")) document.getElementById("cProd").textContent = store.products.length;
+    if(document.getElementById("cOrd")) document.getElementById("cOrd").textContent = store.orders.length;
+
+    // Tables
+    this.renderTables();
+    
+    // Forms
+    if(document.getElementById("cmsHero")) document.getElementById("cmsHero").value = store.cms.hero_title || "";
+    if(document.getElementById("cmsTicker")) document.getElementById("cmsTicker").value = store.cms.ticker_1 || "";
+    if(document.getElementById("cmsFaq")) document.getElementById("cmsFaq").value = store.cms.policy_faq || "";
+    
+    if(document.getElementById("setMail")) document.getElementById("setMail").value = store.settings.support_email || "";
+    if(document.getElementById("setPhone")) document.getElementById("setPhone").value = store.settings.whatsapp_number || "";
+    if(document.getElementById("setShip")) document.getElementById("setShip").value = store.settings.shipping_fee || 0;
+  },
+
+  renderTables: function() {
+    const e = (str) => String(str||"").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    
+    // Categories
+    const catHTML = store.categories.map(c => `<tr><td><b>${e(c.slug)}</b></td><td>${e(c.name_en)}</td><td>${e(c.name_ko)}</td><td><span class="badge ${c.is_active?'green':'red'}">${c.is_active?'LIVE':'HIDDEN'}</span></td><td><button class="btn" onclick="appAdmin.editCategory('${c.id}')">Edit</button></td></tr>`).join("");
+    if(document.getElementById("catRows")) document.getElementById("catRows").innerHTML = catHTML || '<tr><td colspan="5">No categories.</td></tr>';
+
+    // Products
+    const prodHTML = store.products.map(p => {
+      let st = {S:0,M:0,L:0,XL:0}; try{ st=typeof p.stock==='string'?JSON.parse(p.stock):p.stock; }catch(e){}
+      let total = Number(st.S||0)+Number(st.M||0)+Number(st.L||0)+Number(st.XL||0);
+      return `<tr><td><b>${e(p.name)}</b></td><td>${e(p.category)}</td><td>₹${p.price}</td><td>${total} Units</td><td><span class="badge ${p.active?'green':'red'}">${p.active?'LIVE':'HIDDEN'}</span></td><td><button class="btn" onclick="appAdmin.editProduct('${p.id}')">Edit</button></td></tr>`;
+    }).join("");
+    if(document.getElementById("prodRows")) document.getElementById("prodRows").innerHTML = prodHTML || '<tr><td colspan="6">No products.</td></tr>';
+
+    // Orders
+    const ordHTML = store.orders.map(o => `<tr><td><b>${e(o.order_number||o.id.slice(0,8))}</b></td><td>${e(o.customer_name||o.email)}</td><td>₹${o.total}</td><td>${e(o.payment_status)}</td><td><span class="badge ${o.order_status==='DELIVERED'?'green':''}">${e(o.order_status)}</span></td><td><button class="btn" onclick="appAdmin.editOrder('${o.id}')">Update</button></td></tr>`).join("");
+    if(document.getElementById("ordRows")) document.getElementById("ordRows").innerHTML = ordHTML || '<tr><td colspan="6">No orders.</td></tr>';
+    if(document.getElementById("dashOrders")) document.getElementById("dashOrders").innerHTML = ordHTML || '<tr><td colspan="4">No orders.</td></tr>';
+  },
+
+  // --- CRUD MODALS & SAVES ---
+  editCategory: function(id) {
+    const c = store.categories.find(x => String(x.id) === String(id));
+    if(!c) return;
+    document.getElementById("cId").value = c.id;
+    document.getElementById("cSlug").value = c.slug;
+    document.getElementById("cEn").value = c.name_en;
+    document.getElementById("cKo").value = c.name_ko;
+    document.getElementById("cActive").value = String(c.is_active);
+    this.openModal('catModal');
+  },
+  
+  saveCategory: async function() {
+    this.load(true, "SAVING...");
+    try {
+      const id = document.getElementById("cId").value;
+      const payload = {
+        slug: document.getElementById("cSlug").value.toLowerCase().trim(),
+        name_en: document.getElementById("cEn").value.trim(),
+        name_ko: document.getElementById("cKo").value.trim(),
+        is_active: document.getElementById("cActive").value === "true"
+      };
+      
+      if(id) await sb.from("categories").update(payload).eq("id", id);
+      else await sb.from("categories").insert(payload);
+      
+      this.closeModal('catModal');
+      await this.fetchData();
+      this.toast("Category saved.");
+    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
+  },
+
+  openProductModal: function() {
+    document.getElementById("pId").value = "";
+    document.getElementById("pName").value = "";
+    document.getElementById("pCat").value = "";
+    document.getElementById("pPrice").value = "0";
+    document.getElementById("pS").value = "0";
+    document.getElementById("pM").value = "0";
+    document.getElementById("pL").value = "0";
+    document.getElementById("pXL").value = "0";
+    this.openModal('prodModal');
+  },
+
+  editProduct: function(id) {
+    const p = store.products.find(x => String(x.id) === String(id));
+    if(!p) return;
+    document.getElementById("pId").value = p.id;
+    document.getElementById("pName").value = p.name;
+    document.getElementById("pCat").value = p.category;
+    document.getElementById("pPrice").value = p.price;
+    document.getElementById("pActive").value = String(p.active);
+    let st = {S:0,M:0,L:0,XL:0}; try{ st=typeof p.stock==='string'?JSON.parse(p.stock):p.stock; }catch(e){}
+    document.getElementById("pS").value = st.S||0;
+    document.getElementById("pM").value = st.M||0;
+    document.getElementById("pL").value = st.L||0;
+    document.getElementById("pXL").value = st.XL||0;
+    this.openModal('prodModal');
+  },
+
+  saveProduct: async function() {
+    this.load(true, "SAVING...");
+    try {
+      const id = document.getElementById("pId").value;
+      const name = document.getElementById("pName").value.trim();
+      const payload = {
+        name: name,
+        category: document.getElementById("pCat").value.trim(),
+        price: Number(document.getElementById("pPrice").value),
+        active: document.getElementById("pActive").value === "true",
+        stock: {
+          S: Number(document.getElementById("pS").value),
+          M: Number(document.getElementById("pM").value),
+          L: Number(document.getElementById("pL").value),
+          XL: Number(document.getElementById("pXL").value)
+        }
+      };
+      
+      if(id) await sb.from("products").update(payload).eq("id", id);
+      else {
+        payload.slug = name.toLowerCase().replace(/[^a-z0-9]/g, "-") + "-" + Date.now();
+        await sb.from("products").insert(payload);
+      }
+      
+      this.closeModal('prodModal');
+      await this.fetchData();
+      this.toast("Product saved.");
+    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
+  },
+
+  editOrder: function(id) {
+    const o = store.orders.find(x => String(x.id) === String(id));
+    if(!o) return;
+    document.getElementById("oId").value = o.id;
+    document.getElementById("oStatus").value = o.order_status || "PLACED";
+    document.getElementById("oTrack").value = o.tracking_number || "";
+    this.openModal('ordModal');
+  },
+
+  saveOrder: async function() {
+    this.load(true, "UPDATING...");
+    try {
+      const id = document.getElementById("oId").value;
+      const payload = {
+        order_status: document.getElementById("oStatus").value,
+        tracking_number: document.getElementById("oTrack").value.trim()
+      };
+      await sb.from("orders").update(payload).eq("id", id);
+      this.closeModal('ordModal');
+      await this.fetchData();
+      this.toast("Order updated.");
+    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
+  },
+
+  saveCMS: async function() {
+    this.load(true, "SAVING CMS...");
+    try {
+      const rows = [
+        { content_key: "hero_title", content_value: document.getElementById("cmsHero").value },
+        { content_key: "ticker_1", content_value: document.getElementById("cmsTicker").value },
+        { content_key: "policy_faq", content_value: document.getElementById("cmsFaq").value }
+      ];
+      for(const r of rows) {
+        await sb.from("site_content").upsert(r, { onConflict: "content_key" });
+      }
+      await this.fetchData();
+      this.toast("CMS Saved.");
+    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
+  },
+
+  saveSettings: async function() {
+    this.load(true, "SAVING...");
+    try {
+      const payload = {
+        id: 1,
+        support_email: document.getElementById("setMail").value,
+        whatsapp_number: document.getElementById("setPhone").value,
+        shipping_fee: Number(document.getElementById("setShip").value)
+      };
+      await sb.from("store_settings").upsert(payload, { onConflict: "id" });
+      await this.fetchData();
+      this.toast("Settings Saved.");
+    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
+  },
+
+  refresh: async function() {
+    await this.fetchData();
+    this.toast("Dashboard Synced.");
+  }
+};
+
+// --- INITIALIZATION ---
+document.addEventListener("DOMContentLoaded", async () => {
+  appAdmin.load(true, "VERIFYING SESSION...");
+  try {
+    const { data } = await sb.auth.getSession();
+    const session = data?.session;
+    
+    if (session && session.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      document.getElementById("loginView").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      await appAdmin.fetchData();
+    } else {
+      document.getElementById("app").classList.add("hidden");
+      document.getElementById("loginView").classList.remove("hidden");
+    }
+  } catch(err) {
+    console.error(err);
+    document.getElementById("loginView").classList.remove("hidden");
+  } finally {
+    appAdmin.load(false);
+  }
+});
 </script>
 </body>
 </html>
