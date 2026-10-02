@@ -1568,2357 +1568,490 @@
   <div id="modalRoot"></div>
   <div id="toastRoot"></div>
 
+
 <script>
 "use strict";
 
-/* ============================================================
-   BULKKOT ADMIN CONTROL CENTER
-   Single-file Vanilla JS + Supabase JS v2
-   ============================================================ */
-
+/* BULKKOT ADMIN — production-aligned with current storefront schema */
 const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
 const ADMIN_EMAIL = "bulkkotwear@gmail.com";
 const STORAGE_BUCKET = "site-content-images";
-
-const { createClient } = supabase;
-
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
 });
 
 const state = {
-  user:null,
-  products:[],
-  orders:[],
-  customers:[],
-  coupons:[],
-  waitlist:[],
-  cms:{},
-  settings:{},
-  media:[],
-  currentPage:"dashboard",
-  editingProduct:null,
-  editingCoupon:null
+  user:null, products:[], orders:[], customers:[], coupons:[], waitlist:[],
+  cms:{}, settings:null, media:[], currentPage:"dashboard",
+  editingProduct:null, editingCoupon:null
 };
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
-
 const $ = id => document.getElementById(id);
-
-function esc(value){
-  if(value === null || value === undefined) return "";
-  return String(value)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function money(value){
-  const n = Number(value);
-  if(!Number.isFinite(n)) return "₹0";
-  return "₹" + n.toLocaleString("en-IN",{
-    maximumFractionDigits:2
-  });
-}
-
-function num(value){
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function dateTime(value){
-  if(!value) return "—";
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleString("en-IN",{
-    dateStyle:"medium",
-    timeStyle:"short"
-  });
-}
-
-function dateOnly(value){
-  if(!value) return "—";
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleDateString("en-IN");
-}
+const esc = v => String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+const num = v => Number.isFinite(Number(v)) ? Number(v) : 0;
+const money = v => "₹" + num(v).toLocaleString("en-IN",{maximumFractionDigits:2});
+const dateTime = v => { if(!v) return "—"; const d=new Date(v); return Number.isNaN(d.getTime())?String(v):d.toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}); };
+const dateOnly = v => { if(!v) return "—"; const d=new Date(v); return Number.isNaN(d.getTime())?String(v):d.toLocaleDateString("en-IN"); };
+const normalizeError = e => e?.message || e?.error_description || String(e || "Unknown error");
+const loadingHTML = () => '<div class="loading-state"><span class="loader"></span></div>';
+const emptyHTML = m => '<div class="empty">'+esc(m || "No records found.")+'</div>';
 
 function showToast(message,type=""){
-  const root = $("toastRoot");
-  const el = document.createElement("div");
-  el.className = "toast " + type;
-  el.textContent = message;
-  root.appendChild(el);
+  const root=$("toastRoot"), el=document.createElement("div");
+  el.className="toast "+type; el.textContent=message; root.appendChild(el);
   setTimeout(()=>el.remove(),4000);
 }
-
 function setLoginError(message){
-  const el = $("loginError");
-  el.textContent = message || "";
-  el.classList.toggle("hidden",!message);
+  const el=$("loginError"); el.textContent=message||""; el.classList.toggle("hidden",!message);
 }
-
-function loadingHTML(){
-  return '<div class="loading-state"><span class="loader"></span></div>';
-}
-
-function emptyHTML(message="No records found."){
-  return `<div class="empty">${esc(message)}</div>`;
-}
-
-function normalizeError(error){
-  if(!error) return "Unknown error";
-  return error.message || error.error_description || String(error);
-}
-
 function getValue(row,...keys){
-  for(const key of keys){
-    if(row && row[key] !== undefined && row[key] !== null && row[key] !== ""){
-      return row[key];
-    }
-  }
+  for(const k of keys) if(row?.[k]!==undefined && row?.[k]!==null && row?.[k]!=="") return row[k];
   return "";
 }
-
-function productStock(p){
-  return num(getValue(p,"stock","inventory","quantity","stock_quantity"));
+function productName(p){return getValue(p,"name","title","product_name")||"Untitled";}
+function productCategory(p){return String(getValue(p,"category","type")||"tees");}
+function productPrice(p){return num(getValue(p,"price","sale_price","selling_price"));}
+function productImages(p){
+  if(Array.isArray(p?.images)) return p.images.filter(Boolean);
+  const x=getValue(p,"image_url","image","thumbnail"); return x?[x]:[];
 }
-
-function productPrice(p){
-  return num(getValue(p,"price","sale_price","selling_price"));
+function productStockMap(p){
+  const raw=p?.stock;
+  if(raw && typeof raw==="object" && !Array.isArray(raw)) return {S:num(raw.S),M:num(raw.M),L:num(raw.L),XL:num(raw.XL)};
+  const n=num(raw); return {S:0,M:n,L:0,XL:0};
 }
-
-function productImage(p){
-  return getValue(p,"image_url","image","thumbnail","imageUrl");
-}
-
-function orderStatus(o){
-  return String(getValue(o,"order_status","status","fulfillment_status") || "pending").toLowerCase();
-}
-
-function paymentStatus(o){
-  return String(getValue(o,"payment_status","paymentStatus") || "pending").toLowerCase();
-}
-
-function orderNumber(o){
-  return getValue(o,"order_number","order_no","order_id","id") || "—";
-}
-
-function customerName(o){
-  return getValue(o,"customer_name","name","full_name","customer","shipping_name") || "Guest";
-}
-
-function customerPhone(o){
-  return getValue(o,"customer_phone","phone","mobile","shipping_phone");
-}
-
-function totalValue(o){
-  return num(getValue(o,"total","grand_total","total_amount","amount","order_total"));
-}
+function totalStock(p){const s=productStockMap(p);return s.S+s.M+s.L+s.XL;}
+function orderStatus(o){return String(getValue(o,"order_status","status")||"PLACED").toUpperCase();}
+function paymentStatus(o){return String(getValue(o,"payment_status")||"PENDING").toUpperCase();}
+function orderNumber(o){return getValue(o,"order_number","order_no") || (o?.id?String(o.id).slice(0,8).toUpperCase():"—");}
+function customerName(o){return getValue(o,"customer_name","full_name","name")||"Guest";}
+function customerPhone(o){return getValue(o,"customer_phone","phone","mobile")||"";}
+function orderTotal(o){return num(getValue(o,"total","grand_total","total_amount"));}
 
 function statusBadge(status){
-  const s = String(status || "pending").toLowerCase();
-
-  let cls = "";
-  if(["delivered","paid","active","confirmed","success","completed"].includes(s)) cls="green";
-  else if(["cancelled","failed","inactive","refunded"].includes(s)) cls="red";
-  else if(["processing","shipped","pending"].includes(s)) cls="yellow";
-
-  return `<span class="badge ${cls}">${esc(status || "pending")}</span>`;
+  const s=String(status||"pending").toLowerCase();
+  const cls=["delivered","paid","active","confirmed","success","completed"].includes(s)?"green":
+    ["cancelled","failed","inactive","refunded"].includes(s)?"red":
+    ["processing","shipped","pending","placed"].includes(s)?"yellow":"";
+  return '<span class="badge '+cls+'">'+esc(status||"pending")+'</span>';
 }
 
-/* ============================================================
-   AUTH
-   ============================================================ */
-
-async function getCurrentSession(){
-  try{
-    const {data,error} = await db.auth.getSession();
-    if(error) throw error;
-    return data.session || null;
-  }catch(error){
-    console.error(error);
-    return null;
-  }
+async function q(table, builder){
+  try{return await builder(db.from(table));}catch(e){return {data:null,error:e};}
+}
+async function selectAll(table, order="created_at"){
+  let query=db.from(table).select("*");
+  if(order) query=query.order(order,{ascending:false});
+  return await query;
+}
+async function safeTable(table, order="created_at"){
+  try{return await selectAll(table,order);}catch(e){return {data:null,error:e};}
 }
 
 async function verifyAdmin(user){
-  if(!user) return false;
-
-  const email = String(user.email || "").trim().toLowerCase();
-  return email === ADMIN_EMAIL.toLowerCase();
+  return !!user && String(user.email||"").trim().toLowerCase()===ADMIN_EMAIL;
 }
-
+async function getSession(){
+  const {data,error}=await db.auth.getSession(); if(error) throw error; return data.session||null;
+}
 async function showApp(user){
-  state.user = user;
-
   if(!(await verifyAdmin(user))){
-    await db.auth.signOut();
-    $("appView").classList.add("hidden");
-    $("loginView").classList.remove("hidden");
-    setLoginError("This account is not authorized for BULKKOT Admin.");
-    return;
+    await db.auth.signOut(); $("appView").classList.add("hidden"); $("loginView").classList.remove("hidden");
+    setLoginError("This account is not authorized for BULKKOT Admin."); return;
   }
-
-  $("loginView").classList.add("hidden");
-  $("appView").classList.remove("hidden");
-
-  $("adminEmailPill").textContent = user.email || ADMIN_EMAIL;
-  $("healthAdminEmail").textContent = user.email || ADMIN_EMAIL;
-  $("healthSupabaseUrl").textContent = SUPABASE_URL;
-
+  state.user=user; $("loginView").classList.add("hidden"); $("appView").classList.remove("hidden");
+  $("adminEmailPill").textContent=user.email; $("healthAdminEmail").textContent=user.email; $("healthSupabaseUrl").textContent=SUPABASE_URL;
   await initialLoad();
 }
-
 async function signIn(email,password){
-  const {data,error} = await db.auth.signInWithPassword({
-    email,
-    password
-  });
-
+  const {data,error}=await db.auth.signInWithPassword({email,password});
   if(error) throw error;
-
-  if(!(await verifyAdmin(data.user))){
-    await db.auth.signOut();
-    throw new Error("Authenticated account is not the configured BULKKOT admin.");
-  }
-
+  if(!(await verifyAdmin(data.user))){await db.auth.signOut();throw new Error("Authenticated account is not the configured BULKKOT admin.");}
   return data.user;
 }
-
 async function signOut(){
-  try{
-    await db.auth.signOut();
-  }catch(error){
-    console.error(error);
-  }
-
-  state.user = null;
-  $("appView").classList.add("hidden");
-  $("loginView").classList.remove("hidden");
-  $("loginPassword").value = "";
-  setLoginError("");
+  try{await db.auth.signOut();}catch(e){}
+  state.user=null; $("appView").classList.add("hidden"); $("loginView").classList.remove("hidden"); $("loginPassword").value=""; setLoginError("");
 }
 
-$("loginForm").addEventListener("submit",async event=>{
-  event.preventDefault();
-
-  const email = $("loginEmail").value.trim();
-  const password = $("loginPassword").value;
-
-  $("loginBtn").disabled = true;
-  $("loginBtn").innerHTML = '<span class="loader"></span>';
-  setLoginError("");
-
-  try{
-    await signIn(email,password);
-    showToast("Signed in successfully.","success");
-  }catch(error){
-    console.error(error);
-    setLoginError(normalizeError(error));
-  }finally{
-    $("loginBtn").disabled = false;
-    $("loginBtn").textContent = "Sign in";
-  }
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault(); const btn=$("loginBtn");
+  btn.disabled=true; btn.innerHTML='<span class="loader"></span>'; setLoginError("");
+  try{await signIn($("loginEmail").value.trim(),$("loginPassword").value);showToast("Signed in successfully.","success");}
+  catch(e){setLoginError(normalizeError(e));}
+  finally{btn.disabled=false;btn.textContent="Sign in";}
 });
-
 $("signOutBtn").addEventListener("click",signOut);
-
-db.auth.onAuthStateChange(async(event,session)=>{
-  if(session?.user){
-    const allowed = await verifyAdmin(session.user);
-    if(allowed){
-      if($("appView").classList.contains("hidden")){
-        await showApp(session.user);
-      }
-    }else{
-      await db.auth.signOut();
-    }
-  }else{
-    $("appView").classList.add("hidden");
-    $("loginView").classList.remove("hidden");
+db.auth.onAuthStateChange(async(_,session)=>{
+  if(session?.user && await verifyAdmin(session.user)){
+    if($("appView").classList.contains("hidden")) await showApp(session.user);
+  }else if(!session){
+    $("appView").classList.add("hidden"); $("loginView").classList.remove("hidden");
   }
 });
 
-/* ============================================================
-   NAVIGATION
-   ============================================================ */
-
-const pageTitles = {
-  dashboard:"Dashboard",
-  products:"Products",
-  orders:"Orders",
-  inventory:"Inventory",
-  customers:"Customers",
-  coupons:"Coupons",
-  waitlist:"Waitlist",
-  cms:"Storefront CMS",
-  media:"Media",
-  settings:"Settings",
-  health:"Store Health"
-};
-
+const pageTitles={dashboard:"Dashboard",products:"Products",orders:"Orders",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health"};
 function navigate(page){
-  if(!pageTitles[page]) return;
-
-  state.currentPage = page;
-
-  document.querySelectorAll(".page").forEach(el=>{
-    el.classList.remove("active");
-  });
-
-  document.querySelectorAll(".nav-btn").forEach(el=>{
-    el.classList.remove("active");
-  });
-
+  if(!pageTitles[page])return; state.currentPage=page;
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
   $("page-"+page)?.classList.add("active");
-
-  const nav = document.querySelector(`.nav-btn[data-page="${page}"]`);
-  nav?.classList.add("active");
-
-  $("topTitle").textContent = pageTitles[page];
-
-  $("sidebar").classList.remove("open");
-
-  if(page==="dashboard") loadDashboard();
-  if(page==="products") loadProducts();
-  if(page==="orders") loadOrders();
-  if(page==="inventory") loadProducts().then(renderInventory);
-  if(page==="customers") loadCustomers();
-  if(page==="coupons") loadCoupons();
-  if(page==="waitlist") loadWaitlist();
-  if(page==="cms") loadCMS();
-  if(page==="media") loadMedia();
-  if(page==="settings") loadSettings();
-  if(page==="health") runHealthCheck();
+  document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add("active");
+  $("topTitle").textContent=pageTitles[page]; $("sidebar").classList.remove("open");
+  const loaders={dashboard:loadDashboard,products:loadProducts,orders:loadOrders,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck};
+  loaders[page]?.();
 }
-
-document.querySelectorAll(".nav-btn[data-page]").forEach(button=>{
-  button.addEventListener("click",()=>navigate(button.dataset.page));
-});
-
-$("mobileMenu").addEventListener("click",()=>{
-  $("sidebar").classList.toggle("open");
-});
-
-$("refreshBtn").addEventListener("click",()=>{
-  navigate(state.currentPage);
-});
-
-/* ============================================================
-   SAFE SUPABASE QUERY
-   ============================================================ */
-
-async function queryTable(table, options={}){
-  try{
-    let query = db.from(table).select(options.select || "*");
-
-    if(options.order){
-      query = query.order(options.order,{
-        ascending:options.ascending ?? false
-      });
-    }
-
-    if(options.limit){
-      query = query.limit(options.limit);
-    }
-
-    if(options.eq){
-      for(const [key,value] of Object.entries(options.eq)){
-        query = query.eq(key,value);
-      }
-    }
-
-    return await query;
-  }catch(error){
-    return {data:null,error};
-  }
-}
-
-async function updateById(table,id,payload){
-  const candidates = ["id"];
-
-  for(const key of candidates){
-    try{
-      const result = await db.from(table).update(payload).eq(key,id).select();
-      if(!result.error) return result;
-    }catch(error){}
-  }
-
-  return {
-    data:null,
-    error:new Error(`Unable to update ${table}.`)
-  };
-}
-
-async function deleteById(table,id){
-  try{
-    return await db.from(table).delete().eq("id",id);
-  }catch(error){
-    return {data:null,error};
-  }
-}
-
-/* ============================================================
-   INITIAL LOAD
-   ============================================================ */
-
-async function initialLoad(){
-  await Promise.allSettled([
-    loadProducts(),
-    loadOrders(),
-    loadCustomers(),
-    loadCoupons(),
-    loadWaitlist(),
-    loadCMS(),
-    loadSettings()
-  ]);
-
-  await loadDashboard();
-}
-
-/* ============================================================
-   DASHBOARD
-   ============================================================ */
-
-async function loadDashboard(){
-  $("statProducts").textContent = state.products.length;
-  $("statOrders").textContent = state.orders.length;
-  $("statCustomers").textContent = state.customers.length;
-  $("statWaitlist").textContent = state.waitlist.length;
-
-  renderDashboardOrders();
-  renderDashboardLowStock();
-  renderDashboardHealth();
-}
-
-function renderDashboardOrders(){
-  const root = $("dashboardOrders");
-
-  if(!state.orders.length){
-    root.innerHTML = emptyHTML("No orders found.");
-    return;
-  }
-
-  const rows = state.orders.slice(0,7);
-
-  root.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Customer</th>
-            <th>Total</th>
-            <th>Payment</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(o=>`
-            <tr onclick='openOrderModal(${JSON.stringify(o).replaceAll("'","&#039;")})' style="cursor:pointer">
-              <td><strong>${esc(orderNumber(o))}</strong></td>
-              <td>${esc(customerName(o))}</td>
-              <td>${money(totalValue(o))}</td>
-              <td>${statusBadge(paymentStatus(o))}</td>
-              <td>${statusBadge(orderStatus(o))}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function renderDashboardLowStock(){
-  const low = state.products
-    .filter(p=>productStock(p)<=5)
-    .sort((a,b)=>productStock(a)-productStock(b))
-    .slice(0,8);
-
-  if(!low.length){
-    $("dashboardLowStock").innerHTML = emptyHTML("No low-stock products detected.");
-    return;
-  }
-
-  $("dashboardLowStock").innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Category</th>
-            <th>Stock</th>
-            <th>Price</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${low.map(p=>`
-            <tr>
-              <td>
-                <div class="product-mini">
-                  ${productImage(p)
-                    ? `<img src="${esc(productImage(p))}" alt="">`
-                    : `<div style="width:42px;height:50px;background:#181818;border-radius:7px"></div>`
-                  }
-                  <span class="product-mini-name">${esc(getValue(p,"name","title","product_name")||"Untitled")}</span>
-                </div>
-              </td>
-              <td>${esc(getValue(p,"category","type")||"—")}</td>
-              <td>${statusBadge(productStock(p)===0?"Out of stock":productStock(p)+" left")}</td>
-              <td>${money(productPrice(p))}</td>
-              <td><button class="btn btn-small" onclick='openProductModal(${JSON.stringify(p).replaceAll("'","&#039;")})'>Edit</button></td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function renderDashboardHealth(){
-  $("dashboardHealth").innerHTML = `
-    <div class="health-item">
-      <span class="health-dot ok"></span>
-      <div>
-        <strong>Supabase connection</strong>
-        <span>Client initialized</span>
-      </div>
-    </div>
-
-    <div class="health-item">
-      <span class="health-dot ok"></span>
-      <div>
-        <strong>Authentication</strong>
-        <span>${esc(state.user?.email || "Authenticated")}</span>
-      </div>
-    </div>
-
-    <div class="health-item">
-      <span class="health-dot ${state.products.length ? "ok":"warn"}"></span>
-      <div>
-        <strong>Products</strong>
-        <span>${state.products.length ? `${state.products.length} records loaded` : "No records / unavailable"}</span>
-      </div>
-    </div>
-  `;
-}
-
-/* ============================================================
-   PRODUCTS
-   ============================================================ */
+document.querySelectorAll(".nav-btn[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));
+$("mobileMenu").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
+$("refreshBtn").addEventListener("click",()=>navigate(state.currentPage));
 
 async function loadProducts(){
-  const root = $("productsGrid");
-  if(root) root.innerHTML = loadingHTML();
-
-  const result = await queryTable("products",{
-    order:"created_at",
-    ascending:false
-  });
-
-  if(result.error){
-    console.error("Products:",result.error);
-    state.products = [];
-    if(root) root.innerHTML = `
-      <div class="card" style="grid-column:1/-1">
-        <div style="color:#ff9298;font-weight:800">Could not load products.</div>
-        <div style="color:#666;font-size:11px;margin-top:5px">${esc(normalizeError(result.error))}</div>
-      </div>
-    `;
-    return;
-  }
-
-  state.products = Array.isArray(result.data) ? result.data : [];
-
-  $("navProductCount").textContent = state.products.length;
-  $("statProducts").textContent = state.products.length;
-
-  populateCategoryFilter();
-  renderProducts();
-  renderInventory();
-  renderDashboardLowStock();
+  const root=$("productsGrid"); if(root)root.innerHTML=loadingHTML();
+  const r=await safeTable("products","created_at");
+  if(r.error){state.products=[];if(root)root.innerHTML='<div class="card" style="grid-column:1/-1"><b style="color:#ff9298">Products could not be loaded.</b><div class="muted" style="margin-top:6px">'+esc(normalizeError(r.error))+'</div></div>';return;}
+  state.products=Array.isArray(r.data)?r.data:[];
+  $("navProductCount").textContent=state.products.length; $("statProducts").textContent=state.products.length;
+  populateCategoryFilter(); renderProducts(); renderInventory(); renderDashboardLowStock();
 }
-
 function populateCategoryFilter(){
-  const select = $("productCategoryFilter");
-  if(!select) return;
-
-  const current = select.value;
-  const categories = [...new Set(
-    state.products
-      .map(p=>getValue(p,"category","type"))
-      .filter(Boolean)
-      .map(String)
-  )].sort();
-
-  select.innerHTML =
-    `<option value="">All categories</option>` +
-    categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-
-  select.value = current;
+  const s=$("productCategoryFilter"); if(!s)return; const cur=s.value;
+  const cats=[...new Set(state.products.map(productCategory).filter(Boolean))].sort();
+  s.innerHTML='<option value="">All categories</option>'+cats.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join("");s.value=cur;
 }
-
 function renderProducts(){
-  const root = $("productsGrid");
-  if(!root) return;
-
-  const q = ($("productSearch")?.value || "").trim().toLowerCase();
-  const category = $("productCategoryFilter")?.value || "";
-  const stockFilter = $("productStockFilter")?.value || "";
-
-  let list = state.products.filter(p=>{
-    const name = String(getValue(p,"name","title","product_name")||"").toLowerCase();
-    const cat = String(getValue(p,"category","type")||"");
-
-    if(q && !name.includes(q) && !cat.toLowerCase().includes(q)) return false;
-    if(category && cat!==category) return false;
-
-    const stock = productStock(p);
-    if(stockFilter==="in" && stock<=0) return false;
-    if(stockFilter==="low" && (stock<=0 || stock>5)) return false;
-    if(stockFilter==="out" && stock>0) return false;
-
-    return true;
+  const root=$("productsGrid"); if(!root)return;
+  const q=($("productSearch")?.value||"").toLowerCase().trim(), cat=$("productCategoryFilter")?.value||"", sf=$("productStockFilter")?.value||"";
+  const list=state.products.filter(p=>{
+    const hay=(productName(p)+" "+productCategory(p)+" "+getValue(p,"sku")).toLowerCase(), stock=totalStock(p);
+    return (!q||hay.includes(q))&&(!cat||productCategory(p)===cat)&&(!sf||(sf==="in"&&stock>0)||(sf==="low"&&stock>0&&stock<=5)||(sf==="out"&&stock<=0));
   });
-
-  if(!list.length){
-    root.innerHTML = emptyHTML("No products match the current filters.");
-    return;
-  }
-
-  root.innerHTML = list.map(p=>{
-    const name = getValue(p,"name","title","product_name") || "Untitled";
-    const stock = productStock(p);
-    const image = productImage(p);
-
-    let stockClass = "green";
-    let stockText = `${stock} in stock`;
-
-    if(stock===0){
-      stockClass="red";
-      stockText="Out of stock";
-    }else if(stock<=5){
-      stockClass="yellow";
-      stockText=`Low: ${stock}`;
-    }
-
-    return `
-      <article class="product-card">
-        <div class="product-img">
-          ${image
-            ? `<img src="${esc(image)}" alt="${esc(name)}" loading="lazy" onerror="this.style.display='none'">`
-            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#555">NO IMAGE</div>`
-          }
-          <span class="badge ${stockClass} stock-label">${esc(stockText)}</span>
-        </div>
-
-        <div class="product-body">
-          <div class="product-name">${esc(name)}</div>
-          <div class="product-price">${money(productPrice(p))} · ${esc(getValue(p,"category","type")||"Uncategorized")}</div>
-
-          <div class="product-actions">
-            <button class="btn btn-small" onclick='openProductModal(${JSON.stringify(p).replaceAll("'","&#039;")})'>Edit</button>
-            <button class="btn btn-small btn-danger" onclick="confirmDeleteProduct('${esc(p.id || "")}')">Delete</button>
-          </div>
-        </div>
-      </article>
-    `;
+  if(!list.length){root.innerHTML=emptyHTML("No products match the current filters.");return;}
+  root.innerHTML=list.map(p=>{
+    const imgs=productImages(p), stock=totalStock(p), active=p.active!==false;
+    const cls=stock===0?"red":stock<=5?"yellow":"green";
+    return '<article class="product-card"><div class="product-img">'+
+      (imgs[0]?'<img src="'+esc(imgs[0])+'" alt="'+esc(productName(p))+'" loading="lazy">':'<div style="height:100%;display:grid;place-items:center;color:#555">NO IMAGE</div>')+
+      '<span class="badge '+cls+' stock-label">'+(stock===0?"Out of stock":stock+" total")+'</span></div>'+
+      '<div class="product-body"><div class="product-name">'+esc(productName(p))+'</div>'+
+      '<div class="product-price">'+money(productPrice(p))+' · '+esc(productCategory(p))+' · '+(active?"Live":"Hidden")+'</div>'+
+      '<div class="product-actions"><button class="btn btn-small" onclick=\'openProductModalById("'+esc(p.id)+'")\'>Edit</button>'+
+      '<button class="btn btn-small '+(active?"btn-danger":"btn-success")+'" onclick=\'toggleProductActive("'+esc(p.id)+'")\'>'+(active?"Hide":"Publish")+'</button></div></div></article>';
   }).join("");
 }
-
+function findProduct(id){return state.products.find(p=>String(p.id)===String(id));}
+function openProductModalById(id){openProductModal(findProduct(id)||null);}
 function openProductModal(product=null){
-  state.editingProduct = product;
-
-  const p = product || {};
-
-  const root = $("modalRoot");
-
-  root.innerHTML = `
-    <div class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal" onclick="event.stopPropagation()">
-
-        <div class="modal-head">
-          <h2>${product ? "Edit product":"Add product"}</h2>
-          <button class="modal-close" onclick="closeModal()">×</button>
-        </div>
-
-        <div class="modal-body">
-
-          <div class="form-grid">
-
-            <div class="field">
-              <label>NAME *</label>
-              <input id="productName" value="${esc(getValue(p,"name","title","product_name"))}">
-            </div>
-
-            <div class="field">
-              <label>PRICE *</label>
-              <input id="productPrice" type="number" min="0" step="0.01" value="${esc(productPrice(p))}">
-            </div>
-
-            <div class="field">
-              <label>CATEGORY</label>
-              <input id="productCategory" value="${esc(getValue(p,"category","type"))}">
-            </div>
-
-            <div class="field">
-              <label>STOCK</label>
-              <input id="productStock" type="number" min="0" step="1" value="${esc(productStock(p))}">
-            </div>
-
-            <div class="field">
-              <label>SKU</label>
-              <input id="productSku" value="${esc(getValue(p,"sku","product_sku"))}">
-            </div>
-
-            <div class="field">
-              <label>STATUS</label>
-              <select id="productStatus">
-                <option value="active">Active</option>
-                <option value="draft">Draft</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-
-            <div class="field full">
-              <label>IMAGE URL</label>
-              <input id="productImage" value="${esc(productImage(p))}">
-            </div>
-
-            <div class="field full">
-              <label>DESCRIPTION</label>
-              <textarea id="productDescription">${esc(getValue(p,"description","short_description","details"))}</textarea>
-            </div>
-
-            <div class="field">
-              <label>COMPARE AT PRICE</label>
-              <input id="productComparePrice" type="number" min="0" step="0.01" value="${esc(getValue(p,"compare_at_price","mrp","original_price"))}">
-            </div>
-
-            <div class="field">
-              <label>COLLECTION</label>
-              <input id="productCollection" value="${esc(getValue(p,"collection","collection_name"))}">
-            </div>
-
-            <div class="field full">
-              <label>ADVANCED JSON</label>
-              <textarea id="productJson" style="font-family:ui-monospace,monospace;min-height:150px">${esc(JSON.stringify(p,null,2))}</textarea>
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="modal-foot">
-          <button class="btn" onclick="closeModal()">Cancel</button>
-          <button class="btn btn-primary" onclick="saveProduct()">${product ? "Save changes":"Create product"}</button>
-        </div>
-
-      </div>
-    </div>
-  `;
-
-  const status = getValue(p,"status","product_status","active") || "active";
-  $("productStatus").value = status;
+  state.editingProduct=product; const p=product||{}, s=productStockMap(p), imgs=productImages(p);
+  $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
+  '<div class="modal-head"><h2>'+(product?"Edit product":"Add product")+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
+  '<div class="modal-body"><div class="form-grid">'+
+  '<div class="field"><label>NAME *</label><input id="productName" value="'+esc(productName(p))+'"></div>'+
+  '<div class="field"><label>PRICE *</label><input id="productPrice" type="number" min="0" step="0.01" value="'+esc(productPrice(p))+'"></div>'+
+  '<div class="field"><label>CATEGORY</label><input id="productCategory" value="'+esc(productCategory(p))+'"></div>'+
+  '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'"></div>'+
+  '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription">'+esc(getValue(p,"description"))+'</textarea></div>'+
+  '<div class="field full"><label>IMAGE URLS — one per line</label><textarea id="productImages" style="min-height:100px">'+esc(imgs.join("\n"))+'</textarea></div>'+
+  '<div class="field"><label>SIZE S STOCK</label><input id="stockS" type="number" min="0" value="'+s.S+'"></div>'+
+  '<div class="field"><label>SIZE M STOCK</label><input id="stockM" type="number" min="0" value="'+s.M+'"></div>'+
+  '<div class="field"><label>SIZE L STOCK</label><input id="stockL" type="number" min="0" value="'+s.L+'"></div>'+
+  '<div class="field"><label>SIZE XL STOCK</label><input id="stockXL" type="number" min="0" value="'+s.XL+'"></div>'+
+  '<div class="field"><label>CATALOG STATUS</label><select id="productActive"><option value="true">Live / Active</option><option value="false">Hidden / Draft</option></select></div>'+
+  '<div class="field"><label>SLUG</label><input id="productSlug" value="'+esc(getValue(p,"slug"))+'" placeholder="auto-generated if blank"></div>'+
+  '</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveProduct()">Save product</button></div></div></div>';
+  $("productActive").value=p.active===false?"false":"true";
 }
-
 async function saveProduct(){
-  const name = $("productName").value.trim();
-  const price = num($("productPrice").value);
-
-  if(!name){
-    showToast("Product name is required.","error");
-    return;
-  }
-
-  const existing = state.editingProduct;
-  let advanced = {};
-
-  try{
-    advanced = JSON.parse($("productJson").value || "{}");
-    if(!advanced || typeof advanced!=="object" || Array.isArray(advanced)){
-      throw new Error("JSON must be an object.");
-    }
-  }catch(error){
-    showToast("Advanced JSON is invalid.","error");
-    return;
-  }
-
-  const payload = {
-    ...advanced,
-    name,
-    price,
-    category:$("productCategory").value.trim(),
-    stock:num($("productStock").value),
-    sku:$("productSku").value.trim(),
-    status:$("productStatus").value,
-    image_url:$("productImage").value.trim(),
+  const name=$("productName").value.trim(); if(!name){showToast("Product name is required.","error");return;}
+  const slug=($("productSlug").value.trim()||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""))+"";
+  const payload={
+    name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",
+    price:num($("productPrice").value),sku:$("productSku").value.trim(),
     description:$("productDescription").value.trim(),
-    compare_at_price:num($("productComparePrice").value),
-    collection:$("productCollection").value.trim()
+    images:$("productImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean),
+    stock:{S:num($("stockS").value),M:num($("stockM").value),L:num($("stockL").value),XL:num($("stockXL").value)},
+    active:$("productActive").value==="true"
   };
-
-  /* Never send id from generic JSON into insert/update payload. */
-  delete payload.id;
-  delete payload.created_at;
-  delete payload.updated_at;
-
   try{
-    let result;
-
-    if(existing?.id){
-      result = await db
-        .from("products")
-        .update(payload)
-        .eq("id",existing.id)
-        .select();
-    }else{
-      result = await db
-        .from("products")
-        .insert(payload)
-        .select();
-    }
-
-    if(result.error) throw result.error;
-
-    closeModal();
-    showToast(existing ? "Product updated.":"Product created.","success");
-    await loadProducts();
-  }catch(error){
-    console.error(error);
-    showToast("Product save failed: "+normalizeError(error),"error");
-  }
+    let r;
+    if(state.editingProduct?.id) r=await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single();
+    else r=await db.from("products").insert(payload).select().single();
+    if(r.error)throw r.error;
+    closeModal();showToast(state.editingProduct?"Product updated.":"Product created.","success");await loadProducts();
+  }catch(e){showToast("Product save failed: "+normalizeError(e),"error");}
 }
-
-async function confirmDeleteProduct(id){
-  if(!id) return;
-
-  const p = state.products.find(x=>String(x.id)===String(id));
-  const name = p ? getValue(p,"name","title","product_name") : "this product";
-
-  if(!confirm(`Delete "${name}"?\n\nThis action may fail if database protection prevents deletion.`)) return;
-
-  try{
-    const result = await deleteById("products",id);
-
-    if(result.error) throw result.error;
-
-    showToast("Product deleted.","success");
-    await loadProducts();
-  }catch(error){
-    console.error(error);
-    showToast("Delete failed: "+normalizeError(error),"error");
-  }
+async function toggleProductActive(id){
+  const p=findProduct(id);if(!p)return;
+  try{const r=await db.from("products").update({active:p.active===false}).eq("id",id).select().single();if(r.error)throw r.error;
+    showToast(p.active===false?"Product published.":"Product hidden.","success");await loadProducts();
+  }catch(e){showToast("Status update failed: "+normalizeError(e),"error");}
 }
-
-/* ============================================================
-   ORDERS
-   ============================================================ */
 
 async function loadOrders(){
-  const root = $("ordersTable");
-  if(root) root.innerHTML = loadingHTML();
-
-  const result = await queryTable("orders",{
-    order:"created_at",
-    ascending:false
-  });
-
-  if(result.error){
-    console.error("Orders:",result.error);
-    state.orders=[];
-    if(root){
-      root.innerHTML = `
-        <div style="color:#ff9298;padding:20px">
-          Orders could not be loaded.
-          <div style="color:#666;font-size:11px;margin-top:5px">${esc(normalizeError(result.error))}</div>
-        </div>
-      `;
-    }
-    return;
-  }
-
-  state.orders = Array.isArray(result.data) ? result.data : [];
-
-  $("navOrderCount").textContent = state.orders.length;
-  $("statOrders").textContent = state.orders.length;
-
-  renderOrders();
-  renderDashboardOrders();
+  const root=$("ordersTable");if(root)root.innerHTML=loadingHTML();
+  const r=await safeTable("orders","created_at");
+  if(r.error){state.orders=[];if(root)root.innerHTML='<div style="padding:20px;color:#ff9298">Orders could not be loaded.<div class="muted" style="margin-top:6px">'+esc(normalizeError(r.error))+'</div></div>';return;}
+  state.orders=Array.isArray(r.data)?r.data:[];$("navOrderCount").textContent=state.orders.length;$("statOrders").textContent=state.orders.length;renderOrders();renderDashboardOrders();
 }
-
 function renderOrders(){
-  const root = $("ordersTable");
-  if(!root) return;
-
-  const q = ($("orderSearch")?.value || "").trim().toLowerCase();
-  const filter = $("orderStatusFilter")?.value || "";
-
-  const list = state.orders.filter(o=>{
-    const text = [
-      orderNumber(o),
-      customerName(o),
-      customerPhone(o),
-      getValue(o,"customer_email","email","shipping_email")
-    ].join(" ").toLowerCase();
-
-    if(q && !text.includes(q)) return false;
-    if(filter && orderStatus(o)!==filter) return false;
-    return true;
-  });
-
-  if(!list.length){
-    root.innerHTML = emptyHTML("No orders found.");
-    return;
-  }
-
-  root.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>Total</th>
-            <th>Payment</th>
-            <th>Order status</th>
-            <th>Courier</th>
-            <th></th>
-          </tr>
-        </thead>
-
-        <tbody>
-          ${list.map(o=>`
-            <tr>
-              <td><strong>${esc(orderNumber(o))}</strong></td>
-              <td>${dateTime(getValue(o,"created_at","createdAt","date"))}</td>
-              <td>
-                <strong>${esc(customerName(o))}</strong>
-                <div class="muted">${esc(customerPhone(o))}</div>
-              </td>
-              <td>${money(totalValue(o))}</td>
-              <td>${statusBadge(paymentStatus(o))}</td>
-              <td>${statusBadge(orderStatus(o))}</td>
-              <td>${esc(getValue(o,"courier","shipping_courier")||"—")}</td>
-              <td>
-                <button class="btn btn-small" onclick='openOrderModal(${JSON.stringify(o).replaceAll("'","&#039;")})'>View</button>
-              </td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  const root=$("ordersTable");if(!root)return;const q=($("orderSearch")?.value||"").toLowerCase().trim(),f=($("orderStatusFilter")?.value||"").toUpperCase();
+  const list=state.orders.filter(o=>{const hay=(orderNumber(o)+" "+customerName(o)+" "+customerPhone(o)+" "+getValue(o,"customer_email")).toLowerCase();return(!q||hay.includes(q))&&(!f||orderStatus(o)===f);});
+  if(!list.length){root.innerHTML=emptyHTML("No orders found.");return;}
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Courier</th><th></th></tr></thead><tbody>'+
+    list.map(o=>'<tr><td><strong>'+esc(orderNumber(o))+'</strong></td><td>'+dateTime(o.created_at)+'</td><td><strong>'+esc(customerName(o))+'</strong><div class="muted">'+esc(customerPhone(o))+'</div></td><td>'+money(orderTotal(o))+'</td><td>'+statusBadge(paymentStatus(o))+'</td><td>'+statusBadge(orderStatus(o))+'</td><td>'+esc(getValue(o,"courier")||"—")+'</td><td><button class="btn btn-small" onclick=\'openOrderModalById("'+esc(o.id)+'")\'>View</button></td></tr>').join("")+
+    '</tbody></table></div>';
 }
-
-function openOrderModal(order){
-  const root = $("modalRoot");
-
-  root.innerHTML = `
-    <div class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal" onclick="event.stopPropagation()">
-
-        <div class="modal-head">
-          <h2>Order ${esc(orderNumber(order))}</h2>
-          <button class="modal-close" onclick="closeModal()">×</button>
-        </div>
-
-        <div class="modal-body">
-
-          <div class="detail-grid">
-
-            <div class="detail-box">
-              <small>Customer</small>
-              <strong>${esc(customerName(order))}</strong>
-            </div>
-
-            <div class="detail-box">
-              <small>Phone</small>
-              <strong>${esc(customerPhone(order)||"—")}</strong>
-            </div>
-
-            <div class="detail-box">
-              <small>Email</small>
-              <strong>${esc(getValue(order,"customer_email","email","shipping_email")||"—")}</strong>
-            </div>
-
-            <div class="detail-box">
-              <small>Total</small>
-              <strong>${money(totalValue(order))}</strong>
-            </div>
-
-            <div class="detail-box">
-              <small>Payment method</small>
-              <strong>${esc(getValue(order,"payment_method","paymentMethod")||"—")}</strong>
-            </div>
-
-            <div class="detail-box">
-              <small>Payment status</small>
-              <strong>${statusBadge(paymentStatus(order))}</strong>
-            </div>
-
-            <div class="detail-box">
-              <small>Order status</small>
-              <strong>${statusBadge(orderStatus(order))}</strong>
-            </div>
-
-            <div class="detail-box">
-              <small>Created</small>
-              <strong>${dateTime(getValue(order,"created_at","createdAt"))}</strong>
-            </div>
-
-            <div class="detail-box" style="grid-column:1/-1">
-              <small>Shipping address</small>
-              <strong>${esc([
-                getValue(order,"shipping_address","address"),
-                getValue(order,"shipping_city","city"),
-                getValue(order,"shipping_state","state"),
-                getValue(order,"shipping_pincode","pincode","postal_code")
-              ].filter(Boolean).join(", ") || "—")}</strong>
-            </div>
-
-          </div>
-
-          <div style="margin-top:18px">
-            <div class="section-title">
-              <h2>Fulfilment</h2>
-            </div>
-
-            <div class="form-grid">
-
-              <div class="field">
-                <label>ORDER STATUS</label>
-                <select id="orderStatusEdit">
-                  ${[
-                    "pending",
-                    "confirmed",
-                    "processing",
-                    "shipped",
-                    "delivered",
-                    "cancelled"
-                  ].map(s=>`
-                    <option value="${s}" ${orderStatus(order)===s?"selected":""}>${s}</option>
-                  `).join("")}
-                </select>
-              </div>
-
-              <div class="field">
-                <label>PAYMENT STATUS</label>
-                <select id="orderPaymentStatusEdit">
-                  ${[
-                    "pending",
-                    "paid",
-                    "failed",
-                    "refunded"
-                  ].map(s=>`
-                    <option value="${s}" ${paymentStatus(order)===s?"selected":""}>${s}</option>
-                  `).join("")}
-                </select>
-              </div>
-
-              <div class="field">
-                <label>COURIER</label>
-                <input id="orderCourierEdit" value="${esc(getValue(order,"courier","shipping_courier"))}">
-              </div>
-
-              <div class="field">
-                <label>TRACKING NUMBER</label>
-                <input id="orderTrackingEdit" value="${esc(getValue(order,"tracking_number","tracking","awb"))}">
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-        <div class="modal-foot">
-          <button class="btn" onclick="closeModal()">Close</button>
-          ${order.id
-            ? `<button class="btn btn-primary" onclick='saveOrder(${JSON.stringify(order).replaceAll("'","&#039;")})'>Save order</button>`
-            : ""
-          }
-        </div>
-
-      </div>
-    </div>
-  `;
+function openOrderModalById(id){const o=state.orders.find(x=>String(x.id)===String(id));if(o)openOrderModal(o);}
+function openOrderModal(o){
+  $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
+  '<div class="modal-head"><h2>Order '+esc(orderNumber(o))+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
+  '<div class="modal-body"><div class="detail-grid">'+
+  '<div class="detail-box"><small>Customer</small><strong>'+esc(customerName(o))+'</strong></div>'+
+  '<div class="detail-box"><small>Phone</small><strong>'+esc(customerPhone(o)||"—")+'</strong></div>'+
+  '<div class="detail-box"><small>Email</small><strong>'+esc(getValue(o,"customer_email")||"—")+'</strong></div>'+
+  '<div class="detail-box"><small>Total</small><strong>'+money(orderTotal(o))+'</strong></div>'+
+  '<div class="detail-box"><small>Payment method</small><strong>'+esc(getValue(o,"payment_method")||"—")+'</strong></div>'+
+  '<div class="detail-box"><small>Created</small><strong>'+dateTime(o.created_at)+'</strong></div>'+
+  '<div class="detail-box" style="grid-column:1/-1"><small>Shipping</small><strong>'+esc([o.shipping_address,o.shipping_city,o.shipping_state,o.shipping_pincode].filter(Boolean).join(", ")||"—")+'</strong></div>'+
+  '</div><div style="margin-top:18px"><div class="form-grid">'+
+  '<div class="field"><label>ORDER STATUS</label><select id="orderStatusEdit">'+["PLACED","CONFIRMED","PACKED","SHIPPED","OUT FOR DELIVERY","DELIVERED","CANCELLED"].map(s=>'<option '+(orderStatus(o)===s?"selected":"")+'>'+s+'</option>').join("")+'</select></div>'+
+  '<div class="field"><label>PAYMENT STATUS</label><select id="orderPaymentStatusEdit">'+["PENDING","PAID","FAILED","REFUNDED"].map(s=>'<option '+(paymentStatus(o)===s?"selected":"")+'>'+s+'</option>').join("")+'</select></div>'+
+  '<div class="field"><label>COURIER</label><input id="orderCourierEdit" value="'+esc(getValue(o,"courier"))+'"></div>'+
+  '<div class="field"><label>TRACKING / AWB</label><input id="orderTrackingEdit" value="'+esc(getValue(o,"tracking_number"))+'"></div>'+
+  '</div></div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick=\'saveOrder("'+esc(o.id)+'")\'>Save order</button></div></div></div>';
 }
-
-async function saveOrder(order){
-  if(!order?.id){
-    showToast("This order has no database id.","error");
-    return;
-  }
-
-  const payload = {
-    order_status:$("orderStatusEdit").value,
-    payment_status:$("orderPaymentStatusEdit").value,
-    courier:$("orderCourierEdit").value.trim(),
-    tracking_number:$("orderTrackingEdit").value.trim()
-  };
-
-  try{
-    const result = await db
-      .from("orders")
-      .update(payload)
-      .eq("id",order.id)
-      .select();
-
-    if(result.error) throw result.error;
-
-    closeModal();
-    showToast("Order updated.","success");
-    await loadOrders();
-  }catch(error){
-    console.error(error);
-    showToast("Order update failed: "+normalizeError(error),"error");
-  }
+async function saveOrder(id){
+  const payload={order_status:$("orderStatusEdit").value,payment_status:$("orderPaymentStatusEdit").value,courier:$("orderCourierEdit").value.trim(),tracking_number:$("orderTrackingEdit").value.trim()};
+  try{const r=await db.from("orders").update(payload).eq("id",id).select().single();if(r.error)throw r.error;closeModal();showToast("Order updated.","success");await loadOrders();}
+  catch(e){showToast("Order update failed: "+normalizeError(e),"error");}
 }
-
-/* ============================================================
-   INVENTORY
-   ============================================================ */
 
 function renderInventory(){
-  const root = $("inventoryTable");
-  if(!root) return;
-
-  const q = ($("inventorySearch")?.value || "").trim().toLowerCase();
-  const filter = $("inventoryFilter")?.value || "";
-
-  const list = state.products.filter(p=>{
-    const name = String(getValue(p,"name","title","product_name")||"").toLowerCase();
-    const sku = String(getValue(p,"sku","product_sku")||"").toLowerCase();
-    const stock = productStock(p);
-
-    if(q && !name.includes(q) && !sku.includes(q)) return false;
-    if(filter==="low" && (stock<=0 || stock>5)) return false;
-    if(filter==="out" && stock>0) return false;
-    if(filter==="healthy" && stock<=5) return false;
-
-    return true;
-  });
-
-  if(!list.length){
-    root.innerHTML = emptyHTML("No inventory records.");
-    return;
-  }
-
-  root.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>SKU</th>
-            <th>Category</th>
-            <th>Stock</th>
-            <th>Price</th>
-            <th>Quick update</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          ${list.map(p=>{
-            const stock = productStock(p);
-            const id = p.id || "";
-
-            return `
-              <tr>
-                <td><strong>${esc(getValue(p,"name","title","product_name")||"Untitled")}</strong></td>
-                <td>${esc(getValue(p,"sku","product_sku")||"—")}</td>
-                <td>${esc(getValue(p,"category","type")||"—")}</td>
-                <td>${statusBadge(stock===0?"Out of stock":stock<=5?"Low: "+stock:stock+" units")}</td>
-                <td>${money(productPrice(p))}</td>
-                <td>
-                  <div style="display:flex;gap:5px;align-items:center">
-                    <input id="stock-${esc(id)}" type="number" min="0" value="${stock}" style="width:90px;padding:7px">
-                    <button class="btn btn-small" onclick="quickUpdateStock('${esc(id)}')">Save</button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          }).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  const root=$("inventoryTable");if(!root)return;const q=($("inventorySearch")?.value||"").toLowerCase().trim(),f=$("inventoryFilter")?.value||"";
+  const list=state.products.filter(p=>{const hay=(productName(p)+" "+getValue(p,"sku")).toLowerCase(),t=totalStock(p);return(!q||hay.includes(q))&&(!f||(f==="low"&&t>0&&t<=5)||(f==="out"&&t===0)||(f==="healthy"&&t>5));});
+  if(!list.length){root.innerHTML=emptyHTML("No inventory records.");return;}
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>Total</th><th>Update</th></tr></thead><tbody>'+
+    list.map(p=>{const s=productStockMap(p);return '<tr><td><strong>'+esc(productName(p))+'</strong></td><td>'+esc(getValue(p,"sku")||"—")+'</td>'+
+      ["S","M","L","XL"].map(z=>'<td>'+s[z]+'</td>').join("")+'<td>'+statusBadge(totalStock(p)+" units")+'</td><td><button class="btn btn-small" onclick=\'openProductModalById("'+esc(p.id)+'")\'>Edit stock</button></td></tr>';}).join("")+
+    '</tbody></table></div>';
 }
-
-async function quickUpdateStock(id){
-  if(!id) return;
-
-  const input = $("stock-"+id);
-  if(!input) return;
-
-  const stock = num(input.value);
-
-  try{
-    const result = await db
-      .from("products")
-      .update({stock})
-      .eq("id",id)
-      .select();
-
-    if(result.error) throw result.error;
-
-    showToast("Stock updated.","success");
-    await loadProducts();
-  }catch(error){
-    console.error(error);
-    showToast("Stock update failed: "+normalizeError(error),"error");
-  }
-}
-
-/* ============================================================
-   CUSTOMERS
-   ============================================================ */
 
 async function loadCustomers(){
-  const root = $("customersTable");
-  if(root) root.innerHTML = loadingHTML();
-
-  const result = await queryTable("customer_profiles",{
-    order:"created_at",
-    ascending:false
-  });
-
-  if(result.error){
-    console.error("Customers:",result.error);
-    state.customers=[];
-
-    if(root){
-      root.innerHTML = `
-        <div style="padding:20px;color:#ff9298">
-          Customer profiles could not be loaded.
-          <div style="font-size:11px;color:#666;margin-top:5px">${esc(normalizeError(result.error))}</div>
-        </div>
-      `;
-    }
-    return;
-  }
-
-  state.customers = Array.isArray(result.data) ? result.data : [];
-  $("statCustomers").textContent = state.customers.length;
-
-  renderCustomers();
+  const root=$("customersTable");if(root)root.innerHTML=loadingHTML();
+  const r=await safeTable("customer_profiles","created_at");
+  if(r.error){state.customers=[];if(root)root.innerHTML='<div style="padding:20px;color:#ff9298">Customer profiles unavailable.<div class="muted" style="margin-top:6px">'+esc(normalizeError(r.error))+'</div></div>';return;}
+  state.customers=Array.isArray(r.data)?r.data:[];$("statCustomers").textContent=state.customers.length;renderCustomers();
 }
-
 function renderCustomers(){
-  const root = $("customersTable");
-  if(!root) return;
-
-  const q = ($("customerSearch")?.value || "").trim().toLowerCase();
-
-  const list = state.customers.filter(c=>{
-    const text = [
-      getValue(c,"name","full_name"),
-      getValue(c,"email"),
-      getValue(c,"phone","mobile"),
-      getValue(c,"city")
-    ].join(" ").toLowerCase();
-
-    return !q || text.includes(q);
-  });
-
-  if(!list.length){
-    root.innerHTML = emptyHTML("No customer profiles found.");
-    return;
-  }
-
-  root.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>City</th>
-            <th>Joined</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          ${list.map(c=>`
-            <tr>
-              <td><strong>${esc(getValue(c,"name","full_name")||"Customer")}</strong></td>
-              <td>${esc(getValue(c,"email")||"—")}</td>
-              <td>${esc(getValue(c,"phone","mobile")||"—")}</td>
-              <td>${esc(getValue(c,"city")||"—")}</td>
-              <td>${dateOnly(getValue(c,"created_at","createdAt"))}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  const root=$("customersTable");if(!root)return;const q=($("customerSearch")?.value||"").toLowerCase().trim();
+  const list=state.customers.filter(c=>([c.full_name,c.email,c.phone,c.shipping_city,c.shipping_state].join(" ").toLowerCase()).includes(q));
+  if(!list.length){root.innerHTML=emptyHTML("No customer profiles found.");return;}
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>Joined</th></tr></thead><tbody>'+
+    list.map(c=>'<tr><td><strong>'+esc(c.full_name||"Customer")+'</strong></td><td>'+esc(c.email||"—")+'</td><td>'+esc(c.phone||"—")+'</td><td>'+esc(c.shipping_city||"—")+'</td><td>'+dateOnly(c.created_at)+'</td></tr>').join("")+
+    '</tbody></table></div>';
 }
-
-/* ============================================================
-   COUPONS
-   ============================================================ */
 
 async function loadCoupons(){
-  const root = $("couponsTable");
-  if(root) root.innerHTML = loadingHTML();
-
-  const result = await queryTable("coupons",{
-    order:"created_at",
-    ascending:false
-  });
-
-  if(result.error){
-    console.error("Coupons:",result.error);
-    state.coupons=[];
-
-    if(root){
-      root.innerHTML = `
-        <div style="padding:20px;color:#ff9298">
-          Coupons could not be loaded.
-          <div style="font-size:11px;color:#666;margin-top:5px">${esc(normalizeError(result.error))}</div>
-        </div>
-      `;
-    }
-    return;
-  }
-
-  state.coupons = Array.isArray(result.data) ? result.data : [];
-  renderCoupons();
+  const root=$("couponsTable");if(root)root.innerHTML=loadingHTML();
+  const r=await safeTable("coupons","created_at");
+  if(r.error){state.coupons=[];if(root)root.innerHTML='<div style="padding:20px;color:#ff9298">Coupons unavailable.<div class="muted" style="margin-top:6px">'+esc(normalizeError(r.error))+'</div></div>';return;}
+  state.coupons=Array.isArray(r.data)?r.data:[];renderCoupons();
 }
-
 function renderCoupons(){
-  const root = $("couponsTable");
-  if(!root) return;
-
-  if(!state.coupons.length){
-    root.innerHTML = emptyHTML("No coupons found.");
-    return;
-  }
-
-  root.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Code</th>
-            <th>Discount</th>
-            <th>Type</th>
-            <th>Usage</th>
-            <th>Validity</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-
-        <tbody>
-          ${state.coupons.map(c=>`
-            <tr>
-              <td><strong>${esc(getValue(c,"code","coupon_code")||"—")}</strong></td>
-              <td>${esc(getValue(c,"discount_value","value","amount")||"0")}</td>
-              <td>${esc(getValue(c,"discount_type","type")||"—")}</td>
-              <td>${esc(getValue(c,"usage_count","used_count")||"0")} / ${esc(getValue(c,"usage_limit","max_uses")||"∞")}</td>
-              <td>
-                ${dateOnly(getValue(c,"start_date","starts_at"))}
-                —
-                ${dateOnly(getValue(c,"end_date","expires_at"))}
-              </td>
-              <td>${statusBadge(getValue(c,"status","active") || "active")}</td>
-              <td>
-                <div style="display:flex;gap:5px">
-                  <button class="btn btn-small" onclick='openCouponModal(${JSON.stringify(c).replaceAll("'","&#039;")})'>Edit</button>
-                  ${c.id ? `<button class="btn btn-small btn-danger" onclick="deleteCoupon('${esc(c.id)}')">Delete</button>`:""}
-                </div>
-              </td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  const root=$("couponsTable");if(!root)return;
+  if(!state.coupons.length){root.innerHTML=emptyHTML("No coupons found.");return;}
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Type</th><th>Usage</th><th>Expiry</th><th>Status</th><th></th></tr></thead><tbody>'+
+    state.coupons.map(c=>'<tr><td><strong>'+esc(c.code)+'</strong></td><td>'+esc(c.discount_value||0)+'</td><td>'+esc(c.discount_type||"—")+'</td><td>'+esc(c.usage_count||0)+' / '+esc(c.usage_limit||"∞")+'</td><td>'+dateOnly(c.expires_at||c.end_date)+'</td><td>'+statusBadge(c.active===false?"inactive":"active")+'</td><td><button class="btn btn-small" onclick=\'openCouponModalById("'+esc(c.id)+'")\'>Edit</button></td></tr>').join("")+
+    '</tbody></table></div>';
 }
-
-function openCouponModal(coupon=null){
-  state.editingCoupon = coupon;
-
-  const c = coupon || {};
-
-  $("modalRoot").innerHTML = `
-    <div class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal" onclick="event.stopPropagation()">
-
-        <div class="modal-head">
-          <h2>${coupon ? "Edit coupon":"Create coupon"}</h2>
-          <button class="modal-close" onclick="closeModal()">×</button>
-        </div>
-
-        <div class="modal-body">
-
-          <div class="form-grid">
-
-            <div class="field">
-              <label>CODE *</label>
-              <input id="couponCode" value="${esc(getValue(c,"code","coupon_code"))}" style="text-transform:uppercase">
-            </div>
-
-            <div class="field">
-              <label>DISCOUNT TYPE</label>
-              <select id="couponType">
-                <option value="percentage">Percentage</option>
-                <option value="fixed">Fixed amount</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label>VALUE</label>
-              <input id="couponValue" type="number" min="0" step="0.01" value="${esc(getValue(c,"discount_value","value","amount")||0)}">
-            </div>
-
-            <div class="field">
-              <label>USAGE LIMIT</label>
-              <input id="couponUsageLimit" type="number" min="0" value="${esc(getValue(c,"usage_limit","max_uses")||0)}">
-            </div>
-
-            <div class="field">
-              <label>START DATE</label>
-              <input id="couponStart" type="datetime-local">
-            </div>
-
-            <div class="field">
-              <label>EXPIRY DATE</label>
-              <input id="couponEnd" type="datetime-local">
-            </div>
-
-            <div class="field">
-              <label>STATUS</label>
-              <select id="couponStatus">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="modal-foot">
-          <button class="btn" onclick="closeModal()">Cancel</button>
-          <button class="btn btn-primary" onclick="saveCoupon()">${coupon ? "Save changes":"Create coupon"}</button>
-        </div>
-
-      </div>
-    </div>
-  `;
-
-  $("couponType").value = getValue(c,"discount_type","type") || "percentage";
-  $("couponStatus").value = getValue(c,"status") || (c.active===false ? "inactive":"active");
-
-  setDateTimeInput("couponStart",getValue(c,"start_date","starts_at"));
-  setDateTimeInput("couponEnd",getValue(c,"end_date","expires_at"));
+function openCouponModalById(id){openCouponModal(state.coupons.find(c=>String(c.id)===String(id))||null);}
+function openCouponModal(c){
+  state.editingCoupon=c;const x=c||{};
+  $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
+  '<div class="modal-head"><h2>'+(c?"Edit coupon":"Create coupon")+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
+  '<div class="modal-body"><div class="form-grid">'+
+  '<div class="field"><label>CODE *</label><input id="couponCode" value="'+esc(x.code||"")+'" style="text-transform:uppercase"></div>'+
+  '<div class="field"><label>TYPE</label><select id="couponType"><option value="percentage">Percentage</option><option value="fixed">Fixed amount</option></select></div>'+
+  '<div class="field"><label>VALUE</label><input id="couponValue" type="number" min="0" step="0.01" value="'+num(x.discount_value)+'"></div>'+
+  '<div class="field"><label>USAGE LIMIT</label><input id="couponUsageLimit" type="number" min="0" value="'+num(x.usage_limit)+'"></div>'+
+  '<div class="field"><label>MIN ORDER VALUE</label><input id="couponMinOrder" type="number" min="0" value="'+num(x.min_order_value)+'"></div>'+
+  '<div class="field"><label>EXPIRY</label><input id="couponEnd" type="datetime-local"></div>'+
+  '<div class="field"><label>STATUS</label><select id="couponActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>'+
+  '</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveCoupon()">Save coupon</button></div></div></div>';
+  $("couponType").value=x.discount_type||"percentage";$("couponActive").value=x.active===false?"false":"true";setDateTimeInput("couponEnd",x.expires_at||x.end_date);
 }
-
-function setDateTimeInput(id,value){
-  if(!value) return;
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return;
-
-  const local = new Date(d.getTime()-d.getTimezoneOffset()*60000)
-    .toISOString()
-    .slice(0,16);
-
-  $(id).value = local;
-}
-
+function setDateTimeInput(id,v){if(!v)return;const d=new Date(v);if(Number.isNaN(d.getTime()))return;$(id).value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
 async function saveCoupon(){
-  const code = $("couponCode").value.trim().toUpperCase();
-
-  if(!code){
-    showToast("Coupon code is required.","error");
-    return;
-  }
-
-  const payload = {
-    code,
-    discount_type:$("couponType").value,
-    discount_value:num($("couponValue").value),
-    usage_limit:num($("couponUsageLimit").value),
-    start_date:$("couponStart").value ? new Date($("couponStart").value).toISOString():null,
-    end_date:$("couponEnd").value ? new Date($("couponEnd").value).toISOString():null,
-    status:$("couponStatus").value
-  };
-
-  try{
-    let result;
-
-    if(state.editingCoupon?.id){
-      result = await db
-        .from("coupons")
-        .update(payload)
-        .eq("id",state.editingCoupon.id)
-        .select();
-    }else{
-      result = await db
-        .from("coupons")
-        .insert(payload)
-        .select();
-    }
-
-    if(result.error) throw result.error;
-
-    closeModal();
-    showToast(state.editingCoupon ? "Coupon updated.":"Coupon created.","success");
-    await loadCoupons();
-
-  }catch(error){
-    console.error(error);
-    showToast("Coupon save failed: "+normalizeError(error),"error");
-  }
+  const code=$("couponCode").value.trim().toUpperCase();if(!code){showToast("Coupon code is required.","error");return;}
+  const payload={code,discount_type:$("couponType").value,discount_value:num($("couponValue").value),usage_limit:num($("couponUsageLimit").value),min_order_value:num($("couponMinOrder").value),active:$("couponActive").value==="true",expires_at:$("couponEnd").value?new Date($("couponEnd").value).toISOString():null};
+  try{let r=state.editingCoupon?.id?await db.from("coupons").update(payload).eq("id",state.editingCoupon.id).select().single():await db.from("coupons").insert(payload).select().single();if(r.error)throw r.error;closeModal();showToast("Coupon saved.","success");await loadCoupons();}
+  catch(e){showToast("Coupon save failed: "+normalizeError(e),"error");}
 }
-
-async function deleteCoupon(id){
-  if(!id) return;
-  if(!confirm("Delete this coupon?")) return;
-
-  try{
-    const result = await deleteById("coupons",id);
-    if(result.error) throw result.error;
-
-    showToast("Coupon deleted.","success");
-    await loadCoupons();
-  }catch(error){
-    showToast("Delete failed: "+normalizeError(error),"error");
-  }
-}
-
-/* ============================================================
-   WAITLIST
-   ============================================================ */
 
 async function loadWaitlist(){
-  const root = $("waitlistTable");
-  if(root) root.innerHTML = loadingHTML();
-
-  let result = await queryTable("waitlist",{
-    order:"created_at",
-    ascending:false
-  });
-
-  /* Fallback to newsletter if waitlist table does not exist. */
-  if(result.error){
-    result = await queryTable("newsletter",{
-      order:"created_at",
-      ascending:false
-    });
-  }
-
-  if(result.error){
-    console.error("Waitlist:",result.error);
-    state.waitlist=[];
-
-    if(root){
-      root.innerHTML = `
-        <div style="padding:20px;color:#ff9298">
-          Waitlist/newsletter could not be loaded.
-          <div style="font-size:11px;color:#666;margin-top:5px">${esc(normalizeError(result.error))}</div>
-        </div>
-      `;
-    }
-
-    $("statWaitlist").textContent = "0";
-    return;
-  }
-
-  state.waitlist = Array.isArray(result.data) ? result.data : [];
-  $("statWaitlist").textContent = state.waitlist.length;
-
-  renderWaitlist();
+  const root=$("waitlistTable");if(root)root.innerHTML=loadingHTML();
+  let r=await safeTable("newsletter","created_at");
+  if(r.error)r=await safeTable("waitlist","created_at");
+  if(r.error){state.waitlist=[];if(root)root.innerHTML='<div style="padding:20px;color:#ff9298">Waitlist/newsletter unavailable.<div class="muted" style="margin-top:6px">'+esc(normalizeError(r.error))+'</div></div>';return;}
+  state.waitlist=Array.isArray(r.data)?r.data:[];$("statWaitlist").textContent=state.waitlist.length;renderWaitlist();
 }
-
 function renderWaitlist(){
-  const root = $("waitlistTable");
-  if(!root) return;
-
-  const q = ($("waitlistSearch")?.value || "").trim().toLowerCase();
-
-  const list = state.waitlist.filter(w=>{
-    const text = [
-      getValue(w,"email"),
-      getValue(w,"name","full_name"),
-      getValue(w,"phone","mobile")
-    ].join(" ").toLowerCase();
-
-    return !q || text.includes(q);
-  });
-
-  if(!list.length){
-    root.innerHTML = emptyHTML("No waitlist records found.");
-    return;
-  }
-
-  root.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Source</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${list.map(w=>`
-            <tr>
-              <td><strong>${esc(getValue(w,"email")||"—")}</strong></td>
-              <td>${esc(getValue(w,"name","full_name")||"—")}</td>
-              <td>${esc(getValue(w,"phone","mobile")||"—")}</td>
-              <td>${esc(getValue(w,"source","campaign")||"—")}</td>
-              <td>${dateTime(getValue(w,"created_at","createdAt"))}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  const root=$("waitlistTable");if(!root)return;const q=($("waitlistSearch")?.value||"").toLowerCase().trim();
+  const list=state.waitlist.filter(w=>([w.email,w.name,w.full_name,w.phone,w.source].join(" ").toLowerCase()).includes(q));
+  if(!list.length){root.innerHTML=emptyHTML("No waitlist records found.");return;}
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Email</th><th>Name</th><th>Phone</th><th>Source</th><th>Date</th></tr></thead><tbody>'+
+    list.map(w=>'<tr><td><strong>'+esc(w.email||"—")+'</strong></td><td>'+esc(w.name||w.full_name||"—")+'</td><td>'+esc(w.phone||"—")+'</td><td>'+esc(w.source||"—")+'</td><td>'+dateTime(w.created_at)+'</td></tr>').join("")+
+    '</tbody></table></div>';
 }
-
-/* ============================================================
-   CMS
-   ============================================================ */
 
 async function loadCMS(){
-  try{
-    const result = await queryTable("site_content",{
-      order:"updated_at",
-      ascending:false
-    });
-
-    if(result.error){
-      console.error("CMS:",result.error);
-      showToast("CMS data could not be loaded.","warning");
-      return;
-    }
-
-    const rows = Array.isArray(result.data) ? result.data : [];
-
-    /*
-      Supports common site_content structures:
-      - key/value
-      - section/content
-      - content JSON
-    */
-    const content = {};
-
-    rows.forEach(row=>{
-      const key = getValue(row,"key","slug","content_key","name");
-      if(!key) return;
-
-      let value = getValue(row,"value","content","text","body");
-
-      if(typeof value === "string"){
-        try{
-          value = JSON.parse(value);
-        }catch(error){}
-      }
-
-      content[key] = value;
-    });
-
-    state.cms = content;
-
-    $("cmsAnnouncement").value =
-      findCMS(content,["announcement","announcement_text","announcementBar"]) || "";
-
-    $("cmsHeroTitle").value =
-      findCMS(content,["hero_title","heroTitle","homepage_hero_title"]) || "";
-
-    $("cmsHeroSubtitle").value =
-      findCMS(content,["hero_subtitle","heroSubtitle","homepage_hero_subtitle"]) || "";
-
-    $("cmsHeroImage").value =
-      findCMS(content,["hero_image","heroImage","hero_image_url"]) || "";
-
-    $("cmsPrimaryButton").value =
-      findCMS(content,["primary_button_text","hero_button_text","cta_text"]) || "";
-
-    $("cmsPrimaryUrl").value =
-      findCMS(content,["primary_button_url","hero_button_url","cta_url"]) || "";
-
-    $("cmsTagline").value =
-      findCMS(content,["tagline","brand_tagline"]) || "Less noise. More presence.";
-
-    $("cmsAboutTitle").value =
-      findCMS(content,["about_title","aboutTitle"]) || "";
-
-    $("cmsAboutText").value =
-      findCMS(content,["about_text","aboutText"]) || "";
-
-    $("cmsFooterText").value =
-      findCMS(content,["footer_text","footerText"]) || "";
-
-    $("cmsInstagram").value =
-      findCMS(content,["instagram","instagram_url","social_instagram"]) || "";
-
-    $("cmsJson").value = JSON.stringify(content,null,2);
-
-  }catch(error){
-    console.error(error);
-  }
+  const r=await db.from("site_content").select("key,value,content_key,content_value");
+  if(r.error){showToast("CMS could not be loaded: "+normalizeError(r.error),"warning");return;}
+  const c={};(r.data||[]).forEach(row=>{const k=row.content_key||row.key;if(k)c[k]=row.content_value??row.value??"";});
+  state.cms=c;
+  $("cmsAnnouncement").value=c.announcement_1||c.announcement||"DROP 001 — DROPPING SOON";
+  $("cmsHeroTitle").value=c.hero_title||"";
+  $("cmsHeroSubtitle").value=c.hero_subtitle||"";
+  $("cmsHeroImage").value=c.hero_image||"";
+  $("cmsPrimaryButton").value=c.primary_button_text||"SHOP NOW";
+  $("cmsPrimaryUrl").value=c.primary_button_url||"shop.html";
+  $("cmsTagline").value=c.tagline||"Less noise. More presence.";
+  $("cmsAboutTitle").value=c.about_title||"ABOUT BULKKOT";
+  $("cmsAboutText").value=c.about_text||"";
+  $("cmsFooterText").value=c.footer_text||"";
+  $("cmsInstagram").value=c.instagram||c.instagram_url||"";
+  $("cmsJson").value=JSON.stringify(c,null,2);
 }
-
-function findCMS(content,keys){
-  for(const key of keys){
-    if(content[key] !== undefined && content[key] !== null){
-      const value = content[key];
-      if(typeof value==="object") return JSON.stringify(value);
-      return value;
-    }
-  }
-  return "";
-}
-
 async function saveCMS(){
-  let advanced = {};
-
-  try{
-    advanced = JSON.parse($("cmsJson").value || "{}");
-
-    if(!advanced || typeof advanced!=="object" || Array.isArray(advanced)){
-      throw new Error("JSON must be an object.");
-    }
-  }catch(error){
-    showToast("Advanced CMS JSON is invalid.","error");
-    return;
+  let advanced={};try{advanced=JSON.parse($("cmsJson").value||"{}");if(!advanced||Array.isArray(advanced)||typeof advanced!=="object")throw 0;}catch(e){showToast("Advanced CMS JSON is invalid.","error");return;}
+  const merged={...advanced,announcement_1:$("cmsAnnouncement").value,hero_title:$("cmsHeroTitle").value,hero_subtitle:$("cmsHeroSubtitle").value,hero_image:$("cmsHeroImage").value,primary_button_text:$("cmsPrimaryButton").value,primary_button_url:$("cmsPrimaryUrl").value,tagline:$("cmsTagline").value,about_title:$("cmsAboutTitle").value,about_text:$("cmsAboutText").value,footer_text:$("cmsFooterText").value,instagram:$("cmsInstagram").value};
+  let ok=0,last=null;
+  for(const [key,value] of Object.entries(merged)){
+    const r=await db.from("site_content").upsert({key,value:String(value??"")},{onConflict:"key"});
+    if(r.error){last=r.error;}else ok++;
   }
-
-  const values = {
-    announcement:$("cmsAnnouncement").value,
-    hero_title:$("cmsHeroTitle").value,
-    hero_subtitle:$("cmsHeroSubtitle").value,
-    hero_image:$("cmsHeroImage").value,
-    primary_button_text:$("cmsPrimaryButton").value,
-    primary_button_url:$("cmsPrimaryUrl").value,
-    tagline:$("cmsTagline").value,
-    about_title:$("cmsAboutTitle").value,
-    about_text:$("cmsAboutText").value,
-    footer_text:$("cmsFooterText").value,
-    instagram:$("cmsInstagram").value
-  };
-
-  const merged = {
-    ...advanced,
-    ...values
-  };
-
-  try{
-    /*
-      Upsert each key individually.
-      This works with common key/value site_content tables.
-    */
-    const entries = Object.entries(merged);
-
-    let successCount = 0;
-    let lastError = null;
-
-    for(const [key,value] of entries){
-      const payload = {
-        key,
-        value:typeof value==="string" ? value:JSON.stringify(value)
-      };
-
-      let result = await db
-        .from("site_content")
-        .upsert(payload,{onConflict:"key"});
-
-      if(result.error){
-        /*
-          Alternate common column shape.
-        */
-        result = await db
-          .from("site_content")
-          .upsert({
-            slug:key,
-            content:typeof value==="string" ? value:JSON.stringify(value)
-          },{onConflict:"slug"});
-      }
-
-      if(result.error){
-        lastError = result.error;
-      }else{
-        successCount++;
-      }
-    }
-
-    if(successCount===0 && lastError) throw lastError;
-
-    state.cms = merged;
-
-    $("cmsJson").value = JSON.stringify(merged,null,2);
-
-    showToast(`CMS saved (${successCount} keys).`,"success");
-
-  }catch(error){
-    console.error(error);
-    showToast("CMS save failed: "+normalizeError(error),"error");
-  }
+  if(!ok&&last){showToast("CMS save failed: "+normalizeError(last),"error");return;}
+  state.cms=merged;$("cmsJson").value=JSON.stringify(merged,null,2);showToast("CMS saved.","success");
 }
-
-/* ============================================================
-   MEDIA
-   ============================================================ */
-
-async function loadMedia(){
-  const root = $("mediaList");
-  if(root) root.innerHTML = loadingHTML();
-
-  try{
-    const result = await db
-      .storage
-      .from(STORAGE_BUCKET)
-      .list("",{
-        limit:100,
-        sortBy:{column:"created_at",ascending:false}
-      });
-
-    if(result.error) throw result.error;
-
-    state.media = result.data || [];
-
-    if(!state.media.length){
-      root.innerHTML = emptyHTML("No media found in root folder.");
-    }else{
-      root.innerHTML = `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>File</th>
-                <th>Created</th>
-                <th>Size</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${state.media.map(file=>`
-                <tr>
-                  <td><strong>${esc(file.name)}</strong></td>
-                  <td>${dateTime(file.created_at)}</td>
-                  <td>${file.metadata?.size ? Math.round(file.metadata.size/1024)+" KB":"—"}</td>
-                  <td>
-                    <button class="btn btn-small" onclick="copyMediaUrl('${esc(file.name)}')">Copy URL</button>
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    $("mediaHealth").innerHTML = `
-      <span class="health-dot ok"></span>
-      <div>
-        <strong>Storage bucket available</strong>
-        <span>${state.media.length} root files loaded</span>
-      </div>
-    `;
-
-  }catch(error){
-    console.error(error);
-
-    if(root){
-      root.innerHTML = `
-        <div style="padding:20px;color:#ff9298">
-          Media could not be loaded.
-          <div style="font-size:11px;color:#666;margin-top:5px">${esc(normalizeError(error))}</div>
-        </div>
-      `;
-    }
-
-    $("mediaHealth").innerHTML = `
-      <span class="health-dot bad"></span>
-      <div>
-        <strong>Storage unavailable</strong>
-        <span>${esc(normalizeError(error))}</span>
-      </div>
-    `;
-  }
-}
-
-async function uploadMedia(){
-  const file = $("mediaFile").files[0];
-  const folder = $("mediaFolder").value.trim().replace(/^\/+|\/+$/g,"") || "admin";
-
-  if(!file){
-    showToast("Choose an image first.","error");
-    return;
-  }
-
-  if(!file.type.startsWith("image/")){
-    showToast("Only image files are allowed.","error");
-    return;
-  }
-
-  if(file.size > 10 * 1024 * 1024){
-    showToast("Maximum file size is 10 MB.","error");
-    return;
-  }
-
-  const safeName = file.name
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g,"-");
-
-  const path = `${folder}/${Date.now()}-${safeName}`;
-
-  $("mediaUploadStatus").textContent = "Uploading…";
-
-  try{
-    const result = await db.storage
-      .from(STORAGE_BUCKET)
-      .upload(path,file,{
-        cacheControl:"3600",
-        upsert:false
-      });
-
-    if(result.error) throw result.error;
-
-    const publicResult = db.storage
-      .from(STORAGE_BUCKET)
-      .getPublicUrl(path);
-
-    $("mediaUploadStatus").innerHTML =
-      `Uploaded. <a href="${esc(publicResult.data.publicUrl)}" target="_blank" style="text-decoration:underline">Open image</a>`;
-
-    $("mediaFile").value = "";
-
-    showToast("Image uploaded.","success");
-    await loadMedia();
-
-  }catch(error){
-    console.error(error);
-    $("mediaUploadStatus").textContent = normalizeError(error);
-    showToast("Upload failed: "+normalizeError(error),"error");
-  }
-}
-
-async function copyMediaUrl(name){
-  try{
-    const path = `admin/${name}`;
-    const {data} = db.storage
-      .from(STORAGE_BUCKET)
-      .getPublicUrl(path);
-
-    await navigator.clipboard.writeText(data.publicUrl);
-    showToast("Media URL copied.","success");
-  }catch(error){
-    showToast("Could not copy URL.","error");
-  }
-}
-
-/* ============================================================
-   SETTINGS
-   ============================================================ */
 
 async function loadSettings(){
-  try{
-    const result = await queryTable("store_settings",{
-      order:"updated_at",
-      ascending:false
-    });
-
-    if(result.error){
-      console.warn("Settings unavailable:",result.error);
-      return;
-    }
-
-    const rows = Array.isArray(result.data) ? result.data : [];
-    const settings = {};
-
-    rows.forEach(row=>{
-      const key = getValue(row,"key","setting_key","name");
-      if(!key) return;
-
-      let value = getValue(row,"value","setting_value","content");
-
-      if(typeof value==="string"){
-        try{
-          value = JSON.parse(value);
-        }catch(error){}
-      }
-
-      settings[key]=value;
-    });
-
-    state.settings = settings;
-
-    $("setStoreName").value = settings.store_name || settings.name || "BULKKOT";
-    $("setCurrency").value = settings.currency || "INR";
-    $("setSupportEmail").value = settings.support_email || "bulkkotwear@gmail.com";
-    $("setSupportPhone").value = settings.support_phone || "";
-    $("setShipping").value = num(settings.shipping_charge || settings.default_shipping || 0);
-    $("setFreeShipping").value = num(settings.free_shipping_above || 0);
-
-    $("setCod").checked = settings.cod_enabled !== false;
-    $("setOnlinePayment").checked = settings.online_payment_enabled !== false;
-    $("setMaintenance").checked = settings.maintenance_mode === true;
-    $("setWaitlist").checked = settings.waitlist_enabled !== false;
-
-    $("setCourier").value = settings.default_courier || "";
-    $("setDeliveryEstimate").value = settings.delivery_estimate || "";
-    $("setShippingNote").value = settings.shipping_note || "";
-
-  }catch(error){
-    console.error(error);
-  }
+  const r=await db.from("store_settings").select("*").eq("id",1).maybeSingle();
+  if(r.error){showToast("Store settings unavailable: "+normalizeError(r.error),"warning");return;}
+  const s=r.data||{};state.settings=s;
+  $("setStoreName").value=s.store_name||"BULKKOT";$("setCurrency").value=s.currency||"INR";
+  $("setSupportEmail").value=s.support_email||"bulkkotwear@gmail.com";$("setSupportPhone").value=s.support_phone||"";
+  $("setShipping").value=num(s.shipping_fee);$("setFreeShipping").value=num(s.free_shipping_threshold);
+  $("setCod").checked=s.cod_enabled!==false;$("setOnlinePayment").checked=s.online_payment_enabled!==false;
+  $("setMaintenance").checked=s.maintenance_mode===true;$("setWaitlist").checked=s.waitlist_enabled!==false;
+  $("setCourier").value=s.default_courier||"";$("setDeliveryEstimate").value=s.delivery_estimate||"";$("setShippingNote").value=s.shipping_note||"";
 }
-
 async function saveSettings(){
-  const settings = {
-    store_name:$("setStoreName").value.trim(),
-    currency:$("setCurrency").value.trim(),
-    support_email:$("setSupportEmail").value.trim(),
-    support_phone:$("setSupportPhone").value.trim(),
-    shipping_charge:num($("setShipping").value),
-    free_shipping_above:num($("setFreeShipping").value),
-    cod_enabled:$("setCod").checked,
-    online_payment_enabled:$("setOnlinePayment").checked,
-    maintenance_mode:$("setMaintenance").checked,
-    waitlist_enabled:$("setWaitlist").checked,
-    default_courier:$("setCourier").value.trim(),
-    delivery_estimate:$("setDeliveryEstimate").value.trim(),
-    shipping_note:$("setShippingNote").value.trim()
+  const payload={
+    store_name:$("setStoreName").value.trim(),currency:$("setCurrency").value.trim()||"INR",
+    support_email:$("setSupportEmail").value.trim(),support_phone:$("setSupportPhone").value.trim(),
+    shipping_fee:num($("setShipping").value),free_shipping_threshold:num($("setFreeShipping").value),
+    cod_enabled:$("setCod").checked,online_payment_enabled:$("setOnlinePayment").checked,
+    maintenance_mode:$("setMaintenance").checked,waitlist_enabled:$("setWaitlist").checked,
+    default_courier:$("setCourier").value.trim(),delivery_estimate:$("setDeliveryEstimate").value.trim(),shipping_note:$("setShippingNote").value.trim()
   };
-
-  let successCount = 0;
-  let lastError = null;
-
-  try{
-    for(const [key,value] of Object.entries(settings)){
-      let result = await db
-        .from("store_settings")
-        .upsert({
-          key,
-          value:typeof value==="string" ? value:JSON.stringify(value)
-        },{onConflict:"key"});
-
-      if(result.error){
-        result = await db
-          .from("store_settings")
-          .upsert({
-            setting_key:key,
-            setting_value:typeof value==="string" ? value:JSON.stringify(value)
-          },{onConflict:"setting_key"});
-      }
-
-      if(result.error){
-        lastError=result.error;
-      }else{
-        successCount++;
-      }
-    }
-
-    if(successCount===0 && lastError) throw lastError;
-
-    state.settings=settings;
-
-    showToast(`Settings saved (${successCount} keys).`,"success");
-
-  }catch(error){
-    console.error(error);
-    showToast("Settings save failed: "+normalizeError(error),"error");
-  }
+  try{const r=await db.from("store_settings").update(payload).eq("id",1).select().single();if(r.error)throw r.error;state.settings=r.data;showToast("Store settings saved.","success");}
+  catch(e){showToast("Settings save failed: "+normalizeError(e),"error");}
 }
 
-/* ============================================================
-   HEALTH CHECK
-   ============================================================ */
+async function listMediaFolder(prefix="",depth=0){
+  if(depth>3)return [];
+  const r=await db.storage.from(STORAGE_BUCKET).list(prefix,{limit:100,sortBy:{column:"created_at",ascending:false}});
+  if(r.error)throw r.error;let out=[];
+  for(const item of r.data||[]){
+    const path=prefix?prefix+"/"+item.name:item.name;
+    if(item.id===null && item.metadata===null) out.push(...await listMediaFolder(path,depth+1));
+    else out.push({...item,path});
+  }
+  return out;
+}
+async function loadMedia(){
+  const root=$("mediaList");if(root)root.innerHTML=loadingHTML();
+  try{
+    state.media=await listMediaFolder();
+    root.innerHTML=state.media.length?'<div class="table-wrap"><table><thead><tr><th>File</th><th>Created</th><th>Size</th><th></th></tr></thead><tbody>'+
+      state.media.map(f=>{const u=db.storage.from(STORAGE_BUCKET).getPublicUrl(f.path).data.publicUrl;return '<tr><td><strong>'+esc(f.path)+'</strong></td><td>'+dateTime(f.created_at)+'</td><td>'+(f.metadata?.size?Math.round(f.metadata.size/1024)+" KB":"—")+'</td><td><button class="btn btn-small" onclick=\'copyText("'+esc(u)+'")\'>Copy URL</button></td></tr>';}).join("")+
+      '</tbody></table></div>':emptyHTML("No media found.");
+    $("mediaHealth").innerHTML='<span class="health-dot ok"></span><div><strong>Storage bucket available</strong><span>'+state.media.length+' files indexed</span></div>';
+  }catch(e){root.innerHTML='<div style="padding:20px;color:#ff9298">Storage unavailable.<div class="muted" style="margin-top:6px">'+esc(normalizeError(e))+'</div></div>';$("mediaHealth").innerHTML='<span class="health-dot bad"></span><div><strong>Storage unavailable</strong><span>'+esc(normalizeError(e))+'</span></div>';}
+}
+async function uploadMedia(){
+  const file=$("mediaFile").files[0],folder=$("mediaFolder").value.trim().replace(/^\/+|\/+$/g,"")||"admin";
+  if(!file){showToast("Choose an image first.","error");return;}if(!file.type.startsWith("image/")){showToast("Only images are allowed.","error");return;}if(file.size>10*1024*1024){showToast("Maximum 10 MB.","error");return;}
+  const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]+/g,"-"),path=folder+"/"+Date.now()+"-"+safe;
+  try{const r=await db.storage.from(STORAGE_BUCKET).upload(path,file,{cacheControl:"3600",upsert:false});if(r.error)throw r.error;const u=db.storage.from(STORAGE_BUCKET).getPublicUrl(path).data.publicUrl;$("mediaUploadStatus").innerHTML='Uploaded: <a href="'+esc(u)+'" target="_blank" rel="noopener" style="text-decoration:underline">open</a>';$("mediaFile").value="";showToast("Image uploaded.","success");await loadMedia();}
+  catch(e){showToast("Upload failed: "+normalizeError(e),"error");}
+}
+async function copyText(text){try{await navigator.clipboard.writeText(text);showToast("URL copied.","success");}catch(e){showToast("Could not copy URL.","error");}}
 
 async function runHealthCheck(){
-  const root = $("healthFull");
-  root.innerHTML = loadingHTML();
-
-  const checks = [];
-
-  /* Auth */
-  try{
-    const session = await getCurrentSession();
-
-    checks.push({
-      name:"Supabase Authentication",
-      status:session?.user ? "ok":"bad",
-      detail:session?.user ? `Authenticated as ${session.user.email}`:"No active session"
-    });
-  }catch(error){
-    checks.push({
-      name:"Supabase Authentication",
-      status:"bad",
-      detail:normalizeError(error)
-    });
-  }
-
-  /* Products */
-  try{
-    const result = await db.from("products").select("*",{count:"exact",head:true});
-
-    checks.push({
-      name:"Products table",
-      status:result.error ? "bad":"ok",
-      detail:result.error ? normalizeError(result.error):"Readable"
-    });
-  }catch(error){
-    checks.push({
-      name:"Products table",
-      status:"bad",
-      detail:normalizeError(error)
-    });
-  }
-
-  /* Orders */
-  try{
-    const result = await db.from("orders").select("*",{count:"exact",head:true});
-
-    checks.push({
-      name:"Orders table",
-      status:result.error ? "warn":"ok",
-      detail:result.error ? normalizeError(result.error):"Readable"
-    });
-  }catch(error){
-    checks.push({
-      name:"Orders table",
-      status:"warn",
-      detail:normalizeError(error)
-    });
-  }
-
-  /* Customers */
-  try{
-    const result = await db.from("customer_profiles").select("*",{count:"exact",head:true});
-
-    checks.push({
-      name:"Customer profiles",
-      status:result.error ? "warn":"ok",
-      detail:result.error ? normalizeError(result.error):"Readable"
-    });
-  }catch(error){
-    checks.push({
-      name:"Customer profiles",
-      status:"warn",
-      detail:normalizeError(error)
-    });
-  }
-
-  /* Coupons */
-  try{
-    const result = await db.from("coupons").select("*",{count:"exact",head:true});
-
-    checks.push({
-      name:"Coupons",
-      status:result.error ? "warn":"ok",
-      detail:result.error ? normalizeError(result.error):"Readable"
-    });
-  }catch(error){
-    checks.push({
-      name:"Coupons",
-      status:"warn",
-      detail:normalizeError(error)
-    });
-  }
-
-  /* Storage */
-  try{
-    const result = await db.storage.from(STORAGE_BUCKET).list("",{limit:1});
-
-    checks.push({
-      name:"Storage bucket",
-      status:result.error ? "warn":"ok",
-      detail:result.error ? normalizeError(result.error):STORAGE_BUCKET
-    });
-  }catch(error){
-    checks.push({
-      name:"Storage bucket",
-      status:"warn",
-      detail:normalizeError(error)
-    });
-  }
-
-  root.innerHTML = `
-    <div class="grid two-col">
-      <div class="card">
-        <div class="section-title">
-          <h2>System checks</h2>
-          <span>${checks.filter(x=>x.status==="ok").length}/${checks.length} OK</span>
-        </div>
-
-        ${checks.map(c=>`
-          <div class="health-item">
-            <span class="health-dot ${c.status}"></span>
-            <div>
-              <strong>${esc(c.name)}</strong>
-              <span>${esc(c.detail)}</span>
-            </div>
-          </div>
-        `).join("")}
-      </div>
-
-      <div class="card">
-        <div class="section-title">
-          <h2>Security notes</h2>
-        </div>
-
-        <div class="health-item">
-          <span class="health-dot ok"></span>
-          <div>
-            <strong>No service-role key in browser</strong>
-            <span>Publishable/anon key only.</span>
-          </div>
-        </div>
-
-        <div class="health-item">
-          <span class="health-dot warn"></span>
-          <div>
-            <strong>Admin email gate</strong>
-            <span>Client-side gate is not a replacement for RLS.</span>
-          </div>
-        </div>
-
-        <div class="health-item">
-          <span class="health-dot warn"></span>
-          <div>
-            <strong>Database policies</strong>
-            <span>Supabase RLS must protect production writes.</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  const root=$("healthFull");root.innerHTML=loadingHTML();const checks=[];
+  const add=async(name,fn,level="bad")=>{try{const r=await fn();checks.push({name,status:r? "ok":level,detail:r===true?"OK":String(r)});}catch(e){checks.push({name,status:level,detail:normalizeError(e)});}};
+  await add("Supabase Authentication",async()=>!!(await getSession())?.user);
+  await add("Products table",async()=>!(await db.from("products").select("id",{count:"exact",head:true})).error);
+  await add("Orders table",async()=>!(await db.from("orders").select("id",{count:"exact",head:true})).error,"warn");
+  await add("Customer profiles",async()=>!(await db.from("customer_profiles").select("id",{count:"exact",head:true})).error,"warn");
+  await add("Coupons",async()=>!(await db.from("coupons").select("id",{count:"exact",head:true})).error,"warn");
+  await add("Site content",async()=>!(await db.from("site_content").select("key",{count:"exact",head:true})).error,"warn");
+  await add("Store settings",async()=>!(await db.from("store_settings").select("id",{count:"exact",head:true})).error,"warn");
+  await add("Media bucket",async()=>!(await db.storage.from(STORAGE_BUCKET).list("",{limit:1})).error,"warn");
+  root.innerHTML='<div class="grid two-col"><div class="card"><div class="section-title"><h2>System checks</h2><span>'+checks.filter(x=>x.status==="ok").length+'/'+checks.length+' OK</span></div>'+
+    checks.map(c=>'<div class="health-item"><span class="health-dot '+c.status+'"></span><div><strong>'+esc(c.name)+'</strong><span>'+esc(c.detail)+'</span></div></div>').join("")+
+    '</div><div class="card"><div class="section-title"><h2>Security</h2></div><div class="health-item"><span class="health-dot ok"></span><div><strong>No service-role key</strong><span>Only publishable/anon key is present.</span></div></div><div class="health-item"><span class="health-dot warn"></span><div><strong>Admin email gate</strong><span>RLS is still required for real database security.</span></div></div></div></div>';
 }
 
-$("healthAdminEmail").textContent = ADMIN_EMAIL;
-$("healthSupabaseUrl").textContent = SUPABASE_URL;
-
-/* ============================================================
-   MODAL
-   ============================================================ */
-
-function closeModal(event){
-  if(event && event.target && event.target.classList.contains("modal-backdrop")){
-    $("modalRoot").innerHTML="";
-    return;
-  }
-
-  $("modalRoot").innerHTML="";
-  state.editingProduct=null;
-  state.editingCoupon=null;
+async function loadDashboard(){
+  $("statProducts").textContent=state.products.length;$("statOrders").textContent=state.orders.length;$("statCustomers").textContent=state.customers.length;$("statWaitlist").textContent=state.waitlist.length;
+  renderDashboardOrders();renderDashboardLowStock();renderDashboardHealth();
+}
+function renderDashboardOrders(){
+  const root=$("dashboardOrders");if(!state.orders.length){root.innerHTML=emptyHTML("No orders found.");return;}
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody>'+
+    state.orders.slice(0,7).map(o=>'<tr><td><strong>'+esc(orderNumber(o))+'</strong></td><td>'+esc(customerName(o))+'</td><td>'+money(orderTotal(o))+'</td><td>'+statusBadge(orderStatus(o))+'</td></tr>').join("")+
+    '</tbody></table></div>';
+}
+function renderDashboardLowStock(){
+  const low=state.products.filter(p=>totalStock(p)<=5).sort((a,b)=>totalStock(a)-totalStock(b)).slice(0,8);
+  $("dashboardLowStock").innerHTML=low.length?'<div class="table-wrap"><table><thead><tr><th>Product</th><th>Stock</th><th>Price</th></tr></thead><tbody>'+
+    low.map(p=>'<tr><td><strong>'+esc(productName(p))+'</strong></td><td>'+statusBadge(totalStock(p)===0?"Out of stock":totalStock(p)+" left")+'</td><td>'+money(productPrice(p))+'</td></tr>').join("")+
+    '</tbody></table></div>':emptyHTML("No low-stock products detected.");
+}
+function renderDashboardHealth(){
+  $("dashboardHealth").innerHTML='<div class="health-item"><span class="health-dot ok"></span><div><strong>Supabase client</strong><span>Initialized</span></div></div>'+
+    '<div class="health-item"><span class="health-dot ok"></span><div><strong>Authentication</strong><span>'+esc(state.user?.email||"Authenticated")+'</span></div></div>'+
+    '<div class="health-item"><span class="health-dot '+(state.products.length?"ok":"warn")+'"></span><div><strong>Products</strong><span>'+state.products.length+' records loaded</span></div></div>';
 }
 
-/* ============================================================
-   KEYBOARD
-   ============================================================ */
+function closeModal(event){if(event&&event.target&&!event.target.classList.contains("modal-backdrop"))return;$("modalRoot").innerHTML="";state.editingProduct=null;state.editingCoupon=null;}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();$("sidebar").classList.remove("open");}});
+window.addEventListener("error",e=>console.error("Admin error",e.error||e.message));
+window.addEventListener("unhandledrejection",e=>console.error("Admin promise",e.reason));
 
-document.addEventListener("keydown",event=>{
-  if(event.key==="Escape"){
-    closeModal();
-    $("sidebar").classList.remove("open");
-  }
-});
-
-/* ============================================================
-   ERROR GUARD
-   ============================================================ */
-
-window.addEventListener("error",event=>{
-  console.error("Global error:",event.error || event.message);
-});
-
-window.addEventListener("unhandledrejection",event=>{
-  console.error("Unhandled promise:",event.reason);
-});
-
-/* ============================================================
-   STARTUP
-   ============================================================ */
+async function initialLoad(){
+  await Promise.allSettled([loadProducts(),loadOrders(),loadCustomers(),loadCoupons(),loadWaitlist(),loadCMS(),loadSettings()]);
+  await loadDashboard();
+}
+$("healthAdminEmail").textContent=ADMIN_EMAIL;$("healthSupabaseUrl").textContent=SUPABASE_URL;
 
 (async function boot(){
-
   try{
-    const session = await getCurrentSession();
-
-    if(session?.user){
-      if(await verifyAdmin(session.user)){
-        await showApp(session.user);
-      }else{
-        await db.auth.signOut();
-      }
-    }else{
-      $("loginView").classList.remove("hidden");
-      $("appView").classList.add("hidden");
-    }
-
-  }catch(error){
-    console.error("Boot failure:",error);
-
-    /*
-      Never leave a black screen.
-    */
-    $("loginView").classList.remove("hidden");
-    $("appView").classList.add("hidden");
-
-    setLoginError(
-      "Admin initialization failed. Check Supabase configuration and browser console."
-    );
+    const session=await getSession();
+    if(session?.user){if(await verifyAdmin(session.user))await showApp(session.user);else await db.auth.signOut();}
+    else{$("loginView").classList.remove("hidden");$("appView").classList.add("hidden");}
+  }catch(e){
+    console.error(e);$("loginView").classList.remove("hidden");$("appView").classList.add("hidden");
+    setLoginError("Admin initialization failed: "+normalizeError(e));
   }
-
 })();
 
-/* ============================================================
-   EXPOSE UI FUNCTIONS
-   ============================================================ */
-
-window.navigate = navigate;
-window.loadDashboard = loadDashboard;
-window.loadProducts = loadProducts;
-window.renderProducts = renderProducts;
-window.openProductModal = openProductModal;
-window.saveProduct = saveProduct;
-window.confirmDeleteProduct = confirmDeleteProduct;
-window.loadOrders = loadOrders;
-window.renderOrders = renderOrders;
-window.openOrderModal = openOrderModal;
-window.saveOrder = saveOrder;
-window.renderInventory = renderInventory;
-window.quickUpdateStock = quickUpdateStock;
-window.loadCustomers = loadCustomers;
-window.renderCustomers = renderCustomers;
-window.loadCoupons = loadCoupons;
-window.renderCoupons = renderCoupons;
-window.openCouponModal = openCouponModal;
-window.saveCoupon = saveCoupon;
-window.deleteCoupon = deleteCoupon;
-window.loadWaitlist = loadWaitlist;
-window.renderWaitlist = renderWaitlist;
-window.loadCMS = loadCMS;
-window.saveCMS = saveCMS;
-window.loadMedia = loadMedia;
-window.uploadMedia = uploadMedia;
-window.copyMediaUrl = copyMediaUrl;
-window.loadSettings = loadSettings;
-window.saveSettings = saveSettings;
-window.runHealthCheck = runHealthCheck;
-window.closeModal = closeModal;
-
+window.navigate=navigate;window.loadDashboard=loadDashboard;window.loadProducts=loadProducts;window.renderProducts=renderProducts;window.openProductModal=openProductModal;window.openProductModalById=openProductModalById;window.saveProduct=saveProduct;window.toggleProductActive=toggleProductActive;
+window.loadOrders=loadOrders;window.renderOrders=renderOrders;window.openOrderModal=openOrderModal;window.openOrderModalById=openOrderModalById;window.saveOrder=saveOrder;
+window.renderInventory=renderInventory;window.loadCustomers=loadCustomers;window.renderCustomers=renderCustomers;window.loadCoupons=loadCoupons;window.renderCoupons=renderCoupons;window.openCouponModal=openCouponModal;window.openCouponModalById=openCouponModalById;window.saveCoupon=saveCoupon;
+window.loadWaitlist=loadWaitlist;window.renderWaitlist=renderWaitlist;window.loadCMS=loadCMS;window.saveCMS=saveCMS;window.loadMedia=loadMedia;window.uploadMedia=uploadMedia;window.copyText=copyText;window.loadSettings=loadSettings;window.saveSettings=saveSettings;window.runHealthCheck=runHealthCheck;window.closeModal=closeModal;
 </script>
 
 </body>
