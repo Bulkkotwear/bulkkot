@@ -218,21 +218,27 @@ with check ((select auth.jwt()->>'email') = 'bulkkotwear@gmail.com');
 
 -- ------------------------------------------------------------
 -- Waitlist: guests can insert; only admin can read/manage.
--- Supports either waitlist or legacy newsletter table.
+-- The storefront supports both 'waitlist' and legacy 'newsletter'.
+-- Only apply these policies when the waitlist table exists.
 -- ------------------------------------------------------------
-alter table if exists public.waitlist enable row level security;
+do $$
+begin
+  if to_regclass('public.waitlist') is not null then
+    execute 'alter table public.waitlist enable row level security';
 
-drop policy if exists "bulkkot_waitlist_public_insert" on public.waitlist;
-create policy "bulkkot_waitlist_public_insert"
-on public.waitlist for insert
-to anon, authenticated
-with check (true);
+    execute 'drop policy if exists "bulkkot_waitlist_public_insert" on public.waitlist';
+    execute 'create policy "bulkkot_waitlist_public_insert"
+      on public.waitlist for insert
+      to anon, authenticated
+      with check (true)';
 
-drop policy if exists "bulkkot_waitlist_admin_select" on public.waitlist;
-create policy "bulkkot_waitlist_admin_select"
-on public.waitlist for select
-to authenticated
-using ((select auth.jwt()->>'email') = 'bulkkotwear@gmail.com');
+    execute 'drop policy if exists "bulkkot_waitlist_admin_select" on public.waitlist';
+    execute 'create policy "bulkkot_waitlist_admin_select"
+      on public.waitlist for select
+      to authenticated
+      using ((select auth.jwt()->>''email'') = ''bulkkotwear@gmail.com'')';
+  end if;
+end $$;
 
 -- ------------------------------------------------------------
 -- Storage: admin-only uploads into site-content-images.
