@@ -1,656 +1,449 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>BULKKOT — Admin Control Center</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg: #070707; --panel: #101010; --line: #292929; --text: #f5f5f5; 
-      --muted: #888; --red: #e31b23; --green: #39cf98; --yellow: #e5b64e; --radius: 12px;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font: 13px Inter, system-ui, sans-serif; }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    .hidden { display: none !important; }
-    
-    /* Login Screen */
-    .login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
-    .login-card { width: min(430px, 100%); padding: 32px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 25px 80px rgba(0,0,0,0.8); }
-    .mark { width: 52px; height: 52px; display: grid; place-items: center; background: var(--red); border-radius: 12px; font-weight: 900; margin-bottom: 18px; font-size: 18px; }
-    .login h1 { margin: 0; font-size: 28px; }
-    .login p { color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
-    
-    /* Forms & Inputs */
-    .field { display: grid; gap: 6px; margin-bottom: 14px; }
-    .field label { color: #8d8d8d; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-    .field input, .field select, .field textarea { width: 100%; padding: 12px; background: #090909; color: #eee; border: 1px solid #2c2c2c; border-radius: 8px; outline: none; transition: 0.2s; }
-    .field textarea { min-height: 100px; resize: vertical; }
-    .field input:focus, .field select:focus, .field textarea:focus { border-color: #666; }
-    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-    .full { grid-column: 1 / -1; }
-    
-    /* Buttons */
-    .btn { border: 1px solid var(--line); background: #171717; color: #ddd; border-radius: 8px; padding: 10px 14px; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
-    .btn:hover { border-color: #555; color: #fff; }
-    .btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
-    .btn.primary:hover { background: #c0131b; border-color: #c0131b; }
-    .btn.danger { color: #ff777e; border-color: #572329; background: rgba(239,68,68,0.1); }
-    .btn-full { width: 100%; }
-    
-    /* App Layout */
-    .app { min-height: 100vh; display: grid; grid-template-columns: 245px 1fr; }
-    .sidebar { position: sticky; top: 0; height: 100vh; overflow: auto; background: #090909; border-right: 1px solid var(--line); padding: 18px 12px; }
-    .brand { padding: 8px 10px 20px; border-bottom: 1px solid var(--line); margin-bottom: 13px; }
-    .brand b { display: block; font-size: 17px; letter-spacing: .12em; }
-    .brand small { color: var(--red); font-size: 9px; letter-spacing: .18em; font-weight: 800; }
-    
-    .nav { display: grid; gap: 5px; }
-    .nav button { width: 100%; display: flex; justify-content: space-between; background: transparent; color: #aaa; border: 1px solid transparent; border-radius: 9px; padding: 11px 12px; text-align: left; }
-    .nav button:hover, .nav button.active { background: #171717; color: #fff; border-color: var(--line); }
-    .nav .count { color: #666; font-size: 10px; }
-    .nav button.active .count { color: var(--red); }
-    
-    .main { min-width: 0; }
-    .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: rgba(7,7,7,0.9); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
-    .topbar h1 { margin: 0; font-size: 17px; }
-    .content { padding: 24px; max-width: 1400px; margin: auto; }
-    
-    /* Pages & Cards */
-    .page { display: none; animation: fadeIn 0.2s ease; }
-    .page.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-    
-    .heading { margin-bottom: 20px; }
-    .eyebrow { color: var(--red); font-size: 9px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
-    .heading h2 { margin: 4px 0; font-size: 24px; }
-    
-    .grid { display: grid; gap: 14px; }
-    .kpis { grid-template-columns: repeat(4, 1fr); }
-    .two { grid-template-columns: repeat(2, 1fr); margin-top: 14px; }
-    .card, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-    .card { padding: 18px; }
-    .metric { margin-top: 8px; font-size: 28px; font-weight: 900; }
-    .muted { color: var(--muted); }
-    
-    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid var(--line); }
-    .panel-head h3 { margin: 0; font-size: 12px; letter-spacing: .08em; }
-    
-    /* Tables */
-    .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .table-wrap { overflow: auto; }
-    table { width: 100%; min-width: 760px; border-collapse: collapse; }
-    th, td { padding: 12px 14px; border-bottom: 1px solid #1a1a1a; text-align: left; }
-    th { color: #777; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
-    td { font-size: 12px; }
-    tbody tr:hover td { background: #131313; }
-    
-    .badge { display: inline-flex; padding: 4px 8px; border: 1px solid #383838; border-radius: 99px; color: #aaa; font-size: 9px; background: rgba(255,255,255,0.05); }
-    .badge.green { color: var(--green); border-color: #20513f; background: rgba(57, 207, 152, 0.1); }
-    .badge.red { color: #ff777e; border-color: #572329; background: rgba(255, 119, 126, 0.1); }
-    
-    /* Modals */
-    .modal { position: fixed; inset: 0; z-index: 100; display: none; place-items: center; padding: 20px; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
-    .modal.open { display: grid; }
-    .modal-box { width: min(800px, 100%); max-height: 90vh; overflow: auto; background: #0d0d0d; border: 1px solid #333; border-radius: 16px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
-    .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 18px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #0d0d0d; z-index: 10; }
-    .modal-body { padding: 20px; }
-    
-    /* Overlays */
-    #loadingOverlay { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,.9); display: none; place-items: center; }
-    #loadingOverlay.show { display: grid; }
-    .spinner { width: 40px; height: 40px; border: 3px solid #292929; border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    
-    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 200; display: none; padding: 14px 20px; background: #f2f2f2; color: #000; border-radius: 10px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .toast.show { display: block; animation: toastIn 0.3s ease; }
-    @keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BULKKOT — God Mode Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#070707;--panel:#0d0d0f;--panel2:#111114;--line:#242428;--muted:#85858d;--text:#f5f5f5;--red:#e31b23;--green:#35d49a;--amber:#f2b84b;--blue:#6ca8ff;--radius:14px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font:13px Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit}.hidden{display:none!important}
+.app{min-height:100vh;display:grid;grid-template-columns:250px 1fr}
+.sidebar{position:sticky;top:0;height:100vh;background:#09090a;border-right:1px solid var(--line);padding:18px 12px;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:8px 10px 20px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand img{width:38px;height:38px;object-fit:contain}.brand b{font-size:16px;letter-spacing:.08em}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:.18em;margin-top:3px}
+.nav{display:grid;gap:4px}.nav button{border:0;background:transparent;color:#aaa;text-align:left;padding:11px 12px;border-radius:9px;display:flex;justify-content:space-between;align-items:center}.nav button:hover,.nav button.active{background:#17171a;color:#fff}.nav .count{font-size:10px;color:#666}.nav button.active .count{color:var(--red)}
+.sidebar-foot{border-top:1px solid var(--line);margin-top:15px;padding:14px 10px;color:#777;font-size:10px;line-height:1.6}
+.main{min-width:0}.topbar{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 25px;background:rgba(7,7,7,.92);position:sticky;top:0;z-index:20;backdrop-filter:blur(12px)}
+.topbar h1{font-size:17px;margin:0}.topbar .right{display:flex;gap:8px;align-items:center}.status{font-size:10px;color:var(--muted)}
+.content{padding:24px;max-width:1700px;margin:auto}.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:14px}.grid.kpi{grid-template-columns:repeat(5,minmax(0,1fr))}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.card{padding:18px}.panel-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center}.panel-head h2,.panel-head h3{margin:0;font-size:13px;letter-spacing:.05em}.panel-body{padding:18px}.muted{color:var(--muted)}.metric{font-size:28px;font-weight:900;margin-top:8px}.eyebrow{font-size:9px;letter-spacing:.18em;color:var(--red);font-weight:800;text-transform:uppercase}
+.btn{border:1px solid var(--line);background:#17171a;color:#ddd;padding:9px 12px;border-radius:8px;font-weight:800;font-size:10px;letter-spacing:.06em}.btn:hover{border-color:#444;color:#fff}.btn.primary{background:var(--red);border-color:var(--red);color:#fff}.btn.danger{border-color:#572025;color:#ff777e}.btn.success{border-color:#214d3e;color:var(--green)}.btn.small{padding:6px 9px;font-size:9px}
+.toolbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}.toolbar .left,.toolbar .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input,select,textarea{width:100%;background:#09090b;border:1px solid #2a2a2e;color:#eee;border-radius:8px;padding:10px 11px;outline:none}input:focus,select:focus,textarea:focus{border-color:#666}textarea{min-height:100px;resize:vertical}.field{display:grid;gap:6px}.field label{font-size:9px;color:#888;letter-spacing:.12em;text-transform:uppercase;font-weight:800}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field.full{grid-column:1/-1}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:760px}.table th,.table td{padding:11px 10px;border-bottom:1px solid #1c1c20;text-align:left;vertical-align:top}.table th{font-size:9px;letter-spacing:.12em;color:#777;text-transform:uppercase}.table td{font-size:11px}.table tr:hover td{background:#101013}
+.badge{display:inline-flex;border:1px solid #333;padding:3px 7px;border-radius:99px;font-size:9px;color:#aaa}.badge.green{color:var(--green);border-color:#214d3e}.badge.red{color:#ff777e;border-color:#572025}.badge.amber{color:var(--amber);border-color:#57451f}
+.tabs{display:flex;gap:6px;overflow:auto;padding-bottom:10px;margin-bottom:12px}.tabs button{white-space:nowrap}.tabs button.active{background:#fff;color:#000;border-color:#fff}
+.preview{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0b0b0c}.preview img{width:100%;height:190px;object-fit:cover;display:block}.preview-body{padding:12px}.preview h3{margin:0 0 6px}.preview p{color:#999;font-size:11px;line-height:1.5}
+.media-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.media-card{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0c0c0d}.media-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}.media-card div{padding:8px;font-size:9px;word-break:break-all;color:#888}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal.open{display:flex}.modal-box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#0c0c0e;border:1px solid #333;border-radius:16px}.modal-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modal-body{padding:18px}.toast{position:fixed;right:20px;bottom:20px;z-index:200;background:#f4f4f4;color:#050505;padding:12px 16px;border-radius:10px;font-weight:800;display:none}.toast.show{display:block}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.login-box{width:min(430px,100%);background:#0d0d0f;border:1px solid var(--line);border-radius:18px;padding:28px}.login-box h1{margin:0 0 8px}.login-box form{display:grid;gap:12px;margin-top:20px}
+.json{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;white-space:pre-wrap;color:#bbb;background:#08080a;border:1px solid #222;padding:12px;border-radius:8px}
+@media(max-width:1050px){.app{grid-template-columns:78px 1fr}.sidebar{padding:12px 8px}.brand b,.brand small,.nav button span.label,.sidebar-foot{display:none}.nav button{justify-content:center}.grid.kpi{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.app{display:block}.sidebar{position:fixed;left:-260px;width:250px;z-index:80;transition:.2s}.sidebar.open{left:0}.topbar{padding:0 14px}.content{padding:14px}.grid.kpi,.grid.two,.grid.three,.form-grid{grid-template-columns:1fr}.media-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
 </head>
 <body>
 
-<!-- GLOBAL LOADING SCREEN -->
-<div id="loadingOverlay">
-  <div style="text-align:center;">
-    <div class="spinner"></div>
-    <div id="loadingText" style="color:#fff; font-size:11px; font-weight:800; letter-spacing:0.1em;">AUTHENTICATING...</div>
+<div id="loginView" class="login">
+  <div class="login-box">
+    <div class="eyebrow">BULKKOT · PRIVATE CONTROL CENTER</div>
+    <h1>GOD MODE</h1>
+    <p class="muted">Supabase-authenticated enterprise storefront control.</p>
+    <form id="loginForm">
+      <div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="username" required value="bulkkotwear@gmail.com"></div>
+      <div class="field"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+      <button class="btn primary" type="submit">AUTHENTICATE</button>
+    </form>
+    <p id="loginError" class="muted" style="color:#ff777e;margin-bottom:0;margin-top:10px;font-weight:bold;"></p>
   </div>
 </div>
 
-<!-- 100% REFRESH-PROOF LOGIN FORM -->
-<section id="loginView" class="login hidden">
-  <div class="login-card">
-    <div class="mark">BK</div>
-    <div class="eyebrow">BULKKOT ADMIN</div>
-    <h1>Control Center</h1>
-    <p>Private enterprise administration. Only authorized personnel.</p>
-    
-    <!-- THE MAGIC FIX: onsubmit="return false;" prevents any page reload -->
-    <form id="loginForm" onsubmit="event.preventDefault(); appAdmin.login(); return false;">
-      <div class="field">
-        <label>Admin Email</label>
-        <input id="loginEmail" type="email" value="bulkkotwear@gmail.com" required>
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <input id="loginPassword" type="password" placeholder="••••••••••" required>
-      </div>
-      <div id="loginError" style="color:#ff777e; font-size:11px; font-weight:700; margin-bottom:12px;"></div>
-      <button id="loginBtn" class="btn primary btn-full" type="submit" style="padding:14px; font-size:12px;">SIGN IN SECURELY</button>
-    </form>
-  </div>
-</section>
-
-<!-- MAIN APP -->
-<section id="app" class="app hidden">
-  <aside class="sidebar">
-    <div class="brand"><b>BULKKOT</b><small>GOD MODE</small></div>
-    <nav id="nav" class="nav">
-      <button class="active" onclick="appAdmin.go('dashboard')" type="button">Dashboard <span class="count" id="cDash">LIVE</span></button>
-      <button onclick="appAdmin.go('categories')" type="button">Categories <span class="count" id="cCat">0</span></button>
-      <button onclick="appAdmin.go('products')" type="button">Products <span class="count" id="cProd">0</span></button>
-      <button onclick="appAdmin.go('orders')" type="button">Orders <span class="count" id="cOrd">0</span></button>
-      <button onclick="appAdmin.go('customers')" type="button">Customers <span class="count" id="cCust">0</span></button>
-      <button onclick="appAdmin.go('cms')" type="button">Storefront CMS <span class="count">UI</span></button>
-      <button onclick="appAdmin.go('settings')" type="button">Settings <span class="count">CFG</span></button>
+<div id="app" class="app hidden">
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png" onerror="this.style.display='none'">
+      <div><b>BULKKOT</b><small>GOD MODE</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-page="dashboard" class="active"><span class="label">Dashboard</span><span class="count" id="navDash">—</span></button>
+      <button data-page="content"><span class="label">Storefront CMS</span><span class="count">CMS</span></button>
+      <button data-page="products"><span class="label">Products</span><span class="count" id="navProducts">0</span></button>
+      <button data-page="orders"><span class="label">Orders</span><span class="count" id="navOrders">0</span></button>
+      <button data-page="customers"><span class="label">Customers CRM</span><span class="count" id="navCustomers">0</span></button>
+      <button data-page="coupons"><span class="label">Coupons</span><span class="count" id="navCoupons">0</span></button>
+      <button data-page="waitlist"><span class="label">VIP Waitlist</span><span class="count" id="navWaitlist">0</span></button>
+      <button data-page="media"><span class="label">Media</span><span class="count">STORAGE</span></button>
+      <button data-page="settings"><span class="label">Store Settings</span><span class="count">CORE</span></button>
+      <button data-page="schema"><span class="label">Schema Blueprint</span><span class="count">SQL</span></button>
     </nav>
+    <div class="sidebar-foot">Read/write operations are protected by Supabase Auth + RLS.</div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <h1 id="pageTitle">Dashboard</h1>
-      <div style="display:flex; gap:10px;">
-        <button class="btn" type="button" onclick="appAdmin.refresh()">Refresh</button>
-        <button class="btn danger" type="button" onclick="appAdmin.logout()">Logout</button>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn small" id="menuBtn">☰</button>
+        <div><h1 id="pageTitle">Dashboard</h1><div class="status" id="authStatus">Checking session…</div></div>
       </div>
+      <div class="right"><button class="btn small" id="refreshBtn">↻ REFRESH</button><button class="btn small" id="logoutBtn">LOGOUT</button></div>
     </header>
 
     <div class="content">
-      
-      <!-- DASHBOARD -->
-      <div id="page-dashboard" class="page active">
-        <div class="heading"><div class="eyebrow">OVERVIEW</div><h2>Dashboard</h2></div>
-        <div class="grid kpis">
-          <div class="card"><div class="muted">ORDERS</div><div id="kOrders" class="metric">0</div></div>
-          <div class="card"><div class="muted">REVENUE</div><div id="kRevenue" class="metric">₹0</div></div>
-          <div class="card"><div class="muted">CUSTOMERS</div><div id="kCustomers" class="metric">0</div></div>
-          <div class="card"><div class="muted">PRODUCTS</div><div id="kProducts" class="metric">0</div></div>
+
+      <section id="page-dashboard" class="page active">
+        <div class="toolbar"><div><div class="eyebrow">CONTROL CENTER</div><h2 style="margin:4px 0">Store at a glance</h2></div></div>
+        <div class="grid kpi">
+          <div class="card"><div class="muted">ACTIVE PRODUCTS</div><div class="metric" id="kProducts">0</div></div>
+          <div class="card"><div class="muted">ORDERS</div><div class="metric" id="kOrders">0</div></div>
+          <div class="card"><div class="muted">CUSTOMERS</div><div class="metric" id="kCustomers">0</div></div>
+          <div class="card"><div class="muted">WAITLIST</div><div class="metric" id="kWaitlist">0</div></div>
+          <div class="card"><div class="muted">LOW STOCK SKUs</div><div class="metric" id="kLowStock">0</div></div>
         </div>
-        <div class="panel" style="margin-top:20px;">
-          <div class="panel-head"><h3>RECENT ORDERS</h3></div>
-          <div class="table-wrap">
-            <table><thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="dashOrders"></tbody></table>
-          </div>
+        <div class="grid two" style="margin-top:14px">
+          <div class="panel"><div class="panel-head"><h2>RECENT ORDERS</h2><button class="btn small" data-go="orders">VIEW ALL</button></div><div class="table-wrap"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="recentOrders"></tbody></table></div></div>
+          <div class="panel"><div class="panel-head"><h2>LOW STOCK</h2><button class="btn small" data-go="products">PRODUCTS</button></div><div class="table-wrap"><table class="table"><thead><tr><th>SKU</th><th>Product</th><th>Stock</th></tr></thead><tbody id="lowStockRows"></tbody></table></div></div>
         </div>
-      </div>
+        <div class="panel" style="margin-top:14px"><div class="panel-head"><h2>CMS COVERAGE</h2><span class="badge green">KEY/VALUE READY</span></div><div class="panel-body"><p class="muted">Every storefront text/image/link that should be editable is represented by a namespaced CMS key. The admin writes these to <code>site_content</code>; your storefront must read/render those keys.</p><div id="cmsCoverage" class="json"></div></div></div>
+      </section>
 
-      <!-- CATEGORIES -->
-      <div id="page-categories" class="page">
-        <div class="heading"><div class="eyebrow">CATALOGUE</div><h2>Categories</h2></div>
-        <div class="toolbar"><button class="btn primary" type="button" onclick="appAdmin.openCategoryModal()">+ New Category</button></div>
-        <div class="panel"><div class="table-wrap">
-          <table><thead><tr><th>Slug</th><th>English</th><th>Korean</th><th>Status</th><th>Actions</th></tr></thead><tbody id="catRows"></tbody></table>
-        </div></div>
-      </div>
+      <section id="page-content" class="page">
+        <div class="toolbar"><div><div class="eyebrow">STOREFRONT CONTROL</div><h2 style="margin:4px 0">Content Management</h2></div><button class="btn primary" id="saveContentBtn">SAVE CURRENT SECTION</button></div>
+        <div class="tabs" id="contentTabs"></div>
+        <div id="contentEditor"></div>
+      </section>
 
-      <!-- PRODUCTS -->
-      <div id="page-products" class="page">
-        <div class="heading"><div class="eyebrow">INVENTORY</div><h2>Products</h2></div>
-        <div class="toolbar"><button class="btn primary" type="button" onclick="appAdmin.openProductModal()">+ New Product</button></div>
-        <div class="panel"><div class="table-wrap">
-          <table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Live</th><th>Actions</th></tr></thead><tbody id="prodRows"></tbody></table>
-        </div></div>
-      </div>
+      <section id="page-products" class="page">
+        <div class="toolbar"><div><div class="eyebrow">CATALOG</div><h2 style="margin:4px 0">Products</h2></div><div class="right"><input id="productSearch" placeholder="Search name / SKU" style="width:220px"><button class="btn primary" id="addProductBtn">+ NEW PRODUCT</button></div></div>
+        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Live</th><th></th></tr></thead><tbody id="productsRows"></tbody></table></div></div>
+      </section>
 
-      <!-- ORDERS -->
-      <div id="page-orders" class="page">
-        <div class="heading"><div class="eyebrow">FULFILMENT</div><h2>Orders</h2></div>
-        <div class="panel"><div class="table-wrap">
-          <table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ordRows"></tbody></table>
-        </div></div>
-      </div>
+      <section id="page-orders" class="page">
+        <div class="toolbar"><div><div class="eyebrow">FULFILMENT</div><h2 style="margin:4px 0">Orders</h2></div><div class="right"><select id="orderStatusFilter" style="width:160px"><option value="">ALL STATUS</option><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select><input id="orderSearch" placeholder="Order / phone / email" style="width:220px"></div></div>
+        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th><th>Created</th><th></th></tr></thead><tbody id="ordersRows"></tbody></table></div></div>
+      </section>
 
-      <!-- CUSTOMERS -->
-      <div id="page-customers" class="page">
-        <div class="heading"><div class="eyebrow">CRM</div><h2>Customers</h2></div>
-        <div class="panel"><div class="table-wrap">
-          <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>LTV</th></tr></thead><tbody id="custRows"></tbody></table>
-        </div></div>
-      </div>
+      <section id="page-customers" class="page">
+        <div class="toolbar"><div><div class="eyebrow">CRM</div><h2 style="margin:4px 0">Customer Profiles</h2></div><input id="customerSearch" placeholder="Search customer / phone / email" style="width:280px"></div>
+        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Customer</th><th>Phone</th><th>Email/Auth ID</th><th>Location</th><th>Updated</th><th></th></tr></thead><tbody id="customersRows"></tbody></table></div></div>
+      </section>
 
-      <!-- CMS -->
-      <div id="page-cms" class="page">
-        <div class="heading"><div class="eyebrow">FRONTEND</div><h2>Storefront CMS</h2></div>
-        <form onsubmit="event.preventDefault(); appAdmin.saveCMS(); return false;">
-          <div class="panel"><div class="panel-body form-grid">
-            <div class="field full"><label>Hero Headline</label><input id="cmsHero" type="text"></div>
-            <div class="field full"><label>Announcement Ticker</label><input id="cmsTicker" type="text"></div>
-            <div class="field full"><label>FAQ (HTML)</label><textarea id="cmsFaq"></textarea></div>
-          </div></div>
-          <button class="btn primary" type="submit" style="margin-top:14px">Save CMS Content</button>
-        </form>
-      </div>
+      <section id="page-coupons" class="page">
+        <div class="toolbar"><div><div class="eyebrow">PROMOTIONS</div><h2 style="margin:4px 0">Coupons</h2></div><button class="btn primary" id="addCouponBtn">+ NEW COUPON</button></div>
+        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Active</th><th>Created</th><th></th></tr></thead><tbody id="couponsRows"></tbody></table></div></div>
+      </section>
 
-      <!-- SETTINGS -->
-      <div id="page-settings" class="page">
-        <div class="heading"><div class="eyebrow">CONFIG</div><h2>Store Settings</h2></div>
-        <form onsubmit="event.preventDefault(); appAdmin.saveSettings(); return false;">
-          <div class="panel"><div class="panel-body form-grid">
-            <div class="field"><label>Support Email</label><input id="setMail" type="email"></div>
-            <div class="field"><label>WhatsApp Number</label><input id="setPhone" type="text"></div>
-            <div class="field"><label>Shipping Fee</label><input id="setShip" type="number"></div>
-          </div></div>
-          <button class="btn primary" type="submit" style="margin-top:14px">Save Settings</button>
-        </form>
-      </div>
+      <section id="page-waitlist" class="page">
+        <div class="toolbar"><div><div class="eyebrow">LEADS</div><h2 style="margin:4px 0">VIP Waitlist</h2></div><div class="right"><button class="btn small" id="refreshWaitlistBtn">↻ REFRESH</button><button class="btn primary" id="exportWaitlistBtn">↓ EXPORT CSV</button></div></div>
+        <div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Email</th><th>Source</th><th>Created</th></tr></thead><tbody id="waitlistRows"></tbody></table></div></div>
+      </section>
+
+      <section id="page-media" class="page">
+        <div class="toolbar"><div><div class="eyebrow">SUPABASE STORAGE</div><h2 style="margin:4px 0">Media Library</h2></div><div class="right"><input id="mediaFile" type="file" accept="image/*"><button class="btn primary" id="uploadMediaBtn">UPLOAD</button></div></div>
+        <div class="card"><p class="muted">Uploads go to <b>site-content-images</b>. Public URLs can then be pasted into CMS/image fields.</p></div>
+        <div id="mediaGrid" class="media-grid" style="margin-top:14px"></div>
+      </section>
+
+      <section id="page-settings" class="page">
+        <div class="toolbar"><div><div class="eyebrow">STORE INFRASTRUCTURE</div><h2 style="margin:4px 0">Store Settings</h2></div><button class="btn primary" id="saveSettingsBtn">SAVE SETTINGS</button></div>
+        <div class="panel"><div class="panel-body"><div class="form-grid">
+          <div class="field"><label>Store Name</label><input id="sStoreName"></div>
+          <div class="field"><label>Support Email</label><input id="sEmail" type="email"></div>
+          <div class="field"><label>Support Phone / WhatsApp</label><input id="sPhone"></div>
+          <div class="field"><label>Currency</label><input id="sCurrency" value="INR"></div>
+          <div class="field"><label>Shipping Fee</label><input id="sShipping" type="number" min="0"></div>
+          <div class="field"><label>Free Shipping Threshold</label><input id="sFreeShip" type="number" min="0"></div>
+          <div class="field full"><label>Store Address</label><textarea id="sAddress"></textarea></div>
+          <div class="field"><label>Instagram URL</label><input id="sInstagram"></div>
+          <div class="field"><label>Website / Canonical URL</label><input id="sWebsite"></div>
+        </div></div></div>
+      </section>
+
+      <section id="page-schema" class="page">
+        <div class="toolbar"><div><div class="eyebrow">SUPABASE BLUEPRINT</div><h2 style="margin:4px 0">Required Database Structure</h2></div><button class="btn" id="copySqlBtn">COPY SQL</button></div>
+        <div class="panel"><div class="panel-body"><p class="muted">Run this in Supabase SQL Editor before using the full control center. Existing columns can be retained; add missing fields rather than dropping production data.</p><pre id="sqlPreview" class="json"></pre></div></div>
+      </section>
 
     </div>
   </main>
-</section>
+</div>
 
-<!-- MODALS -->
-<!-- Category Modal -->
-<div id="catModal" class="modal"><div class="modal-box" style="max-width:500px">
-  <div class="modal-head"><b>CATEGORY</b><button class="btn" type="button" onclick="appAdmin.closeModal('catModal')">Close</button></div>
-  <div class="modal-body">
-    <form onsubmit="event.preventDefault(); appAdmin.saveCategory(); return false;">
-      <input type="hidden" id="cId">
-      <div class="field"><label>Slug (URL)</label><input id="cSlug" required></div>
-      <div class="field"><label>English Name</label><input id="cEn" required></div>
-      <div class="field"><label>Korean Name</label><input id="cKo" required></div>
-      <div class="field"><label>Active</label><select id="cActive"><option value="true">Active</option><option value="false">Hidden</option></select></div>
-      <button class="btn primary btn-full" type="submit" style="margin-top:14px">SAVE</button>
-    </form>
-  </div>
-</div></div>
+<div id="productModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="productModalTitle">PRODUCT</b><button class="btn small" data-close="productModal">CLOSE</button></div><div class="modal-body">
+<form id="productForm"><input id="pId" type="hidden"><div class="form-grid">
+<div class="field"><label>Name</label><input id="pName" required></div><div class="field"><label>SKU</label><input id="pSku"></div>
+<div class="field"><label>Category</label><select id="pCategory"><option value="tees">Tees</option><option value="hoods">Hoods</option><option value="sweats">Sweats</option></select></div>
+<div class="field"><label>Price</label><input id="pPrice" type="number" min="0" required></div>
+<div class="field"><label>Compare-at Price</label><input id="pCompare" type="number" min="0"></div>
+<div class="field"><label>Featured</label><select id="pFeatured"><option value="true">Yes</option><option value="false">No</option></select></div>
+<div class="field"><label>Active</label><select id="pActive"><option value="true">Live</option><option value="false">Hidden</option></select></div>
+<div class="field"><label>Visibility</label><select id="pVisibility"><option value="true">Visible</option><option value="false">Hidden</option></select></div>
+<div class="field full"><label>Description</label><textarea id="pDescription"></textarea></div>
+<div class="field"><label>Stock JSON</label><input id="pStock" value='{"S":0,"M":0,"L":0,"XL":0}'></div>
+<div class="field"><label>Images JSON array</label><input id="pImages" value='[]'></div>
+<div class="field full"><label>Tags JSON array</label><input id="pTags" value='[]'></div>
+</div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn primary" type="submit">SAVE PRODUCT</button><button class="btn danger" type="button" id="deleteProductBtn">DELETE</button></div></form>
+</div></div></div>
 
-<!-- Product Modal -->
-<div id="prodModal" class="modal"><div class="modal-box large">
-  <div class="modal-head"><b>PRODUCT</b><button class="btn" type="button" onclick="appAdmin.closeModal('prodModal')">Close</button></div>
-  <div class="modal-body">
-    <form onsubmit="event.preventDefault(); appAdmin.saveProduct(); return false;">
-      <input type="hidden" id="pId">
-      <div class="form-grid">
-        <div class="field"><label>Name</label><input id="pName" required></div>
-        <div class="field"><label>Category Slug</label><input id="pCat" required></div>
-        <div class="field"><label>Price</label><input id="pPrice" type="number" required></div>
-        <div class="field"><label>Active</label><select id="pActive"><option value="true">Live</option><option value="false">Hidden</option></select></div>
-      </div>
-      <div class="card" style="margin-top:14px">
-        <div class="eyebrow">STOCK QUANTITY</div>
-        <div class="grid" style="grid-template-columns:repeat(4,1fr); margin-top:10px;">
-          <div class="field"><label>S</label><input id="pS" type="number" value="0"></div>
-          <div class="field"><label>M</label><input id="pM" type="number" value="0"></div>
-          <div class="field"><label>L</label><input id="pL" type="number" value="0"></div>
-          <div class="field"><label>XL</label><input id="pXL" type="number" value="0"></div>
-        </div>
-      </div>
-      <button class="btn primary" type="submit" style="margin-top:20px">SAVE PRODUCT</button>
-    </form>
-  </div>
-</div></div>
+<div id="orderModal" class="modal"><div class="modal-box"><div class="modal-head"><b>ORDER CONTROL</b><button class="btn small" data-close="orderModal">CLOSE</button></div><div class="modal-body"><div id="orderDetails"></div><form id="orderForm" style="margin-top:15px"><input id="oId" type="hidden"><div class="form-grid">
+<div class="field"><label>Order Status</label><select id="oStatus"><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select></div>
+<div class="field"><label>Payment Status</label><select id="oPayment"><option>PENDING</option><option>PAID</option><option>COD</option><option>FAILED</option><option>REFUNDED</option></select></div>
+<div class="field"><label>Fulfillment Status</label><select id="oFulfillment"><option>PENDING</option><option>PACKED</option><option>SHIPPED</option><option>DELIVERED</option><option>RETURNED</option></select></div>
+<div class="field"><label>Tracking Number</label><input id="oTracking"></div>
+<div class="field full"><label>Admin Note</label><textarea id="oNote"></textarea></div>
+</div><button class="btn primary" type="submit" style="margin-top:14px">SAVE ORDER</button></form></div></div></div>
 
-<!-- Order Modal -->
-<div id="ordModal" class="modal"><div class="modal-box">
-  <div class="modal-head"><b>UPDATE ORDER</b><button class="btn" type="button" onclick="appAdmin.closeModal('ordModal')">Close</button></div>
-  <div class="modal-body">
-    <form onsubmit="event.preventDefault(); appAdmin.saveOrder(); return false;">
-      <input type="hidden" id="oId">
-      <div class="field"><label>Order Status</label><select id="oStatus"><option>PLACED</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option></select></div>
-      <div class="field"><label>Tracking Number</label><input id="oTrack"></div>
-      <button class="btn primary btn-full" type="submit" style="margin-top:14px">UPDATE STATUS</button>
-    </form>
-  </div>
-</div></div>
+<div id="customerModal" class="modal"><div class="modal-box"><div class="modal-head"><b>CUSTOMER</b><button class="btn small" data-close="customerModal">CLOSE</button></div><div class="modal-body" id="customerDetails"></div></div></div>
 
-<!-- TOAST -->
+<div id="couponModal" class="modal"><div class="modal-box"><div class="modal-head"><b>COUPON</b><button class="btn small" data-close="couponModal">CLOSE</button></div><div class="modal-body"><form id="couponForm"><div class="form-grid">
+<div class="field"><label>Code</label><input id="cCode" required></div><div class="field"><label>Discount Value</label><input id="cDiscount" type="number" min="0" required></div>
+<div class="field"><label>Minimum Order</label><input id="cMin" type="number" min="0" value="0"></div><div class="field"><label>Active</label><select id="cActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
+</div><button class="btn primary" type="submit" style="margin-top:14px">CREATE COUPON</button></form></div></div></div>
+
 <div id="toast" class="toast"></div>
 
-<!-- SUPER SAFE JAVASCRIPT -->
 <script>
-// Database Connection Keys
-const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
-const ADMIN_EMAIL = "bulkkotwear@gmail.com";
+const SUPABASE_URL="https://pgubjluqgqvrybvehzeh.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+const ADMIN_EMAIL="bulkkotwear@gmail.com";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-// Initialize Supabase safely
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Global State
-const store = {
-  categories: [], products: [], orders: [], customers: [], cms: {}, settings: {}
+const CMS_GROUPS={
+ general:{label:"General / Brand",keys:["brand_name","brand_korean","brand_tagline","meta_title","meta_description","theme_red","logo_url","favicon_url"]},
+ ticker:{label:"Announcement Ticker",keys:["announcement_1","announcement_2","announcement_3","announcement_bg","announcement_color","announcement_font","announcement_speed"]},
+ hero:{label:"Hero",keys:["hero_image","hero_image_url","hero_eyebrow","hero_title","hero_subtitle","hero_label","hero_description","hero_cta","hero_cta_url","hero_overlay_color","hero_text_color","hero_font"]},
+ collections:{label:"3 Circle Collections",keys:["collections_eyebrow","collections_title","collection_1_label","collection_1_korean","collection_1_image","collection_1_url","collection_1_cta","collection_2_label","collection_2_korean","collection_2_image","collection_2_url","collection_2_cta","collection_3_label","collection_3_korean","collection_3_image","collection_3_url","collection_3_cta"]},
+ editorial:{label:"Editorial Slider",keys:["editorial_1_badge","editorial_1_korean","editorial_1_title","editorial_1_subtitle","editorial_1_description","editorial_1_image","editorial_1_cta","editorial_1_url","editorial_2_badge","editorial_2_korean","editorial_2_title","editorial_2_subtitle","editorial_2_description","editorial_2_image","editorial_2_cta","editorial_2_url","editorial_3_badge","editorial_3_korean","editorial_3_title","editorial_3_subtitle","editorial_3_description","editorial_3_image","editorial_3_cta","editorial_3_url","editorial_4_badge","editorial_4_korean","editorial_4_title","editorial_4_subtitle","editorial_4_description","editorial_4_image","editorial_4_cta","editorial_4_url"]},
+ drop:{label:"Drop Banner",keys:["drop_eyebrow","drop_title","drop_description","drop_cta","drop_cta_url"]},
+ shop:{label:"Shop Section",keys:["shop_eyebrow","shop_title","shop_catalogue_cta","shop_catalogue_url","shop_empty_message","shop_all_label","shop_tees_label","shop_hoods_label","shop_sweats_label","shop_sort_featured","shop_sort_newest","shop_sort_low","shop_sort_high"]},
+ values:{label:"Why BULKKOT / Values",keys:["values_eyebrow","values_title","value_1_title","value_1_korean","value_1_description","value_2_title","value_2_korean","value_2_description","value_3_title","value_3_korean","value_3_description","value_4_title","value_4_korean","value_4_description"]},
+ about:{label:"About / Story",keys:["about_eyebrow","about_title","about_subtitle","about_lead","about_body_1","about_body_2","about_signature","about_cta","about_story_modal_title","about_story_modal_body"]},
+ philosophy:{label:"Philosophy",keys:["philosophy_korean","philosophy_title","philosophy_subtitle","philosophy_description"]},
+ social:{label:"Social",keys:["social_eyebrow","social_title","social_korean","instagram_url","instagram_handle"]},
+ waitlist:{label:"Waitlist Content",keys:["waitlist_eyebrow","waitlist_title","waitlist_korean","waitlist_description","waitlist_email_label","waitlist_placeholder","waitlist_button","waitlist_success","waitlist_duplicate","waitlist_error"]},
+ contact:{label:"Contact",keys:["contact_eyebrow","contact_title","contact_email_label","contact_email","collab_label","collab_subject","contact_whatsapp_label"]},
+ footer:{label:"Footer",keys:["footer_description","footer_tagline","footer_shop_title","footer_about_title","footer_help_title","footer_legal_title","footer_connect_title","footer_copyright","footer_country"]},
+ policies:{label:"Legal Policies",keys:["policy_faq_title","policy_faq_body","policy_shipping_title","policy_shipping_body","policy_returns_title","policy_returns_body","policy_privacy_title","policy_privacy_body","policy_terms_title","policy_terms_body"]},
+ popup:{label:"Welcome Popup",keys:["popup_eyebrow","popup_title","popup_body","popup_cta","popup_cta_url","popup_enabled"]},
+ size:{label:"Size Guide",keys:["size_guide_title","size_guide_intro","size_guide_tees","size_guide_hoods","size_guide_sweats","size_guide_note"]},
+ navigation:{label:"Navigation / Search",keys:["nav_home","nav_shop","nav_drop","nav_collections","nav_about","nav_contact","nav_size_guide","nav_track_order","nav_account","search_placeholder","search_trending_label","search_tag_1","search_tag_2","search_tag_3","search_tag_4"]},
+ whatsapp:{label:"WhatsApp / Support",keys:["whatsapp_number","whatsapp_message","whatsapp_label","whatsapp_subtitle"]}
 };
 
-// Application Controller
-window.appAdmin = {
+const DEFAULTS={
+brand_name:"BULKKOT",brand_korean:"불꽃",brand_tagline:"Less noise. More presence.",meta_title:"BULKKOT (불꽃) — Premium Everyday Wear",meta_description:"Korean-inspired premium everyday wear.",theme_red:"#e31b23",
+announcement_1:"DROP 001 — DROPPING SOON",announcement_bg:"#e31b23",announcement_color:"#ffffff",announcement_speed:"20",
+hero_image_url:"",hero_eyebrow:"불꽃",hero_title:"BULKKOT",hero_description:"Korean-inspired minimalist heavyweight essentials."
+};
 
-  // --- UI HELPERS ---
-  toast: function(msg, isError) {
-    const t = document.getElementById("toast");
-    if(!t) return;
-    t.textContent = msg;
-    t.style.background = isError ? "#ff777e" : "#f4f4f4";
-    t.style.color = "#000";
-    t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 3000);
-  },
-  
-  load: function(show, text) {
-    const el = document.getElementById("loadingOverlay");
-    const txt = document.getElementById("loadingText");
-    if(!el) return;
-    if(show) {
-      if(txt) txt.textContent = text || "LOADING...";
-      el.classList.add("show");
-    } else {
-      el.classList.remove("show");
+const state={cms:{},products:[],orders:[],customers:[],coupons:[],waitlist:[],settings:null,currentContent:"general"};
+
+function $(id){return document.getElementById(id)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function toast(msg, type="success"){
+  const t = $("toast");
+  t.textContent = msg;
+  t.style.background = type === "error" ? "#ff777e" : "#f4f4f4";
+  t.style.color = type === "error" ? "#fff" : "#050505";
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2600);
+}
+function money(v){return "₹"+Number(v||0).toLocaleString("en-IN")}
+function date(v){return v?new Date(v).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}):"—"}
+function bool(v){return v===true||v==="true"}
+function openModal(id){$(id).classList.add("open")}
+function closeModal(id){$(id).classList.remove("open")}
+
+// ----- THE SMART ERROR TRANSLATOR -----
+function translateError(err) {
+  let msg = err.message || String(err);
+  if (msg.toLowerCase().includes("failed to fetch")) {
+    return "NETWORK ERROR: Supabase Project PAUSE ho gaya hai! Apne Supabase Dashboard me ja kar 'Restore Project' par click kar.";
+  }
+  return msg;
+}
+
+async function requireAdmin(){
+ const {data}=await sb.auth.getSession(); const s=data.session;
+ if(!s||s.user.email?.toLowerCase()!==ADMIN_EMAIL.toLowerCase()){showLogin();throw new Error("Unauthorized")}
+ return s;
+}
+
+function showLogin(){ $("loginView").classList.remove("hidden");$("app").classList.add("hidden") }
+function showApp(session){$("loginView").classList.add("hidden");$("app").classList.remove("hidden");$("authStatus").textContent="● "+session.user.email}
+
+async function loadCMS(){
+ const {data,error}=await sb.from("site_content").select("key,value,content_key,content_value");
+ if(error) throw error;
+ state.cms={};(data||[]).forEach(r=>{const k=r.content_key||r.key;if(k)state.cms[k]=r.content_value??r.value??""});
+}
+function cms(k){return state.cms[k]!==undefined?state.cms[k]:(DEFAULTS[k]??"")}
+function renderContentTabs(){
+ const el=$("contentTabs");el.innerHTML=Object.entries(CMS_GROUPS).map(([k,g])=>`<button class="btn small ${k===state.currentContent?"active":""}" data-content-tab="${k}">${esc(g.label)}</button>`).join("");
+ el.querySelectorAll("[data-content-tab]").forEach(b=>b.onclick=()=>{state.currentContent=b.dataset.contentTab;renderContentTabs();renderContentEditor()});
+}
+function renderContentEditor(){
+ const keys=CMS_GROUPS[state.currentContent].keys;
+ $("contentEditor").innerHTML=`<div class="panel"><div class="panel-head"><div><h2>${esc(CMS_GROUPS[state.currentContent].label)}</h2><span class="muted">Changes are saved to site_content by key.</span></div><span class="badge">FIELDS ${keys.length}</span></div><div class="panel-body"><div class="form-grid">${keys.map(k=>{
+ const value=cms(k);const multi=value.length>180||k.includes("body")||k.includes("description")||k.includes("note")||k.includes("size_");
+ return `<div class="field ${multi?"full":""}"><label>${esc(k)}</label>${multi?`<textarea data-cms-field="${esc(k)}">${esc(value)}</textarea>`:`<input data-cms-field="${esc(k)}" value="${esc(value)}" ${k.includes("color")?"type=color":""}>`}</div>`}).join("")}</div></div></div>`;
+}
+async function saveCurrentContent(){
+ await requireAdmin();const fields=[...document.querySelectorAll("[data-cms-field]")];
+ for(const f of fields){
+   const key=f.dataset.cmsField,value=f.value;
+   let res=await sb.from("site_content").upsert({content_key:key,content_value:value,content_type:key.includes("image")?"image":"text",updated_at:new Date().toISOString()},{onConflict:"content_key"});
+   if(res.error){
+     res=await sb.from("site_content").upsert({key,value},{onConflict:"key"});
+   }
+   if(res.error)throw res.error;
+   state.cms[key]=value;
+ }
+ toast("CMS section saved.");renderContentEditor();
+}
+
+async function loadAll(){
+ await requireAdmin();
+ await Promise.all([loadCMS(),loadProducts(),loadOrders(),loadCustomers(),loadCoupons(),loadWaitlist(),loadSettings()]);
+ renderAll();renderContentTabs();renderContentEditor();
+}
+
+async function loadProducts(){const {data,error}=await sb.from("products").select("*").order("created_at",{ascending:false});if(error)throw error; state.products=data||[]}
+async function loadOrders(){const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false});if(error)throw error; state.orders=data||[]}
+async function loadCustomers(){const {data,error}=await sb.from("customer_profiles").select("*").order("updated_at",{ascending:false});if(error){console.warn(error);state.customers=[]}else state.customers=data||[]}
+async function loadCoupons(){const {data,error}=await sb.from("coupons").select("*").order("created_at",{ascending:false});if(error)throw error; state.coupons=data||[]}
+async function loadWaitlist(){
+ let {data,error}=await sb.from("waitlist").select("*").order("created_at",{ascending:false});
+ if(error){const r=await sb.from("newsletter").select("*").order("created_at",{ascending:false});data=r.data;error=r.error}
+ state.waitlist=error?[]:(data||[]);
+}
+async function loadSettings(){const {data,error}=await sb.from("store_settings").select("*").eq("id",1).maybeSingle();if(!error)state.settings=data}
+
+function stockTotal(p){const s=p.stock||{};return Object.values(s).reduce((a,v)=>a+Number(v||0),0)}
+function renderAll(){
+ $("kProducts").textContent=state.products.filter(p=>p.active!==false&&p.visibility!==false).length;
+ $("kOrders").textContent=state.orders.length;$("kCustomers").textContent=state.customers.length;$("kWaitlist").textContent=state.waitlist.length;
+ $("kLowStock").textContent=state.products.filter(p=>stockTotal(p)<=5).length;
+ $("navProducts").textContent=state.products.length;$("navOrders").textContent=state.orders.length;$("navCustomers").textContent=state.customers.length;$("navCoupons").textContent=state.coupons.length;$("navWaitlist").textContent=state.waitlist.length;$("navDash").textContent="LIVE";
+ $("recentOrders").innerHTML=state.orders.slice(0,8).map(o=>`<tr><td><b>${esc(o.order_number||String(o.id).slice(0,8))}</b></td><td>${esc(o.customer_name||o.full_name||o.email||"—")}</td><td>${money(o.total)}</td><td><span class="badge">${esc(o.order_status||"PLACED")}</span></td></tr>`).join("")||`<tr><td colspan="4" class="muted">No orders.</td></tr>`;
+ $("lowStockRows").innerHTML=state.products.filter(p=>stockTotal(p)<=5).slice(0,8).map(p=>`<tr><td>${esc(p.sku||"—")}</td><td>${esc(p.name)}</td><td><span class="badge ${stockTotal(p)<=0?"red":"amber"}">${stockTotal(p)}</span></td></tr>`).join("")||`<tr><td colspan="3" class="muted">No low-stock items.</td></tr>`;
+ $("cmsCoverage").textContent=Object.entries(CMS_GROUPS).map(([k,g])=>`${g.label}: ${g.keys.filter(x=>state.cms[x]!==undefined).length}/${g.keys.length} keys present`).join("\n");
+ renderProducts();renderOrders();renderCustomers();renderCoupons();renderWaitlist();renderSettings();
+}
+
+function renderProducts(){
+ const q=$("productSearch").value.toLowerCase();
+ const rows=state.products.filter(p=>`${p.name||""} ${p.sku||""}`.toLowerCase().includes(q));
+ $("productsRows").innerHTML=rows.map(p=>`<tr><td><b>${esc(p.name)}</b><div class="muted">${esc(p.slug||"")}</div></td><td>${esc(p.sku||"—")}</td><td>${esc(p.category||"—")}</td><td>${money(p.price)}</td><td>${stockTotal(p)}</td><td>${bool(p.active??p.visibility)?"<span class='badge green'>LIVE</span>":"<span class='badge red'>HIDDEN</span>"}</td><td><button class="btn small" data-edit-product="${esc(p.id)}">EDIT</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">No products.</td></tr>`;
+ document.querySelectorAll("[data-edit-product]").forEach(b=>b.onclick=()=>editProduct(b.dataset.editProduct));
+}
+
+function editProduct(id){
+ const p=state.products.find(x=>String(x.id)===String(id))||{};
+ $("productModalTitle").textContent=p.id?"EDIT PRODUCT":"NEW PRODUCT";$("pId").value=p.id\vert{}\vert{}"";$("pName").value=p.name||"";$("pSku").value=p.sku\vert{}\vert{}"";$("pCategory").value=(p.category||"tees").toLowerCase();$("pPrice").value=p.price\vert{}\vert{}0;$("pCompare").value=p.compare_at_price||"";$("pFeatured").value=String(bool(p.featured));$("pActive").value=String(p.active!==false);$("pVisibility").value=String(p.visibility!==false);$("pDescription").value=p.description||"";$("pStock").value=JSON.stringify(p.stock\vert{}\vert{}{S:0,M:0,L:0,XL:0});$("pImages").value=JSON.stringify(p.images||[]);$("pTags").value=JSON.stringify(p.tags\vert{}\vert{}[]);$("deleteProductBtn").style.display=p.id?"block":"none";openModal("productModal");
+}
+
+async function saveProduct(e){
+ e.preventDefault();await requireAdmin();
+ let stock,images,tags;try{stock=JSON.parse($("pStock").value||"{}");images=JSON.parse($("pImages").value\vert{}\vert{}"[]");tags=JSON.parse($("pTags").value||"[]")}catch{toast("Invalid JSON in product fields","error");return}
+ const name=$("pName").value.trim(),slug=(name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-\vert{}-$/g,""))+"-"+Date.now();
+ const payload={name,sku:$("pSku").value.trim(),category:$("pCategory").value,price:Number($("pPrice").value\vert{}\vert{}0),compare_at_price:Number($("pCompare").value||0)||null,featured:bool($("pFeatured").value),active:bool($("pActive").value),visibility:bool($("pVisibility").value),description:$("pDescription").value,stock,images,tags,updated_at:new Date().toISOString()};
+ const id=$("pId").value;let q=id?sb.from("products").update(payload).eq("id",id):sb.from("products").insert({...payload,slug}).select().single();const {error}=await q;if(error){toast(translateError(error),"error");return}closeModal("productModal");await loadProducts();renderAll();toast("Product saved.")}
+
+async function deleteProduct(){const id=$("pId").value;if(!id)return;if(!confirm("Delete this product?"))return;await requireAdmin();const {error}=await sb.from("products").delete().eq("id",id);if(error)toast(translateError(error),"error");else{closeModal("productModal");await loadProducts();renderAll();toast("Product deleted.")}}
+
+function renderOrders(){
+ const q=$("orderSearch").value.toLowerCase(),st=$("orderStatusFilter").value;
+ const rows=state.orders.filter(o=>(!st||(o.order_status||"PLACED")===st)&&`${o.order_number||""} ${o.customer_name||""} ${o.phone||""} ${o.email||""}`.toLowerCase().includes(q));
+ $("ordersRows").innerHTML=rows.map(o=>`<tr><td><b>${esc(o.order_number||String(o.id).slice(0,8))}</b><div class="muted">${esc(o.id)}</div></td><td>${esc(o.customer_name||o.full_name||"—")}<div class="muted">${esc(o.phone||o.email||"")}</div></td><td>${money(o.total)}</td><td>${esc(o.payment_status||o.payment_mode||"—")}</td><td><span class="badge">${esc(o.order_status||"PLACED")}</span></td><td>${date(o.created_at)}</td><td><button class="btn small" data-edit-order="${esc(o.id)}">MANAGE</button></td></tr>`).join("")||`<tr><td colspan="7" class="muted">No orders.</td></tr>`;
+ document.querySelectorAll("[data-edit-order]").forEach(b=>b.onclick=()=>editOrder(b.dataset.editOrder));
+}
+
+function editOrder(id){
+ const o=state.orders.find(x=>String(x.id)===String(id));if(!o)return;$("oId").value=o.id;$("oStatus").value=o.order_status\vert{}\vert{}"PLACED";$("oPayment").value=o.payment_status||"PENDING";$("oFulfillment").value=o.fulfillment_status\vert{}\vert{}"PENDING";$("oTracking").value=o.tracking_number||"";$("oNote").value=o.admin_note\vert{}\vert{}"";$("orderDetails").innerHTML=`<div class="grid three"><div class="card"><b>CUSTOMER</b><p>${esc(o.customer_name||o.full_name||"—")}<br>${esc(o.email||"")}<br>${esc(o.phone||"")}</p></div><div class="card"><b>SHIPPING</b><p>${esc(o.address||o.shipping_address||"—")}<br>${esc(o.city||o.shipping_city||"")} ${esc(o.state||o.shipping_state||"")} ${esc(o.pincode||o.shipping_pincode||"")}</p></div><div class="card"><b>TOTAL</b><div class="metric" style="font-size:22px">${money(o.total)}</div></div></div><div class="card" style="margin-top:12px"><b>RAW ORDER</b><pre class="json">${esc(JSON.stringify(o,null,2))}</pre></div>`;openModal("orderModal")}
+
+async function saveOrder(e){e.preventDefault();await requireAdmin();const id=$("oId").value;const payload={order_status:$("oStatus").value,payment_status:$("oPayment").value,fulfillment_status:$("oFulfillment").value,tracking_number:$("oTracking").value.trim(),admin_note:$("oNote").value,updated_at:new Date().toISOString()};const {error}=await sb.from("orders").update(payload).eq("id",id);if(error)toast(translateError(error),"error");else{closeModal("orderModal");await loadOrders();renderAll();toast("Order updated.")}}
+
+function renderCustomers(){
+ const q=$("customerSearch").value.toLowerCase();const rows=state.customers.filter(c=>`${c.full_name||""} ${c.phone||""} ${c.id||""}`.toLowerCase().includes(q));
+ $("customersRows").innerHTML=rows.map(c=>`<tr><td><b>${esc(c.full_name||"Unnamed")}</b></td><td>${esc(c.phone||"—")}</td><td><code>${esc(c.id||"—")}</code></td><td>${esc([c.shipping_city,c.shipping_state,c.shipping_pincode].filter(Boolean).join(", ")||"—")}</td><td>${date(c.updated_at)}</td><td><button class="btn small" data-customer="${esc(c.id)}">VIEW</button></td></tr>`).join("")||`<tr><td colspan="6" class="muted">No customer profiles.</td></tr>`;
+ document.querySelectorAll("[data-customer]").forEach(b=>b.onclick=()=>viewCustomer(b.dataset.customer));
+}
+
+function viewCustomer(id){const c=state.customers.find(x=>String(x.id)===String(id));if(!c)return;$("customerDetails").innerHTML=`<div class="grid two"><div class="card"><div class="eyebrow">PROFILE</div><h2>${esc(c.full_name||"Unnamed")}</h2><p>${esc(c.phone||"—")}<br>${esc(c.id||"—")}</p></div><div class="card"><div class="eyebrow">ADDRESS</div><p>${esc(c.shipping_address||"—")}<br>${esc([c.shipping_city,c.shipping_state,c.shipping_pincode].filter(Boolean).join(", "))}</p></div></div><div class="card" style="margin-top:12px"><pre class="json">${esc(JSON.stringify(c,null,2))}</pre></div>`;openModal("customerModal")}
+
+function renderCoupons(){
+ $("couponsRows").innerHTML=state.coupons.map(c=>`<tr><td><b>${esc(c.code)}</b></td><td>${esc(c.discount_value??c.discount??"—")}</td><td>${money(c.min_order_value||0)}</td><td>${bool(c.active)?"<span class='badge green'>ACTIVE</span>":"<span class='badge red'>OFF</span>"}</td><td>${date(c.created_at)}</td><td><button class="btn small" data-toggle-coupon="${esc(c.id)}">${bool(c.active)?"DEACTIVATE":"ACTIVATE"}</button></td></tr>`).join("")||`<tr><td colspan="6" class="muted">No coupons.</td></tr>`;
+ document.querySelectorAll("[data-toggle-coupon]").forEach(b=>b.onclick=()=>toggleCoupon(b.dataset.toggleCoupon));
+}
+
+async function toggleCoupon(id){await requireAdmin();const c=state.coupons.find(x=>String(x.id)===String(id));if(!c)return;const {error}=await sb.from("coupons").update({active:!bool(c.active)}).eq("id",id);if(error)toast(translateError(error),"error");else{await loadCoupons();renderAll();toast("Coupon updated.")}}
+
+async function createCoupon(e){e.preventDefault();await requireAdmin();const payload={code:$("cCode").value.trim().toUpperCase(),discount_value:Number($("cDiscount").value||0),min_order_value:Number($("cMin").value\vert{}\vert{}0),active:bool($("cActive").value)};const {error}=await sb.from("coupons").insert(payload);if(error)toast(translateError(error),"error");else{closeModal("couponModal");$("couponForm").reset();await loadCoupons();renderAll();toast("Coupon created.")}}
+
+function renderWaitlist(){$("waitlistRows").innerHTML=state.waitlist.map(r=>`<tr><td><b>${esc(r.email||"—")}</b></td><td>${esc(r.source||"—")}</td><td>${date(r.created_at)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">No waitlist entries.</td></tr>`}
+
+function exportCSV(){
+ if(!state.waitlist.length){toast("No waitlist entries","warning");return}
+ const rows=[["email","source","created_at"],...state.waitlist.map(r=>[r.email||"",r.source||"",r.created_at||""])];
+ const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=`bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href)
+}
+
+function renderSettings(){const s=state.settings||{};$("sStoreName").value=s.store_name||"";$("sEmail").value=s.support_email\vert{}\vert{}"";$("sPhone").value=s.support_phone||"";$("sCurrency").value=s.currency\vert{}\vert{}"INR";$("sShipping").value=s.shipping_fee??0;$("sFreeShip").value=s.free_shipping_threshold??0;$("sAddress").value=s.store_address||"";$("sInstagram").value=s.instagram_url\vert{}\vert{}cms("instagram_url");$("sWebsite").value=s.website_url||""}
+
+async function saveSettings(){await requireAdmin();const payload={id:1,store_name:$("sStoreName").value.trim(),support_email:$("sEmail").value.trim(),support_phone:$("sPhone").value.trim(),currency:$("sCurrency").value.trim()\vert{}\vert{}"INR",shipping_fee:Number($("sShipping").value||0),free_shipping_threshold:Number($("sFreeShip").value\vert{}\vert{}0),store_address:$("sAddress").value.trim(),instagram_url:$("sInstagram").value.trim(),website_url:$("sWebsite").value.trim(),updated_at:new Date().toISOString()};const {error}=await sb.from("store_settings").upsert(payload,{onConflict:"id"});if(error)toast(translateError(error),"error");else{await loadSettings();toast("Settings saved.")}}
+
+async function uploadMedia(){
+ const f=$("mediaFile").files[0];if(!f)return toast("Choose an image first","warning");await requireAdmin();const path=`site-content/${crypto.randomUUID()}-${f.name.replace(/[^a-zA-Z0-9._-]/g,"-")}`;const {error}=await sb.storage.from("site-content-images").upload(path,f,{upsert:false,contentType:f.type});if(error)toast(translateError(error),"error");else{const {data}=sb.storage.from("site-content-images").getPublicUrl(path);navigator.clipboard?.writeText(data.publicUrl);toast("Uploaded. Public URL copied.");$("mediaFile").value=""}}
+
+function renderPage(page){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$("page-"+page).classList.add("active");
+ document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ const labels={dashboard:"Dashboard",content:"Storefront CMS",products:"Products",orders:"Orders",customers:"Customers CRM",coupons:"Coupons",waitlist:"VIP Waitlist",media:"Media Library",settings:"Store Settings",schema:"Schema Blueprint"};$("pageTitle").textContent=labels[page]||page;
+ if(innerWidth<700)$("sidebar").classList.remove("open");
+}
+
+$("loginForm").onsubmit=async e=>{
+  e.preventDefault();
+  $("loginError").textContent="";
+  try{
+    const emailEl=$("loginEmail");
+    const passwordEl=$("loginPassword");
+    if(!emailEl||!passwordEl) throw new Error("Login form is unavailable. Please reload the page.");
+    
+    const {data,error}=await sb.auth.signInWithPassword({email:emailEl.value.trim(),password:passwordEl.value});
+    if(error) throw error;
+    
+    const session=data?.session;
+    if(!session||session.user?.email?.toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
+      await sb.auth.signOut();
+      throw new Error("This account is not authorized for BULKKOT admin.");
     }
-  },
-
-  go: function(pageId) {
-    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
-    
-    const page = document.getElementById("page-" + pageId);
-    if(page) page.classList.add("active");
-    
-    const btn = document.querySelector(`[onclick="appAdmin.go('${pageId}')"]`);
-    if(btn) btn.classList.add("active");
-  },
-
-  openModal: function(id) {
-    const m = document.getElementById(id);
-    if(m) m.classList.add("open");
-  },
-  closeModal: function(id) {
-    const m = document.getElementById(id);
-    if(m) m.classList.remove("open");
-  },
-
-  // --- AUTHENTICATION ---
-  login: async function() {
-    this.load(true, "AUTHENTICATING...");
-    document.getElementById("loginError").textContent = "";
-    document.getElementById("loginBtn").disabled = true;
-
-    try {
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value;
-      
-      if(email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-        throw new Error("Access Denied: Only Admin email is allowed.");
-      }
-
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if(error) throw error;
-      
-      // Clean refresh mounts the dashboard automatically via the auth listener below
-      window.location.reload();
-    } catch(err) {
-      document.getElementById("loginError").textContent = err.message;
-      this.load(false);
-      document.getElementById("loginBtn").disabled = false;
-    }
-  },
-
-  logout: async function() {
-    this.load(true, "LOGGING OUT...");
-    await sb.auth.signOut();
-    window.location.reload();
-  },
-
-  // --- DATA ENGINE ---
-  fetchData: async function() {
-    try {
-      this.load(true, "FETCHING STORE DATA...");
-      
-      // Safe DB queries - If table is missing, it returns empty array instead of crashing JS
-      const [cat, prod, ord, cms, set] = await Promise.all([
-        sb.from("categories").select("*").catch(()=>({data:[]})),
-        sb.from("products").select("*").catch(()=>({data:[]})),
-        sb.from("orders").select("*").catch(()=>({data:[]})),
-        sb.from("site_content").select("*").catch(()=>({data:[]})),
-        sb.from("store_settings").select("*").eq("id", 1).maybeSingle().catch(()=>({data:{}}))
-      ]);
-
-      store.categories = cat.data || [];
-      store.products = prod.data || [];
-      store.orders = ord.data || [];
-      store.settings = set.data || {};
-      
-      store.cms = {};
-      (cms.data || []).forEach(r => { if(r.content_key) store.cms[r.content_key] = r.content_value; });
-
-      this.render();
-    } catch(err) {
-      console.error(err);
-      this.toast("Data sync error", true);
-    } finally {
-      this.load(false);
-    }
-  },
-
-  render: function() {
-    // Top KPIs
-    if(document.getElementById("kOrders")) document.getElementById("kOrders").textContent = store.orders.length;
-    if(document.getElementById("kProducts")) document.getElementById("kProducts").textContent = store.products.length;
-    
-    let rev = 0;
-    store.orders.forEach(o => { if(o.order_status !== 'CANCELLED') rev += Number(o.total || 0); });
-    if(document.getElementById("kRevenue")) document.getElementById("kRevenue").textContent = "₹" + rev;
-
-    // Sidebar Counts
-    if(document.getElementById("cCat")) document.getElementById("cCat").textContent = store.categories.length;
-    if(document.getElementById("cProd")) document.getElementById("cProd").textContent = store.products.length;
-    if(document.getElementById("cOrd")) document.getElementById("cOrd").textContent = store.orders.length;
-
-    // Tables
-    this.renderTables();
-    
-    // Forms
-    if(document.getElementById("cmsHero")) document.getElementById("cmsHero").value = store.cms.hero_title || "";
-    if(document.getElementById("cmsTicker")) document.getElementById("cmsTicker").value = store.cms.ticker_1 || "";
-    if(document.getElementById("cmsFaq")) document.getElementById("cmsFaq").value = store.cms.policy_faq || "";
-    
-    if(document.getElementById("setMail")) document.getElementById("setMail").value = store.settings.support_email || "";
-    if(document.getElementById("setPhone")) document.getElementById("setPhone").value = store.settings.whatsapp_number || "";
-    if(document.getElementById("setShip")) document.getElementById("setShip").value = store.settings.shipping_fee || 0;
-  },
-
-  renderTables: function() {
-    const e = (str) => String(str||"").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    
-    // Categories
-    const catHTML = store.categories.map(c => `<tr><td><b>${e(c.slug)}</b></td><td>${e(c.name_en)}</td><td>${e(c.name_ko)}</td><td><span class="badge ${c.is_active?'green':'red'}">${c.is_active?'LIVE':'HIDDEN'}</span></td><td><button class="btn" onclick="appAdmin.editCategory('${c.id}')">Edit</button></td></tr>`).join("");
-    if(document.getElementById("catRows")) document.getElementById("catRows").innerHTML = catHTML || '<tr><td colspan="5">No categories.</td></tr>';
-
-    // Products
-    const prodHTML = store.products.map(p => {
-      let st = {S:0,M:0,L:0,XL:0}; try{ st=typeof p.stock==='string'?JSON.parse(p.stock):p.stock; }catch(e){}
-      let total = Number(st.S||0)+Number(st.M||0)+Number(st.L||0)+Number(st.XL||0);
-      return `<tr><td><b>${e(p.name)}</b></td><td>${e(p.category)}</td><td>₹${p.price}</td><td>${total} Units</td><td><span class="badge ${p.active?'green':'red'}">${p.active?'LIVE':'HIDDEN'}</span></td><td><button class="btn" onclick="appAdmin.editProduct('${p.id}')">Edit</button></td></tr>`;
-    }).join("");
-    if(document.getElementById("prodRows")) document.getElementById("prodRows").innerHTML = prodHTML || '<tr><td colspan="6">No products.</td></tr>';
-
-    // Orders
-    const ordHTML = store.orders.map(o => `<tr><td><b>${e(o.order_number||o.id.slice(0,8))}</b></td><td>${e(o.customer_name||o.email)}</td><td>₹${o.total}</td><td>${e(o.payment_status)}</td><td><span class="badge ${o.order_status==='DELIVERED'?'green':''}">${e(o.order_status)}</span></td><td><button class="btn" onclick="appAdmin.editOrder('${o.id}')">Update</button></td></tr>`).join("");
-    if(document.getElementById("ordRows")) document.getElementById("ordRows").innerHTML = ordHTML || '<tr><td colspan="6">No orders.</td></tr>';
-    if(document.getElementById("dashOrders")) document.getElementById("dashOrders").innerHTML = ordHTML || '<tr><td colspan="4">No orders.</td></tr>';
-  },
-
-  // --- CRUD MODALS & SAVES ---
-  editCategory: function(id) {
-    const c = store.categories.find(x => String(x.id) === String(id));
-    if(!c) return;
-    document.getElementById("cId").value = c.id;
-    document.getElementById("cSlug").value = c.slug;
-    document.getElementById("cEn").value = c.name_en;
-    document.getElementById("cKo").value = c.name_ko;
-    document.getElementById("cActive").value = String(c.is_active);
-    this.openModal('catModal');
-  },
-  
-  saveCategory: async function() {
-    this.load(true, "SAVING...");
-    try {
-      const id = document.getElementById("cId").value;
-      const payload = {
-        slug: document.getElementById("cSlug").value.toLowerCase().trim(),
-        name_en: document.getElementById("cEn").value.trim(),
-        name_ko: document.getElementById("cKo").value.trim(),
-        is_active: document.getElementById("cActive").value === "true"
-      };
-      
-      if(id) await sb.from("categories").update(payload).eq("id", id);
-      else await sb.from("categories").insert(payload);
-      
-      this.closeModal('catModal');
-      await this.fetchData();
-      this.toast("Category saved.");
-    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
-  },
-
-  openProductModal: function() {
-    document.getElementById("pId").value = "";
-    document.getElementById("pName").value = "";
-    document.getElementById("pCat").value = "";
-    document.getElementById("pPrice").value = "0";
-    document.getElementById("pS").value = "0";
-    document.getElementById("pM").value = "0";
-    document.getElementById("pL").value = "0";
-    document.getElementById("pXL").value = "0";
-    this.openModal('prodModal');
-  },
-
-  editProduct: function(id) {
-    const p = store.products.find(x => String(x.id) === String(id));
-    if(!p) return;
-    document.getElementById("pId").value = p.id;
-    document.getElementById("pName").value = p.name;
-    document.getElementById("pCat").value = p.category;
-    document.getElementById("pPrice").value = p.price;
-    document.getElementById("pActive").value = String(p.active);
-    let st = {S:0,M:0,L:0,XL:0}; try{ st=typeof p.stock==='string'?JSON.parse(p.stock):p.stock; }catch(e){}
-    document.getElementById("pS").value = st.S||0;
-    document.getElementById("pM").value = st.M||0;
-    document.getElementById("pL").value = st.L||0;
-    document.getElementById("pXL").value = st.XL||0;
-    this.openModal('prodModal');
-  },
-
-  saveProduct: async function() {
-    this.load(true, "SAVING...");
-    try {
-      const id = document.getElementById("pId").value;
-      const name = document.getElementById("pName").value.trim();
-      const payload = {
-        name: name,
-        category: document.getElementById("pCat").value.trim(),
-        price: Number(document.getElementById("pPrice").value),
-        active: document.getElementById("pActive").value === "true",
-        stock: {
-          S: Number(document.getElementById("pS").value),
-          M: Number(document.getElementById("pM").value),
-          L: Number(document.getElementById("pL").value),
-          XL: Number(document.getElementById("pXL").value)
-        }
-      };
-      
-      if(id) await sb.from("products").update(payload).eq("id", id);
-      else {
-        payload.slug = name.toLowerCase().replace(/[^a-z0-9]/g, "-") + "-" + Date.now();
-        await sb.from("products").insert(payload);
-      }
-      
-      this.closeModal('prodModal');
-      await this.fetchData();
-      this.toast("Product saved.");
-    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
-  },
-
-  editOrder: function(id) {
-    const o = store.orders.find(x => String(x.id) === String(id));
-    if(!o) return;
-    document.getElementById("oId").value = o.id;
-    document.getElementById("oStatus").value = o.order_status || "PLACED";
-    document.getElementById("oTrack").value = o.tracking_number || "";
-    this.openModal('ordModal');
-  },
-
-  saveOrder: async function() {
-    this.load(true, "UPDATING...");
-    try {
-      const id = document.getElementById("oId").value;
-      const payload = {
-        order_status: document.getElementById("oStatus").value,
-        tracking_number: document.getElementById("oTrack").value.trim()
-      };
-      await sb.from("orders").update(payload).eq("id", id);
-      this.closeModal('ordModal');
-      await this.fetchData();
-      this.toast("Order updated.");
-    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
-  },
-
-  saveCMS: async function() {
-    this.load(true, "SAVING CMS...");
-    try {
-      const rows = [
-        { content_key: "hero_title", content_value: document.getElementById("cmsHero").value },
-        { content_key: "ticker_1", content_value: document.getElementById("cmsTicker").value },
-        { content_key: "policy_faq", content_value: document.getElementById("cmsFaq").value }
-      ];
-      for(const r of rows) {
-        await sb.from("site_content").upsert(r, { onConflict: "content_key" });
-      }
-      await this.fetchData();
-      this.toast("CMS Saved.");
-    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
-  },
-
-  saveSettings: async function() {
-    this.load(true, "SAVING...");
-    try {
-      const payload = {
-        id: 1,
-        support_email: document.getElementById("setMail").value,
-        whatsapp_number: document.getElementById("setPhone").value,
-        shipping_fee: Number(document.getElementById("setShip").value)
-      };
-      await sb.from("store_settings").upsert(payload, { onConflict: "id" });
-      await this.fetchData();
-      this.toast("Settings Saved.");
-    } catch(e) { this.toast(e.message, true); } finally { this.load(false); }
-  },
-
-  refresh: async function() {
-    await this.fetchData();
-    this.toast("Dashboard Synced.");
+    showApp(session);
+    await loadAll();
+  }catch(err){
+    const errorEl=$("loginError");
+    if(errorEl) errorEl.textContent = translateError(err);
   }
 };
 
-// --- INITIALIZATION ---
-document.addEventListener("DOMContentLoaded", async () => {
-  appAdmin.load(true, "VERIFYING SESSION...");
-  try {
-    const { data } = await sb.auth.getSession();
-    const session = data?.session;
-    
-    if (session && session.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-      document.getElementById("loginView").classList.add("hidden");
-      document.getElementById("app").classList.remove("hidden");
-      await appAdmin.fetchData();
-    } else {
-      document.getElementById("app").classList.add("hidden");
-      document.getElementById("loginView").classList.remove("hidden");
+$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};
+$("refreshBtn").onclick=async()=>{try{await loadAll();toast("Control center refreshed.")}catch(e){toast(translateError(e),"error")}};
+$("menuBtn").onclick=()=>{if(innerWidth<700)$("sidebar").classList.toggle("open")};
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>renderPage(b.dataset.page));
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>renderPage(b.dataset.go));
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
+document.querySelectorAll(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.remove("open")});
+$("saveContentBtn").onclick=()=>saveCurrentContent().catch(e=>toast(translateError(e),"error"));
+$("productSearch").oninput=renderProducts;$("addProductBtn").onclick=()=>editProduct("");$("productForm").onsubmit=saveProduct;$("deleteProductBtn").onclick=deleteProduct;
+$("orderSearch").oninput=renderOrders;$("orderStatusFilter").onchange=renderOrders;$("orderForm").onsubmit=saveOrder;
+$("customerSearch").oninput=renderCustomers;$("addCouponBtn").onclick=()=>openModal("couponModal");$("couponForm").onsubmit=createCoupon;
+$("refreshWaitlistBtn").onclick=async()=>{try{await loadWaitlist();renderAll();toast("Waitlist refreshed.");}catch(e){toast(translateError(e),"error")}};
+$("exportWaitlistBtn").onclick=exportCSV;
+$("saveSettingsBtn").onclick=()=>saveSettings().catch(e=>toast(translateError(e),"error"));
+$("uploadMediaBtn").onclick=()=>uploadMedia().catch(e=>toast(translateError(e),"error"));
+
+sb.auth.onAuthStateChange(async (event, session)=>{
+  try{
+    if(session?.user?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase()){
+      showApp(session);
+      if(event!=="INITIAL_SESSION") await loadAll();
+    }else{
+      showLogin();
     }
-  } catch(err) {
-    console.error(err);
-    document.getElementById("loginView").classList.remove("hidden");
-  } finally {
-    appAdmin.load(false);
+  }catch(error){
+    console.error("Auth state error:",error);
+    showLogin();
   }
 });
 </script>
