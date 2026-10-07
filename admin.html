@@ -2,2287 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>BULKKOT — Admin</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BULKKOT — Admin OS</title>
+<link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{
-  --bg:#f5f4f1;
-  --card:#fff;
-  --black:#111;
-  --black2:#191919;
-  --red:#d60000;
-  --text:#151515;
-  --muted:#777;
-  --line:#e5e3df;
-  --green:#16803c;
-  --yellow:#9b6d00;
-}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);
-font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button,input,textarea,select{font:inherit}
-button{cursor:pointer}
-
-.app{min-height:100vh;display:flex}
-
-/* SIDEBAR */
-.sidebar{
-  position:fixed;
-  left:0;top:0;bottom:0;
-  width:270px;
-  background:var(--black);
-  color:white;
-  overflow-y:auto;
-  z-index:50;
-}
-.brand{
-  height:70px;
-  display:flex;
-  align-items:center;
-  padding:0 20px;
-  border-bottom:1px solid #292929;
-}
-.brand strong{font-size:18px;letter-spacing:2px}
-.brand span{font-size:9px;color:#888;margin-left:8px;letter-spacing:1px}
-
-.nav{padding:14px 10px 50px}
-.nav-title{
-  margin:18px 10px 7px;
-  font-size:9px;
-  color:#777;
-  font-weight:800;
-  letter-spacing:1.5px;
-}
-.nav-btn{
-  width:100%;
-  border:0;
-  background:none;
-  color:#aaa;
-  padding:10px 11px;
-  border-radius:7px;
-  text-align:left;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-size:12px;
-}
-.nav-btn:hover,
-.nav-btn.active{
-  color:#fff;
-  background:#242424;
-}
-.nav-btn.active{
-  box-shadow:inset 3px 0 var(--red);
-}
-.nav-icon{width:18px;text-align:center}
-.nav-arrow{margin-left:auto;color:#666}
-
-.subnav{
-  display:none;
-  padding-left:25px;
-}
-.subnav.open{display:block}
-.subnav button{
-  width:100%;
-  border:0;
-  background:none;
-  color:#888;
-  text-align:left;
-  padding:7px 10px;
-  font-size:11px;
-}
-.subnav button:hover{color:#fff}
-
-/* MAIN */
-.main{
-  margin-left:270px;
-  width:calc(100% - 270px);
-}
-.topbar{
-  height:70px;
-  background:white;
-  border-bottom:1px solid var(--line);
-  display:flex;
-  align-items:center;
-  padding:0 24px;
-  position:sticky;
-  top:0;
-  z-index:30;
-}
-.topbar h1{font-size:18px;margin:0}
-.top-space{flex:1}
-
-.store-status{
-  padding:7px 11px;
-  border:1px solid #dceadd;
-  border-radius:20px;
-  color:var(--green);
-  font-size:11px;
-  font-weight:700;
-  margin-right:10px;
-}
-.refresh{
-  background:white;
-  border:1px solid var(--line);
-  padding:8px 11px;
-  border-radius:7px;
-}
-
-.content{
-  max-width:1600px;
-  padding:25px;
-  margin:auto;
-}
-
-/* PAGES */
-.page{display:none}
-.page.active{display:block}
-
-.eyebrow{
-  font-size:10px;
-  color:#888;
-  font-weight:800;
-  letter-spacing:1.5px;
-}
-.page-head{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin:5px 0 20px;
-}
-.page-head h2{
-  font-size:25px;
-  margin:0;
-}
-.actions{
-  margin-left:auto;
-  display:flex;
-  gap:8px;
-}
-
-.btn{
-  border:1px solid #ddd;
-  background:#fff;
-  border-radius:7px;
-  padding:9px 13px;
-  font-size:12px;
-  font-weight:650;
-}
-.btn:hover{border-color:#aaa}
-.btn.primary{
-  background:var(--red);
-  color:#fff;
-  border-color:var(--red);
-}
-.btn.dark{
-  background:#111;
-  color:#fff;
-  border-color:#111;
-}
-
-/* CARDS */
-.grid{
-  display:grid;
-  gap:14px;
-}
-.stats{
-  grid-template-columns:repeat(4,1fr);
-}
-.two{
-  grid-template-columns:1.5fr 1fr;
-}
-.three{
-  grid-template-columns:repeat(3,1fr);
-}
-.card{
-  background:white;
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:18px;
-}
-.card h3{
-  margin:0 0 10px;
-  font-size:14px;
-}
-
-.stat-label{
-  color:#777;
-  font-size:11px;
-}
-.stat-value{
-  font-size:27px;
-  font-weight:800;
-  margin-top:8px;
-}
-.stat-note{
-  color:#888;
-  font-size:10px;
-  margin-top:5px;
-}
-
-/* TABLE */
-.table-wrap{overflow:auto}
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:12px;
-}
-th{
-  text-align:left;
-  color:#777;
-  font-size:9px;
-  letter-spacing:.8px;
-  text-transform:uppercase;
-}
-th,td{
-  padding:12px 10px;
-  border-bottom:1px solid var(--line);
-  white-space:nowrap;
-}
-.empty{
-  text-align:center;
-  padding:35px;
-  color:#888;
-}
-
-/* BADGES */
-.badge{
-  display:inline-block;
-  padding:5px 8px;
-  border-radius:20px;
-  font-size:9px;
-  font-weight:800;
-}
-.green{background:#e8f6ed;color:#176b38}
-.yellow{background:#fff4d8;color:#806000}
-.red{background:#ffe8e8;color:#a00000}
-.gray{background:#eee;color:#555}
-
-/* TABS */
-.tabs{
-  display:flex;
-  gap:4px;
-  border-bottom:1px solid var(--line);
-  overflow:auto;
-  margin-bottom:18px;
-}
-.tab{
-  border:0;
-  background:none;
-  padding:10px 12px;
-  color:#777;
-  font-size:11px;
-  font-weight:700;
-  border-bottom:2px solid transparent;
-  white-space:nowrap;
-}
-.tab.active{
-  color:#111;
-  border-color:var(--red);
-}
-
-/* FORM */
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:14px;
-}
-.field{
-  display:grid;
-  gap:6px;
-}
-.field.full{grid-column:1/-1}
-.field label{
-  color:#555;
-  font-size:10px;
-  font-weight:800;
-}
-.field input,
-.field textarea,
-.field select{
-  width:100%;
-  background:white;
-  border:1px solid #ddd;
-  border-radius:7px;
-  padding:10px;
-  outline:none;
-}
-.field textarea{
-  min-height:110px;
-  resize:vertical;
-}
-.field input:focus,
-.field textarea:focus,
-.field select:focus{
-  border-color:#888;
-}
-
-/* INVENTORY */
-.inventory-table input{
-  width:70px;
-  border:1px solid #ddd;
-  border-radius:5px;
-  padding:6px;
-}
-
-/* CATEGORY */
-.category-list{
-  display:grid;
-  gap:8px;
-}
-.category{
-  background:white;
-  border:1px solid var(--line);
-  border-radius:8px;
-  padding:11px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.category .drag{color:#aaa}
-.category .grow{flex:1}
-.category-name{font-weight:700;font-size:12px}
-.category-meta{font-size:10px;color:#888}
-
-/* MEDIA */
-.media-grid{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:10px;
-}
-.media-box{
-  aspect-ratio:1;
-  background:#eee;
-  border:1px dashed #ccc;
-  border-radius:8px;
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#888;
-  font-size:10px;
-}
-.media-box img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-/* CHECKLIST */
-.checklist{
-  display:grid;
-  gap:10px;
-}
-.check{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:11px;
-}
-.check .badge{margin-left:auto}
-
-/* MOBILE */
-.mobile-nav{
-  display:none;
-}
-
-@media(max-width:1000px){
-  .sidebar{width:225px}
-  .main{
-    margin-left:225px;
-    width:calc(100% - 225px);
-  }
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .two,.three{grid-template-columns:1fr}
-}
-
-@media(max-width:700px){
-  .sidebar{display:none}
-  .main{
-    margin:0;
-    width:100%;
-  }
-  .content{padding:15px 12px 80px}
-  .topbar{height:62px;padding:0 14px}
-  .stats,.form-grid{grid-template-columns:1fr}
-  .media-grid{grid-template-columns:repeat(2,1fr)}
-  .mobile-nav{
-    display:flex;
-    position:fixed;
-    left:0;
-    right:0;
-    bottom:0;
-    height:62px;
-    background:#111;
-    z-index:100;
-    justify-content:space-around;
-  }
-  .mobile-nav button{
-    border:0;
-    background:none;
-    color:#888;
-    font-size:9px;
-  }
-  .mobile-nav button.active{color:white}
-  .mobile-nav span{
-    display:block;
-    font-size:17px;
-    margin-bottom:2px;
-  }
-}
+:root{--bg:#090909;--panel:#101010;--panel2:#151515;--line:#252525;--text:#f4f4f2;--muted:#8b8b8b;--red:#e31b23;--red2:#b90f16;--green:#35c98a;--amber:#e7ad4b;--white:#fff}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}
+body{overflow-x:hidden}.hidden{display:none!important}
+.login{min-height:100vh;display:grid;grid-template-columns:1.1fr .9fr;background:#050505}.login-visual{padding:55px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;background:linear-gradient(135deg,#0b0b0b,#050505)}.login-visual:after{content:"";position:absolute;width:500px;height:500px;border:1px solid #222;border-radius:50%;right:-180px;bottom:-200px}.logo{display:flex;align-items:center;gap:12px;position:relative;z-index:1}.logo img{width:38px;height:38px;object-fit:contain}.logo strong{font-size:20px;letter-spacing:.16em}.logo small{color:var(--red);font-weight:800;letter-spacing:.18em}.login-copy{position:relative;z-index:1}.login-copy .eyebrow{color:var(--red);font-size:10px;font-weight:900;letter-spacing:.25em}.login-copy h1{font-size:clamp(52px,7vw,100px);line-height:.88;margin:14px 0;font-weight:950;letter-spacing:-.06em}.login-copy h1 span{color:var(--red)}.login-copy p{max-width:500px;color:#999;line-height:1.7;font-size:13px}.login-foot{display:flex;justify-content:space-between;color:#666;font-size:9px;letter-spacing:.16em;position:relative;z-index:1}.login-panel{background:#0d0d0d;border-left:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:30px}.login-card{width:min(430px,100%)}.login-card h2{font-size:28px;margin:0 0 8px}.login-card>p{color:var(--muted);font-size:12px;margin:0 0 28px}.field{display:grid;gap:7px;margin-bottom:16px}.field label{font-size:9px;font-weight:900;letter-spacing:.16em;color:#aaa}.field input,.field select,.field textarea{width:100%;background:#080808;border:1px solid var(--line);color:#fff;border-radius:5px;padding:12px;outline:none}.field textarea{min-height:120px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#555}.btn{border:1px solid var(--line);background:#151515;color:#eee;padding:10px 14px;border-radius:5px;font-size:11px;font-weight:850;letter-spacing:.04em}.btn:hover{border-color:#555}.btn.primary{background:var(--red);border-color:var(--red);color:#fff}.btn.primary:hover{background:var(--red2)}.btn.ghost{background:transparent}.btn.danger{color:#ff8585;border-color:#552020}.login-error{min-height:18px;color:#ff7676;font-size:11px;margin:4px 0 14px}
+.app{min-height:100vh}.sidebar{position:fixed;left:0;top:0;bottom:0;width:255px;background:#070707;border-right:1px solid var(--line);z-index:50;overflow:auto}.side-head{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 18px;gap:10px;position:sticky;top:0;background:#070707;z-index:2}.side-head img{width:30px;height:30px;object-fit:contain}.side-head strong{font-size:15px;letter-spacing:.14em}.side-head small{color:var(--red);font-size:8px;letter-spacing:.15em;font-weight:900}.nav{padding:10px 9px 30px}.nav-group{margin-top:17px}.nav-title{font-size:8px;letter-spacing:.2em;color:#555;font-weight:900;padding:0 10px 7px}.nav button{width:100%;border:0;background:transparent;color:#999;text-align:left;padding:9px 10px;border-radius:5px;font-size:11px;display:flex;align-items:center;gap:10px}.nav button:hover,.nav button.active{background:#171717;color:#fff}.nav button.active{box-shadow:inset 2px 0 var(--red)}.nav .ico{width:18px;text-align:center;color:#777}.nav button.active .ico{color:var(--red)}.main{margin-left:255px;min-height:100vh}.top{height:72px;border-bottom:1px solid var(--line);background:rgba(9,9,9,.95);backdrop-filter:blur(12px);display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:40}.top h1{font-size:16px;margin:0}.top-spacer{flex:1}.status{display:flex;align-items:center;gap:7px;border:1px solid #243d32;background:#0e1713;color:#72d8aa;border-radius:99px;padding:7px 11px;font-size:9px;font-weight:900;letter-spacing:.08em;margin-right:8px}.dot{width:6px;height:6px;background:var(--green);border-radius:50%}.user-menu{display:flex;align-items:center;gap:8px}.user-email{font-size:10px;color:#777;max-width:180px;overflow:hidden;text-overflow:ellipsis}.content{padding:24px;max-width:1700px;margin:auto}.page{display:none}.page.active{display:block}.eyebrow{font-size:9px;color:#666;font-weight:900;letter-spacing:.2em}.page-head{display:flex;align-items:center;gap:12px;margin:5px 0 20px}.page-head h2{font-size:27px;letter-spacing:-.03em;margin:0}.actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.grid{display:grid;gap:12px}.stats{grid-template-columns:repeat(4,1fr)}.two{grid-template-columns:1.5fr 1fr}.three{grid-template-columns:repeat(3,1fr)}.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:17px}.card h3{font-size:13px;margin:0 0 12px}.stat-label{font-size:9px;color:#777;font-weight:800;letter-spacing:.12em}.stat-value{font-size:28px;font-weight:900;margin-top:8px}.stat-note{font-size:9px;color:#666;margin-top:5px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:11px}th{font-size:8px;color:#666;letter-spacing:.12em;text-align:left}th,td{padding:11px 9px;border-bottom:1px solid #202020;white-space:nowrap}td{color:#ddd}.empty{text-align:center!important;color:#666!important;padding:32px!important}.badge{display:inline-flex;padding:4px 7px;border-radius:99px;font-size:8px;font-weight:900;letter-spacing:.06em}.green{background:#10241b;color:#6cdda6}.amber{background:#251e10;color:#e7ad4b}.red{background:#2a1011;color:#ff7777}.gray{background:#1b1b1b;color:#888}.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow:auto;margin-bottom:16px}.tab{border:0;background:transparent;color:#777;padding:10px 12px;font-size:9px;font-weight:900;letter-spacing:.1em;border-bottom:2px solid transparent;white-space:nowrap}.tab.active{color:#fff;border-color:var(--red)}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}.field.full{grid-column:1/-1}.check{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #202020;font-size:11px}.check:last-child{border-bottom:0}.switch{position:relative;width:38px;height:20px}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;background:#2b2b2b;border-radius:99px}.slider:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#777;border-radius:50%;transition:.2s}.switch input:checked+.slider{background:var(--red)}.switch input:checked+.slider:before{transform:translateX(18px);background:#fff}.product-img{width:44px;height:54px;object-fit:cover;background:#181818;border-radius:3px}.search{background:#090909;border:1px solid var(--line);color:#fff;padding:9px 11px;border-radius:5px;font-size:10px;min-width:200px}.stock-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.stock-cell{border:1px solid var(--line);background:#0b0b0b;padding:12px;border-radius:6px}.stock-cell strong{display:block;font-size:9px;color:#777;margin-bottom:6px}.stock-cell span{font-size:20px;font-weight:900}.category-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #202020}.category-row:last-child{border-bottom:0}.grow{flex:1}.muted{color:#777;font-size:10px}.media-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.media-box{aspect-ratio:1;background:#0b0b0b;border:1px dashed #333;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#666;font-size:9px}.readiness{height:7px;background:#222;border-radius:99px;overflow:hidden}.readiness>span{display:block;height:100%;background:var(--red);width:20%}.toast{position:fixed;right:20px;bottom:20px;background:#fff;color:#111;padding:12px 15px;border-radius:6px;font-size:11px;font-weight:800;z-index:200;box-shadow:0 10px 35px #000}.mobile-nav{display:none}
+@media(max-width:1100px){.sidebar{width:220px}.main{margin-left:220px}.stats{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}.media-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.login{grid-template-columns:1fr}.login-visual{display:none}.login-panel{border:0;padding:22px}.sidebar{display:none}.main{margin:0}.top{height:62px;padding:0 13px}.user-email{display:none}.content{padding:16px 12px 82px}.stats,.form-grid{grid-template-columns:1fr}.media-grid{grid-template-columns:repeat(2,1fr)}.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;height:62px;background:#080808;border-top:1px solid var(--line);z-index:100;justify-content:space-around}.mobile-nav button{background:transparent;border:0;color:#666;font-size:8px;font-weight:800}.mobile-nav button.active{color:#fff}.mobile-nav span{display:block;font-size:16px;margin-bottom:3px}.page-head{align-items:flex-start}.actions{margin-left:auto}.search{min-width:130px}}
 </style>
 </head>
-
 <body>
+<section id="loginView" class="login">
+  <div class="login-visual">
+    <div class="logo"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"><div><strong>불꽃 BULKKOT</strong><br><small>ADMIN OS</small></div></div>
+    <div class="login-copy"><div class="eyebrow">OWNER CONTROL CENTER · DROP 001</div><h1>LESS<br>NOISE.<br><span>MORE</span><br>PRESENCE.</h1><p>One control surface for the BULKKOT storefront. Products, inventory, orders, waitlist, content and store settings—without touching the storefront code for routine changes.</p></div>
+    <div class="login-foot"><span>KOREAN-INSPIRED MINIMALISM</span><span>EST. 2026</span></div>
+  </div>
+  <div class="login-panel">
+    <div class="login-card">
+      <div class="logo" style="margin-bottom:28px"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"><div><strong>BULKKOT</strong><br><small>OWNER LOGIN</small></div></div>
+      <h2>Admin access</h2><p>Sign in with your authorized BULKKOT admin account.</p>
+      <form id="loginForm">
+        <div class="field"><label>EMAIL</label><input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@email.com"></div>
+        <div class="field"><label>PASSWORD</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+        <div id="loginError" class="login-error"></div>
+        <button class="btn primary" style="width:100%;height:45px" id="loginBtn">AUTHENTICATE</button>
+      </form>
+      <p style="margin-top:22px;font-size:9px;color:#555">Access is checked against the BULKKOT admin_users table. No service-role key is used in this page.</p>
+    </div>
+  </div>
+</section>
 
-<div class="app">
-
-<!-- =========================================================
-     SIDEBAR
-========================================================= -->
+<div id="app" class="app hidden">
 <aside class="sidebar">
-
-<div class="brand">
-  <strong>불꽃 BULKKOT</strong>
-  <span>ADMIN</span>
-</div>
-
-<nav class="nav" id="sidebar"></nav>
-
+  <div class="side-head"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"><div><strong>BULKKOT</strong><br><small>ADMIN OS</small></div></div>
+  <nav class="nav">
+    <div class="nav-group"><div class="nav-title">OVERVIEW</div><button data-page="dashboard"><span class="ico">⌂</span>Dashboard</button></div>
+    <div class="nav-group"><div class="nav-title">COMMERCE</div><button data-page="products"><span class="ico">◇</span>Products</button><button data-page="categories"><span class="ico">◫</span>Categories</button><button data-page="inventory"><span class="ico">▦</span>Inventory</button><button data-page="orders"><span class="ico">▣</span>Orders</button><button data-page="customers"><span class="ico">♙</span>Customers</button><button data-page="waitlist"><span class="ico">★</span>VIP Waitlist</button></div>
+    <div class="nav-group"><div class="nav-title">STOREFRONT</div><button data-page="cms"><span class="ico">✦</span>Homepage CMS</button><button data-page="media"><span class="ico">▧</span>Media Library</button><button data-page="shipping"><span class="ico">↗</span>Shipping</button><button data-page="payments"><span class="ico">₹</span>Payments</button></div>
+    <div class="nav-group"><div class="nav-title">CONTROL</div><button data-page="settings"><span class="ico">⚙</span>Store Settings</button><button data-page="seo"><span class="ico">⌕</span>SEO</button><button data-page="analytics"><span class="ico">◒</span>Analytics</button><button data-page="notifications"><span class="ico">◌</span>Notifications</button></div>
+    <div class="nav-group"><div class="nav-title">SECURITY</div><button data-page="security"><span class="ico">⌾</span>Security</button><button data-page="system"><span class="ico">⌘</span>System</button></div>
+  </nav>
 </aside>
 
-
-<!-- =========================================================
-     MAIN
-========================================================= -->
 <main class="main">
-
-<header class="topbar">
-
-  <h1 id="pageTitle">Dashboard</h1>
-
-  <div class="top-space"></div>
-
-  <div class="store-status">● Store Live</div>
-
-  <button class="refresh" onclick="location.reload()">↻ Refresh</button>
-
-</header>
-
-
+<header class="top"><h1 id="pageTitle">Dashboard</h1><div class="top-spacer"></div><div class="status"><span class="dot"></span><span id="storeStatus">ADMIN ONLINE</span></div><div class="user-menu"><span class="user-email" id="userEmail"></span><button class="btn ghost" id="refreshBtn">↻</button><button class="btn" id="logoutBtn">LOGOUT</button></div></header>
 <section class="content">
 
-
-<!-- =========================================================
-     DASHBOARD
-========================================================= -->
-
-<section class="page active" id="dashboard">
-
-<div class="eyebrow">BULKKOT OPERATING SYSTEM</div>
-
-<div class="page-head">
-  <h2>Dashboard</h2>
-</div>
-
+<section class="page active" id="page-dashboard">
+<div class="eyebrow">BULKKOT OPERATING SYSTEM</div><div class="page-head"><h2>Dashboard</h2></div>
 <div class="grid stats">
-
-<div class="card">
-<div class="stat-label">Orders</div>
-<div class="stat-value">0</div>
-<div class="stat-note">Today</div>
-</div>
-
-<div class="card">
-<div class="stat-label">Revenue</div>
-<div class="stat-value">₹0</div>
-<div class="stat-note">Today</div>
-</div>
-
-<div class="card">
-<div class="stat-label">Customers</div>
-<div class="stat-value">0</div>
-<div class="stat-note">Total</div>
-</div>
-
-<div class="card">
-<div class="stat-label">VIP Waitlist</div>
-<div class="stat-value">0</div>
-<div class="stat-note">Entries</div>
-</div>
-
-</div>
-
-<br>
-
+<div class="card"><div class="stat-label">PRODUCTS</div><div class="stat-value" id="dashProducts">—</div><div class="stat-note">Catalog</div></div>
+<div class="card"><div class="stat-label">UNITS IN STOCK</div><div class="stat-value" id="dashStock">—</div><div class="stat-note">Across all sizes</div></div>
+<div class="card"><div class="stat-label">VIP WAITLIST</div><div class="stat-value" id="dashWaitlist">—</div><div class="stat-note">Known newsletter entries</div></div>
+<div class="card"><div class="stat-label">STORE STATUS</div><div class="stat-value" id="dashLive">LIVE</div><div class="stat-note">Frontend available</div></div>
+</div><br>
 <div class="grid two">
-
-<div class="card">
-
-<div class="page-head">
-<h3>Recent Orders</h3>
-<div class="actions">
-<button class="btn" onclick="openPage('orders')">View All</button>
+<div class="card"><h3>Catalog Snapshot</h3><div id="dashCatalog" class="table-wrap"></div></div>
+<div class="card"><h3>Launch Readiness</h3><div class="check"><span>Admin authentication</span><span class="badge green">READY</span></div><div class="check"><span>Products database</span><span class="badge green">CONNECTED</span></div><div class="check"><span>Inventory RPC</span><span class="badge green">SECURED</span></div><div class="check"><span>Orders backend</span><span class="badge amber">NEXT</span></div><div class="check"><span>CMS backend</span><span class="badge amber">NEXT</span></div><div style="margin-top:16px" class="readiness"><span id="readinessBar"></span></div><p class="muted">The dashboard only marks a control READY when the underlying storefront/backend wiring exists.</p></div>
 </div>
-</div>
-
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Order</th>
-<th>Customer</th>
-<th>Items</th>
-<th>Total</th>
-<th>Status</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td colspan="5" class="empty">No orders yet.</td>
-</tr>
-</tbody>
-</table>
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h3>Launch Readiness</h3>
-
-<div class="checklist">
-
-<div class="check">
-Store Configuration
-<span class="badge green">READY</span>
-</div>
-
-<div class="check">
-Products
-<span class="badge yellow">SETUP</span>
-</div>
-
-<div class="check">
-Payments
-<span class="badge yellow">SETUP</span>
-</div>
-
-<div class="check">
-Shipping
-<span class="badge yellow">SETUP</span>
-</div>
-
-<div class="check">
-Policies
-<span class="badge yellow">SETUP</span>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<br>
-
-<div class="grid two">
-
-<div class="card">
-<h3>Inventory Alerts</h3>
-<div class="empty">No inventory alerts.</div>
-</div>
-
-<div class="card">
-<h3>Recent Waitlist</h3>
-<div class="empty">No waitlist entries.</div>
-</div>
-
-</div>
-
 </section>
 
-
-<!-- =========================================================
-     PRODUCTS
-========================================================= -->
-
-<section class="page" id="products">
-
-<div class="eyebrow">CATALOG</div>
-
-<div class="page-head">
-
-<h2>Products</h2>
-
-<div class="actions">
-<button class="btn primary" onclick="openPage('add-product')">
-+ Add Product
-</button>
-</div>
-
-</div>
-
-<div class="tabs">
-
-<button class="tab active">All Products</button>
-<button class="tab">Draft</button>
-<button class="tab">Published</button>
-<button class="tab">Archived</button>
-
-</div>
-
-<div class="card">
-
-<div class="table-wrap">
-
-<table>
-
-<thead>
-<tr>
-<th>Product</th>
-<th>Category</th>
-<th>SKU</th>
-<th>Price</th>
-<th>Stock</th>
-<th>Status</th>
-<th>Action</th>
-</tr>
-</thead>
-
-<tbody>
-
-<tr>
-<td colspan="7" class="empty">
-No products yet. Add your first product.
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
+<section class="page" id="page-products">
+<div class="eyebrow">CATALOG</div><div class="page-head"><h2>Products</h2><div class="actions"><input id="productSearch" class="search" placeholder="Search products…"><button class="btn primary" id="newProductBtn">+ ADD PRODUCT</button></div></div>
+<div class="card"><div class="table-wrap"><table><thead><tr><th>PRODUCT</th><th>CATEGORY</th><th>SKU</th><th>PRICE</th><th>STOCK</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody id="productsBody"></tbody></table></div></div>
 </section>
 
-
-<!-- =========================================================
-     ADD PRODUCT
-========================================================= -->
-
-<section class="page" id="add-product">
-
-<div class="eyebrow">CATALOG / PRODUCTS</div>
-
-<div class="page-head">
-
-<h2>Add Product</h2>
-
-<div class="actions">
-
-<button class="btn" onclick="openPage('products')">
-Cancel
-</button>
-
-<button class="btn primary" onclick="saveProduct()">
-Save Product
-</button>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="form-grid">
-
-<div class="field">
-<label>PRODUCT NAME</label>
-<input id="productName" placeholder="e.g. Seoul Oversized Tee">
-</div>
-
-<div class="field">
-<label>SLUG</label>
-<input id="productSlug" placeholder="seoul-oversized-tee">
-</div>
-
-<div class="field">
-<label>CATEGORY</label>
-
-<select id="productCategory">
-
-<option>Tees</option>
-<option>Hoods</option>
-<option>Sweats</option>
-
-</select>
-
-</div>
-
-<div class="field">
-<label>PRICE ₹</label>
-<input type="number" min="0" placeholder="699">
-</div>
-
-<div class="field">
-<label>COMPARE-AT PRICE ₹</label>
-<input type="number" min="0" placeholder="999">
-</div>
-
-<div class="field">
-<label>SKU</label>
-<input placeholder="BKK-TEE-001">
-</div>
-
-<div class="field full">
-<label>DESCRIPTION</label>
-<textarea placeholder="Product description..."></textarea>
-</div>
-
-<div class="field">
-<label>STATUS</label>
-
-<select>
-<option>Draft</option>
-<option>Published</option>
-<option>Archived</option>
-</select>
-
-</div>
-
-<div class="field">
-<label>FEATURED PRODUCT</label>
-
-<select>
-<option>No</option>
-<option>Yes</option>
-</select>
-
-</div>
-
-</div>
-
-
-<br>
-
-<h3>Variants & Inventory</h3>
-
-<div class="table-wrap">
-
-<table class="inventory-table">
-
-<thead>
-<tr>
-<th>SIZE</th>
-<th>ENABLED</th>
-<th>SKU</th>
-<th>STOCK</th>
-</tr>
-</thead>
-
-<tbody>
-
-<tr>
-<td>S</td>
-<td><input type="checkbox" checked></td>
-<td><input placeholder="SKU-S"></td>
-<td><input type="number" min="0" value="0"></td>
-</tr>
-
-<tr>
-<td>M</td>
-<td><input type="checkbox" checked></td>
-<td><input placeholder="SKU-M"></td>
-<td><input type="number" min="0" value="0"></td>
-</tr>
-
-<tr>
-<td>L</td>
-<td><input type="checkbox" checked></td>
-<td><input placeholder="SKU-L"></td>
-<td><input type="number" min="0" value="0"></td>
-</tr>
-
-<tr>
-<td>XL</td>
-<td><input type="checkbox" checked></td>
-<td><input placeholder="SKU-XL"></td>
-<td><input type="number" min="0" value="0"></td>
-</tr>
-
-<tr>
-<td>XXL</td>
-<td><input type="checkbox"></td>
-<td><input placeholder="SKU-XXL"></td>
-<td><input type="number" min="0" value="0"></td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-
-<br>
-
-<h3>Product Images</h3>
-
-<p style="font-size:11px;color:#777">
-Multiple images supported. Select all product photos together.
-</p>
-
-<input
-type="file"
-id="productImages"
-accept="image/*"
-multiple
-onchange="previewImages(this.files)"
->
-
-<br><br>
-
-<div class="media-grid" id="productPreview"></div>
-
-</div>
-
+<section class="page" id="page-categories">
+<div class="eyebrow">CATALOG TAXONOMY</div><div class="page-head"><h2>Categories</h2></div>
+<div class="card"><div id="categoriesList"></div></div>
 </section>
 
-
-<!-- =========================================================
-     CATEGORIES
-========================================================= -->
-
-<section class="page" id="categories">
-
-<div class="eyebrow">CATALOG</div>
-
-<div class="page-head">
-
-<h2>Categories</h2>
-
-<div class="actions">
-<button class="btn primary" onclick="addCategory()">
-+ Add Category
-</button>
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="category-list" id="categoryList"></div>
-
-</div>
-
+<section class="page" id="page-inventory">
+<div class="eyebrow">STOCK CONTROL</div><div class="page-head"><h2>Inventory</h2></div>
+<div class="grid stats"><div class="card"><div class="stat-label">PRODUCTS</div><div class="stat-value" id="invProducts">—</div></div><div class="card"><div class="stat-label">TOTAL UNITS</div><div class="stat-value" id="invUnits">—</div></div><div class="card"><div class="stat-label">LOW STOCK</div><div class="stat-value" id="invLow">—</div></div><div class="card"><div class="stat-label">OUT OF STOCK</div><div class="stat-value" id="invOut">—</div></div></div><br>
+<div class="card"><div class="table-wrap"><table><thead><tr><th>PRODUCT</th><th>SKU</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th><th>TOTAL</th><th>ACTION</th></tr></thead><tbody id="inventoryBody"></tbody></table></div></div>
 </section>
 
+<section class="page" id="page-orders"><div class="eyebrow">COMMERCE</div><div class="page-head"><h2>Orders</h2></div><div class="card"><div class="empty">Orders control is reserved for the verified orders schema/RPC. No fake order fields are being written.</div></div></section>
+<section class="page" id="page-customers"><div class="eyebrow">RELATIONSHIPS</div><div class="page-head"><h2>Customers</h2></div><div class="card"><div class="empty">Customer management will be wired only after the actual customer/order schema is verified.</div></div></section>
 
-<!-- =========================================================
-     ORDERS
-========================================================= -->
-
-<section class="page" id="orders">
-
-<div class="eyebrow">COMMERCE</div>
-
-<div class="page-head">
-<h2>Orders</h2>
-</div>
-
-<div class="tabs">
-
-<button class="tab active">All Orders</button>
-<button class="tab">New</button>
-<button class="tab">COD</button>
-<button class="tab">Online Paid</button>
-<button class="tab">Processing</button>
-<button class="tab">Packed</button>
-<button class="tab">Shipped</button>
-<button class="tab">Out for Delivery</button>
-<button class="tab">Delivered</button>
-<button class="tab">Cancelled</button>
-<button class="tab">Returned / Refunded</button>
-
-</div>
-
-<div class="card">
-
-<table>
-
-<thead>
-<tr>
-<th>Order ID</th>
-<th>Customer</th>
-<th>Items</th>
-<th>Payment</th>
-<th>Total</th>
-<th>Status</th>
-<th>Action</th>
-</tr>
-</thead>
-
-<tbody>
-
-<tr>
-<td colspan="7" class="empty">
-No orders yet.
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
+<section class="page" id="page-waitlist">
+<div class="eyebrow">DROP 001</div><div class="page-head"><h2>VIP Waitlist</h2><div class="actions"><button class="btn" id="reloadWaitlist">REFRESH</button></div></div>
+<div class="card"><div class="table-wrap"><table><thead><tr><th>EMAIL</th><th>SOURCE</th><th>DATE</th></tr></thead><tbody id="waitlistBody"></tbody></table></div></div>
 </section>
 
-
-<!-- =========================================================
-     INVENTORY
-========================================================= -->
-
-<section class="page" id="inventory">
-
-<div class="eyebrow">COMMERCE</div>
-
-<div class="page-head">
-<h2>Inventory</h2>
-</div>
-
-<div class="grid stats">
-
-<div class="card">
-<div class="stat-label">Products</div>
-<div class="stat-value">0</div>
-</div>
-
-<div class="card">
-<div class="stat-label">Units</div>
-<div class="stat-value">0</div>
-</div>
-
-<div class="card">
-<div class="stat-label">Low Stock</div>
-<div class="stat-value">0</div>
-</div>
-
-<div class="card">
-<div class="stat-label">Out of Stock</div>
-<div class="stat-value">0</div>
-</div>
-
-</div>
-
-<br>
-
-<div class="card">
-
-<table>
-
-<thead>
-<tr>
-<th>Product</th>
-<th>SKU</th>
-<th>S</th>
-<th>M</th>
-<th>L</th>
-<th>XL</th>
-<th>XXL</th>
-<th>Total</th>
-<th>Action</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td colspan="9" class="empty">No inventory yet.</td>
-</tr>
-</tbody>
-
-</table>
-
-</div>
-
+<section class="page" id="page-cms">
+<div class="eyebrow">STOREFRONT CONTROL</div><div class="page-head"><h2>Homepage CMS</h2></div>
+<div class="card"><h3>Control layer</h3><p class="muted">The current storefront hardcodes several homepage blocks. I am not pretending these fields are connected. This panel will become live after the CMS table is created and the storefront reads it.</p><div class="check"><span>Announcement ticker</span><span class="badge amber">NOT WIRED</span></div><div class="check"><span>Hero title / description / CTA</span><span class="badge amber">NOT WIRED</span></div><div class="check"><span>Hero image</span><span class="badge amber">NOT WIRED</span></div><div class="check"><span>Featured collection</span><span class="badge amber">NOT WIRED</span></div><div class="check"><span>About content</span><span class="badge amber">NOT WIRED</span></div></div>
 </section>
 
+<section class="page" id="page-media"><div class="eyebrow">ASSETS</div><div class="page-head"><h2>Media Library</h2></div><div class="card"><div class="empty">Storage bucket/schema will be verified before upload/delete controls are enabled.</div></div></section>
 
-<!-- =========================================================
-     CUSTOMERS
-========================================================= -->
+<section class="page" id="page-shipping"><div class="eyebrow">FULFILMENT</div><div class="page-head"><h2>Shipping</h2></div><div class="card"><div class="empty">Shipping settings are not yet connected to a verified storefront settings source. No fake Save button.</div></div></section>
+<section class="page" id="page-payments"><div class="eyebrow">CHECKOUT</div><div class="page-head"><h2>Payments</h2></div><div class="card"><div class="empty">Payment settings are not yet connected to a verified storefront settings source. No fake Save button.</div></div></section>
+<section class="page" id="page-settings"><div class="eyebrow">CONTROL CENTER</div><div class="page-head"><h2>Store Settings</h2></div><div class="card"><div class="empty">Settings backend will be added against the actual storefront consumption points. This prevents admin-only settings that do nothing on the live store.</div></div></section>
+<section class="page" id="page-seo"><div class="eyebrow">DISCOVERABILITY</div><div class="page-head"><h2>SEO</h2></div><div class="card"><div class="empty">SEO controls are intentionally disabled until the storefront meta/OG values are moved to a shared source.</div></div></section>
+<section class="page" id="page-analytics"><div class="eyebrow">INSIGHTS</div><div class="page-head"><h2>Analytics</h2></div><div class="card"><div class="empty">Analytics will use verified orders/customer events. No invented numbers.</div></div></section>
+<section class="page" id="page-notifications"><div class="eyebrow">ALERTS</div><div class="page-head"><h2>Notifications</h2></div><div class="card"><div class="empty">Notification preferences will be wired after the notification source is defined.</div></div></section>
 
-<section class="page" id="customers">
+<section class="page" id="page-security"><div class="eyebrow">ACCESS CONTROL</div><div class="page-head"><h2>Security</h2></div><div class="grid three"><div class="card"><h3>Current Admin</h3><div id="securityAdmin">Loading…</div></div><div class="card"><h3>MFA / AAL</h3><div id="securityAal">Loading…</div></div><div class="card"><h3>RLS</h3><p class="muted">Database policies are managed in Supabase. This browser never receives a service-role key.</p><span class="badge green">SERVICE-ROLE SAFE</span></div></div></section>
 
-<div class="eyebrow">RELATIONSHIPS</div>
-
-<div class="page-head">
-<h2>Customers</h2>
-</div>
-
-<div class="tabs">
-<button class="tab active">All</button>
-<button class="tab">New Customers</button>
-<button class="tab">Repeat Customers</button>
-<button class="tab">Guest Customers</button>
-</div>
-
-<div class="card">
-
-<table>
-
-<thead>
-<tr>
-<th>Name</th>
-<th>Email</th>
-<th>Phone</th>
-<th>Orders</th>
-<th>Total Spend</th>
-<th>Status</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td colspan="6" class="empty">
-No customers yet.
-</td>
-</tr>
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     WAITLIST
-========================================================= -->
-
-<section class="page" id="waitlist">
-
-<div class="eyebrow">DROP 001</div>
-
-<div class="page-head">
-
-<h2>VIP Waitlist</h2>
-
-<div class="actions">
-<button class="btn">Export CSV</button>
-</div>
-
-</div>
-
-<div class="card">
-
-<table>
-
-<thead>
-<tr>
-<th>Name</th>
-<th>Email</th>
-<th>Phone</th>
-<th>Source</th>
-<th>Date Joined</th>
-<th>Status</th>
-<th>Drop Tag</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td colspan="7" class="empty">
-No waitlist entries yet.
-</td>
-</tr>
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     MARKETING
-========================================================= -->
-
-<section class="page" id="marketing">
-
-<div class="eyebrow">GROWTH</div>
-
-<div class="page-head">
-<h2>Marketing</h2>
-</div>
-
-<div class="grid three">
-
-<div class="card">
-<h3>Coupons</h3>
-<p style="font-size:11px;color:#777">
-Percentage discount, fixed discount, minimum order, usage limit and expiry.
-</p>
-<button class="btn primary">Manage Coupons</button>
-</div>
-
-<div class="card">
-<h3>Promotions</h3>
-<p style="font-size:11px;color:#777">
-Manage active campaigns and promotions.
-</p>
-<button class="btn">Manage</button>
-</div>
-
-<div class="card">
-<h3>Featured Products</h3>
-<p style="font-size:11px;color:#777">
-Control which products appear as featured.
-</p>
-<button class="btn">Manage</button>
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     CMS
-========================================================= -->
-
-<section class="page" id="cms">
-
-<div class="eyebrow">STOREFRONT CONTROL</div>
-
-<div class="page-head">
-<h2>Storefront CMS</h2>
-</div>
-
-<div class="tabs">
-
-<button class="tab active" onclick="cms('home',this)">HOME</button>
-<button class="tab" onclick="cms('shop',this)">SHOP</button>
-<button class="tab" onclick="cms('about',this)">ABOUT</button>
-<button class="tab" onclick="cms('size',this)">SIZE GUIDE</button>
-<button class="tab" onclick="cms('footer',this)">FOOTER</button>
-<button class="tab" onclick="cms('legal',this)">LEGAL PAGES</button>
-
-</div>
-
-<div class="card" id="cmsContent"></div>
-
-</section>
-
-
-<!-- =========================================================
-     MEDIA
-========================================================= -->
-
-<section class="page" id="media">
-
-<div class="eyebrow">ASSETS</div>
-
-<div class="page-head">
-
-<h2>Media Library</h2>
-
-<div class="actions">
-
-<button
-class="btn primary"
-onclick="document.getElementById('mediaInput').click()">
-+ Upload
-</button>
-
-<input
-id="mediaInput"
-type="file"
-accept="image/*"
-multiple
-hidden
-onchange="mediaUpload(this.files)"
->
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="media-grid" id="mediaGrid">
-
-<div class="media-box">
-Upload Images
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- =========================================================
-     SHIPPING
-========================================================= -->
-
-<section class="page" id="shipping">
-
-<div class="eyebrow">FULFILMENT</div>
-
-<div class="page-head">
-<h2>Shipping</h2>
-</div>
-
-<div class="card">
-
-<div class="form-grid">
-
-<div class="field">
-<label>SHIPPING FEE ₹</label>
-<input type="number" min="0" placeholder="0">
-</div>
-
-<div class="field">
-<label>FREE SHIPPING THRESHOLD ₹</label>
-<input type="number" min="0" placeholder="0">
-</div>
-
-<div class="field">
-<label>DELIVERY ESTIMATE</label>
-<input placeholder="3–7 business days">
-</div>
-
-<div class="field">
-<label>COURIER</label>
-<input placeholder="Courier partner">
-</div>
-
-<div class="field">
-<label>COD AVAILABILITY</label>
-<select>
-<option>Enabled</option>
-<option>Disabled</option>
-</select>
-</div>
-
-<div class="field">
-<label>SERVICEABLE AREAS</label>
-<input placeholder="India / selected pincodes">
-</div>
-
-<div class="field full">
-<label>TRACKING SETTINGS</label>
-<textarea placeholder="Customer-facing tracking instructions"></textarea>
-</div>
-
-</div>
-
-<br>
-
-<button class="btn primary">
-Save Shipping Settings
-</button>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     PAYMENTS
-========================================================= -->
-
-<section class="page" id="payments">
-
-<div class="eyebrow">CHECKOUT</div>
-
-<div class="page-head">
-<h2>Payments</h2>
-</div>
-
-<div class="card">
-
-<div class="form-grid">
-
-<div class="field">
-<label>CURRENCY</label>
-<select>
-<option>INR ₹</option>
-</select>
-</div>
-
-<div class="field">
-<label>COD</label>
-<select>
-<option>Enabled</option>
-<option>Disabled</option>
-</select>
-</div>
-
-<div class="field">
-<label>ONLINE PAYMENT</label>
-<select>
-<option>Enabled</option>
-<option>Disabled</option>
-</select>
-</div>
-
-<div class="field">
-<label>PAYMENT STATUS</label>
-<select>
-<option>Pending</option>
-<option>Paid</option>
-<option>Failed</option>
-<option>Refunded</option>
-</select>
-</div>
-
-<div class="field full">
-<label>PAYMENT INSTRUCTIONS</label>
-<textarea placeholder="Customer payment instructions"></textarea>
-</div>
-
-</div>
-
-<br>
-
-<button class="btn primary">
-Save Payment Settings
-</button>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     STORE SETTINGS
-========================================================= -->
-
-<section class="page" id="settings">
-
-<div class="eyebrow">CONTROL CENTER</div>
-
-<div class="page-head">
-<h2>Store Settings</h2>
-</div>
-
-<div class="tabs">
-
-<button class="tab active"
-onclick="settingsTab('general',this)">
-GENERAL
-</button>
-
-<button class="tab"
-onclick="settingsTab('branding',this)">
-BRANDING
-</button>
-
-<button class="tab"
-onclick="settingsTab('commerce',this)">
-COMMERCE
-</button>
-
-<button class="tab"
-onclick="settingsTab('behaviour',this)">
-STORE BEHAVIOUR
-</button>
-
-<button class="tab"
-onclick="settingsTab('social',this)">
-SOCIAL
-</button>
-
-</div>
-
-<div class="card" id="settingsContent"></div>
-
-</section>
-
-
-<!-- =========================================================
-     SEO
-========================================================= -->
-
-<section class="page" id="seo">
-
-<div class="eyebrow">DISCOVERABILITY</div>
-
-<div class="page-head">
-<h2>SEO</h2>
-</div>
-
-<div class="card">
-
-<div class="form-grid">
-
-<div class="field full">
-<label>SITE TITLE</label>
-<input
-value="BULKKOT — Premium Oversized Essentials">
-</div>
-
-<div class="field full">
-<label>META DESCRIPTION</label>
-<textarea
-placeholder="Describe BULKKOT for search engines..."></textarea>
-</div>
-
-<div class="field">
-<label>OG IMAGE</label>
-<input type="file" accept="image/*">
-</div>
-
-<div class="field">
-<label>HOMEPAGE SEO</label>
-<select>
-<option>Enabled</option>
-<option>Disabled</option>
-</select>
-</div>
-
-<div class="field">
-<label>PRODUCT SEO</label>
-<select>
-<option>Enabled</option>
-<option>Disabled</option>
-</select>
-</div>
-
-<div class="field">
-<label>SOCIAL PREVIEW</label>
-<input placeholder="Social preview title">
-</div>
-
-</div>
-
-<br>
-
-<button class="btn primary">
-Save SEO Settings
-</button>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     ANALYTICS
-========================================================= -->
-
-<section class="page" id="analytics">
-
-<div class="eyebrow">INSIGHTS</div>
-
-<div class="page-head">
-<h2>Analytics</h2>
-</div>
-
-<div class="grid stats">
-
-<div class="card">
-
-<div class="stat-label">
-TOTAL SALES
-</div>
-
-<div class="stat-value">
-₹0
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="stat-label">
-TOTAL ORDERS
-</div>
-
-<div class="stat-value">
-0
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="stat-label">
-AVERAGE ORDER VALUE
-</div>
-
-<div class="stat-value">
-₹0
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="stat-label">
-CONVERSION
-</div>
-
-<div class="stat-value">
-0%
-</div>
-
-</div>
-
-</div>
-
-<br>
-
-<div class="grid two">
-
-<div class="card">
-
-<h3>Sales Overview</h3>
-
-<div class="empty">
-Sales chart will appear after database connection.
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h3>Top Products</h3>
-
-<div class="empty">
-Top-selling products will appear here.
-</div>
-
-</div>
-
-</div>
-
-<br>
-
-<div class="card">
-
-<h3>Customer Analytics</h3>
-
-<table>
-
-<thead>
-
-<tr>
-<th>Metric</th>
-<th>Value</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-<td>New Customers</td>
-<td>0</td>
-</tr>
-
-<tr>
-<td>Repeat Customers</td>
-<td>0</td>
-</tr>
-
-<tr>
-<td>Guest Customers</td>
-<td>0</td>
-</tr>
-
-<tr>
-<td>Total Customers</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     NOTIFICATIONS
-========================================================= -->
-
-<section class="page" id="notifications">
-
-<div class="eyebrow">ALERTS</div>
-
-<div class="page-head">
-<h2>Notifications</h2>
-</div>
-
-<div class="card">
-
-<h3>Notification Preferences</h3>
-
-<div class="checklist">
-
-<div class="check">
-New Order
-<input type="checkbox" checked>
-</div>
-
-<div class="check">
-Low Stock
-<input type="checkbox" checked>
-</div>
-
-<div class="check">
-New Customer
-<input type="checkbox" checked>
-</div>
-
-<div class="check">
-VIP Waitlist Signup
-<input type="checkbox" checked>
-</div>
-
-<div class="check">
-Payment Failure
-<input type="checkbox" checked>
-</div>
-
-<div class="check">
-Order Cancelled
-<input type="checkbox" checked>
-</div>
-
-<div class="check">
-System Errors
-<input type="checkbox" checked>
-</div>
-
-</div>
-
-<br>
-
-<button class="btn primary">
-Save Notification Preferences
-</button>
-
-</div>
-
-
-<br>
-
-
-<div class="card">
-
-<h3>Notification Channels</h3>
-
-<div class="form-grid">
-
-<div class="field">
-<label>ADMIN EMAIL</label>
-<input
-type="email"
-placeholder="admin email">
-</div>
-
-<div class="field">
-<label>WHATSAPP</label>
-<input
-placeholder="WhatsApp number">
-</div>
-
-<div class="field">
-<label>EMAIL NOTIFICATIONS</label>
-<select>
-<option>Enabled</option>
-<option>Disabled</option>
-</select>
-</div>
-
-<div class="field">
-<label>ORDER ALERTS</label>
-<select>
-<option>Enabled</option>
-<option>Disabled</option>
-</select>
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     SECURITY
-========================================================= -->
-
-<section class="page" id="security">
-
-<div class="eyebrow">ACCESS CONTROL</div>
-
-<div class="page-head">
-<h2>Security</h2>
-</div>
-
-<div class="grid three">
-
-
-<div class="card">
-
-<h3>Admin Users</h3>
-
-<p style="font-size:11px;color:#777">
-Manage authorized BULKKOT administrators.
-</p>
-
-<button class="btn">
-Manage Admins
-</button>
-
-</div>
-
-
-<div class="card">
-
-<h3>Roles & Permissions</h3>
-
-<p style="font-size:11px;color:#777">
-Control what each admin can access.
-</p>
-
-<button class="btn">
-Manage Roles
-</button>
-
-</div>
-
-
-<div class="card">
-
-<h3>MFA</h3>
-
-<p style="font-size:11px;color:#777">
-Require multi-factor authentication.
-</p>
-
-<span class="badge yellow">
-PENDING
-</span>
-
-</div>
-
-</div>
-
-<br>
-
-
-<div class="card">
-
-<h3>Active Sessions</h3>
-
-<table>
-
-<thead>
-
-<tr>
-<th>Admin</th>
-<th>Device</th>
-<th>Location</th>
-<th>Last Active</th>
-<th>Status</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-<td colspan="5" class="empty">
-No sessions loaded.
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-<br>
-
-
-<div class="card">
-
-<h3>Audit Log</h3>
-
-<table>
-
-<thead>
-
-<tr>
-<th>Date</th>
-<th>Admin</th>
-<th>Action</th>
-<th>Resource</th>
-<th>Status</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-<td colspan="5" class="empty">
-No audit events loaded.
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- =========================================================
-     SYSTEM
-========================================================= -->
-
-<section class="page" id="system">
-
-<div class="eyebrow">INFRASTRUCTURE</div>
-
-<div class="page-head">
-<h2>System</h2>
-</div>
-
-
-<div class="grid three">
-
-
-<div class="card">
-
-<h3>Store Health</h3>
-
-<p>
-<span class="badge green">
-READY
-</span>
-</p>
-
-<p style="font-size:11px;color:#777">
-Store frontend available.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>Supabase Connection</h3>
-
-<p>
-<span class="badge yellow">
-PENDING
-</span>
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>Database Status</h3>
-
-<p>
-<span class="badge yellow">
-PENDING
-</span>
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>Storage Status</h3>
-
-<p>
-<span class="badge yellow">
-PENDING
-</span>
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>RLS Status</h3>
-
-<p>
-<span class="badge yellow">
-PENDING
-</span>
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>Error Logs</h3>
-
-<p>
-<span class="badge gray">
-0
-</span>
-</p>
-
-</div>
-
-</div>
-
-
-<br>
-
-
-<div class="card">
-
-<h3>Launch Readiness</h3>
-
-<div style="
-height:7px;
-background:#eee;
-border-radius:10px;
-overflow:hidden;
-">
-
-<div style="
-width:15%;
-height:100%;
-background:#d60000;
-"></div>
-
-</div>
-
-<p style="
-font-size:11px;
-color:#777;
-">
-
-Foundation UI ready.
-Backend, database, storage and storefront wiring pending.
-
-</p>
-
-</div>
-
-
-<br>
-
-
-<div class="card">
-
-<h3>System Actions</h3>
-
-<div style="
-display:flex;
-gap:8px;
-flex-wrap:wrap;
-">
-
-<button class="btn">
-Refresh Store Data
-</button>
-
-<button class="btn">
-Check Database
-</button>
-
-<button class="btn">
-Check Storage
-</button>
-
-<button class="btn">
-Check RLS
-</button>
-
-<button class="btn">
-Clear Cache
-</button>
-
-</div>
-
-</div>
-
-</section>
-
+<section class="page" id="page-system"><div class="eyebrow">INFRASTRUCTURE</div><div class="page-head"><h2>System</h2></div><div class="grid three"><div class="card"><h3>Supabase</h3><div id="sysSupabase"></div></div><div class="card"><h3>Auth Session</h3><div id="sysAuth"></div></div><div class="card"><h3>Products</h3><div id="sysProducts"></div></div></div><br><div class="card"><h3>Launch Readiness</h3><div class="readiness"><span id="sysBar"></span></div><p class="muted">Current foundation is intentionally honest: connected controls are shown as live; unconnected controls are marked pending.</p></div></section>
 
 </section>
 </main>
 </div>
 
+<nav class="mobile-nav" id="mobileNav"><button data-page="dashboard"><span>⌂</span>HOME</button><button data-page="products"><span>◇</span>PRODUCTS</button><button data-page="inventory"><span>▦</span>STOCK</button><button data-page="orders"><span>▣</span>ORDERS</button><button data-page="settings"><span>⚙</span>SETTINGS</button></nav>
 
-<!-- =========================================================
-     MOBILE NAV
-========================================================= -->
-
-<nav class="mobile-nav">
-
-<button
-class="active"
-onclick="openPage('dashboard')">
-
-<span>⌂</span>
-Home
-
-</button>
-
-
-<button
-onclick="openPage('orders')">
-
-<span>▣</span>
-Orders
-
-</button>
-
-
-<button
-onclick="openPage('products')">
-
-<span>◇</span>
-Products
-
-</button>
-
-
-<button
-onclick="openPage('customers')">
-
-<span>♙</span>
-Customers
-
-</button>
-
-
-<button
-onclick="openPage('settings')">
-
-<span>⚙</span>
-Settings
-
-</button>
-
-</nav>
-
+<div id="toast" class="toast hidden"></div>
 
 <script>
+const SUPABASE_URL="https://pgubjluqgqvrybvehzeh.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJwZ3ViaGx1cWdxdnJ5YnZ2ZWh6ZWgiLCJhdWQiOiJhdXRoIiwicmVmIjoicGd1YmpsdXFncXZyeWJ2ZWh6ZWgiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NzU1ODAyNiwiZXhwIjoyMTAzMTM0NDAyNn0.W0en34qVo24Rsqi2S0P-JQ_6WF41WjIU8HKmGBzX1lA";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const titles={dashboard:"Dashboard",products:"Products",categories:"Categories",inventory:"Inventory",orders:"Orders",customers:"Customers",waitlist:"VIP Waitlist",cms:"Homepage CMS",media:"Media Library",shipping:"Shipping",payments:"Payments",settings:"Store Settings",seo:"SEO",analytics:"Analytics",notifications:"Notifications",security:"Security",system:"System"};
+let products=[];
 
-/* =========================================================
-   SETTINGS DATA
-========================================================= */
-
-const SETTINGS={
-
-general:[
-["Store Name","BULKKOT"],
-["Store Email","bulkkotwear@gmail.com"],
-["Phone",""],
-["WhatsApp",""],
-["Address",""]
-],
-
-branding:[
-["Logo",""],
-["Favicon",""],
-["Primary Color","#111111"],
-["Accent Color","#d60000"],
-["Typography",""]
-],
-
-commerce:[
-["Currency","INR"],
-["Tax",""],
-["Shipping",""],
-["COD","Enabled"],
-["Online Payments","Enabled"]
-],
-
-behaviour:[
-["Store Live / Offline","Live"],
-["Maintenance Mode","Disabled"],
-["Waitlist","Enabled"],
-["Customer Accounts","Enabled"],
-["Guest Checkout","Enabled"]
-],
-
-social:[
-["Instagram",""],
-["Threads",""],
-["Other Links",""]
-]
-
-};
-
-
-/* =========================================================
-   SETTINGS TABS
-========================================================= */
-
-function settingsTab(type,button){
-
-document
-.querySelectorAll("#settings .tab")
-.forEach(tab=>{
-tab.classList.remove("active");
-});
-
-if(button){
-button.classList.add("active");
-}
-
-const box=
-document.getElementById("settingsContent");
-
-box.innerHTML=`
-
-<div class="form-grid">
-
-${SETTINGS[type].map(([label,value])=>`
-
-<div class="field">
-
-<label>${label}</label>
-
-<input
-value="${value.replaceAll('"','&quot;')}"
->
-
-</div>
-
-`).join("")}
-
-</div>
-
-<br>
-
-<button class="btn primary">
-Save Changes
-</button>
-
-`;
-
-}
-
-
-/* =========================================================
-   PAGE TITLES
-========================================================= */
-
-const TITLES={
-
-dashboard:"Dashboard",
-products:"Products",
-"add-product":"Add Product",
-categories:"Categories",
-orders:"Orders",
-inventory:"Inventory",
-customers:"Customers",
-waitlist:"VIP Waitlist",
-marketing:"Marketing",
-cms:"Storefront CMS",
-media:"Media Library",
-shipping:"Shipping",
-payments:"Payments",
-settings:"Store Settings",
-seo:"SEO",
-analytics:"Analytics",
-notifications:"Notifications",
-security:"Security",
-system:"System"
-
-};
-
-
-/* =========================================================
-   PAGE NAVIGATION
-========================================================= */
-
+function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.classList.remove("hidden");clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.classList.add("hidden"),2600)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function totalStock(p){const s=p.stock||{};return ["S","M","L","XL","XXL"].reduce((n,k)=>n+Number(s[k]||0),0)}
+function badgeStatus(p){const st=p.status||"unknown";const cls=st==="active"?"green":st==="sold_out"?"red":st==="archived"?"gray":"amber";return '<span class="badge '+cls+'">'+esc(st.replace("_"," ").toUpperCase())+"</span>"}
 function openPage(id){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ const p=document.getElementById("page-"+id);if(p)p.classList.add("active");
+ document.getElementById("pageTitle").textContent=titles[id]||"BULKKOT Admin";
+ document.querySelectorAll(".nav button,.mobile-nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+ if(id==="products")renderProducts();
+ if(id==="inventory")renderInventory();
+ if(id==="categories")loadCategories();
+ if(id==="waitlist")loadWaitlist();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>openPage(b.dataset.page)));
 
-document
-.querySelectorAll(".page")
-.forEach(page=>{
-page.classList.remove("active");
+async function getAdmin(){
+ const {data:{user},error}=await db.auth.getUser();
+ if(error||!user)return null;
+ const {data:admin,error:ae}=await db.from("admin_users").select("user_id,role,is_active,display_name").eq("user_id",user.id).maybeSingle();
+ if(ae||!admin||!admin.is_active)return null;
+ return {user,admin};
+}
+async function boot(){
+ const {data:{session}}=await db.auth.getSession();
+ if(!session){showLogin();return}
+ const admin=await getAdmin();
+ if(!admin){await db.auth.signOut();showLogin("This account is not an active BULKKOT admin.");return}
+ showApp(admin);
+}
+function showLogin(msg){document.getElementById("loginView").classList.remove("hidden");document.getElementById("app").classList.add("hidden");if(msg)document.getElementById("loginError").textContent=msg}
+function showApp(ctx){
+ document.getElementById("loginView").classList.add("hidden");document.getElementById("app").classList.remove("hidden");
+ document.getElementById("userEmail").textContent=ctx.user.email||"";
+ document.getElementById("securityAdmin").innerHTML="<strong>"+esc(ctx.admin.display_name||ctx.user.email)+"</strong><br><span class='muted'>Role: "+esc(ctx.admin.role)+" · Active</span>";
+ loadAll();
+}
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();const btn=document.getElementById("loginBtn");const err=document.getElementById("loginError");err.textContent="";btn.disabled=true;btn.textContent="AUTHENTICATING…";
+ const {data,error}=await db.auth.signInWithPassword({email:document.getElementById("loginEmail").value.trim(),password:document.getElementById("loginPassword").value});
+ if(error){err.textContent=error.message;btn.disabled=false;btn.textContent="AUTHENTICATE";return}
+ const admin=await getAdmin();
+ if(!admin){await db.auth.signOut();err.textContent="Login succeeded, but this account is not an active BULKKOT admin.";btn.disabled=false;btn.textContent="AUTHENTICATE";return}
+ btn.disabled=false;btn.textContent="AUTHENTICATE";showApp(admin);
 });
+document.getElementById("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();location.reload()});
+document.getElementById("refreshBtn").addEventListener("click",loadAll);
 
+async function loadProducts(){
+ const {data,error}=await db.from("products").select("*").order("created_at",{ascending:false});
+ if(error){toast("Products: "+error.message);return []}
+ products=data||[];renderProducts();renderInventory();updateDashboard();return products
+}
+function renderProducts(){
+ const q=(document.getElementById("productSearch")?.value||"").trim().toLowerCase();
+ const rows=products.filter(p=>(p.name+" "+(p.sku||"")+" "+(p.category||"")).toLowerCase().includes(q));
+ const body=document.getElementById("productsBody");if(!body)return;
+ body.innerHTML=rows.length?rows.map(p=>'<tr><td><div style="display:flex;align-items:center;gap:9px"><img class="product-img" src="'+esc((p.images&&p.images[0])||p.image_url||"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png")+'"><div><strong>'+esc(p.name)+'</strong><br><span class="muted">'+esc(p.slug)+'</span></div></div></td><td>'+esc(p.category)+'</td><td>'+esc(p.sku||"—")+'</td><td>₹'+Number(p.price||0).toLocaleString("en-IN")+'</td><td>'+totalStock(p)+'</td><td>'+badgeStatus(p)+'</td><td><button class="btn" onclick="editProduct(\''+p.id+'\')">EDIT</button> <button class="btn danger" onclick="archiveProduct(\''+p.id+'\')">ARCHIVE</button></td></tr>').join(""):'<tr><td colspan="7" class="empty">No products found.</td></tr>';
+}
+document.getElementById("productSearch").addEventListener("input",renderProducts);
 
-const page=
-document.getElementById(id);
+async function archiveProduct(id){
+ if(!confirm("Archive this product? It will remain in the database and stop being publicly visible."))return;
+ const {error}=await db.from("products").update({status:"archived",is_active:false,visibility:false,active:false,updated_at:new Date().toISOString()}).eq("id",id);
+ if(error){toast(error.message);return}toast("Product archived");await loadProducts();
+}
+window.editProduct=function(id){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ alert("Product editor is the next catalog step. Current product: "+p.name);
+}
+document.getElementById("newProductBtn").addEventListener("click",()=>alert("Next catalog step: live product editor + Storage upload. The current page is intentionally not writing incomplete product rows."));
 
-if(page){
-page.classList.add("active");
+function renderInventory(){
+ const body=document.getElementById("inventoryBody");if(!body)return;
+ let units=0,low=0,out=0;
+ body.innerHTML=products.map(p=>{
+   const s=p.stock||{};const total=totalStock(p);units+=total;
+   ["S","M","L","XL","XXL"].forEach(k=>{const n=Number(s[k]||0);if(n===0)out++;else if(n<=2)low++});
+   return '<tr><td>'+esc(p.name)+'</td><td>'+esc(p.sku||"—")+'</td>'+["S","M","L","XL","XXL"].map(k=>'<td>'+Number(s[k]||0)+'</td>').join("")+'<td><strong>'+total+'</strong></td><td><button class="btn" onclick="adjustStockPrompt(\''+p.id+'\')">ADJUST</button></td></tr>'
+ }).join("")||'<tr><td colspan="9" class="empty">No products.</td></tr>';
+ document.getElementById("invProducts").textContent=products.length;document.getElementById("invUnits").textContent=units;document.getElementById("invLow").textContent=low;document.getElementById("invOut").textContent=out;
+}
+window.adjustStockPrompt=async function(id){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ const size=prompt("Size: S, M, L, XL or XXL");if(!size)return;
+ const s=size.toUpperCase();if(!["S","M","L","XL","XXL"].includes(s)){toast("Invalid size");return}
+ const change=Number(prompt("Quantity change. Example: 5 to restock, -1 to correct stock"));if(!Number.isInteger(change)){toast("Quantity must be a whole number");return}
+ const {data,error}=await db.rpc("adjust_product_stock",{p_product_id:id,p_size:s,p_quantity_change:change,p_reason:"manual_adjustment",p_note:"Admin adjustment"});
+ if(error){toast(error.message);return}toast("Stock updated: "+(data?.quantity_after??"done"));await loadProducts();
 }
 
-
-document.getElementById("pageTitle")
-.textContent=
-TITLES[id] || "BULKKOT Admin";
-
-
-document
-.querySelectorAll(".nav-btn")
-.forEach(btn=>{
-btn.classList.toggle(
-"active",
-btn.dataset.page===id
-);
-});
-
-
-document
-.querySelectorAll(".mobile-nav button")
-.forEach(btn=>{
-btn.classList.remove("active");
-});
-
-
-window.scrollTo(0,0);
-
+async function loadCategories(){
+ const {data,error}=await db.from("categories").select("*").order("sort_order",{ascending:true});
+ const box=document.getElementById("categoriesList");if(!box)return;
+ if(error){box.innerHTML='<div class="empty">'+esc(error.message)+"</div>";return}
+ box.innerHTML=(data||[]).map(c=>'<div class="category-row"><div class="grow"><strong>'+esc(c.name_en)+'</strong><br><span class="muted">'+esc(c.name_ko||"")+" · "+esc(c.slug)+"</span></div><span class='badge "+(c.is_active?"green":"gray")+"'>"+(c.is_active?"ACTIVE":"INACTIVE")+"</span><span class='muted'>#"+esc(c.sort_order)+"</span></div>").join("")||'<div class="empty">No categories.</div>';
 }
 
+async function loadWaitlist(){
+ const body=document.getElementById("waitlistBody");
+ const {data,error}=await db.from("newsletter").select("*").order("created_at",{ascending:false});
+ if(error){body.innerHTML='<tr><td colspan="3" class="empty">'+esc(error.message)+"</td></tr>";return}
+ body.innerHTML=(data||[]).map(x=>'<tr><td>'+esc(x.email)+'</td><td>'+esc(x.source||"—")+'</td><td>'+esc(x.created_at?new Date(x.created_at).toLocaleString("en-IN"):"—")+'</td></tr>').join("")||'<tr><td colspan="3" class="empty">No waitlist entries.</td></tr>';
+ document.getElementById("dashWaitlist").textContent=(data||[]).length;
+}
+document.getElementById("reloadWaitlist").addEventListener("click",loadWaitlist);
 
-/* =========================================================
-   INITIALIZE SETTINGS
-========================================================= */
-
-settingsTab(
-"general",
-document.querySelector("#settings .tab")
-);
-
+function updateDashboard(){
+ let units=0;products.forEach(p=>units+=totalStock(p));
+ document.getElementById("dashProducts").textContent=products.length;document.getElementById("dashStock").textContent=units;
+ document.getElementById("dashCatalog").innerHTML='<table><thead><tr><th>CATEGORY</th><th>PRODUCTS</th></tr></thead><tbody>'+["tees","hoods","sweats","jackets","bottoms"].map(c=>'<tr><td>'+c.toUpperCase()+'</td><td>'+products.filter(p=>String(p.category).toLowerCase()===c).length+"</td></tr>").join("")+"</tbody></table>";
+}
+async function loadAll(){
+ document.getElementById("sysSupabase").innerHTML='<span class="badge green">CONNECTED</span>';
+ const {data:{session}}=await db.auth.getSession();document.getElementById("sysAuth").innerHTML=session?'<span class="badge green">AUTHENTICATED</span>':'<span class="badge red">SIGNED OUT</span>';
+ await loadProducts();await loadWaitlist();await loadCategories();
+ document.getElementById("sysProducts").innerHTML='<span class="badge green">'+products.length+" LOADED</span>";
+ document.getElementById("securityAal").innerHTML=session?'<span class="badge '+(session.user?.aal==="aal2"?"green":"amber")+'">'+esc(session.user?.aal||"aal1")+"</span>":"—";
+ document.getElementById("readinessBar").style.width="45%";document.getElementById("sysBar").style.width="45%";
+}
+boot();
 </script>
-
 </body>
 </html>
