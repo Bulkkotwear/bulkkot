@@ -1,252 +1,166 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>BULKKOT — Admin OS</title>
-<link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#070707">
+<title>BULKKOT ADMIN · 불꽃</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#090909;--panel:#101010;--panel2:#151515;--line:#252525;--text:#f4f4f2;--muted:#8b8b8b;--red:#e31b23;--red2:#b90f16;--green:#35c98a;--amber:#e7ad4b;--white:#fff}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}
-body{overflow-x:hidden}.hidden{display:none!important}
-.login{min-height:100vh;display:grid;grid-template-columns:1.1fr .9fr;background:#050505}.login-visual{padding:55px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;background:linear-gradient(135deg,#0b0b0b,#050505)}.login-visual:after{content:"";position:absolute;width:500px;height:500px;border:1px solid #222;border-radius:50%;right:-180px;bottom:-200px}.logo{display:flex;align-items:center;gap:12px;position:relative;z-index:1}.logo img{width:38px;height:38px;object-fit:contain}.logo strong{font-size:20px;letter-spacing:.16em}.logo small{color:var(--red);font-weight:800;letter-spacing:.18em}.login-copy{position:relative;z-index:1}.login-copy .eyebrow{color:var(--red);font-size:10px;font-weight:900;letter-spacing:.25em}.login-copy h1{font-size:clamp(52px,7vw,100px);line-height:.88;margin:14px 0;font-weight:950;letter-spacing:-.06em}.login-copy h1 span{color:var(--red)}.login-copy p{max-width:500px;color:#999;line-height:1.7;font-size:13px}.login-foot{display:flex;justify-content:space-between;color:#666;font-size:9px;letter-spacing:.16em;position:relative;z-index:1}.login-panel{background:#0d0d0d;border-left:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:30px}.login-card{width:min(430px,100%)}.login-card h2{font-size:28px;margin:0 0 8px}.login-card>p{color:var(--muted);font-size:12px;margin:0 0 28px}.field{display:grid;gap:7px;margin-bottom:16px}.field label{font-size:9px;font-weight:900;letter-spacing:.16em;color:#aaa}.field input,.field select,.field textarea{width:100%;background:#080808;border:1px solid var(--line);color:#fff;border-radius:5px;padding:12px;outline:none}.field textarea{min-height:120px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#555}.btn{border:1px solid var(--line);background:#151515;color:#eee;padding:10px 14px;border-radius:5px;font-size:11px;font-weight:850;letter-spacing:.04em}.btn:hover{border-color:#555}.btn.primary{background:var(--red);border-color:var(--red);color:#fff}.btn.primary:hover{background:var(--red2)}.btn.ghost{background:transparent}.btn.danger{color:#ff8585;border-color:#552020}.login-error{min-height:18px;color:#ff7676;font-size:11px;margin:4px 0 14px}
-.app{min-height:100vh}.sidebar{position:fixed;left:0;top:0;bottom:0;width:255px;background:#070707;border-right:1px solid var(--line);z-index:50;overflow:auto}.side-head{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 18px;gap:10px;position:sticky;top:0;background:#070707;z-index:2}.side-head img{width:30px;height:30px;object-fit:contain}.side-head strong{font-size:15px;letter-spacing:.14em}.side-head small{color:var(--red);font-size:8px;letter-spacing:.15em;font-weight:900}.nav{padding:10px 9px 30px}.nav-group{margin-top:17px}.nav-title{font-size:8px;letter-spacing:.2em;color:#555;font-weight:900;padding:0 10px 7px}.nav button{width:100%;border:0;background:transparent;color:#999;text-align:left;padding:9px 10px;border-radius:5px;font-size:11px;display:flex;align-items:center;gap:10px}.nav button:hover,.nav button.active{background:#171717;color:#fff}.nav button.active{box-shadow:inset 2px 0 var(--red)}.nav .ico{width:18px;text-align:center;color:#777}.nav button.active .ico{color:var(--red)}.main{margin-left:255px;min-height:100vh}.top{height:72px;border-bottom:1px solid var(--line);background:rgba(9,9,9,.95);backdrop-filter:blur(12px);display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:40}.top h1{font-size:16px;margin:0}.top-spacer{flex:1}.status{display:flex;align-items:center;gap:7px;border:1px solid #243d32;background:#0e1713;color:#72d8aa;border-radius:99px;padding:7px 11px;font-size:9px;font-weight:900;letter-spacing:.08em;margin-right:8px}.dot{width:6px;height:6px;background:var(--green);border-radius:50%}.user-menu{display:flex;align-items:center;gap:8px}.user-email{font-size:10px;color:#777;max-width:180px;overflow:hidden;text-overflow:ellipsis}.content{padding:24px;max-width:1700px;margin:auto}.page{display:none}.page.active{display:block}.eyebrow{font-size:9px;color:#666;font-weight:900;letter-spacing:.2em}.page-head{display:flex;align-items:center;gap:12px;margin:5px 0 20px}.page-head h2{font-size:27px;letter-spacing:-.03em;margin:0}.actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.grid{display:grid;gap:12px}.stats{grid-template-columns:repeat(4,1fr)}.two{grid-template-columns:1.5fr 1fr}.three{grid-template-columns:repeat(3,1fr)}.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:17px}.card h3{font-size:13px;margin:0 0 12px}.stat-label{font-size:9px;color:#777;font-weight:800;letter-spacing:.12em}.stat-value{font-size:28px;font-weight:900;margin-top:8px}.stat-note{font-size:9px;color:#666;margin-top:5px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:11px}th{font-size:8px;color:#666;letter-spacing:.12em;text-align:left}th,td{padding:11px 9px;border-bottom:1px solid #202020;white-space:nowrap}td{color:#ddd}.empty{text-align:center!important;color:#666!important;padding:32px!important}.badge{display:inline-flex;padding:4px 7px;border-radius:99px;font-size:8px;font-weight:900;letter-spacing:.06em}.green{background:#10241b;color:#6cdda6}.amber{background:#251e10;color:#e7ad4b}.red{background:#2a1011;color:#ff7777}.gray{background:#1b1b1b;color:#888}.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow:auto;margin-bottom:16px}.tab{border:0;background:transparent;color:#777;padding:10px 12px;font-size:9px;font-weight:900;letter-spacing:.1em;border-bottom:2px solid transparent;white-space:nowrap}.tab.active{color:#fff;border-color:var(--red)}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}.field.full{grid-column:1/-1}.check{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #202020;font-size:11px}.check:last-child{border-bottom:0}.switch{position:relative;width:38px;height:20px}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;background:#2b2b2b;border-radius:99px}.slider:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#777;border-radius:50%;transition:.2s}.switch input:checked+.slider{background:var(--red)}.switch input:checked+.slider:before{transform:translateX(18px);background:#fff}.product-img{width:44px;height:54px;object-fit:cover;background:#181818;border-radius:3px}.search{background:#090909;border:1px solid var(--line);color:#fff;padding:9px 11px;border-radius:5px;font-size:10px;min-width:200px}.stock-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.stock-cell{border:1px solid var(--line);background:#0b0b0b;padding:12px;border-radius:6px}.stock-cell strong{display:block;font-size:9px;color:#777;margin-bottom:6px}.stock-cell span{font-size:20px;font-weight:900}.category-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #202020}.category-row:last-child{border-bottom:0}.grow{flex:1}.muted{color:#777;font-size:10px}.media-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.media-box{aspect-ratio:1;background:#0b0b0b;border:1px dashed #333;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#666;font-size:9px}.readiness{height:7px;background:#222;border-radius:99px;overflow:hidden}.readiness>span{display:block;height:100%;background:var(--red);width:20%}.toast{position:fixed;right:20px;bottom:20px;background:#fff;color:#111;padding:12px 15px;border-radius:6px;font-size:11px;font-weight:800;z-index:200;box-shadow:0 10px 35px #000}.mobile-nav{display:none}
-@media(max-width:1100px){.sidebar{width:220px}.main{margin-left:220px}.stats{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}.media-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:760px){.login{grid-template-columns:1fr}.login-visual{display:none}.login-panel{border:0;padding:22px}.sidebar{display:none}.main{margin:0}.top{height:62px;padding:0 13px}.user-email{display:none}.content{padding:16px 12px 82px}.stats,.form-grid{grid-template-columns:1fr}.media-grid{grid-template-columns:repeat(2,1fr)}.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;height:62px;background:#080808;border-top:1px solid var(--line);z-index:100;justify-content:space-around}.mobile-nav button{background:transparent;border:0;color:#666;font-size:8px;font-weight:800}.mobile-nav button.active{color:#fff}.mobile-nav span{display:block;font-size:16px;margin-bottom:3px}.page-head{align-items:flex-start}.actions{margin-left:auto}.search{min-width:130px}}
-</style>
-</head>
-<body>
-<section id="loginView" class="login">
-  <div class="login-visual">
-    <div class="logo"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"><div><strong>불꽃 BULKKOT</strong><br><small>ADMIN OS</small></div></div>
-    <div class="login-copy"><div class="eyebrow">OWNER CONTROL CENTER · DROP 001</div><h1>LESS<br>NOISE.<br><span>MORE</span><br>PRESENCE.</h1><p>One control surface for the BULKKOT storefront. Products, inventory, orders, waitlist, content and store settings—without touching the storefront code for routine changes.</p></div>
-    <div class="login-foot"><span>KOREAN-INSPIRED MINIMALISM</span><span>EST. 2026</span></div>
-  </div>
-  <div class="login-panel">
-    <div class="login-card">
-      <div class="logo" style="margin-bottom:28px"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"><div><strong>BULKKOT</strong><br><small>OWNER LOGIN</small></div></div>
-      <h2>Admin access</h2><p>Sign in with your authorized BULKKOT admin account.</p>
-      <form id="loginForm">
-        <div class="field"><label>EMAIL</label><input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@email.com"></div>
-        <div class="field"><label>PASSWORD</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
-        <div id="loginError" class="login-error"></div>
-        <button class="btn primary" style="width:100%;height:45px" id="loginBtn">AUTHENTICATE</button>
-      </form>
-      <p style="margin-top:22px;font-size:9px;color:#555">Access is checked against the BULKKOT admin_users table. No service-role key is used in this page.</p>
-    </div>
-  </div>
-</section>
-
-<div id="app" class="app hidden">
-<aside class="sidebar">
-  <div class="side-head"><img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png"><div><strong>BULKKOT</strong><br><small>ADMIN OS</small></div></div>
-  <nav class="nav">
-    <div class="nav-group"><div class="nav-title">OVERVIEW</div><button data-page="dashboard"><span class="ico">⌂</span>Dashboard</button></div>
-    <div class="nav-group"><div class="nav-title">COMMERCE</div><button data-page="products"><span class="ico">◇</span>Products</button><button data-page="categories"><span class="ico">◫</span>Categories</button><button data-page="inventory"><span class="ico">▦</span>Inventory</button><button data-page="orders"><span class="ico">▣</span>Orders</button><button data-page="customers"><span class="ico">♙</span>Customers</button><button data-page="waitlist"><span class="ico">★</span>VIP Waitlist</button></div>
-    <div class="nav-group"><div class="nav-title">STOREFRONT</div><button data-page="cms"><span class="ico">✦</span>Homepage CMS</button><button data-page="media"><span class="ico">▧</span>Media Library</button><button data-page="shipping"><span class="ico">↗</span>Shipping</button><button data-page="payments"><span class="ico">₹</span>Payments</button></div>
-    <div class="nav-group"><div class="nav-title">CONTROL</div><button data-page="settings"><span class="ico">⚙</span>Store Settings</button><button data-page="seo"><span class="ico">⌕</span>SEO</button><button data-page="analytics"><span class="ico">◒</span>Analytics</button><button data-page="notifications"><span class="ico">◌</span>Notifications</button></div>
-    <div class="nav-group"><div class="nav-title">SECURITY</div><button data-page="security"><span class="ico">⌾</span>Security</button><button data-page="system"><span class="ico">⌘</span>System</button></div>
-  </nav>
-</aside>
-
-<main class="main">
-<header class="top"><h1 id="pageTitle">Dashboard</h1><div class="top-spacer"></div><div class="status"><span class="dot"></span><span id="storeStatus">ADMIN ONLINE</span></div><div class="user-menu"><span class="user-email" id="userEmail"></span><button class="btn ghost" id="refreshBtn">↻</button><button class="btn" id="logoutBtn">LOGOUT</button></div></header>
-<section class="content">
-
-<section class="page active" id="page-dashboard">
-<div class="eyebrow">BULKKOT OPERATING SYSTEM</div><div class="page-head"><h2>Dashboard</h2></div>
-<div class="grid stats">
-<div class="card"><div class="stat-label">PRODUCTS</div><div class="stat-value" id="dashProducts">—</div><div class="stat-note">Catalog</div></div>
-<div class="card"><div class="stat-label">UNITS IN STOCK</div><div class="stat-value" id="dashStock">—</div><div class="stat-note">Across all sizes</div></div>
-<div class="card"><div class="stat-label">VIP WAITLIST</div><div class="stat-value" id="dashWaitlist">—</div><div class="stat-note">Known newsletter entries</div></div>
-<div class="card"><div class="stat-label">STORE STATUS</div><div class="stat-value" id="dashLive">LIVE</div><div class="stat-note">Frontend available</div></div>
-</div><br>
-<div class="grid two">
-<div class="card"><h3>Catalog Snapshot</h3><div id="dashCatalog" class="table-wrap"></div></div>
-<div class="card"><h3>Launch Readiness</h3><div class="check"><span>Admin authentication</span><span class="badge green">READY</span></div><div class="check"><span>Products database</span><span class="badge green">CONNECTED</span></div><div class="check"><span>Inventory RPC</span><span class="badge green">SECURED</span></div><div class="check"><span>Orders backend</span><span class="badge amber">NEXT</span></div><div class="check"><span>CMS backend</span><span class="badge amber">NEXT</span></div><div style="margin-top:16px" class="readiness"><span id="readinessBar"></span></div><p class="muted">The dashboard only marks a control READY when the underlying storefront/backend wiring exists.</p></div>
-</div>
-</section>
-
-<section class="page" id="page-products">
-<div class="eyebrow">CATALOG</div><div class="page-head"><h2>Products</h2><div class="actions"><input id="productSearch" class="search" placeholder="Search products…"><button class="btn primary" id="newProductBtn">+ ADD PRODUCT</button></div></div>
-<div class="card"><div class="table-wrap"><table><thead><tr><th>PRODUCT</th><th>CATEGORY</th><th>SKU</th><th>PRICE</th><th>STOCK</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody id="productsBody"></tbody></table></div></div>
-</section>
-
-<section class="page" id="page-categories">
-<div class="eyebrow">CATALOG TAXONOMY</div><div class="page-head"><h2>Categories</h2></div>
-<div class="card"><div id="categoriesList"></div></div>
-</section>
-
-<section class="page" id="page-inventory">
-<div class="eyebrow">STOCK CONTROL</div><div class="page-head"><h2>Inventory</h2></div>
-<div class="grid stats"><div class="card"><div class="stat-label">PRODUCTS</div><div class="stat-value" id="invProducts">—</div></div><div class="card"><div class="stat-label">TOTAL UNITS</div><div class="stat-value" id="invUnits">—</div></div><div class="card"><div class="stat-label">LOW STOCK</div><div class="stat-value" id="invLow">—</div></div><div class="card"><div class="stat-label">OUT OF STOCK</div><div class="stat-value" id="invOut">—</div></div></div><br>
-<div class="card"><div class="table-wrap"><table><thead><tr><th>PRODUCT</th><th>SKU</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th><th>TOTAL</th><th>ACTION</th></tr></thead><tbody id="inventoryBody"></tbody></table></div></div>
-</section>
-
-<section class="page" id="page-orders"><div class="eyebrow">COMMERCE</div><div class="page-head"><h2>Orders</h2></div><div class="card"><div class="empty">Orders control is reserved for the verified orders schema/RPC. No fake order fields are being written.</div></div></section>
-<section class="page" id="page-customers"><div class="eyebrow">RELATIONSHIPS</div><div class="page-head"><h2>Customers</h2></div><div class="card"><div class="empty">Customer management will be wired only after the actual customer/order schema is verified.</div></div></section>
-
-<section class="page" id="page-waitlist">
-<div class="eyebrow">DROP 001</div><div class="page-head"><h2>VIP Waitlist</h2><div class="actions"><button class="btn" id="reloadWaitlist">REFRESH</button></div></div>
-<div class="card"><div class="table-wrap"><table><thead><tr><th>EMAIL</th><th>SOURCE</th><th>DATE</th></tr></thead><tbody id="waitlistBody"></tbody></table></div></div>
-</section>
-
-<section class="page" id="page-cms">
-<div class="eyebrow">STOREFRONT CONTROL</div><div class="page-head"><h2>Homepage CMS</h2></div>
-<div class="card"><h3>Control layer</h3><p class="muted">The current storefront hardcodes several homepage blocks. I am not pretending these fields are connected. This panel will become live after the CMS table is created and the storefront reads it.</p><div class="check"><span>Announcement ticker</span><span class="badge amber">NOT WIRED</span></div><div class="check"><span>Hero title / description / CTA</span><span class="badge amber">NOT WIRED</span></div><div class="check"><span>Hero image</span><span class="badge amber">NOT WIRED</span></div><div class="check"><span>Featured collection</span><span class="badge amber">NOT WIRED</span></div><div class="check"><span>About content</span><span class="badge amber">NOT WIRED</span></div></div>
-</section>
-
-<section class="page" id="page-media"><div class="eyebrow">ASSETS</div><div class="page-head"><h2>Media Library</h2></div><div class="card"><div class="empty">Storage bucket/schema will be verified before upload/delete controls are enabled.</div></div></section>
-
-<section class="page" id="page-shipping"><div class="eyebrow">FULFILMENT</div><div class="page-head"><h2>Shipping</h2></div><div class="card"><div class="empty">Shipping settings are not yet connected to a verified storefront settings source. No fake Save button.</div></div></section>
-<section class="page" id="page-payments"><div class="eyebrow">CHECKOUT</div><div class="page-head"><h2>Payments</h2></div><div class="card"><div class="empty">Payment settings are not yet connected to a verified storefront settings source. No fake Save button.</div></div></section>
-<section class="page" id="page-settings"><div class="eyebrow">CONTROL CENTER</div><div class="page-head"><h2>Store Settings</h2></div><div class="card"><div class="empty">Settings backend will be added against the actual storefront consumption points. This prevents admin-only settings that do nothing on the live store.</div></div></section>
-<section class="page" id="page-seo"><div class="eyebrow">DISCOVERABILITY</div><div class="page-head"><h2>SEO</h2></div><div class="card"><div class="empty">SEO controls are intentionally disabled until the storefront meta/OG values are moved to a shared source.</div></div></section>
-<section class="page" id="page-analytics"><div class="eyebrow">INSIGHTS</div><div class="page-head"><h2>Analytics</h2></div><div class="card"><div class="empty">Analytics will use verified orders/customer events. No invented numbers.</div></div></section>
-<section class="page" id="page-notifications"><div class="eyebrow">ALERTS</div><div class="page-head"><h2>Notifications</h2></div><div class="card"><div class="empty">Notification preferences will be wired after the notification source is defined.</div></div></section>
-
-<section class="page" id="page-security"><div class="eyebrow">ACCESS CONTROL</div><div class="page-head"><h2>Security</h2></div><div class="grid three"><div class="card"><h3>Current Admin</h3><div id="securityAdmin">Loading…</div></div><div class="card"><h3>MFA / AAL</h3><div id="securityAal">Loading…</div></div><div class="card"><h3>RLS</h3><p class="muted">Database policies are managed in Supabase. This browser never receives a service-role key.</p><span class="badge green">SERVICE-ROLE SAFE</span></div></div></section>
-
-<section class="page" id="page-system"><div class="eyebrow">INFRASTRUCTURE</div><div class="page-head"><h2>System</h2></div><div class="grid three"><div class="card"><h3>Supabase</h3><div id="sysSupabase"></div></div><div class="card"><h3>Auth Session</h3><div id="sysAuth"></div></div><div class="card"><h3>Products</h3><div id="sysProducts"></div></div></div><br><div class="card"><h3>Launch Readiness</h3><div class="readiness"><span id="sysBar"></span></div><p class="muted">Current foundation is intentionally honest: connected controls are shown as live; unconnected controls are marked pending.</p></div></section>
-
-</section>
-</main>
-</div>
-
-<nav class="mobile-nav" id="mobileNav"><button data-page="dashboard"><span>⌂</span>HOME</button><button data-page="products"><span>◇</span>PRODUCTS</button><button data-page="inventory"><span>▦</span>STOCK</button><button data-page="orders"><span>▣</span>ORDERS</button><button data-page="settings"><span>⚙</span>SETTINGS</button></nav>
-
-<div id="toast" class="toast hidden"></div>
-
+:root{--bg:#070707;--pn:#101010;--bd:#1c1c1c;--bd2:#292929;--tx:#f2f2f2;--mu:#8a8a8a;--ac:#e31b23}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--tx);font:14px/1.5 Helvetica,Arial,sans-serif}
+a,button{font:inherit;color:inherit}button{cursor:pointer}
+.m{color:var(--mu)}.err{border:1px solid var(--ac);padding:12px;color:var(--ac)}
+h1{font-size:20px;letter-spacing:.12em;text-transform:uppercase}h2{font-size:12px;letter-spacing:.14em;color:var(--mu);text-transform:uppercase;margin:0 0 10px}
+.btn{background:transparent;border:1px solid var(--bd2);padding:8px 14px;letter-spacing:.08em;font-size:12px;text-transform:uppercase}
+.btn:hover{border-color:var(--tx)}.btn.p{background:var(--ac);border-color:var(--ac)}.btn.d{color:var(--ac);border-color:var(--ac)}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--bd2);color:var(--tx);padding:9px 10px;font:inherit;border-radius:0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac)}textarea{min-height:70px;font-family:monospace;font-size:12px}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+#login form{width:100%;max-width:340px;background:var(--pn);border:1px solid var(--bd);padding:28px;display:grid;gap:12px}
+.logo{font-size:22px;letter-spacing:.2em;font-weight:700}.logo b{color:var(--ac)}
+#app{display:none;min-height:100vh}
+aside{position:fixed;inset:0 auto 0 0;width:230px;background:var(--pn);border-right:1px solid var(--bd);overflow:auto;padding:18px 0;z-index:20;transition:transform .2s}
+aside .logo{padding:0 20px 14px;font-size:17px}aside h3{font-size:10px;letter-spacing:.18em;color:var(--mu);padding:14px 20px 4px}
+aside a{display:block;padding:8px 20px;color:var(--mu);cursor:pointer;border-left:2px solid transparent}
+aside a:hover{color:var(--tx)}aside a.on{color:var(--tx);border-left-color:var(--ac);background:var(--bg)}
+main{margin-left:230px;padding:24px;max-width:1400px}
+.top{display:none;position:sticky;top:0;z-index:10;background:var(--pn);border-bottom:1px solid var(--bd);padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));align-items:center;gap:12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}.bar input{max-width:260px}.sp{flex:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:22px}
+.card{background:var(--pn);border:1px solid var(--bd);padding:16px}.card .n{font-size:26px;font-weight:700;margin-top:4px}.card .n.r{color:var(--ac)}
+.tw{overflow-x:auto;border:1px solid var(--bd)}table{border-collapse:collapse;width:100%;background:var(--pn)}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);background:var(--bg)}tbody tr{cursor:pointer}tbody tr:hover{background:#151515}
+.chip{border:1px solid var(--bd2);background:none;padding:4px 10px;font-size:12px}.chip.on{border-color:var(--ac);color:var(--ac)}
+.th{width:34px;height:34px;object-fit:cover;border:1px solid var(--bd2);vertical-align:middle}
+#mb{position:fixed;inset:0;background:#000c;display:none;align-items:flex-start;justify-content:center;overflow:auto;z-index:50;padding:20px 12px}
+#md{background:var(--pn);border:1px solid var(--bd2);width:100%;max-width:640px;padding:22px}
+.f{margin-bottom:12px}.f label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin-bottom:4px}
+.row{display:flex;gap:8px}.ft{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.bars{display:flex;align-items:flex-end;gap:8px;height:130px;margin-top:10px}.bars div{flex:1;background:var(--ac);min-height:2px;position:relative}
+.bars span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--mu)}
+.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}.mg .card{padding:8px;font-size:11px;word-break:break-all}.mg img{width:100%;aspect-ratio:1;object-fit:cover;display:block;margin-bottom:6px}
+#t{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:#000;padding:10px 18px;display:none;z-index:99;max-width:90%}#t.b{background:var(--ac);color:#fff}
+@media(max-width:820px){aside{transform:translateX(-100%)}aside.o{transform:none}main{margin:0;padding:16px}.top{display:flex}}
+</style></head><body>
+<div id="login"><form id="lf"><div class="logo"><b>불꽃</b> BULKKOT</div><div class="m">ADMIN ACCESS</div>
+<input id="em" type="email" placeholder="Email" autocomplete="username" required>
+<input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
+<input id="otp" inputmode="numeric" placeholder="2FA code" style="display:none">
+<button class="btn p" id="lb">Sign in</button><div class="m" id="le"></div></form></div>
+<div id="app"><div class="top"><button class="btn" onclick="nav.classList.toggle('o')">☰</button><span class="logo" style="font-size:15px"><b>불꽃</b> BULKKOT</span></div>
+<aside id="nav"></aside><main id="main"></main></div>
+<div id="mb"><div id="md"></div></div><div id="t"></div>
 <script>
-const SUPABASE_URL="https://pgubjluqgqvrybvehzeh.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJwZ3ViaGx1cWdxdnJ5YnZ2ZWh6ZWgiLCJhdWQiOiJhdXRoIiwicmVmIjoicGd1YmpsdXFncXZyeWJ2ZWh6ZWgiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NzU1ODAyNiwiZXhwIjoyMTAzMTM0NDAyNn0.W0en34qVo24Rsqi2S0P-JQ_6WF41WjIU8HKmGBzX1lA";
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-const titles={dashboard:"Dashboard",products:"Products",categories:"Categories",inventory:"Inventory",orders:"Orders",customers:"Customers",waitlist:"VIP Waitlist",cms:"Homepage CMS",media:"Media Library",shipping:"Shipping",payments:"Payments",settings:"Store Settings",seo:"SEO",analytics:"Analytics",notifications:"Notifications",security:"Security",system:"System"};
-let products=[];
+const SB_URL='https://pgubjluqgqvrybvehzeh.supabase.co',SB_KEY='sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP',ADMIN='bulkkotwear@gmail.com';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const main=$('#main'),nav=$('#nav'),inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+let tt;function toast(m,bad){const t=$('#t');t.textContent=m;t.className=bad?'b':'';t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',3500)}
+const BUCKETS=['product-images','site-media','product-media','site-content-images'];
+const NAV=[['Overview',[['dashboard','Dashboard'],['analytics','Analytics']]],['Sell',[['orders','Orders'],['products','Products'],['categories','Categories'],['inventory','Inventory'],['coupons','Coupons']]],['People',[['customers','Customers'],['accounts','Accounts'],['waitlist','VIP Waitlist'],['newsletter','Newsletter']]],['Website',[['announcement','Announcement Bar'],['content','Site Content'],['policies','Policies'],['media','Media Library']]],['Admin',[['settings','Store Settings'],['admins','Admin Users'],['audit','Audit Log'],['system','System']]]];
+const T={orders:{table:'orders',order:'created_at',kids:'order_items',fk:'order_id'},products:{table:'products',order:'created_at'},categories:{table:'categories'},inventory:{table:'inventory_movements',order:'created_at',ro:1},coupons:{table:'coupons'},accounts:{table:'customer_profiles'},admins:{table:'admin_users'},audit:{table:'audit_log',order:'created_at',ro:1},waitlist:{table:'waitlist',order:'created_at'},newsletter:{table:'newsletter',order:'created_at'},announcement:{table:'announcement_settings'},content:{table:'site_content'},policies:{table:'policies'},settings:{table:'store_settings'}};
+const TITLES={};NAV.forEach(g=>g[1].forEach(p=>TITLES[p[0]]=p[1]));
+const STATUS=['new','processing','packed','shipped','out_for_delivery','delivered','cancelled','returned','refunded'];
 
-function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.classList.remove("hidden");clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.classList.add("hidden"),2600)}
-function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function totalStock(p){const s=p.stock||{};return ["S","M","L","XL","XXL"].reduce((n,k)=>n+Number(s[k]||0),0)}
-function badgeStatus(p){const st=p.status||"unknown";const cls=st==="active"?"green":st==="sold_out"?"red":st==="archived"?"gray":"amber";return '<span class="badge '+cls+'">'+esc(st.replace("_"," ").toUpperCase())+"</span>"}
-function openPage(id){
- document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
- const p=document.getElementById("page-"+id);if(p)p.classList.add("active");
- document.getElementById("pageTitle").textContent=titles[id]||"BULKKOT Admin";
- document.querySelectorAll(".nav button,.mobile-nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
- if(id==="products")renderProducts();
- if(id==="inventory")renderInventory();
- if(id==="categories")loadCategories();
- if(id==="waitlist")loadWaitlist();
- window.scrollTo({top:0,behavior:"smooth"});
-}
-document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>openPage(b.dataset.page)));
+/* AUTH */
+$('#lf').onsubmit=async e=>{e.preventDefault();const le=$('#le');le.textContent='';$('#lb').disabled=true;
+ try{
+  let {data,error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});
+  if(error)throw error;
+  if((data.user.email||'').toLowerCase()!==ADMIN){await sb.auth.signOut();throw new Error('Not an admin account')}
+  const a=(await sb.auth.mfa.getAuthenticatorAssuranceLevel()).data;
+  if(a&&a.nextLevel==='aal2'&&a.currentLevel!=='aal2'){
+   const o=$('#otp');if(o.style.display==='none'){o.style.display='block';o.focus();throw new Error('Enter 2FA code, then sign in again')}
+   const f=(await sb.auth.mfa.listFactors()).data.totp[0];
+   const r=await sb.auth.mfa.challengeAndVerify({factorId:f.id,code:o.value.trim()});if(r.error)throw r.error}
+  start();
+ }catch(x){le.style.color='#e31b23';le.textContent=x.message}$('#lb').disabled=false};
+async function boot(){const {data}=await sb.auth.getSession();const u=data.session&&data.session.user;
+ if(u&&(u.email||'').toLowerCase()===ADMIN){const a=(await sb.auth.mfa.getAuthenticatorAssuranceLevel()).data;if(!(a&&a.nextLevel==='aal2'&&a.currentLevel!=='aal2'))return start()}
+ $('#login').style.display='flex'}
+function start(){$('#login').style.display='none';$('#app').style.display='block';
+ nav.innerHTML='<div class="logo"><b>불꽃</b> BULKKOT</div>'+NAV.map(g=>`<h3>${g[0].toUpperCase()}</h3>`+g[1].map(p=>`<a data-p="${p[0]}" onclick="go('${p[0]}')">${p[1]}</a>`).join('')).join('')+'<h3>SESSION</h3><a onclick="out()">Sign out</a>';
+ sb.channel('ord').on('postgres_changes',{event:'INSERT',schema:'public',table:'orders'},()=>toast('🔔 New order received')).subscribe();
+ go((location.hash||'#dashboard').slice(1))}
+async function out(){await sb.auth.signOut();location.hash='';location.reload()}
 
-async function getAdmin(){
- const {data:{user},error}=await db.auth.getUser();
- if(error||!user)return null;
- const {data:admin,error:ae}=await db.from("admin_users").select("user_id,role,is_active,display_name").eq("user_id",user.id).maybeSingle();
- if(ae||!admin||!admin.is_active)return null;
- return {user,admin};
-}
-async function boot(){
- const {data:{session}}=await db.auth.getSession();
- if(!session){showLogin();return}
- const admin=await getAdmin();
- if(!admin){await db.auth.signOut();showLogin("This account is not an active BULKKOT admin.");return}
- showApp(admin);
-}
-function showLogin(msg){document.getElementById("loginView").classList.remove("hidden");document.getElementById("app").classList.add("hidden");if(msg)document.getElementById("loginError").textContent=msg}
-function showApp(ctx){
- document.getElementById("loginView").classList.add("hidden");document.getElementById("app").classList.remove("hidden");
- document.getElementById("userEmail").textContent=ctx.user.email||"";
- document.getElementById("securityAdmin").innerHTML="<strong>"+esc(ctx.admin.display_name||ctx.user.email)+"</strong><br><span class='muted'>Role: "+esc(ctx.admin.role)+" · Active</span>";
- loadAll();
-}
-document.getElementById("loginForm").addEventListener("submit",async e=>{
- e.preventDefault();const btn=document.getElementById("loginBtn");const err=document.getElementById("loginError");err.textContent="";btn.disabled=true;btn.textContent="AUTHENTICATING…";
- const {data,error}=await db.auth.signInWithPassword({email:document.getElementById("loginEmail").value.trim(),password:document.getElementById("loginPassword").value});
- if(error){err.textContent=error.message;btn.disabled=false;btn.textContent="AUTHENTICATE";return}
- const admin=await getAdmin();
- if(!admin){await db.auth.signOut();err.textContent="Login succeeded, but this account is not an active BULKKOT admin.";btn.disabled=false;btn.textContent="AUTHENTICATE";return}
- btn.disabled=false;btn.textContent="AUTHENTICATE";showApp(admin);
-});
-document.getElementById("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();location.reload()});
-document.getElementById("refreshBtn").addEventListener("click",loadAll);
+/* ROUTER */
+function go(p){if(!TITLES[p])p='dashboard';location.hash=p;nav.classList.remove('o');$$('aside a[data-p]').forEach(a=>a.classList.toggle('on',a.dataset.p===p));window.scrollTo(0,0);
+ const F={dashboard,analytics,media,system,customers};F[p]?F[p]():grid(p)}
+const head=(t,x='')=>`<div class="bar" style="margin-top:0"><h1>${t}</h1><span class="sp"></span>${x}</div>`;
 
-async function loadProducts(){
- const {data,error}=await db.from("products").select("*").order("created_at",{ascending:false});
- if(error){toast("Products: "+error.message);return []}
- products=data||[];renderProducts();renderInventory();updateDashboard();return products
-}
-function renderProducts(){
- const q=(document.getElementById("productSearch")?.value||"").trim().toLowerCase();
- const rows=products.filter(p=>(p.name+" "+(p.sku||"")+" "+(p.category||"")).toLowerCase().includes(q));
- const body=document.getElementById("productsBody");if(!body)return;
- body.innerHTML=rows.length?rows.map(p=>'<tr><td><div style="display:flex;align-items:center;gap:9px"><img class="product-img" src="'+esc((p.images&&p.images[0])||p.image_url||"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png")+'"><div><strong>'+esc(p.name)+'</strong><br><span class="muted">'+esc(p.slug)+'</span></div></div></td><td>'+esc(p.category)+'</td><td>'+esc(p.sku||"—")+'</td><td>₹'+Number(p.price||0).toLocaleString("en-IN")+'</td><td>'+totalStock(p)+'</td><td>'+badgeStatus(p)+'</td><td><button class="btn" onclick="editProduct(\''+p.id+'\')">EDIT</button> <button class="btn danger" onclick="archiveProduct(\''+p.id+'\')">ARCHIVE</button></td></tr>').join(""):'<tr><td colspan="7" class="empty">No products found.</td></tr>';
-}
-document.getElementById("productSearch").addEventListener("input",renderProducts);
+/* DATA */
+async function list(c){let r;if(c.order){r=await sb.from(c.table).select('*').order(c.order,{ascending:false}).limit(2000);if(!r.error)return r}return sb.from(c.table).select('*').limit(2000)}
+const amt=r=>{for(const k of['total','total_amount','grand_total','amount','subtotal'])if(r[k]!=null)return Number(r[k])||0;return 0};
+const bad=s=>/cancel|return|refund/i.test(s||'');
+const stk=p=>{let s=p.stock??p.stock_quantity??p.inventory;if(s==null)return 99;if(typeof s==='object')return Object.values(s).reduce((a,b)=>a+(Number(typeof b==='object'?(b&&(b.stock??b.qty)):b)||0),0);return Number(s)||0};
+async function log(a,t,id,d){try{await sb.from('audit_log').insert({actor:ADMIN,action:a,tbl:t,record_id:String(id??''),details:d})}catch(e){}}
 
-async function archiveProduct(id){
- if(!confirm("Archive this product? It will remain in the database and stop being publicly visible."))return;
- const {error}=await db.from("products").update({status:"archived",is_active:false,visibility:false,active:false,updated_at:new Date().toISOString()}).eq("id",id);
- if(error){toast(error.message);return}toast("Product archived");await loadProducts();
-}
-window.editProduct=function(id){
- const p=products.find(x=>x.id===id);if(!p)return;
- alert("Product editor is the next catalog step. Current product: "+p.name);
-}
-document.getElementById("newProductBtn").addEventListener("click",()=>alert("Next catalog step: live product editor + Storage upload. The current page is intentionally not writing incomplete product rows."));
+/* GENERIC TABLE */
+let S={};
+async function grid(k){const c=T[k];S={k,c,f:'',q:''};main.innerHTML='<p class="m">Loading…</p>';
+ const {data,error}=await list(c);if(error){main.innerHTML=head(TITLES[k])+`<div class="err">${esc(error.message)}<br><span class="m">Table "${c.table}" missing or blocked by RLS. Run the SQL setup.</span></div>`;return}
+ S.rows=data;S.cols=data.length?Object.keys(data[0]):[];draw()}
+function draw(){const {k,c,rows,cols}=S;const sc=cols.includes('status')?[...new Set(rows.map(r=>r.status).filter(Boolean))]:[];
+ const v=rows.filter(r=>(!S.f||r.status===S.f)&&(!S.q||JSON.stringify(r).toLowerCase().includes(S.q)));S.v=v;
+ const show=cols.slice(0,7);
+ main.innerHTML=head(TITLES[k]+` <span class="m" style="font-size:13px">(${v.length})</span>`,`<button class="btn" onclick="csv()">Export CSV</button>${k==='orders'?'<button class="btn" onclick="bulk()">Bulk status</button>':''}${c.ro?'':'<button class="btn p" onclick="edit(-1)">+ Add</button>'}`)+
+ `<div class="bar"><input id="sq" placeholder="Search…" value="${esc(S.q)}">${sc.length?`<button class="chip ${S.f?'':'on'}" onclick="S.f='';draw()">All</button>`+sc.map(s=>`<button class="chip ${S.f===s?'on':''}" onclick="S.f='${esc(s)}';draw()">${esc(s)}</button>`).join(''):''}</div>`+
+ (v.length?`<div class="tw"><table><thead><tr>${show.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${v.map(r=>`<tr onclick="edit(${rows.indexOf(r)})">${show.map(x=>`<td>${cell(r[x])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'<p class="m">No records.</p>');
+ const q=$('#sq');q.oninput=()=>{S.q=q.value.toLowerCase();const p=q.selectionStart;draw();const n=$('#sq');n.focus();n.setSelectionRange(p,p)}}
+function cell(v){if(v==null||v==='')return '<span class="m">—</span>';if(typeof v==='object'){const s=JSON.stringify(v);return esc(s.length>40?s.slice(0,40)+'…':s)}
+ if(typeof v==='string'&&/^https?:.*\.(png|jpe?g|webp|gif|avif)/i.test(v))return `<img class="th" src="${esc(v)}">`;
+ if(typeof v==='boolean')return v?'✔':'✘';const s=String(v);return esc(s.length>40?s.slice(0,40)+'…':s)}
+function csv(){const {v,cols,k}=S;if(!v.length)return;const q=x=>'"'+String(x==null?'':typeof x==='object'?JSON.stringify(x):x).replace(/"/g,'""')+'"';
+ const b=new Blob([[cols.map(q).join(',')].concat(v.map(r=>cols.map(c=>q(r[c])).join(','))).join('\n')],{type:'text/csv'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`bulkkot-${k}-${new Date().toISOString().slice(0,10)}.csv`;a.click()}
 
-function renderInventory(){
- const body=document.getElementById("inventoryBody");if(!body)return;
- let units=0,low=0,out=0;
- body.innerHTML=products.map(p=>{
-   const s=p.stock||{};const total=totalStock(p);units+=total;
-   ["S","M","L","XL","XXL"].forEach(k=>{const n=Number(s[k]||0);if(n===0)out++;else if(n<=2)low++});
-   return '<tr><td>'+esc(p.name)+'</td><td>'+esc(p.sku||"—")+'</td>'+["S","M","L","XL","XXL"].map(k=>'<td>'+Number(s[k]||0)+'</td>').join("")+'<td><strong>'+total+'</strong></td><td><button class="btn" onclick="adjustStockPrompt(\''+p.id+'\')">ADJUST</button></td></tr>'
- }).join("")||'<tr><td colspan="9" class="empty">No products.</td></tr>';
- document.getElementById("invProducts").textContent=products.length;document.getElementById("invUnits").textContent=units;document.getElementById("invLow").textContent=low;document.getElementById("invOut").textContent=out;
-}
-window.adjustStockPrompt=async function(id){
- const p=products.find(x=>x.id===id);if(!p)return;
- const size=prompt("Size: S, M, L, XL or XXL");if(!size)return;
- const s=size.toUpperCase();if(!["S","M","L","XL","XXL"].includes(s)){toast("Invalid size");return}
- const change=Number(prompt("Quantity change. Example: 5 to restock, -1 to correct stock"));if(!Number.isInteger(change)){toast("Quantity must be a whole number");return}
- const {data,error}=await db.rpc("adjust_product_stock",{p_product_id:id,p_size:s,p_quantity_change:change,p_reason:"manual_adjustment",p_note:"Admin adjustment"});
- if(error){toast(error.message);return}toast("Stock updated: "+(data?.quantity_after??"done"));await loadProducts();
-}
+/* EDITOR */
+const IMG=/image|img|photo|thumb|media|gallery|logo|banner|hero/i;
+async function edit(i){const {c,rows,cols}=S,r=i>=0?rows[i]:null,pk=c.pk||'id';
+ let h=`<h2>${r?'Edit':'New'} · ${esc(c.table)}</h2>`;
+ if(!cols.length)h+=`<div class="f"><label>Record as JSON (table is empty, columns unknown)</label><textarea id="raw" style="min-height:160px">{\n  \n}</textarea></div>`;
+ else cols.forEach(f=>{const v=r?r[f]:null,ro=r&&(f===pk||/^(created_at|updated_at)$/.test(f)),t=typeof v;
+  let inp,ty='s';
+  if(f==='status'&&c.k!==0&&S.k==='orders'){inp=`<select data-k="${f}" data-t="s">${[...new Set([...(v?[v]:[]),...STATUS])].map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`}
+  else if(t==='boolean'){ty='b';inp=`<select data-k="${f}" data-t="b"><option ${v?'selected':''}>true</option><option ${!v?'selected':''}>false</option></select>`}
+  else if(v&&t==='object'){ty='j';inp=`<textarea data-k="${f}" data-t="j">${esc(JSON.stringify(v,null,1))}</textarea>`}
+  else if(t==='number'){ty='n';inp=`<input type="number" step="any" data-k="${f}" data-t="n" value="${v}" ${ro?'disabled':''}>`}
+  else if(typeof v==='string'&&v.length>70)inp=`<textarea data-k="${f}" data-t="s" ${ro?'disabled':''}>${esc(v)}</textarea>`;
+  else inp=`<input data-k="${f}" data-t="s" data-nl="${v==null?1:''}" value="${esc(v??'')}" ${ro?'disabled':''}>`;
+  const up=IMG.test(f)&&!ro?`<button class="btn" type="button" onclick="up('${f}')">Upload</button>`:'';
+  h+=`<div class="f"><label>${esc(f)}</label><div class="row">${inp}${up}</div></div>`});
+ if(r&&c.kids){const k=await sb.from(c.kids).select('*').eq(c.fk,r[pk]);h+=`<h2 style="margin-top:20px">Items</h2>`+(k.data&&k.data.length?`<div class="tw"><table><tbody>${k.data.map(x=>`<tr><td>${Object.entries(x).filter(([a])=>!/^(id|order_id|created_at)$/.test(a)).map(([a,b])=>`${esc(a)}: ${esc(typeof b==='object'?JSON.stringify(b):b)}`).join(' · ')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="m">'+(k.error?esc(k.error.message):'No items')+'</p>')}
+ if(r&&S.k==='orders'){const l=await sb.from('audit_log').select('*').eq('tbl','orders').eq('record_id',String(r[pk])).order('created_at',{ascending:false}).limit(20);h+='<h2 style="margin-top:20px">Timeline</h2>'+((l.data||[]).map(e=>`<div class="m">${esc((e.created_at||'').slice(0,16).replace('T',' '))} · ${esc(e.action)} ${esc(JSON.stringify(e.details||''))}</div>`).join('')||'<p class="m">No events yet</p>')}
+ h+=`<div class="ft">${r&&!c.ro?`<button class="btn d" onclick="del(${i})">Delete</button>`:''}<span class="sp"></span><button class="btn" onclick="mc()">Close</button>${c.ro?'':`<button class="btn p" onclick="save(${i})">Save</button>`}</div>`;
+ $('#md').innerHTML=h;$('#mb').style.display='flex'}
+function mc(){$('#mb').style.display='none'}
+async function save(i){const {c,rows}=S,pk=c.pk||'id',r=i>=0?rows[i]:null;let o={};
+ const raw=$('#raw');if(raw){try{o=JSON.parse(raw.value)}catch(e){return toast('Invalid JSON',1)}}
+ else for(const el of $$('#md [data-k]')){const k=el.dataset.k,t=el.dataset.t;let v=el.value;
+  if(t==='b')v=v==='true';else if(t==='n')v=v===''?null:Number(v);else if(t==='j'){try{v=v.trim()?JSON.parse(v):null}catch(e){return toast(k+': invalid JSON',1)}}else if(v===''&&el.dataset.nl)v=null;
+  if(el.disabled)continue;
+  if(r){if(JSON.stringify(v)===JSON.stringify(r[k]??null))continue}else if(v===''||v===null)continue;o[k]=v}
+ let q;if(r){if(!Object.keys(o).length){mc();return}q=sb.from(c.table).update(o).eq(pk,r[pk]).select()}else q=sb.from(c.table).insert(o).select();
+ const {data,error}=await q;if(error)return toast(error.message,1);if(!data||!data.length)return toast('Blocked by RLS: no row changed',1);
+ log(r?'update':'insert',c.table,data[0][pk],o);toast('Saved');mc();grid(S.k)}
+async function del(i){const {c,rows}=S,pk=c.pk||'id';if(!confirm('Delete this record permanently?'))return;
+ const {data,error}=await sb.from(c.table).delete().eq(pk,rows[i][pk]).select();if(error)return toast(error.message,1);if(!data||!data.length)return toast('Blocked by RLS: nothing deleted',1);log('delete',c.table,rows[i][pk],null);toast('Deleted');mc();grid(S.k)}
+async function up(f){const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=async()=>{const file=i.files[0];if(!file)return;
+ const p=Date.now()+'-'+file.name.replace(/[^\w.\-]/g,'_');const {error}=await sb.storage.from('product-images').upload(p,file,{upsert:false});if(error)return toast(error.message,1);
+ const url=sb.storage.from('product-images').getPublicUrl(p).data.publicUrl,el=$(`#md [data-k="${f}"]`);
+ if(el.dataset.t==='j'){let a=[];try{a=JSON.parse(el.value||'[]');if(!Array.isArray(a))a=[a]}catch(e){}a.push(url);el.value=JSON.stringify(a,null,1)}else el.value=url;toast('Uploaded · now press Save')};i.click()}
 
-async function loadCategories(){
- const {data,error}=await db.from("categories").select("*").order("sort_order",{ascending:true});
- const box=document.getElementById("categoriesList");if(!box)return;
- if(error){box.innerHTML='<div class="empty">'+esc(error.message)+"</div>";return}
- box.innerHTML=(data||[]).map(c=>'<div class="category-row"><div class="grow"><strong>'+esc(c.name_en)+'</strong><br><span class="muted">'+esc(c.name_ko||"")+" · "+esc(c.slug)+"</span></div><span class='badge "+(c.is_active?"green":"gray")+"'>"+(c.is_active?"ACTIVE":"INACTIVE")+"</span><span class='muted'>#"+esc(c.sort_order)+"</span></div>").join("")||'<div class="empty">No categories.</div>';
-}
-
-async function loadWaitlist(){
- const body=document.getElementById("waitlistBody");
- const {data,error}=await db.from("newsletter").select("*").order("created_at",{ascending:false});
- if(error){body.innerHTML='<tr><td colspan="3" class="empty">'+esc(error.message)+"</td></tr>";return}
- body.innerHTML=(data||[]).map(x=>'<tr><td>'+esc(x.email)+'</td><td>'+esc(x.source||"—")+'</td><td>'+esc(x.created_at?new Date(x.created_at).toLocaleString("en-IN"):"—")+'</td></tr>').join("")||'<tr><td colspan="3" class="empty">No waitlist entries.</td></tr>';
- document.getElementById("dashWaitlist").textContent=(data||[]).length;
-}
-document.getElementById("reloadWaitlist").addEventListener("click",loadWaitlist);
-
-function updateDashboard(){
- let units=0;products.forEach(p=>units+=totalStock(p));
- document.getElementById("dashProducts").textContent=products.length;document.getElementById("dashStock").textContent=units;
- document.getElementById("dashCatalog").innerHTML='<table><thead><tr><th>CATEGORY</th><th>PRODUCTS</th></tr></thead><tbody>'+["tees","hoods","sweats","jackets","bottoms"].map(c=>'<tr><td>'+c.toUpperCase()+'</td><td>'+products.filter(p=>String(p.category).toLowerCase()===c).length+"</td></tr>").join("")+"</tbody></table>";
-}
-async function loadAll(){
- document.getElementById("sysSupabase").innerHTML='<span class="badge green">CONNECTED</span>';
- const {data:{session}}=await db.auth.getSession();document.getElementById("sysAuth").innerHTML=session?'<span class="badge green">AUTHENTICATED</span>':'<span class="badge red">SIGNED OUT</span>';
- await loadProducts();await loadWaitlist();await loadCategories();
- document.getElementById("sysProducts").innerHTML='<span class="badge green">'+products.length+" LOADED</span>";
- document.getElementById("securityAal").innerHTML=session?'<span class="badge '+(session.user?.aal==="aal2"?"green":"amber")+'">'+esc(session.user?.aal||"aal1")+"</span>":"—";
- document.getElementById("readinessBar").style.width="45%";document.getElementById("sysBar").style.width="45%";
-}
-boot();
-</script>
-</body>
-</html>
+/* DASHBOARD + ANALYTICS */
+async function dashboard(){main.innerHTML='<p class="m">Loading…</p>';
+ const cnt=async t=>{const r=await sb.from(t).select('*',{count:'exact',head:true});return r.error?'—':r.count};
+ const [o,pr,w,n,cu]=await Promise.all([list(T.orders),cnt('products'),cnt('waitlist'),cnt('newsletter'),cnt('customer_profiles')]);
+ const pp=(await sb.from('products').select('*').limit(2000)).data||[];const rows=o.data||[],td=new Date().toISOString().slice(0,10),today=rows.filter(r=>(r.created_at||'').slice(0,10)===td);
+ const by=s=>rows.filter(r=>String(r.status||'').toLowerCase()===s).length;
+ const C=(l,v,r)=>`<div class="card"><div class="m">${l}</div><div class="n ${r?'r':''}">${v}</div></div>`;
+ main.innerHTML=head('Dashboard',`<button class="btn" onclick="go('products');setTimeout(()=>edit(-1),600)">+ Product</button><button class="btn" onclick="go('orders')">Orders</button>`)+(o.error?`<div class="err" style="margin-bottom:14px">Orders: ${esc(o.error.message)}</div>`:'')+
+ `<h2>Today</h2><div class="grid">${C('Orders',today.length)}${C('Sales',inr(today.filter(r=>!bad(r.status)).reduce((a,r)=>a+amt(r),0)),1)}${C('Waitlist total',w)}${C('Customers',cu)}</div>
+ <h2>Order status</h2><div class="grid">${C('New',by('new')+by('pending')+by('placed'),1)}${C('Processing',by('processing'))}${C('Packed',by('packed'))}${C('Shipped',by('shipped'))}${C('Delivered',by('delivered'))}${C('Cancelled',by('cancelled'))}</div>
+ <h2>Inventory alerts</h2><div class="grid">${C('Out of stock',pp.filter(p=>stk(p)<=0).length,1)}${C('Low stock',pp.filter(p=>stk(p)>0&&stk(p)<=(Number(p.low_stock_threshold)||5)).length)}</div><h2>Catalogue</h2><div class="grid">${C('Products',pr)}${C('Newsletter',n)}${C('All orders',rows.length)}</div>
+ <h2>Recent orders</h2>${rows.slice(0,8).map(r=>`<div class="card" style="margin-bottom:6px;display:flex;gap:12px"><span>#${esc(r.order_number||r.id)}</span><span class="m">${esc(r.customer_name||r.name||r.email||'')}</span><span class="sp"></span><span>${
