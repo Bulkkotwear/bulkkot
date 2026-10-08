@@ -15,6 +15,8 @@
     button, input, select, textarea { font: inherit; }
     button { cursor: pointer; border: none; outline: none; }
     a { color: inherit; text-decoration: none; }
+    
+    /* THE FIX: Important display classes */
     .hidden { display: none !important; }
     
     /* --- LOGIN UI --- */
@@ -108,6 +110,14 @@
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
 
     .img-preview { width: 100%; height: 160px; background: #111; border: 1px solid #252525; border-radius: 8px; object-fit: cover; margin-top: 10px; display: none; }
+    
+    /* Mobile specific adjustments to ensure it works on small screens */
+    @media (max-width: 768px) {
+      .app-layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; } /* Sidebar hidden on mobile for now, can be toggled later */
+      .grid-4 { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -123,11 +133,20 @@
 <!-- TOAST -->
 <div id="toast">Message saved</div>
 
-<!-- LOGIN SCREEN -->
-<div id="loginScreen" class="login-wrapper hidden">
+<!-- THE FIX: removed 'hidden' class so it is visible by default -->
+<div id="loginScreen" class="login-wrapper">
   <div class="login-box">
     <h1>STORE OS</h1>
     <p>BULKKOT Private Administration</p>
+    <!-- Fallback error message if JS fails entirely -->
+    <noscript>
+      <div style="color: #ff777e; font-weight: bold; margin-bottom: 15px; font-size: 12px;">
+        JavaScript is required to run the Store OS. Please enable it in your browser.
+      </div>
+    </noscript>
+    <div id="jsFallbackError" style="color: #ff777e; font-weight: bold; margin-bottom: 15px; font-size: 12px; display: none;">
+      Network error: Could not load the database engine. Please check your internet connection or disable adblockers.
+    </div>
     <form onsubmit="event.preventDefault(); StoreOS.login(); return false;">
       <div class="field">
         <label>Admin Email</label>
@@ -138,7 +157,7 @@
         <input type="password" id="loginPassword" placeholder="••••••••" required>
       </div>
       <div id="loginError" style="color:var(--red); font-size:11px; font-weight:700; margin-bottom:15px; min-height:15px;"></div>
-      <button type="submit" class="btn primary btn-full" style="padding:15px; font-size:12px;">AUTHORIZE ACCESS</button>
+      <button type="submit" id="loginButton" class="btn primary btn-full" style="padding:15px; font-size:12px;">AUTHORIZE ACCESS</button>
     </form>
   </div>
 </div>
@@ -178,14 +197,13 @@
     <header class="topbar">
       <h2 id="topbarTitle">Dashboard</h2>
       <div class="user-info">
-        <span id="adminUserEmail">admin@bulkkot.com</span>
+        <span id="adminUserEmail" style="display:none;">admin@bulkkot.com</span>
         <button class="btn small" onclick="StoreOS.refreshData()">⟳ Refresh</button>
         <button class="btn danger small" onclick="StoreOS.logout()">Logout</button>
       </div>
     </header>
 
     <div class="page-container">
-      
       <!-- 1. DASHBOARD -->
       <div id="page-dashboard" class="page active">
         <div class="grid-4">
@@ -197,7 +215,7 @@
         
         <div class="panel">
           <div class="panel-header"><h3 class="panel-title">RECENT ORDERS</h3><button class="btn small" onclick="StoreOS.navigate('orders')">View All</button></div>
-          <div class="table-wrap">
+          <div class="table-wrap" style="overflow-x:auto;">
             <table><thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
             <tbody id="tbl-recent-orders"></tbody></table>
           </div>
@@ -214,7 +232,7 @@
             </select>
           </div>
         </div>
-        <div class="panel"><div class="table-wrap">
+        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
           <table><thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Payment</th><th>Status</th><th>Total</th><th>Actions</th></tr></thead>
           <tbody id="tbl-orders"></tbody></table>
         </div></div>
@@ -226,7 +244,7 @@
           <h2 style="margin:0;">Product Catalog</h2>
           <button class="btn primary" onclick="StoreOS.modals.product.open()">+ Add Product</button>
         </div>
-        <div class="panel"><div class="table-wrap">
+        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
           <table><thead><tr><th>Product Name</th><th>Category</th><th>Price</th><th>Total Stock</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="tbl-products"></tbody></table>
         </div></div>
@@ -238,7 +256,7 @@
           <h2 style="margin:0;">Dynamic Categories</h2>
           <button class="btn primary" onclick="StoreOS.modals.category.open()">+ Add Category</button>
         </div>
-        <div class="panel"><div class="table-wrap">
+        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
           <table><thead><tr><th>Slug (URL)</th><th>English Name</th><th>Korean Name</th><th>Visibility</th><th>Actions</th></tr></thead>
           <tbody id="tbl-categories"></tbody></table>
         </div></div>
@@ -247,7 +265,7 @@
       <!-- 5. INVENTORY -->
       <div id="page-inventory" class="page">
         <div class="toolbar"><h2 style="margin:0;">Stock Levels</h2></div>
-        <div class="panel"><div class="table-wrap">
+        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
           <table><thead><tr><th>Product</th><th>SKU</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>Total</th></tr></thead>
           <tbody id="tbl-inventory"></tbody></table>
         </div></div>
@@ -256,7 +274,7 @@
       <!-- 6. CUSTOMERS -->
       <div id="page-customers" class="page">
         <div class="toolbar"><h2 style="margin:0;">Customer CRM</h2></div>
-        <div class="panel"><div class="table-wrap">
+        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
           <table><thead><tr><th>Name</th><th>Email / Phone</th><th>Total Orders</th><th>Lifetime Value (LTV)</th></tr></thead>
           <tbody id="tbl-customers"></tbody></table>
         </div></div>
@@ -268,7 +286,7 @@
           <h2 style="margin:0;">VIP Waitlist</h2>
           <button class="btn" onclick="StoreOS.exportCSV()">Export to CSV</button>
         </div>
-        <div class="panel"><div class="table-wrap">
+        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
           <table><thead><tr><th>Email Address</th><th>Date Joined</th></tr></thead>
           <tbody id="tbl-waitlist"></tbody></table>
         </div></div>
@@ -280,7 +298,7 @@
           <h2 style="margin:0;">Discount Codes</h2>
           <button class="btn primary" onclick="StoreOS.modals.coupon.open()">+ Create Coupon</button>
         </div>
-        <div class="panel"><div class="table-wrap">
+        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
           <table><thead><tr><th>Code</th><th>Discount (₹)</th><th>Min. Order</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="tbl-coupons"></tbody></table>
         </div></div>
@@ -327,28 +345,4 @@
           <div class="panel">
             <div class="panel-header"><h3 class="panel-title">Core Details</h3></div>
             <div class="panel-body form-grid">
-              <div class="field"><label>Store Name</label><input type="text" id="set_name" value="BULKKOT"></div>
-              <div class="field"><label>Support Email</label><input type="email" id="set_email"></div>
-              <div class="field"><label>WhatsApp Number</label><input type="text" id="set_phone" placeholder="+91..."></div>
-              <div class="field"><label>Shipping Fee (₹)</label><input type="number" id="set_ship_fee" value="0"></div>
-              <div class="field"><label>Free Shipping Threshold (₹)</label><input type="number" id="set_ship_free" value="0"></div>
-            </div>
-          </div>
-          <button class="btn primary" type="submit">SAVE SETTINGS</button>
-        </form>
-      </div>
-
-    </div>
-  </main>
-</div>
-
-<!-- ==========================================
-     CRUD MODALS
-=========================================== -->
-
-<!-- Category Modal -->
-<div id="modal-category" class="modal-overlay">
-  <div class="modal-content" style="max-width:500px;">
-    <div class="modal-header"><h3 style="margin:0;">Category Details</h3><button class="btn" onclick="StoreOS.modals.category.close()">✕</button></div>
-    <div class="modal-body">
-      <form onsubmit="event.preventDefault(); Sto
+              <div c
