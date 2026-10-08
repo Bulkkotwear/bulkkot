@@ -471,6 +471,78 @@
   }
 
   /* =========================================================
+     DYNAMIC STOREFRONT CATEGORIES
+     ========================================================= */
+  const DEFAULT_STOREFRONT_CATEGORIES = [
+    {id:"tees",slug:"tees",name:"TEES",korean:"티셔츠",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",enabled:true},
+    {id:"hoods",slug:"hoods",name:"HOODIES",korean:"헤비 후드",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",enabled:true},
+    {id:"sweats",slug:"sweats",name:"SWEATS",korean:"스웨트",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png",enabled:true}
+  ];
+  let storefrontCategories = [...DEFAULT_STOREFRONT_CATEGORIES];
+
+  function normalizeStorefrontCategory(c){
+    const slug=String(c?.slug||c?.id||"").trim().toLowerCase();
+    return {
+      id:String(c?.id||slug),
+      slug,
+      name:String(c?.name||slug||"CATEGORY").trim().toUpperCase(),
+      korean:String(c?.korean||"").trim(),
+      image:String(c?.image||"").trim(),
+      enabled:c?.enabled!==false
+    };
+  }
+
+  function renderStorefrontCategories(){
+    const categories=storefrontCategories.filter(c=>c.enabled!==false && c.slug);
+    const circleRow=document.querySelector(".circle-items-row");
+    if(circleRow){
+      circleRow.innerHTML=categories.map(c=>`
+        <a href="shop.html?category=${encodeURIComponent(c.slug)}" class="collection-circle-card">
+          <div class="circle-frame">
+            ${c.image ? `<img src="${escapeHTML(c.image)}" alt="${escapeHTML(c.name)}" loading="lazy">` : '<div style="height:100%;display:grid;place-items:center;color:#777">NO IMAGE</div>'}
+          </div>
+          <div class="circle-meta">
+            <span class="circle-label">${escapeHTML(c.name)}</span>
+            <span class="circle-korean">${escapeHTML(c.korean)}</span>
+            <span class="circle-action-btn">VIEW ALL →</span>
+          </div>
+        </a>`).join('');
+    }
+
+    document.querySelectorAll(".shop-filters").forEach(filter=>{
+      filter.innerHTML='<button type="button" class="shop-filter is-active" data-shop-category="all">ALL</button>'+
+        categories.map(c=>`<button type="button" class="shop-filter" data-shop-category="${escapeHTML(c.slug)}">${escapeHTML(c.name)}</button>`).join('');
+    });
+
+    document.querySelectorAll("[data-shop-category]").forEach(btn=>{
+      btn.onclick=()=>{
+        document.querySelectorAll("[data-shop-category]").forEach(b=>b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        activeCategory=btn.dataset.shopCategory;
+        renderProducts(getFilteredProducts());
+      };
+    });
+  }
+
+  async function loadStorefrontCategories(){
+    if(!supabase){renderStorefrontCategories();return;}
+    try{
+      const {data,error}=await supabase.from("site_content").select("key,value,content_key,content_value");
+      const row=(data||[]).find(x=>String(x.content_key||x.key)==="categories");
+      let parsed=null;
+      try{parsed=JSON.parse(row?.content_value ?? row?.value ?? "");}catch(e){}
+      if(!error && Array.isArray(parsed) && parsed.length){
+        storefrontCategories=parsed.map(normalizeStorefrontCategory).filter(c=>c.slug);
+      }else{
+        storefrontCategories=[...DEFAULT_STOREFRONT_CATEGORIES];
+      }
+    }catch(e){
+      storefrontCategories=[...DEFAULT_STOREFRONT_CATEGORIES];
+    }
+    renderStorefrontCategories();
+  }
+
+  /* =========================================================
      CATALOGUE & FALLBACK PRODUCTS
      ========================================================= */
   const COMING_SOON_TEMPLATES = [
@@ -1158,14 +1230,7 @@
     initInlineSearch();
     initWelcomePopup();
 
-    document.querySelectorAll("[data-shop-category]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll("[data-shop-category]").forEach(b => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-        activeCategory = btn.dataset.shopCategory;
-        renderProducts(getFilteredProducts());
-      });
-    });
+    loadStorefrontCategories();
   }
 
   if (document.readyState === 'loading') {
