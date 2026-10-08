@@ -1,346 +1,138 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>BULKKOT — STORE OS (God Mode)</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg: #070707; --panel: #101010; --line: #1c1c1c; --text: #f5f5f5; 
-      --muted: #888; --red: #e31b23; --green: #39cf98; --radius: 12px;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 13px Inter, system-ui, sans-serif; }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; border: none; outline: none; }
-    a { color: inherit; text-decoration: none; }
-    .hidden { display: none !important; }
-    
-    /* --- LOGIN UI --- */
-    .login-wrapper { min-height: 100vh; display: grid; place-items: center; padding: 20px; background: radial-gradient(circle at top, #1a0a0a, var(--bg)); }
-    .login-box { width: min(400px, 100%); padding: 35px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
-    .login-box h1 { margin: 0 0 5px 0; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; }
-    .login-box p { color: var(--muted); margin: 0 0 25px 0; font-size: 12px; }
-    
-    /* --- FORM ELEMENTS --- */
-    .field { display: grid; gap: 6px; margin-bottom: 15px; }
-    .field label { color: #888; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-    .field input, .field select, .field textarea { width: 100%; padding: 12px; background: #0a0a0a; color: #fff; border: 1px solid #252525; border-radius: 8px; transition: 0.2s; }
-    .field input[type="file"] { padding: 9px; background: #111; cursor: pointer; }
-    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--muted); }
-    .field textarea { min-height: 100px; resize: vertical; }
-    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-    .full { grid-column: 1 / -1; }
-    
-    /* --- BUTTONS --- */
-    .btn { background: #1a1a1a; color: #ddd; border: 1px solid var(--line); border-radius: 8px; padding: 10px 15px; font-size: 11px; font-weight: 800; text-transform: uppercase; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
-    .btn:hover { background: #222; color: #fff; border-color: #444; }
-    .btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
-    .btn.primary:hover { background: #c0131b; border-color: #c0131b; }
-    .btn.danger { background: rgba(239,68,68,0.1); color: #ff777e; border-color: rgba(239,68,68,0.2); }
-    .btn.danger:hover { background: rgba(239,68,68,0.2); }
-    .btn.small { padding: 6px 10px; font-size: 9px; }
-    .btn-full { width: 100%; }
-    
-    /* --- MAIN APP LAYOUT --- */
-    .app-layout { min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
-    .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: #080808; border-right: 1px solid var(--line); padding: 20px 15px; }
-    .brand { padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 15px; }
-    .brand h2 { margin: 0; font-size: 18px; letter-spacing: 1px; }
-    .brand span { color: var(--red); font-size: 10px; font-weight: 900; letter-spacing: 2px; }
-    
-    .nav { display: grid; gap: 4px; }
-    .nav button { width: 100%; display: flex; justify-content: space-between; align-items: center; background: transparent; color: #888; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; transition: 0.2s; }
-    .nav button:hover, .nav button.active { background: #151515; color: #fff; }
-    .nav .count { font-size: 10px; color: #555; background: #111; padding: 2px 6px; border-radius: 10px; }
-    .nav button.active .count { background: rgba(227,27,35,0.2); color: var(--red); }
-    .nav-group { margin: 15px 0 5px 10px; font-size: 9px; color: #444; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
-    
-    .main-content { min-width: 0; padding-bottom: 50px; }
-    .topbar { position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: rgba(7,7,7,0.95); border-bottom: 1px solid var(--line); backdrop-filter: blur(10px); }
-    .topbar h2 { margin: 0; font-size: 16px; font-weight: 800; }
-    .user-info { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 15px; }
-    
-    .page-container { padding: 25px; max-width: 1400px; margin: 0 auto; }
-    .page { display: none; animation: fadeIn 0.3s ease; }
-    .page.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-    
-    /* --- PANELS & TABLES --- */
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-    .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
-    .card-label { font-size: 9px; color: #888; font-weight: 900; letter-spacing: 1px; margin-bottom: 5px; }
-    .card-value { font-size: 28px; font-weight: 900; }
-    
-    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
-    .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--line); background: #0c0c0c; }
-    .panel-title { margin: 0; font-size: 13px; font-weight: 800; }
-    .panel-body { padding: 20px; }
-    
-    .toolbar { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 10px; }
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { padding: 12px 20px; border-bottom: 1px solid #151515; }
-    th { font-size: 9px; font-weight: 900; color: #666; letter-spacing: 1px; text-transform: uppercase; }
-    td { font-size: 12px; }
-    tr:hover td { background: #0a0a0a; }
-    
-    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-    .b-green { background: rgba(57,207,152,0.1); color: var(--green); }
-    .b-red { background: rgba(227,27,35,0.1); color: var(--red); }
-    .b-gray { background: #151515; color: #888; }
-    
-    /* --- MODALS --- */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: none; place-items: center; padding: 20px; backdrop-filter: blur(5px); }
-    .modal-overlay.open { display: grid; }
-    .modal-content { background: var(--panel); border: 1px solid #222; border-radius: 16px; width: min(800px, 100%); max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 100px rgba(0,0,0,0.9); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); z-index: 10; }
-    .modal-body { padding: 20px; }
-    
-    /* --- UTILS --- */
-    .loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; place-items: center; }
-    .loader.show { display: grid; }
-    .spinner { width: 40px; height: 40px; border: 3px solid #222; border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px auto; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    
-    #toast { position: fixed; bottom: 20px; right: 20px; background: #fff; color: #000; padding: 12px 20px; border-radius: 8px; font-weight: 800; font-size: 11px; z-index: 9000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    #toast.show { display: block; animation: slideUp 0.3s ease; }
-    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
-
-    .img-preview { width: 100%; height: 160px; background: #111; border: 1px solid #252525; border-radius: 8px; object-fit: cover; margin-top: 10px; display: none; }
-    
-    /* Mobile specific adjustments to ensure it works on small screens */
-    @media (max-width: 768px) {
-      .app-layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
-      .grid-4 { grid-template-columns: 1fr; }
-      .form-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BULKKOT — Admin Control Center</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#070707;--panel:#101010;--panel2:#151515;--line:#292929;--text:#f5f5f5;--muted:#888;--red:#e31b23;--green:#39cf98;--yellow:#e5b64e;--radius:14px}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:13px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.login-card{width:min(430px,100%);padding:32px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 25px 80px #0008}.mark{width:52px;height:52px;display:grid;place-items:center;background:var(--red);border-radius:12px;font-weight:900;margin-bottom:18px}.login h1{margin:0;font-size:28px}.login p{color:var(--muted);line-height:1.6}.form{display:grid;gap:13px;margin-top:22px}.field{display:grid;gap:6px}.field label{color:#8d8d8d;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.field input,.field select,.field textarea,.search{width:100%;padding:10px 11px;background:#090909;color:#eee;border:1px solid #2c2c2c;border-radius:8px;outline:none}.field textarea{min-height:105px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus,.search:focus{border-color:#666}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.full{grid-column:1/-1}.btn{border:1px solid var(--line);background:#171717;color:#ddd;border-radius:8px;padding:9px 12px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.btn:hover{border-color:#555;color:#fff}.primary{background:var(--red);border-color:var(--red);color:#fff}.danger{color:#ff777e;border-color:#572329}.app{min-height:100vh;display:grid;grid-template-columns:245px 1fr}.sidebar{position:sticky;top:0;height:100vh;overflow:auto;background:#090909;border-right:1px solid var(--line);padding:18px 12px}.brand{padding:8px 10px 20px;border-bottom:1px solid var(--line);margin-bottom:13px}.brand b{display:block;font-size:17px;letter-spacing:.12em}.brand small{color:var(--muted);font-size:9px;letter-spacing:.18em}.nav{display:grid;gap:5px}.nav button{width:100%;display:flex;justify-content:space-between;gap:8px;background:transparent;color:#aaa;border:1px solid transparent;border-radius:9px;padding:11px 12px;text-align:left}.nav button:hover,.nav button.active{background:#171717;color:#fff;border-color:var(--line)}.count{color:#666;font-size:10px}.sidefoot{margin-top:16px;padding:14px 10px;border-top:1px solid var(--line);color:#666;font-size:10px;line-height:1.6}.main{min-width:0}.topbar{position:sticky;top:0;z-index:20;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 24px;background:#070707ee;border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}.top-left,.top-right{display:flex;align-items:center;gap:9px}.topbar h1{margin:0;font-size:17px}.status{color:var(--muted);font-size:10px}.content{max-width:1700px;margin:auto;padding:24px}.page{display:none}.page.active{display:block}.heading{margin-bottom:18px}.heading .eyebrow,.eyebrow{color:var(--red);font-size:9px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}.heading h2{margin:4px 0;font-size:26px}.heading p{margin:6px 0;color:var(--muted)}.grid{display:grid;gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.four{grid-template-columns:repeat(4,minmax(0,1fr))}.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.card{padding:18px}.metric{margin-top:8px;font-size:29px;font-weight:900}.muted{color:var(--muted)}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line)}.panel-head h3{margin:0;font-size:12px;letter-spacing:.08em}.panel-body{padding:18px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.table-wrap{overflow:auto}table{width:100%;min-width:760px;border-collapse:collapse}th,td{padding:11px 10px;border-bottom:1px solid #202020;text-align:left;vertical-align:middle}th{color:#777;font-size:9px;letter-spacing:.12em;text-transform:uppercase}td{font-size:11px}tbody tr:hover td{background:#131313}.badge{display:inline-flex;padding:4px 8px;border:1px solid #383838;border-radius:99px;color:#aaa;font-size:9px}.green{color:var(--green);border-color:#20513f}.red{color:#ff777e;border-color:#572329}.yellow{color:var(--yellow);border-color:#5a4920}.tabs{display:flex;gap:6px;overflow:auto;margin-bottom:12px;padding-bottom:5px}.tab.active{background:#fff;color:#000;border-color:#fff}.modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px;background:#000c}.modal.open{display:grid}.modal-box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#0d0d0d;border:1px solid #333;border-radius:16px}.modal-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line)}.modal-body{padding:18px}.json{max-height:300px;overflow:auto;background:#080808;border:1px solid #222;border-radius:8px;padding:12px;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.image-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.image-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid var(--line)}.toast{position:fixed;right:20px;bottom:20px;z-index:200;display:none;max-width:420px;padding:12px 15px;background:#f2f2f2;color:#050505;border-radius:10px;font-weight:800}.toast.show{display:block}.mobile{display:none}@media(max-width:1050px){.app{grid-template-columns:75px 1fr}.brand b,.brand small,.nav .label,.sidefoot{display:none}.nav button{justify-content:center}.kpis{grid-template-columns:repeat(2,1fr)}.three,.four{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.app{display:block}.sidebar{position:fixed;left:-260px;width:245px;z-index:90;transition:left .2s}.sidebar.open{left:0}.brand b,.brand small,.nav .label,.sidefoot{display:block}.nav button{justify-content:space-between}.mobile{display:inline-block}.content{padding:14px}.topbar{padding:12px 14px}.kpis,.two,.three,.four,.form-grid{grid-template-columns:1fr}.image-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
 </head>
 <body>
 
-<!-- GLOBAL LOADER -->
-<div id="globalLoader" class="loader">
-  <div style="text-align:center;">
-    <div class="spinner"></div>
-    <div id="loaderText" style="font-size:10px; font-weight:900; letter-spacing:2px; color:#888;">INITIALIZING OS...</div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div id="toast">Message saved</div>
-
-<!-- LOGIN SCREEN -->
-<div id="loginScreen" class="login-wrapper">
-  <div class="login-box">
-    <h1>STORE OS</h1>
-    <p>BULKKOT Private Administration</p>
-    <!-- Fallback error message if JS fails entirely -->
-    <noscript>
-      <div style="color: #ff777e; font-weight: bold; margin-bottom: 15px; font-size: 12px;">
-        JavaScript is required to run the Store OS. Please enable it in your browser.
-      </div>
-    </noscript>
-    <form onsubmit="event.preventDefault(); StoreOS.login(); return false;">
-      <div class="field">
-        <label>Admin Email</label>
-        <input type="email" id="loginEmail" value="bulkkotwear@gmail.com" required>
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" required>
-      </div>
-      <div id="loginError" style="color:var(--red); font-size:11px; font-weight:700; margin-bottom:15px; min-height:15px;"></div>
-      <button type="submit" id="loginButton" class="btn primary btn-full" style="padding:15px; font-size:12px;">AUTHORIZE ACCESS</button>
-    </form>
-  </div>
-</div>
-
-<!-- MAIN APP INTERFACE -->
-<div id="appScreen" class="app-layout hidden">
-  <!-- SIDEBAR NAVIGATION -->
-  <aside class="sidebar">
-    <div class="brand">
-      <h2>BULKKOT</h2>
-      <span>GOD MODE OS</span>
-    </div>
-    
-    <div class="nav">
-      <div class="nav-group">Overview</div>
-      <button class="active" onclick="StoreOS.navigate('dashboard')" data-nav="dashboard">Dashboard <span class="count" id="c-dash">●</span></button>
-      
-      <div class="nav-group">Commerce</div>
-      <button onclick="StoreOS.navigate('orders')" data-nav="orders">Orders <span class="count" id="c-orders">0</span></button>
-      <button onclick="StoreOS.navigate('products')" data-nav="products">Products <span class="count" id="c-products">0</span></button>
-      <button onclick="StoreOS.navigate('categories')" data-nav="categories">Categories <span class="count" id="c-categories">0</span></button>
-      <button onclick="StoreOS.navigate('inventory')" data-nav="inventory">Inventory <span class="count" id="c-inv">0</span></button>
-      
-      <div class="nav-group">Growth & Community</div>
-      <button onclick="StoreOS.navigate('customers')" data-nav="customers">Customers <span class="count" id="c-customers">0</span></button>
-      <button onclick="StoreOS.navigate('waitlist')" data-nav="waitlist">Waitlist <span class="count" id="c-waitlist">0</span></button>
-      <button onclick="StoreOS.navigate('coupons')" data-nav="coupons">Coupons <span class="count" id="c-coupons">0</span></button>
-      
-      <div class="nav-group">System & Web</div>
-      <button onclick="StoreOS.navigate('cms')" data-nav="cms">Storefront CMS <span class="count">UI</span></button>
-      <button onclick="StoreOS.navigate('settings')" data-nav="settings">Store Settings <span class="count">⚙️</span></button>
-    </div>
-  </aside>
-
-  <!-- MAIN CONTENT AREA -->
-  <main class="main-content">
-    <header class="topbar">
-      <h2 id="topbarTitle">Dashboard</h2>
-      <div class="user-info">
-        <span id="adminUserEmail" style="display:none;">admin@bulkkot.com</span>
-        <button class="btn small" onclick="StoreOS.refreshData()">⟳ Refresh</button>
-        <button class="btn danger small" onclick="StoreOS.logout()">Logout</button>
-      </div>
-    </header>
-
-    <div class="page-container">
-      <!-- 1. DASHBOARD -->
-      <div id="page-dashboard" class="page active">
-        <div class="grid-4">
-          <div class="card"><div class="card-label">TOTAL SALES</div><div class="card-value" id="d-sales">₹0</div></div>
-          <div class="card"><div class="card-label">ORDERS</div><div class="card-value" id="d-orders">0</div></div>
-          <div class="card"><div class="card-label">CUSTOMERS</div><div class="card-value" id="d-customers">0</div></div>
-          <div class="card"><div class="card-label">LIVE PRODUCTS</div><div class="card-value" id="d-products">0</div></div>
-        </div>
-        
-        <div class="panel">
-          <div class="panel-header"><h3 class="panel-title">RECENT ORDERS</h3><button class="btn small" onclick="StoreOS.navigate('orders')">View All</button></div>
-          <div class="table-wrap" style="overflow-x:auto;">
-            <table><thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
-            <tbody id="tbl-recent-orders"></tbody></table>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. ORDERS -->
-      <div id="page-orders" class="page">
-        <div class="toolbar">
-          <h2 style="margin:0;">Orders Management</h2>
-          <div style="display:flex;gap:10px;">
-            <select class="btn" style="background:#0a0a0a;" id="filter-orders" onchange="StoreOS.renderOrders()">
-              <option value="ALL">All Status</option><option value="PLACED">Placed</option><option value="SHIPPED">Shipped</option><option value="DELIVERED">Delivered</option>
-            </select>
-          </div>
-        </div>
-        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
-          <table><thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Payment</th><th>Status</th><th>Total</th><th>Actions</th></tr></thead>
-          <tbody id="tbl-orders"></tbody></table>
-        </div></div>
-      </div>
-
-      <!-- 3. PRODUCTS -->
-      <div id="page-products" class="page">
-        <div class="toolbar">
-          <h2 style="margin:0;">Product Catalog</h2>
-          <button class="btn primary" onclick="StoreOS.modals.product.open()">+ Add Product</button>
-        </div>
-        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
-          <table><thead><tr><th>Product Name</th><th>Category</th><th>Price</th><th>Total Stock</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="tbl-products"></tbody></table>
-        </div></div>
-      </div>
-
-      <!-- 4. CATEGORIES -->
-      <div id="page-categories" class="page">
-        <div class="toolbar">
-          <h2 style="margin:0;">Dynamic Categories</h2>
-          <button class="btn primary" onclick="StoreOS.modals.category.open()">+ Add Category</button>
-        </div>
-        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
-          <table><thead><tr><th>Slug (URL)</th><th>English Name</th><th>Korean Name</th><th>Visibility</th><th>Actions</th></tr></thead>
-          <tbody id="tbl-categories"></tbody></table>
-        </div></div>
-      </div>
-
-      <!-- 5. INVENTORY -->
-      <div id="page-inventory" class="page">
-        <div class="toolbar"><h2 style="margin:0;">Stock Levels</h2></div>
-        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
-          <table><thead><tr><th>Product</th><th>SKU</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>Total</th></tr></thead>
-          <tbody id="tbl-inventory"></tbody></table>
-        </div></div>
-      </div>
-
-      <!-- 6. CUSTOMERS -->
-      <div id="page-customers" class="page">
-        <div class="toolbar"><h2 style="margin:0;">Customer CRM</h2></div>
-        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
-          <table><thead><tr><th>Name</th><th>Email / Phone</th><th>Total Orders</th><th>Lifetime Value (LTV)</th></tr></thead>
-          <tbody id="tbl-customers"></tbody></table>
-        </div></div>
-      </div>
-
-      <!-- 7. WAITLIST -->
-      <div id="page-waitlist" class="page">
-        <div class="toolbar">
-          <h2 style="margin:0;">VIP Waitlist</h2>
-          <button class="btn" onclick="StoreOS.exportCSV()">Export to CSV</button>
-        </div>
-        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
-          <table><thead><tr><th>Email Address</th><th>Date Joined</th></tr></thead>
-          <tbody id="tbl-waitlist"></tbody></table>
-        </div></div>
-      </div>
-
-      <!-- 8. COUPONS -->
-      <div id="page-coupons" class="page">
-        <div class="toolbar">
-          <h2 style="margin:0;">Discount Codes</h2>
-          <button class="btn primary" onclick="StoreOS.modals.coupon.open()">+ Create Coupon</button>
-        </div>
-        <div class="panel"><div class="table-wrap" style="overflow-x:auto;">
-          <table><thead><tr><th>Code</th><th>Discount (₹)</th><th>Min. Order</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="tbl-coupons"></tbody></table>
-        </div></div>
-      </div>
-
-      <!-- 9. STOREFRONT CMS -->
-      <div id="page-cms" class="page">
-        <div class="toolbar"><h2 style="margin:0;">Website Control (CMS)</h2></div>
-        <form onsubmit="event.preventDefault(); StoreOS.saveCMS(); return false;">
-          
-          <div class="panel">
-            <div class="panel-header"><h3 class="panel-title">1. Top Announcement Ticker</h3></div>
-            <div class="panel-body form-grid">
-              <div class="field full"><label>Message 1</label><input type="text" id="cms_ticker_1" placeholder="e.g. DROP 001 LIVES NOW"></div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header"><h3 class="panel-title">2. Main Hero Section</h3></div>
-            <div class="panel-body form-grid">
-              <div class="field"><label>Korean Eyebrow</label><input type="text" id="cms_hero_eye"></div>
-              <div class="field"><label>Main Title</label><input type="text" id="cms_hero_title"></div>
-              <div class="field full"><label>Sub Description</label><textarea id="cms_hero_desc"></textarea></div>
-              <div class="field"><label>Button Text</label><input type="text" id="cms_hero_btn"></div>
-              <div class="field"><label>Hero Image URL</label><input type="url" id="cms_hero_img" placeholder="https://..."></div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header"><h3 class="panel-title">3. Legal & Policies (HTML Allowed)</h3></div>
-            <div class="panel-body form-grid">
-              <div class="field full"><label>FAQ & Shipping Details</label><textarea id="cms_policy_faq" style="min-height:150px; font-family:monospace;"></textarea></div>
-            </div>
-          </div>
-
-          <button class="btn primary" type="submit" style="padding:15px 30px;">SAVE ALL CMS CHANGES</button>
+<section id="loginView" class="login">
+    <div class="login-card">
+        <div class="mark">BK</div>
+        <div class="eyebrow">BULKKOT ADMIN</div>
+        <h1>Control Center</h1>
+        <p>Private commerce administration. Only bulkkotwear@gmail.com is authorized.</p>
+        <form id="loginForm" class="form">
+            <div class="field"><label for="loginEmail">Admin Email</label><input id="loginEmail" type="email" value="bulkkotwear@gmail.com" autocomplete="username" required></div>
+            <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+            <div id="loginError" class="red"></div>
+            <button id="loginButton" class="btn primary" type="submit">Sign In</button>
         </form>
-      </div>
+    </div>
+</section>
 
-      <!-- 10. SETTINGS -->
-      <div id="page-settings" class="page">
-        <div class="toolbar"><h2 style="margin:0;">Store Settings</h2></div>
-        <form onsubmit="event.preventDefault(); StoreOS.saveSettings(); return false;">
-          <div class="panel">
-            <div class="panel-header"><h3 class="panel-title">Core Details</h3></div>
-            <div class="panel-body form-grid">
-              <div class="field"><label>Store Name</label><input type="text" id="set_name" value="BULKKOT"></div>
-              <div class="field"><label>Support Email</label><input type="email" id="set_email"></div>
-              <div class="field"><label>WhatsApp Number</label><input type="text" id="set_phone" placeholder="+91..."></div>
-              <div class="field"><label>Shipping Fee (₹)</label><input type="number" id="set
+<section id="app" class="app hidden">
+    <aside id="sidebar" class="sidebar">
+        <div class="brand"><b>BULKKOT</b><small>ENTERPRISE ADMIN</small></div>
+        <nav id="nav" class="nav">
+            <button class="active" data-page="dashboard" type="button"><span class="label">Dashboard</span><span class="count" id="navDashboard">LIVE</span></button>
+            <button data-page="categories" type="button"><span class="label">Categories</span><span class="count" id="navCategories">0</span></button>
+            <button data-page="products" type="button"><span class="label">Products</span><span class="count" id="navProducts">0</span></button>
+            <button data-page="orders" type="button"><span class="label">Orders</span><span class="count" id="navOrders">0</span></button>
+            <button data-page="customers" type="button"><span class="label">Customers</span><span class="count" id="navCustomers">0</span></button>
+            <button data-page="coupons" type="button"><span class="label">Coupons</span><span class="count" id="navCoupons">0</span></button>
+            <button data-page="waitlist" type="button"><span class="label">Waitlist</span><span class="count" id="navWaitlist">0</span></button>
+            <button data-page="cms" type="button"><span class="label">Storefront CMS</span><span class="count">CMS</span></button>
+            <button data-page="legal" type="button"><span class="label">Legal Policies</span><span class="count">5</span></button>
+            <button data-page="settings" type="button"><span class="label">Store Settings</span><span class="count">CFG</span></button>
+        </nav>
+        <div class="sidefoot">BULKKOT · Less noise. More presence.<br><br>Never put a service-role key in this file. RLS must protect the database.</div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div class="top-left"><button id="menuButton" class="btn mobile" type="button">MENU</button><div><h1 id="pageTitle">Dashboard</h1><div id="authStatus" class="status">Checking session…</div></div></div>
+            <div class="top-right"><button id="refreshButton" class="btn" type="button">Refresh</button><button id="logoutButton" class="btn danger" type="button">Logout</button></div>
+        </header>
+
+        <div class="content">
+            <section id="page-dashboard" class="page active">
+                <div class="heading"><div class="eyebrow">CONTROL CENTER</div><h2>Dashboard</h2><p>Orders, revenue, customers and recent activity.</p></div>
+                <div class="grid kpis">
+                    <div class="card"><div class="muted">TOTAL ORDERS</div><div id="kpiOrders" class="metric">0</div></div>
+                    <div class="card"><div class="muted">REVENUE</div><div id="kpiRevenue" class="metric">₹0</div></div>
+                    <div class="card"><div class="muted">CUSTOMERS</div><div id="kpiCustomers" class="metric">0</div></div>
+                    <div class="card"><div class="muted">ACTIVE PRODUCTS</div><div id="kpiProducts" class="metric">0</div></div>
+                </div>
+                <div class="grid two" style="margin-top:14px">
+                    <div class="panel"><div class="panel-head"><h3>RECENT ORDERS</h3></div><div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="recentOrdersBody"></tbody></table></div></div>
+                    <div class="panel"><div class="panel-head"><h3>LOW STOCK</h3><span id="lowStockBadge" class="badge yellow">0</span></div><div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Units</th></tr></thead><tbody id="lowStockBody"></tbody></table></div></div>
+                </div>
+            </section>
+
+            <section id="page-categories" class="page">
+                <div class="heading"><div class="eyebrow">CATALOGUE STRUCTURE</div><h2>Categories</h2><p>These categories populate the Product dropdown.</p></div>
+                <div class="toolbar"><button id="newCategoryButton" class="btn primary" type="button">+ New Category</button></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Slug</th><th>English Name</th><th>Korean Name</th><th>Actions</th></tr></thead><tbody id="categoriesBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-products" class="page">
+                <div class="heading"><div class="eyebrow">CATALOGUE</div><h2>Products</h2><p>CRUD, visibility, size stock and up to five Supabase Storage images.</p></div>
+                <div class="toolbar"><button id="newProductButton" class="btn primary" type="button">+ New Product</button><input id="productSearch" class="search" type="search" placeholder="Search products…" style="width:250px"></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Live</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-orders" class="page">
+                <div class="heading"><div class="eyebrow">FULFILMENT</div><h2>Orders</h2><p>Update status, courier and tracking/AWB numbers.</p></div>
+                <div class="toolbar"><select id="orderStatusFilter" class="search" style="width:180px"><option value="">All Statuses</option><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select><input id="orderSearch" class="search" type="search" placeholder="Search orders…" style="width:250px"></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Tracking</th><th>Date</th><th>Actions</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-customers" class="page">
+                <div class="heading"><div class="eyebrow">CRM</div><h2>Customers</h2><p>Customer records with Lifetime Value calculated from orders.</p></div>
+                <div class="toolbar"><input id="customerSearch" class="search" type="search" placeholder="Search customer…" style="width:270px"></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Contact</th><th>Orders</th><th>LTV</th><th>Last Order</th></tr></thead><tbody id="customersBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-coupons" class="page">
+                <div class="heading"><div class="eyebrow">PROMOTIONS</div><h2>Coupons</h2><p>Create discount codes with minimum order values.</p></div>
+                <div class="toolbar"><button id="newCouponButton" class="btn primary" type="button">+ New Coupon</button></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Active</th><th>Actions</th></tr></thead><tbody id="couponsBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-waitlist" class="page">
+                <div class="heading"><div class="eyebrow">LEADS</div><h2>Waitlist</h2><p>View email/phone records and export them as CSV.</p></div>
+                <div class="toolbar"><button id="refreshWaitlistButton" class="btn" type="button">Refresh</button><button id="exportWaitlistButton" class="btn primary" type="button">Export CSV</button></div>
+                <div class="panel"><div class="table-wrap"><table><thead><tr><th>Email</th><th>Phone</th><th>Source</th><th>Created</th></tr></thead><tbody id="waitlistBody"></tbody></table></div></div>
+            </section>
+
+            <section id="page-cms" class="page">
+                <div class="heading"><div class="eyebrow">STOREFRONT CONTROL</div><h2>Storefront CMS</h2><p>Update Hero, ticker, editorial copy and the three-circle collection gateway.</p></div>
+                <div id="cmsTabs" class="tabs"></div>
+                <div id="cmsEditor"></div>
+                <button id="saveCmsButton" class="btn primary" type="button" style="margin-top:14px">Save CMS Changes</button>
+            </section>
+
+            <section id="page-legal" class="page">
+                <div class="heading"><div class="eyebrow">COMPLIANCE</div><h2>Legal Policies</h2><p>FAQ, Shipping, Returns, Privacy and Terms.</p></div>
+                <form id="legalForm"><div class="grid two">
+                    <div class="card field"><label for="policyFaq">FAQ</label><textarea id="policyFaq"></textarea></div>
+                    <div class="card field"><label for="policyShipping">Shipping</label><textarea id="policyShipping"></textarea></div>
+                    <div class="card field"><label for="policyReturns">Returns</label><textarea id="policyReturns"></textarea></div>
+                    <div class="card field"><label for="policyPrivacy">Privacy</label><textarea id="policyPrivacy"></textarea></div>
+                    <div class="card field"><label for="policyTerms">Terms</label><textarea id="policyTerms"></textarea></div>
+                </div><button class="btn primary" type="submit" style="margin-top:14px">Save Policies</button></form>
+            </section>
+
+            <section id="page-settings" class="page">
+                <div class="heading"><div class="eyebrow">STORE CONFIGURATION</div><h2>Store Settings</h2><p>Store identity and customer support information.</p></div>
+                <form id="settingsForm"><div class="grid two">
+                    <div class="card field"><label for="storeName">Store Name</label><input id="storeName"></div>
+                    <div class="card field"><label for="supportEmail">Support Email</label><input id="supportEmail" type="email"></div>
+                    <div class="card field"><label for="whatsappNumber">WhatsApp Number</label><input id="whatsappNumber"></div>
+                    <div class="card field"><label for="currency">Currency</label><input id="currency" value="INR"></div>
+                </div><button class="btn primary" type="submit" style="margin-top:14px">Save Settings</button></form>
+            </section>
+        </div>
+    </main>
+</section>
+
+<div id="categoryModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="categoryModalTitle">CATEGORY</b><button class="btn" type="button" data-close="categoryModal">Close</button></div><div class="modal-body"><form id="categoryForm"><input id="categoryId" type="hidden"><div class="form-grid"><div class="field"><label for="categorySlug">Slug</label><input id="categorySlug" required></div><div class="field"><label for="categoryEnglish">English Name</label><input id="categoryEnglish" required></div><div class="field"><label for="categoryKorean">Korean Name</label><input id="categoryKorean"></div></div><div style="display:flex;justify-content:space-between;margin-top:16px"><button id="deleteCategoryButton" class="btn danger hidden" type="button">Delete</button><button class="btn primary" type="submit">Save Category</button></div></form></div></div></div>
+
+<div id="productModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="productModalTitle">PRODUCT</b><button class="btn" type="button" data-close="productModal">Close</button></div><div class="modal-body"><form id="productForm"><input id="productId" type="hidden"><div class="form-grid"><div class="field"><label for="productName">Name</label><input id="productName" required></div><div class="field"><label for="productSku">SKU</label><input id="productSku"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory" required></select></div><div class="field"><label for="productPrice">Price</label><input id="productPrice" type="number" min="0" required></div><div class="field"><label for="productCompare">Compare-at Price</label><input id="productCompare" type="number" min="0"></div><div class="field"><label for="productActive">Live / Hidden</label><select id="productActive"><option value="true">LIVE</option><option value="false">HIDDEN</option></select></div><div class="field full"><label for="productDescription">Desc
