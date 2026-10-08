@@ -27,6 +27,7 @@
     .field { display: grid; gap: 6px; margin-bottom: 15px; }
     .field label { color: #888; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
     .field input, .field select, .field textarea { width: 100%; padding: 12px; background: #0a0a0a; color: #fff; border: 1px solid #252525; border-radius: 8px; transition: 0.2s; }
+    .field input[type="file"] { padding: 9px; background: #111; cursor: pointer; }
     .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--muted); }
     .field textarea { min-height: 100px; resize: vertical; }
     .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
@@ -38,6 +39,7 @@
     .btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
     .btn.primary:hover { background: #c0131b; border-color: #c0131b; }
     .btn.danger { background: rgba(239,68,68,0.1); color: #ff777e; border-color: rgba(239,68,68,0.2); }
+    .btn.danger:hover { background: rgba(239,68,68,0.2); }
     .btn.small { padding: 6px 10px; font-size: 9px; }
     .btn-full { width: 100%; }
     
@@ -105,8 +107,7 @@
     #toast.show { display: block; animation: slideUp 0.3s ease; }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-    /* For CMS Image Inputs */
-    .img-preview { width: 100%; height: 120px; background: #151515; border: 1px solid #252525; border-radius: 8px; object-fit: cover; margin-top: 10px; display: block; }
+    .img-preview { width: 100%; height: 160px; background: #111; border: 1px solid #252525; border-radius: 8px; object-fit: cover; margin-top: 10px; display: none; }
   </style>
 </head>
 <body>
@@ -168,7 +169,6 @@
       
       <div class="nav-group">System & Web</div>
       <button onclick="StoreOS.navigate('cms')" data-nav="cms">Storefront CMS <span class="count">UI</span></button>
-      <button onclick="StoreOS.navigate('media')" data-nav="media">Media Library <span class="count">IMG</span></button>
       <button onclick="StoreOS.navigate('settings')" data-nav="settings">Store Settings <span class="count">⚙️</span></button>
     </div>
   </aside>
@@ -320,14 +320,7 @@
         </form>
       </div>
 
-      <!-- 10. MEDIA LIBRARY (Placeholder) -->
-      <div id="page-media" class="page">
-        <div class="panel"><div class="panel-body" style="text-align:center; padding:50px;">
-          <h2>Media Library</h2><p class="muted">Upload and manage product/CMS images via Supabase Storage buckets here.</p>
-        </div></div>
-      </div>
-
-      <!-- 11. SETTINGS -->
+      <!-- 10. SETTINGS -->
       <div id="page-settings" class="page">
         <div class="toolbar"><h2 style="margin:0;">Store Settings</h2></div>
         <form onsubmit="event.preventDefault(); StoreOS.saveSettings(); return false;">
@@ -353,4 +346,9 @@
      CRUD MODALS
 =========================================== -->
 
-<!
+<!-- Category Modal -->
+<div id="modal-category" class="modal-overlay">
+  <div class="modal-content" style="max-width:500px;">
+    <div class="modal-header"><h3 style="margin:0;">Category Details</h3><button class="btn" onclick="StoreOS.modals.category.close()">✕</button></div>
+    <div class="modal-body">
+      <form onsubmit="event.preventDefault(); Sto
