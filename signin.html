@@ -981,39 +981,15 @@
                * So DO NOT redirect the user immediately.
                */
 
-              if (data?.user) {
-
-                // Save details to database for persistence.
-                // This will be replaced with a secure DB
-                // trigger + RLS architecture in the next step.
-                try {
-
-                  await supabase
-                    .from("customer_profiles")
-                    .upsert({
-                      id: data.user.id,
-                      full_name: fullName,
-                      phone: mobile,
-                      updated_at:
-                        new Date().toISOString()
-                    });
-
-                } catch (profileError) {
-
-                  /*
-                   * Do not block the email verification
-                   * flow if profile persistence fails.
-                   *
-                   * We will secure this properly in the
-                   * next database step.
-                   */
-
-                  console.warn(
-                    "Profile persistence warning:",
-                    profileError
-                  );
-                }
-              }
+              /*
+               * IMPORTANT:
+               * Do not write to customer_profiles from the
+               * browser here.
+               *
+               * The Supabase database trigger now creates
+               * the customer_profiles row automatically
+               * when auth.users receives the new account.
+               */
 
               showSuccess(
                 "Account created. Please check your email and click the verification link to activate your BULKKOT account."
@@ -1023,6 +999,8 @@
                * Stay on this page.
                *
                * The user must verify their email first.
+               * The database trigger has already handled the
+               * customer_profiles record.
                */
               inputPassword.value = "";
               inputConfirmPassword.value = "";
