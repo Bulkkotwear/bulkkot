@@ -136,3 +136,676 @@
 <div id="categoryModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="categoryModalTitle">CATEGORY</b><button class="btn" type="button" data-close="categoryModal">Close</button></div><div class="modal-body"><form id="categoryForm"><input id="categoryId" type="hidden"><div class="form-grid"><div class="field"><label for="categorySlug">Slug</label><input id="categorySlug" required></div><div class="field"><label for="categoryEnglish">English Name</label><input id="categoryEnglish" required></div><div class="field"><label for="categoryKorean">Korean Name</label><input id="categoryKorean"></div></div><div style="display:flex;justify-content:space-between;margin-top:16px"><button id="deleteCategoryButton" class="btn danger hidden" type="button">Delete</button><button class="btn primary" type="submit">Save Category</button></div></form></div></div></div>
 
 <div id="productModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="productModalTitle">PRODUCT</b><button class="btn" type="button" data-close="productModal">Close</button></div><div class="modal-body"><form id="productForm"><input id="productId" type="hidden"><div class="form-grid"><div class="field"><label for="productName">Name</label><input id="productName" required></div><div class="field"><label for="productSku">SKU</label><input id="productSku"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory" required></select></div><div class="field"><label for="productPrice">Price</label><input id="productPrice" type="number" min="0" required></div><div class="field"><label for="productCompare">Compare-at Price</label><input id="productCompare" type="number" min="0"></div><div class="field"><label for="productActive">Live / Hidden</label><select id="productActive"><option value="true">LIVE</option><option value="false">HIDDEN</option></select></div><div class="field full"><label for="productDescription">Desc
+    <div id="productModal" class="modal"><div class="modal-box"><div class="modal-head"><b id="productModalTitle">PRODUCT</b><button class="btn" type="button" data-close="productModal">Close</button></div><div class="modal-body"><form id="productForm"><input id="productId" type="hidden"><div class="form-grid"><div class="field"><label for="productName">Name</label><input id="productName" required></div><div class="field"><label for="productSku">SKU</label><input id="productSku"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory" required></select></div><div class="field"><label for="productPrice">Price</label><input id="productPrice" type="number" min="0" required></div><div class="field"><label for="productCompare">Compare-at Price</label><input id="productCompare" type="number" min="0"></div><div class="field"><label for="productActive">Live / Hidden</label><select id="productActive"><option value="true">LIVE</option><option value="false">HIDDEN</option></select></div><div class="field full"><label for="productDescription">Description</label><textarea id="productDescription"></textarea></div></div><div class="card" style="margin-top:14px"><div class="eyebrow">INVENTORY JSON</div><div class="grid four" style="margin-top:10px"><div class="field"><label>S</label><input id="stockS" type="number" min="0" value="0"></div><div class="field"><label>M</label><input id="stockM" type="number" min="0" value="0"></div><div class="field"><label>L</label><input id="stockL" type="number" min="0" value="0"></div><div class="field"><label>XL</label><input id="stockXL" type="number" min="0" value="0"></div></div></div><div class="card" style="margin-top:14px"><div class="field"><label for="productImageFiles">Product Images — max 5</label><input id="productImageFiles" type="file" accept="image/*" multiple></div><div id="productImagePreview" class="image-grid" style="margin-top:10px"></div></div><div style="display:flex;justify-content:space-between;margin-top:16px"><button id="deleteProductButton" class="btn danger hidden" type="button">Delete</button><button class="btn primary" type="submit">Save Product</button></div></form></div></div></div>
+
+<div id="orderModal" class="modal"><div class="modal-box"><div class="modal-head"><b>ORDER CONTROL</b><button class="btn" type="button" data-close="orderModal">Close</button></div><div class="modal-body"><div id="orderDetails"></div><form id="orderForm" style="margin-top:14px"><input id="orderId" type="hidden"><div class="form-grid"><div class="field"><label>Status</label><select id="orderStatus"><option>PLACED</option><option>CONFIRMED</option><option>PROCESSING</option><option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option><option>RETURNED</option></select></div><div class="field"><label>Payment Status</label><select id="orderPayment"><option>PENDING</option><option>PAID</option><option>FAILED</option><option>REFUNDED</option></select></div><div class="field"><label>Courier</label><input id="orderCourier"></div><div class="field"><label>Tracking / AWB</label><input id="orderTracking"></div><div class="field full"><label>Admin Note</label><textarea id="orderNote"></textarea></div></div><div style="display:flex;justify-content:space-between;margin-top:14px"><button id="deleteOrderButton" class="btn danger" type="button">Delete Order</button><div><button id="printPackingSlipButton" class="btn" type="button" style="margin-right:8px;">Print Packing Slip</button><button class="btn primary" type="submit">Save Order</button></div></div></form></div></div></div>
+
+<div id="couponModal" class="modal"><div class="modal-box"><div class="modal-head"><b>NEW COUPON</b><button class="btn" type="button" data-close="couponModal">Close</button></div><div class="modal-body"><form id="couponForm"><div class="form-grid"><div class="field"><label>Code</label><input id="couponCode" required></div><div class="field"><label>Discount Value</label><input id="couponDiscount" type="number" min="0" required></div><div class="field"><label>Minimum Order</label><input id="couponMinimum" type="number" min="0" value="0"></div><div class="field"><label>Discount Type</label><select id="couponType"><option value="PERCENT">Percent</option><option value="FIXED">Fixed</option></select></div></div><button class="btn primary" type="submit" style="margin-top:14px">Create Coupon</button></form></div></div></div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(function () {
+    "use strict";
+
+    const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+    const ADMIN_EMAIL = "bulkkotwear@gmail.com";
+    const PRODUCT_BUCKET = "product-media";
+    const MAX_IMAGES = 5;
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const state = {
+        session: null,
+        page: "dashboard",
+        cmsGroup: "hero",
+        categories: [],
+        products: [],
+        orders: [],
+        customers: [],
+        coupons: [],
+        waitlist: [],
+        cms: {},
+        settings: {},
+        editingProductImages: []
+    };
+
+    const CMS_GROUPS = {
+        hero: { label: "Hero", keys: ["hero_image_url", "hero_eyebrow", "hero_title", "hero_subtitle", "hero_description", "hero_cta", "hero_cta_url"] },
+        ticker: { label: "Announcement Ticker", keys: ["announcement_1", "announcement_2", "announcement_3"] },
+        editorial: { label: "Editorial", keys: ["editorial_1_title", "editorial_1_subtitle", "editorial_1_text", "editorial_2_title", "editorial_2_subtitle", "editorial_2_text", "editorial_3_title", "editorial_3_subtitle", "editorial_3_text", "editorial_4_title", "editorial_4_subtitle", "editorial_4_text"] },
+        collections: { label: "3-Circle Collections", keys: ["collection_1_image", "collection_1_label", "collection_1_korean", "collection_1_url", "collection_2_image", "collection_2_label", "collection_2_korean", "collection_2_url", "collection_3_image", "collection_3_label", "collection_3_korean", "collection_3_url"] }
+    };
+
+    function $(id) { return document.getElementById(id); }
+
+    function setText(id, value) { const element = $(id); if (element) element.textContent = value == null ? "" : String(value); }
+
+    function setHTML(id, value) { const element = $(id); if (element) element.innerHTML = value == null ? "" : String(value); }
+
+    function setValue(id, value) { const element = $(id); if (element) element.value = value == null ? "" : String(value); }
+
+    function valueOf(id, fallback) { const element = $(id); return element ? element.value : fallback; }
+
+    function toggleHidden(id, hidden) { const element = $(id); if (element) element.classList.toggle("hidden", Boolean(hidden)); }
+
+    function escapeHTML(value) {
+        return String(value == null ? "" : value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function money(value) {
+        return new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 2
+        }).format(Number(value || 0));
+    }
+
+    function date(value) {
+        if (!value) return "—";
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? "—" : parsed.toLocaleString("en-IN");
+    }
+
+    function toast(message) {
+        const element = $("toast");
+        if (!element) return;
+        element.textContent = message || "";
+        element.classList.add("show");
+        window.clearTimeout(toast.timer);
+        toast.timer = window.setTimeout(function () {
+            if (element) element.classList.remove("show");
+        }, 2800);
+    }
+
+    function openModal(id) { const element = $(id); if (element) element.classList.add("open"); }
+
+    function closeModal(id) { const element = $(id); if (element) element.classList.remove("open"); }
+
+    function authorized(session) {
+        const email = session && session.user && session.user.email;
+        return Boolean(email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+    }
+
+    function showLogin(message) {
+        const loginView = $("loginView");
+        const app = $("app");
+        const error = $("loginError");
+        if (loginView) loginView.classList.remove("hidden");
+        if (app) app.classList.add("hidden");
+        if (error && message) error.textContent = message;
+    }
+
+    function showAdmin(session) {
+        const loginView = $("loginView");
+        const app = $("app");
+        if (loginView) loginView.classList.add("hidden");
+        if (app) app.classList.remove("hidden");
+        state.session = session;
+        setText("authStatus", "● " + (session.user.email || ADMIN_EMAIL));
+    }
+
+    async function requireAdmin() {
+        const result = await supabaseClient.auth.getSession();
+        const session = result.data ? result.data.session : null;
+        if (!authorized(session)) {
+            showLogin("Admin authorization required.");
+            throw new Error("Admin authorization required.");
+        }
+        state.session = session;
+        return session;
+    }
+
+    async function loadCategories() {
+        const result = await supabaseClient.from("categories").select("*").order("english_name", { ascending: true });
+        if (result.error) throw result.error;
+        state.categories = result.data || [];
+    }
+
+    async function loadProducts() {
+        const result = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
+        if (result.error) throw result.error;
+        state.products = result.data || [];
+    }
+
+    async function loadOrders() {
+        const result = await supabaseClient.from("orders").select("*, order_items(*)").order("created_at", { ascending: false });
+        if (result.error) throw result.error;
+        state.orders = result.data || [];
+    }
+
+    async function loadCoupons() {
+        const result = await supabaseClient.from("coupons").select("*").order("created_at", { ascending: false });
+        if (result.error) throw result.error;
+        state.coupons = result.data || [];
+    }
+
+    async function loadWaitlist() {
+        const result = await supabaseClient.from("waitlist").select("*").order("created_at", { ascending: false });
+        if (result.error) throw result.error;
+        state.waitlist = result.data || [];
+    }
+
+    async function loadCMS() {
+        const result = await supabaseClient.from("site_content").select("*");
+        if (result.error) throw result.error;
+        state.cms = {};
+        (result.data || []).forEach(function (row) {
+            const key = row.content_key || row.key || row.slug;
+            if (key) state.cms[key] = row.content_value ?? row.value ?? "";
+        });
+    }
+
+    async function loadSettings() {
+        const result = await supabaseClient.from("store_settings").select("*").eq("id", 1).maybeSingle();
+        if (result.error) throw result.error;
+        state.settings = result.data || {};
+    }
+
+    async function loadCustomers() {
+        const result = await supabaseClient.from("customer_profiles").select("*").catch(()=>({data:[]}));
+        const map = new Map();
+        (result.data || []).forEach(function (profile) {
+            const key = String(profile.email || profile.phone || profile.id || "").toLowerCase();
+            if (!key) return;
+            map.set(key, { name: profile.full_name || profile.name || "Unnamed", email: profile.email || "", phone: profile.phone || "", orders: 0, ltv: 0, lastOrder: null });
+        });
+        state.orders.forEach(function (order) {
+            const key = String(order.email || order.customer_email || order.phone || order.customer_phone || "").toLowerCase();
+            if (!key) return;
+            if (!map.has(key)) map.set(key, { name: order.customer_name || order.full_name || "Order Customer", email: order.email || order.customer_email || "", phone: order.phone || order.customer_phone || "", orders: 0, ltv: 0, lastOrder: null });
+            const customer = map.get(key);
+            const status = String(order.order_status || "PLACED").toUpperCase();
+            if (status !== "CANCELLED" && status !== "RETURNED") {
+                customer.orders += 1;
+                customer.ltv += Number(order.total || 0);
+                if (!customer.lastOrder || new Date(order.created_at) > new Date(customer.lastOrder)) customer.lastOrder = order.created_at;
+            }
+        });
+        state.customers = Array.from(map.values());
+    }
+
+    async function loadAll() {
+        await Promise.all([loadCategories(), loadProducts(), loadOrders(), loadCoupons(), loadWaitlist(), loadCMS(), loadSettings()]);
+        await loadCustomers();
+        renderAll();
+    }
+
+    function stock(product) {
+        const data = product && product.stock ? product.stock : {};
+        return { S: Number(data.S || 0), M: Number(data.M || 0), L: Number(data.L || 0), XL: Number(data.XL || 0) };
+    }
+
+    function totalStock(product) {
+        const s = stock(product);
+        return s.S + s.M + s.L + s.XL;
+    }
+
+    function live(product) {
+        return product && product.active !== false && product.visibility !== false;
+    }
+
+    function renderDashboard() {
+        const revenue = state.orders.reduce(function (sum, order) {
+            const status = String(order.order_status || "PLACED").toUpperCase();
+            return status === "CANCELLED" || status === "RETURNED" ? sum : sum + Number(order.total || 0);
+        }, 0);
+        setText("kpiOrders", state.orders.length);
+        setText("kpiRevenue", money(revenue));
+        setText("kpiCustomers", state.customers.length);
+        setText("kpiProducts", state.products.filter(live).length);
+        setText("navCategories", state.categories.length);
+        setText("navProducts", state.products.length);
+        setText("navOrders", state.orders.length);
+        setText("navCustomers", state.customers.length);
+        setText("navCoupons", state.coupons.length);
+        setText("navWaitlist", state.waitlist.length);
+        const recent = state.orders.slice(0, 8);
+        setHTML("recentOrdersBody", recent.length ? recent.map(function (o) { return `<tr><td><b>${escapeHTML(o.order_number || String(o.id || "").slice(0, 8))}</b></td><td>${escapeHTML(o.customer_name || o.full_name || o.email || "—")}</td><td>${money(o.total)}</td><td><span class="badge">${escapeHTML(o.order_status || "PLACED")}</span></td></tr>`; }).join("") : '<tr><td colspan="4" class="muted">No orders.</td></tr>');
+        const low = state.products.filter(function (p) { return totalStock(p) <= 5; }).slice(0, 8);
+        setText("lowStockBadge", state.products.filter(function (p) { return totalStock(p) <= 5; }).length);
+        setHTML("lowStockBody", low.length ? low.map(function (p) { return `<tr><td>${escapeHTML(p.name || "—")}</td><td>${escapeHTML(p.sku || "—")}</td><td><span class="badge yellow">${totalStock(p)}</span></td></tr>`; }).join("") : '<tr><td colspan="3" class="muted">No low-stock products.</td></tr>');
+    }
+
+    function renderCategories() {
+        setHTML("categoriesBody", state.categories.length ? state.categories.map(function (c) { return `<tr><td><code>${escapeHTML(c.slug || "")}</code></td><td>${escapeHTML(c.english_name || c.name || "")}</td><td>${escapeHTML(c.korean_name || "—")}</td><td><button class="btn" type="button" data-edit-category="${escapeHTML(c.id)}">Edit</button></td></tr>`; }).join("") : '<tr><td colspan="4" class="muted">No categories.</td></tr>');
+        document.querySelectorAll("[data-edit-category]").forEach(function (button) { button.onclick = function () { openCategory(button.dataset.editCategory); }; });
+        const select = $("productCategory");
+        if (select) select.innerHTML = '<option value="">Select category</option>' + state.categories.map(function (c) { return `<option value="${escapeHTML(c.slug || "")}">${escapeHTML(c.english_name || c.name || c.slug || "")}</option>`; }).join("");
+    }
+
+    function renderProducts() {
+        const q = String(valueOf("productSearch", "")).toLowerCase();
+        const rows = state.products.filter(function (p) { return !q || `${p.name || ""} ${p.sku || ""} ${p.category || ""}`.toLowerCase().includes(q); });
+        setHTML("productsBody", rows.length ? rows.map(function (p) { const isLive = live(p); return `<tr><td><b>${escapeHTML(p.name || "Unnamed")}</b><div class="muted">${escapeHTML(p.sku || "")}</div></td><td>${escapeHTML(p.category || "—")}</td><td>${money(p.price)}</td><td>${totalStock(p)}</td><td><span class="badge ${isLive ? "green" : "red"}">${isLive ? "LIVE" : "ARCHIVED / HIDDEN"}</span></td><td><button class="btn" type="button" data-edit-product="${escapeHTML(p.id)}">Edit</button> <button class="btn" type="button" data-archive-product="${escapeHTML(p.id)}">${isLive ? "Archive" : "Restore"}</button></td></tr>`; }).join("") : '<tr><td colspan="6" class="muted">No products.</td></tr>');
+        document.querySelectorAll("[data-edit-product]").forEach(function (button) { button.onclick = function () { openProduct(button.dataset.editProduct); }; });
+        document.querySelectorAll("[data-archive-product]").forEach(function (button) { button.onclick = function () { archiveProduct(button.dataset.archiveProduct); }; });
+    }
+
+    function renderOrders() {
+        const q = String(valueOf("orderSearch", "")).toLowerCase();
+        const filter = valueOf("orderStatusFilter", "");
+        const rows = state.orders.filter(function (o) { return (!filter || String(o.order_status || "PLACED") === filter) && `${o.order_number || ""} ${o.customer_name || ""} ${o.email || ""} ${o.phone || ""} ${o.tracking_number || ""}`.toLowerCase().includes(q); });
+        setHTML("ordersBody", rows.length ? rows.map(function (o) { return `<tr><td><b>${escapeHTML(o.order_number || String(o.id || "").slice(0, 8))}</b></td><td>${escapeHTML(o.customer_name || o.full_name || o.email || "—")}</td><td>${money(o.total)}</td><td><span class="badge">${escapeHTML(o.order_status || "PLACED")}</span></td><td>${escapeHTML(o.tracking_number || o.awb || "—")}</td><td>${date(o.created_at)}</td><td><button class="btn" type="button" data-edit-order="${escapeHTML(o.id)}">Manage</button></td></tr>`; }).join("") : '<tr><td colspan="7" class="muted">No orders.</td></tr>');
+        document.querySelectorAll("[data-edit-order]").forEach(function (button) { button.onclick = function () { openOrder(button.dataset.editOrder); }; });
+    }
+
+    function renderCustomers() {
+        const q = String(valueOf("customerSearch", "")).toLowerCase();
+        const rows = state.customers.filter(function (c) { return `${c.name || ""} ${c.email || ""} ${c.phone || ""}`.toLowerCase().includes(q); });
+        setHTML("customersBody", rows.length ? rows.map(function (c) { return `<tr><td><b>${escapeHTML(c.name)}</b></td><td>${escapeHTML(c.email || "—")}<div class="muted">${escapeHTML(c.phone || "")}</div></td><td>${c.orders}</td><td>${money(c.ltv)}</td><td>${date(c.lastOrder)}</td></tr>`; }).join("") : '<tr><td colspan="5" class="muted">No customers.</td></tr>');
+    }
+
+    function renderCoupons() {
+        setHTML("couponsBody", state.coupons.length ? state.coupons.map(function (c) { return `<tr><td><b>${escapeHTML(c.code || "")}</b></td><td>${escapeHTML(c.discount_value ?? c.discount ?? 0)} ${escapeHTML(c.discount_type || "")}</td><td>${money(c.min_order_value || 0)}</td><td><span class="badge ${c.active ? "green" : "red"}">${c.active ? "ACTIVE" : "OFF"}</span></td><td><button class="btn" type="button" data-toggle-coupon="${escapeHTML(c.id)}">${c.active ? "Deactivate" : "Activate"}</button></td></tr>`; }).join("") : '<tr><td colspan="5" class="muted">No coupons.</td></tr>');
+        document.querySelectorAll("[data-toggle-coupon]").forEach(function (button) { button.onclick = function () { toggleCoupon(button.dataset.toggleCoupon); }; });
+    }
+
+    function renderWaitlist() {
+        setHTML("waitlistBody", state.waitlist.length ? state.waitlist.map(function (r) { return `<tr><td>${escapeHTML(r.email || "—")}</td><td>${escapeHTML(r.phone || "—")}</td><td>${escapeHTML(r.source || "—")}</td><td>${date(r.created_at)}</td></tr>`; }).join("") : '<tr><td colspan="4" class="muted">No waitlist entries.</td></tr>');
+    }
+
+    function renderCMS() {
+        const tabs = $("cmsTabs");
+        const editor = $("cmsEditor");
+        if (!tabs || !editor) return;
+        tabs.innerHTML = Object.keys(CMS_GROUPS).map(function (key) { return `<button class="btn tab ${state.cmsGroup === key ? "active" : ""}" type="button" data-cms-group="${key}">${escapeHTML(CMS_GROUPS[key].label)}</button>`; }).join("");
+        tabs.querySelectorAll("[data-cms-group]").forEach(function (button) { button.onclick = function () { state.cmsGroup = button.dataset.cmsGroup; renderCMS(); }; });
+        const group = CMS_GROUPS[state.cmsGroup];
+        editor.innerHTML = `<div class="panel"><div class="panel-head"><h3>${escapeHTML(group.label)}</h3><span class="muted">site_content key/value</span></div><div class="panel-body"><div class="form-grid">${group.keys.map(function (key) { const value = state.cms[key] || ""; const textarea = key.includes("description") || key.includes("text"); return `<div class="field ${textarea ? "full" : ""}"><label>${escapeHTML(key)}</label>${textarea ? `<textarea data-cms-key="${escapeHTML(key)}">${escapeHTML(value)}</textarea>` : `<input data-cms-key="${escapeHTML(key)}" value="${escapeHTML(value)}">`}</div>`; }).join("")}</div></div></div>`;
+    }
+
+    function renderLegal() {
+        setValue("policyFaq", state.cms.policy_faq || state.cms.policy_faq_body || "");
+        setValue("policyShipping", state.cms.policy_shipping || state.cms.policy_shipping_body || "");
+        setValue("policyReturns", state.cms.policy_returns || state.cms.policy_returns_body || "");
+        setValue("policyPrivacy", state.cms.policy_privacy || state.cms.policy_privacy_body || "");
+        setValue("policyTerms", state.cms.policy_terms || state.cms.policy_terms_body || "");
+    }
+
+    function renderSettings() {
+        setValue("storeName", state.settings.store_name || "BULKKOT");
+        setValue("supportEmail", state.settings.support_email || ADMIN_EMAIL);
+        setValue("whatsappNumber", state.settings.whatsapp_number || state.settings.support_phone || state.cms.whatsapp_number || "");
+        setValue("currency", state.settings.currency || "INR");
+    }
+
+    function renderAll() {
+        renderDashboard();
+        renderCategories();
+        renderProducts();
+        renderOrders();
+        renderCustomers();
+        renderCoupons();
+        renderWaitlist();
+        renderCMS();
+        renderLegal();
+        renderSettings();
+    }
+
+    function navigate(page) {
+        state.page = page;
+        document.querySelectorAll(".page").forEach(function (element) { element.classList.toggle("active", element.id === "page-" + page); });
+        document.querySelectorAll("#nav button").forEach(function (button) { button.classList.toggle("active", button.dataset.page === page); });
+        const labels = { dashboard: "Dashboard", categories: "Categories", products: "Products", orders: "Orders", customers: "Customers", coupons: "Coupons", waitlist: "Waitlist", cms: "Storefront CMS", legal: "Legal Policies", settings: "Store Settings" };
+        setText("pageTitle", labels[page] || page);
+        const sidebar = $("sidebar");
+        if (sidebar && window.innerWidth <= 700) sidebar.classList.remove("open");
+    }
+
+    function resetCategory() {
+        setValue("categoryId", ""); setValue("categorySlug", ""); setValue("categoryEnglish", ""); setValue("categoryKorean", "");
+        setText("categoryModalTitle", "NEW CATEGORY"); toggleHidden("deleteCategoryButton", true);
+    }
+
+    function openCategory(id) {
+        const category = state.categories.find(function (c) { return String(c.id) === String(id); });
+        if (!category) return;
+        setValue("categoryId", category.id); setValue("categorySlug", category.slug || ""); setValue("categoryEnglish", category.english_name || category.name || ""); setValue("categoryKorean", category.korean_name || "");
+        setText("categoryModalTitle", "EDIT CATEGORY"); toggleHidden("deleteCategoryButton", false); openModal("categoryModal");
+    }
+
+    async function saveCategory(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const id = valueOf("categoryId", "").trim();
+            const slug = valueOf("categorySlug", "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+            const englishName = valueOf("categoryEnglish", "").trim();
+            const koreanName = valueOf("categoryKorean", "").trim();
+            if (!slug || !englishName) throw new Error("Slug and English Name are required.");
+            const payload = { slug: slug, english_name: englishName, korean_name: koreanName };
+            const result = id ? await supabaseClient.from("categories").update(payload).eq("id", id) : await supabaseClient.from("categories").insert(payload);
+            if (result.error) throw result.error;
+            closeModal("categoryModal"); await loadCategories(); renderAll(); toast("Category saved.");
+        } catch (error) { toast(error.message || "Category save failed."); }
+    }
+
+    async function deleteCategory() {
+        try {
+            await requireAdmin();
+            const id = valueOf("categoryId", "");
+            if (!id || !window.confirm("Delete this category?")) return;
+            const result = await supabaseClient.from("categories").delete().eq("id", id);
+            if (result.error) throw result.error;
+            closeModal("categoryModal"); await loadCategories(); renderAll(); toast("Category deleted.");
+        } catch (error) { toast(error.message || "Category delete failed."); }
+    }
+
+    function resetProduct() {
+        setValue("productId", ""); setValue("productName", ""); setValue("productSku", ""); setValue("productCategory", ""); setValue("productPrice", "0"); setValue("productCompare", ""); setValue("productActive", "true"); setValue("productDescription", ""); setValue("stockS", "0"); setValue("stockM", "0"); setValue("stockL", "0"); setValue("stockXL", "0");
+        state.editingProductImages = [];
+        setHTML("productImagePreview", "");
+        toggleHidden("deleteProductButton", true);
+        setText("productModalTitle", "NEW PRODUCT");
+    }
+
+    function renderProductImages() {
+        setHTML("productImagePreview", state.editingProductImages.length ? state.editingProductImages.map(function (url) { return `<img src="${escapeHTML(url)}" alt="Product image">`; }).join("") : '<span class="muted">No images yet.</span>');
+    }
+
+    function openProduct(id) {
+        resetProduct();
+        const product = state.products.find(function (p) { return String(p.id) === String(id); });
+        if (!product) return;
+        const s = stock(product);
+        state.editingProductImages = Array.isArray(product.images) ? product.images.slice(0, MAX_IMAGES) : [];
+        setValue("productId", product.id); setValue("productName", product.name || ""); setValue("productSku", product.sku || ""); setValue("productCategory", product.category || ""); setValue("productPrice", product.price || 0); setValue("productCompare", product.compare_at_price || ""); setValue("productActive", String(live(product))); setValue("productDescription", product.description || ""); setValue("stockS", s.S); setValue("stockM", s.M); setValue("stockL", s.L); setValue("stockXL", s.XL);
+        toggleHidden("deleteProductButton", false); setText("productModalTitle", "EDIT PRODUCT"); renderProductImages(); openModal("productModal");
+    }
+
+    async function uploadProductImages() {
+        const input = $("productImageFiles");
+        const files = input && input.files ? Array.from(input.files) : [];
+        if (!files.length) return [];
+        if (state.editingProductImages.length + files.length > MAX_IMAGES) throw new Error("A product can have a maximum of 5 images.");
+        const urls = [];
+        for (const file of files) {
+            const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+            const path = `products/${crypto.randomUUID()}-${safe}`;
+            const upload = await supabaseClient.storage.from(PRODUCT_BUCKET).upload(path, file, { upsert: false, contentType: file.type });
+            if (upload.error) throw upload.error;
+            const publicUrl = supabaseClient.storage.from(PRODUCT_BUCKET).getPublicUrl(path).data.publicUrl;
+            if (publicUrl) urls.push(publicUrl);
+        }
+        return urls;
+    }
+
+    async function saveProduct(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const id = valueOf("productId", "").trim();
+            const name = valueOf("productName", "").trim();
+            const category = valueOf("productCategory", "").trim();
+            if (!name || !category) throw new Error("Product Name and Category are required.");
+            const newImages = await uploadProductImages();
+            const images = state.editingProductImages.concat(newImages).slice(0, MAX_IMAGES);
+            const payload = { name: name, sku: valueOf("productSku", "").trim(), category: category, price: Number(valueOf("productPrice", 0)), compare_at_price: Number(valueOf("productCompare", 0)) || null, active: valueOf("productActive", "true") === "true", visibility: valueOf("productActive", "true") === "true", description: valueOf("productDescription", "").trim(), stock: { S: Number(valueOf("stockS", 0)), M: Number(valueOf("stockM", 0)), L: Number(valueOf("stockL", 0)), XL: Number(valueOf("stockXL", 0)) }, images: images, updated_at: new Date().toISOString() };
+            let result;
+            if (id) result = await supabaseClient.from("products").update(payload).eq("id", id);
+            else result = await supabaseClient.from("products").insert({ ...payload, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") + "-" + Date.now() });
+            if (result.error) throw result.error;
+            closeModal("productModal"); await loadProducts(); renderAll(); toast("Product saved.");
+        } catch (error) { toast(error.message || "Product save failed."); }
+    }
+
+    async function archiveProduct(id) {
+        try {
+            await requireAdmin();
+            const product = state.products.find(function (p) { return String(p.id) === String(id); });
+            if (!product) throw new Error("Product not found.");
+            const nextLive = !live(product);
+            if (!window.confirm(nextLive ? "Restore this product to the storefront?" : "Archive this product from the storefront?")) return;
+            const result = await supabaseClient.from("products").update({ active: nextLive, visibility: nextLive, updated_at: new Date().toISOString() }).eq("id", id);
+            if (result.error) throw result.error;
+            await loadProducts(); renderAll(); toast(nextLive ? "Product restored." : "Product archived.");
+        } catch (error) { toast(error.message || "Archive update failed."); }
+    }
+
+    async function deleteProduct() {
+        try {
+            await requireAdmin();
+            const id = valueOf("productId", "");
+            if (!id || !window.confirm("Delete this product?")) return;
+            const result = await supabaseClient.from("products").delete().eq("id", id);
+            if (result.error) throw result.error;
+            closeModal("productModal"); await loadProducts(); renderAll(); toast("Product deleted.");
+        } catch (error) { toast(error.message || "Product delete failed."); }
+    }
+
+    function openOrder(id) {
+        const order = state.orders.find(function (o) { return String(o.id) === String(id); });
+        if (!order) return;
+        setValue("orderId", order.id); setValue("orderStatus", order.order_status || "PLACED"); setValue("orderPayment", order.payment_status || "PENDING"); setValue("orderCourier", order.courier || order.courier_name || ""); setValue("orderTracking", order.tracking_number || order.awb || ""); setValue("orderNote", order.admin_note || "");
+        
+        let itemsHtml = "";
+        const items = Array.isArray(order.items) ? order.items : Array.isArray(order.order_items) ? order.order_items : [];
+        if(items.length > 0) {
+            itemsHtml = `<div style="margin-top:14px; background:#0a0a0a; border:1px solid #222; border-radius:8px; padding:10px;">
+                <label style="color:#888; font-size:9px; font-weight:800; text-transform:uppercase;">Items Ordered</label>
+                ${items.map(item => `
+                    <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #1c1c1c;">
+                        <div><b style="color:#fff;">${escapeHTML(item.title || item.product_name)}</b><br><span style="color:#888; font-size:10px;">Size: ${escapeHTML(item.size)} \vert{} SKU:${escapeHTML(item.sku)}</span></div>
+                        <div style="font-weight:bold; color:var(--green);">Qty: ${item.qty || item.quantity}</div>
+                    </div>`).join("")}
+            </div>`;
+        } else {
+            itemsHtml = `<div style="margin-top:14px; color:#888;">Items data not found for this order.</div>`;
+        }
+
+        setHTML("orderDetails", `<div class="grid three"><div class="card"><b>CUSTOMER</b><p>${escapeHTML(order.customer_name || order.full_name || order.email || "—")}<br>${escapeHTML(order.email || "")}<br>${escapeHTML(order.phone || "")}</p></div><div class="card"><b>SHIPPING</b><p>${escapeHTML(order.shipping_address || order.address || "—")}<br>${escapeHTML(order.shipping_city || order.city || "")} ${escapeHTML(order.shipping_state || order.state || "")} ${escapeHTML(order.shipping_pincode || order.pincode || "")}</p></div><div class="card"><b>TOTAL</b><div class="metric">${money(order.total)}</div></div></div>` + itemsHtml);
+        openModal("orderModal");
+    }
+
+    async function saveOrder(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const id = valueOf("orderId", "");
+            const payload = { order_status: valueOf("orderStatus", "PLACED"), payment_status: valueOf("orderPayment", "PENDING"), courier: valueOf("orderCourier", "").trim(), tracking_number: valueOf("orderTracking", "").trim(), admin_note: valueOf("orderNote", "").trim(), updated_at: new Date().toISOString() };
+            const result = await supabaseClient.from("orders").update(payload).eq("id", id);
+            if (result.error) throw result.error;
+            closeModal("orderModal"); await loadOrders(); await loadCustomers(); renderAll(); toast("Order updated.");
+        } catch (error) { toast(error.message || "Order update failed."); }
+    }
+
+    async function deleteOrder() {
+        try {
+            await requireAdmin();
+            const id = valueOf("orderId", "");
+            if (!id || !window.confirm("Warning: Are you absolutely sure you want to permanently delete this order?")) return;
+            const result = await supabaseClient.from("orders").delete().eq("id", id);
+            if (result.error) throw result.error;
+            closeModal("orderModal"); await loadOrders(); await loadCustomers(); renderAll(); toast("Order deleted.");
+        } catch (error) { toast(error.message || "Order delete failed."); }
+    }
+
+    function printPackingSlip() {
+        const id = valueOf("orderId", "");
+        const order = state.orders.find(function (o) { return String(o.id) === String(id); });
+        if (!order) return toast("Order not found.");
+        const win = window.open("", "_blank", "width=900,height=900");
+        if (!win) return toast("Popup blocked. Allow popups to print.");
+        const items = Array.isArray(order.items) ? order.items : Array.isArray(order.order_items) ? order.order_items : [];
+        const itemRows = items.length ? items.map(function (item) { return `<tr><td>${escapeHTML(item.name || item.product_name || item.title || "Product")}</td><td>${escapeHTML(item.size || "—")}</td><td>${Number(item.qty || item.quantity || 1)}</td><td>₹${Number(item.price || item.unit_price || 0).toFixed(2)}</td></tr>`; }).join("") : '<tr><td colspan="4">Order items are stored in the order record.</td></tr>';
+        win.document.write(`<!doctype html><html><head><title>BULKKOT Packing Slip</title><style>body{font-family:Arial,sans-serif;padding:35px;color:#111}header{display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:15px}h1{margin:0;letter-spacing:.08em}.section{margin-top:25px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}.total{text-align:right;font-size:22px;font-weight:800;margin-top:18px}@media print{body{padding:15px}}</style></head><body><header><div><h1>BULKKOT</h1><small>Less noise. More presence.</small></div><div><b>PACKING SLIP</b><br>${escapeHTML(order.order_number || String(order.id).slice(0,8))}</div></header><div class="section"><b>SHIP TO</b><p>${escapeHTML(order.customer_name || order.full_name || order.email || "Customer")}<br>${escapeHTML(order.shipping_address || order.address || "")}<br>${escapeHTML(order.shipping_city || order.city || "")} ${escapeHTML(order.shipping_state || order.state || "")} ${escapeHTML(order.shipping_pincode || order.pincode || "")}</p></div><div class="section"><b>COURIER:</b> ${escapeHTML(order.courier || order.courier_name || "—")}<br><b>TRACKING:</b> ${escapeHTML(order.tracking_number || order.awb || "—")}</div><div class="section"><table><thead><tr><th>Item</th><th>Size</th><th>Qty</th><th>Price</th></tr></thead><tbody>${itemRows}</tbody></table></div><div class="total">Total: ${money(order.total)}</div></body></html>`);
+        win.document.close();
+        win.onload = function () { win.focus(); win.print(); };
+    }
+
+    async function toggleCoupon(id) {
+        try {
+            await requireAdmin();
+            const coupon = state.coupons.find(function (c) { return String(c.id) === String(id); });
+            if (!coupon) return;
+            const result = await supabaseClient.from("coupons").update({ active: !Boolean(coupon.active) }).eq("id", id);
+            if (result.error) throw result.error;
+            await loadCoupons(); renderAll(); toast("Coupon updated.");
+        } catch (error) { toast(error.message || "Coupon update failed."); }
+    }
+
+    async function createCoupon(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const payload = { code: valueOf("couponCode", "").trim().toUpperCase(), discount_value: Number(valueOf("couponDiscount", 0)), discount_type: valueOf("couponType", "PERCENT"), min_order_value: Number(valueOf("couponMinimum", 0)), active: true };
+            if (!payload.code) throw new Error("Coupon code is required.");
+            const result = await supabaseClient.from("coupons").insert(payload);
+            if (result.error) throw result.error;
+        closeModal("couponModal"); await loadCoupons(); renderAll(); toast("Coupon created.");
+        } catch (error) { toast(error.message || "Coupon create failed."); }
+    }
+
+    function exportWaitlist() {
+        if (!state.waitlist.length) return toast("No waitlist entries.");
+        const rows = [["email", "phone", "source", "created_at"]].concat(state.waitlist.map(function (r) { return [r.email || "", r.phone || "", r.source || "", r.created_at || ""]; }));
+        const csv = rows.map(function (row) { return row.map(function (value) { return `"${String(value).replace(/"/g, '""')}"`; }).join(","); }).join("\r\n");
+        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url; link.download = `bulkkot-waitlist-${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    }
+
+    async function saveCMS() {
+        try {
+            await requireAdmin();
+            const fields = document.querySelectorAll("[data-cms-key]");
+            for (const field of fields) {
+                const result = await supabaseClient.from("site_content").upsert({ content_key: field.dataset.cmsKey, content_value: field.value }, { onConflict: "content_key" });
+                if (result.error) throw result.error;
+            }
+            await loadCMS(); renderCMS(); renderLegal(); toast("CMS saved.");
+        } catch (error) { toast(error.message || "CMS save failed."); }
+    }
+
+    async function saveLegal(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const rows = [["policy_faq", valueOf("policyFaq", "")], ["policy_shipping", valueOf("policyShipping", "")], ["policy_returns", valueOf("policyReturns", "")], ["policy_privacy", valueOf("policyPrivacy", "")], ["policy_terms", valueOf("policyTerms", "")]];
+            for (const row of rows) {
+                const result = await supabaseClient.from("site_content").upsert({ content_key: row[0], content_value: row[1] }, { onConflict: "content_key" });
+                if (result.error) throw result.error;
+            }
+            await loadCMS(); renderLegal(); toast("Policies saved.");
+        } catch (error) { toast(error.message || "Policy save failed."); }
+    }
+
+    async function saveSettings(event) {
+        event.preventDefault();
+        try {
+            await requireAdmin();
+            const payload = { id: 1, store_name: valueOf("storeName", "BULKKOT").trim(), support_email: valueOf("supportEmail", "").trim(), whatsapp_number: valueOf("whatsappNumber", "").trim(), currency: valueOf("currency", "INR").trim() || "INR", updated_at: new Date().toISOString() };
+            const result = await supabaseClient.from("store_settings").upsert(payload, { onConflict: "id" });
+            if (result.error) throw result.error;
+            await loadSettings(); renderSettings(); toast("Store settings saved.");
+        } catch (error) { toast(error.message || "Settings save failed."); }
+    }
+
+    async function login(event) {
+        event.preventDefault();
+        const errorElement = $("loginError");
+        const button = $("loginButton");
+        if (errorElement) errorElement.textContent = "";
+        if (button) { button.disabled = true; button.textContent = "Signing in…"; }
+        try {
+            const email = valueOf("loginEmail", "").trim().toLowerCase();
+            const password = valueOf("loginPassword", "");
+            if (email !== ADMIN_EMAIL.toLowerCase()) throw new Error("This email is not authorized for BULKKOT Admin.");
+            if (!password) throw new Error("Enter your password.");
+            const result = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+            if (result.error) throw result.error;
+            const session = result.data ? result.data.session : null;
+            if (!authorized(session)) {
+                await supabaseClient.auth.signOut();
+                throw new Error("Authenticated account is not authorized.");
+            }
+            
+            showAdmin(session);
+            await loadAll();
+            $("loginPassword").value = "";
+            toast("Login Successful!");
+        } catch (error) {
+            if (errorElement) errorElement.textContent = error.message || "Authentication failed.";
+        } finally {
+            if (button) { button.disabled = false; button.textContent = "Sign In"; }
+        }
+    }
+
+    async function logout() {
+        await supabaseClient.auth.signOut();
+        state.session = null;
+        showLogin();
+    }
+
+    function bindEvents() {
+        const loginForm = $("loginForm"); if (loginForm) loginForm.addEventListener("submit", login);
+        const logoutButton = $("logoutButton"); if (logoutButton) logoutButton.addEventListener("click", logout);
+        const refreshButton = $("refreshButton"); if (refreshButton) refreshButton.addEventListener("click", async function () { try { await requireAdmin(); await loadAll(); toast("Refreshed."); } catch (error) { toast(error.message); } });
+        const menuButton = $("menuButton"); if (menuButton) menuButton.addEventListener("click", function () { const sidebar = $("sidebar"); if (sidebar) sidebar.classList.toggle("open"); });
+        document.querySelectorAll("#nav button").forEach(function (button) { button.addEventListener("click", function () { navigate(button.dataset.page); }); });
+        document.querySelectorAll("[data-close]").forEach(function (button) { button.addEventListener("click", function () { closeModal(button.dataset.close); }); });
+        document.querySelectorAll(".modal").forEach(function (modal) { modal.addEventListener("click", function (event) { if (event.target === modal) closeModal(modal.id); }); });
+        const newCategory = $("newCategoryButton"); if (newCategory) newCategory.addEventListener("click", function () { resetCategory(); openModal("categoryModal"); });
+        const categoryForm = $("categoryForm"); if (categoryForm) categoryForm.addEventListener("submit", saveCategory);
+        const deleteCategoryButton = $("deleteCategoryButton"); if (deleteCategoryButton) deleteCategoryButton.addEventListener("click", deleteCategory);
+        const newProduct = $("newProductButton"); if (newProduct) newProduct.addEventListener("click", function () { resetProduct(); renderCategories(); openModal("productModal"); });
+        const productForm = $("productForm"); if (productForm) productForm.addEventListener("submit", saveProduct);
+        const deleteProductButton = $("deleteProductButton"); if (deleteProductButton) deleteProductButton.addEventListener("click", deleteProduct);
+        const productSearch = $("productSearch"); if (productSearch) productSearch.addEventListener("input", renderProducts);
+        const orderForm = $("orderForm"); if (orderForm) orderForm.addEventListener("submit", saveOrder);
+        const deleteOrderButton = $("deleteOrderButton"); if (deleteOrderButton) deleteOrderButton.addEventListener("click", deleteOrder);
+        const orderSearch = $("orderSearch"); if (orderSearch) orderSearch.addEventListener("input", renderOrders);
+        const orderFilter = $("orderStatusFilter"); if (orderFilter) orderFilter.addEventListener("change", renderOrders);
+        const printButton = $("printPackingSlipButton"); if (printButton) printButton.addEventListener("click", printPackingSlip);
+        const customerSearch = $("customerSearch"); if (customerSearch) customerSearch.addEventListener("input", renderCustomers);
+        const newCoupon = $("newCouponButton"); if (newCoupon) newCoupon.addEventListener("click", function () { const form = $("couponForm"); if (form) form.reset(); openModal("couponModal"); });
+        const couponForm = $("couponForm"); if (couponForm) couponForm.addEventListener("submit", createCoupon);
+        const refreshWaitlist = $("refreshWaitlistButton"); if (refreshWaitlist) refreshWaitlist.addEventListener("click", async function () { try { await loadWaitlist(); renderWaitlist(); setText("navWaitlist", state.waitlist.length); toast("Waitlist refreshed."); } catch (error) { toast(error.message); } });
+        const exportButton = $("exportWaitlistButton"); if (exportButton) exportButton.addEventListener("click", exportWaitlist);
+        const cmsButton = $("saveCmsButton"); if (cmsButton) cmsButton.addEventListener("click", saveCMS);
+        const legalForm = $("legalForm"); if (legalForm) legalForm.addEventListener("submit", saveLegal);
+        const settingsForm = $("settingsForm"); if (settingsForm) settingsForm.addEventListener("submit", saveSettings);
+    }
+
+    async function initialize() {
+        showLogin();
+        bindEvents();
+        try {
+            const result = await supabaseClient.auth.getSession();
+            if (result.error) throw result.error;
+            const session = result.data ? result.data.session : null;
+            if (!authorized(session)) {
+                showLogin();
+            } else {
+                showAdmin(session);
+                await loadAll();
+            }
+        } catch (error) {
+            console.error("Session initialization failed:", error);
+            showLogin("Could not verify the Supabase session.");
+        }
+
+        supabaseClient.auth.onAuthStateChange(function (_event, session) {
+            if (!authorized(session)) {
+                showLogin();
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialize, { once: true });
+    } else {
+        initialize();
+    }
+})();
+</script>
+</body>
+</html>
