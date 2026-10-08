@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#070707">
   <title>BULKKOT (불꽃) — VIP Portal & Access</title>
+
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
 
   <style>
@@ -28,7 +31,8 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       min-height: 100vh;
       min-height: 100dvh;
       background: var(--bg);
@@ -37,7 +41,8 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    button, input {
+    button,
+    input {
       font: inherit;
     }
 
@@ -53,7 +58,6 @@
       grid-template-columns: 1.15fr 0.85fr;
     }
 
-    /* LEFT EDITORIAL PANEL */
     .auth-editorial {
       position: relative;
       min-height: 100vh;
@@ -93,7 +97,11 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      background: linear-gradient(180deg, rgba(7,7,7,0.3) 0%, rgba(7,7,7,0.88) 100%);
+      background: linear-gradient(
+        180deg,
+        rgba(7,7,7,0.3) 0%,
+        rgba(7,7,7,0.88) 100%
+      );
     }
 
     .editorial-brand {
@@ -160,7 +168,6 @@
       letter-spacing: 0.18em;
     }
 
-    /* RIGHT AUTH HUB */
     .auth-hub {
       min-height: 100vh;
       display: flex;
@@ -227,7 +234,6 @@
       line-height: 1.6;
     }
 
-    /* TAB SWITCHER */
     .auth-switch-bar {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -253,7 +259,6 @@
       border-bottom-color: var(--red);
     }
 
-    /* FORM FIELDS */
     .form-field-wrap {
       margin-bottom: 18px;
       display: flex;
@@ -291,6 +296,11 @@
       color: #fff;
     }
 
+    .forgot-link:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .form-field-wrap input {
       width: 100%;
       height: 48px;
@@ -309,10 +319,6 @@
       background: #141414;
     }
 
-    .form-field-wrap.has-error input {
-      border-color: var(--red);
-    }
-
     .field-error-msg {
       color: var(--red);
       font-size: 10px;
@@ -321,7 +327,6 @@
       min-height: 14px;
     }
 
-    /* PASSWORD WRAPPER */
     .pwd-input-box {
       position: relative;
       display: flex;
@@ -349,7 +354,6 @@
       color: #fff;
     }
 
-    /* FEEDBACK BANNER */
     .auth-feedback-banner {
       display: none;
       padding: 12px 14px;
@@ -373,7 +377,6 @@
       color: var(--green);
     }
 
-    /* SUBMIT BUTTON */
     .auth-submit-btn {
       position: relative;
       width: 100%;
@@ -427,7 +430,6 @@
       }
     }
 
-    /* LEGAL & EXIT */
     .auth-legal-note {
       margin-top: 20px;
       text-align: center;
@@ -458,7 +460,6 @@
       color: #fff;
     }
 
-    /* RESPONSIVE MEDIA QUERIES */
     @media (max-width: 900px) {
       .auth-layout {
         grid-template-columns: 1fr;
@@ -485,7 +486,6 @@
 <body>
   <main class="auth-layout">
 
-    <!-- LEFT BRAND EDITORIAL PANEL -->
     <section class="auth-editorial">
       <div class="editorial-backdrop"></div>
 
@@ -517,11 +517,9 @@
       </div>
     </section>
 
-    <!-- RIGHT ACTION HUB PANEL -->
     <section class="auth-hub">
       <div class="auth-card">
 
-        <!-- Mobile Header Bar -->
         <div class="auth-mobile-header">
           <a href="./index.html" class="mobile-logo">
             <span>불꽃</span> BULKKOT
@@ -532,7 +530,6 @@
           </a>
         </div>
 
-        <!-- Section Lead Title -->
         <div class="auth-lead">
           <span class="auth-eyebrow">EXCLUSIVE CLIENT PORTAL</span>
 
@@ -543,7 +540,6 @@
           </p>
         </div>
 
-        <!-- Auth Tabs Switch -->
         <div class="auth-switch-bar">
           <button
             type="button"
@@ -562,10 +558,8 @@
           </button>
         </div>
 
-        <!-- Form Elements -->
         <form id="authMainForm" novalidate>
 
-          <!-- FULL NAME (Only for Signup) -->
           <div
             class="form-field-wrap signup-field"
             id="wrapFullName"
@@ -587,7 +581,6 @@
             ></span>
           </div>
 
-          <!-- MOBILE NUMBER (Only for Signup - Mandatory) -->
           <div
             class="form-field-wrap signup-field"
             id="wrapMobile"
@@ -609,7 +602,6 @@
             ></span>
           </div>
 
-          <!-- EMAIL ADDRESS -->
           <div class="form-field-wrap">
             <label for="inputEmail">EMAIL ADDRESS</label>
 
@@ -628,7 +620,6 @@
             ></span>
           </div>
 
-          <!-- PASSWORD -->
           <div class="form-field-wrap">
             <div class="field-label-split">
               <label for="inputPassword">PASSWORD</label>
@@ -668,7 +659,6 @@
             ></span>
           </div>
 
-          <!-- CONFIRM PASSWORD (Only for Signup) -->
           <div
             class="form-field-wrap signup-field"
             id="wrapConfirmPwd"
@@ -690,14 +680,12 @@
             ></span>
           </div>
 
-          <!-- FEEDBACK BANNER -->
           <div
             class="auth-feedback-banner"
             id="authFeedbackBanner"
             role="alert"
           ></div>
 
-          <!-- SUBMIT BUTTON -->
           <button
             type="submit"
             class="auth-submit-btn"
@@ -712,7 +700,6 @@
           </button>
         </form>
 
-        <!-- LEGAL TEXT -->
         <div class="auth-legal-note">
           <p>
             By proceeding, you agree to BULKKOT's
@@ -742,7 +729,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- JAVASCRIPT LOGIC -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
 
@@ -752,34 +738,66 @@
       );
 
       let isSignUpMode = false;
+      let isRecoveryMode = false;
 
-      // DOM Elements
-      const btnTabLogin = document.getElementById("btnTabLogin");
-      const btnTabSignup = document.getElementById("btnTabSignup");
+      const btnTabLogin =
+        document.getElementById("btnTabLogin");
 
-      const authModeHeading = document.getElementById("authModeHeading");
-      const authModeSubtitle = document.getElementById("authModeSubtitle");
+      const btnTabSignup =
+        document.getElementById("btnTabSignup");
 
-      const wrapFullName = document.getElementById("wrapFullName");
-      const wrapMobile = document.getElementById("wrapMobile");
-      const wrapConfirmPwd = document.getElementById("wrapConfirmPwd");
+      const authModeHeading =
+        document.getElementById("authModeHeading");
 
-      const btnForgotPwd = document.getElementById("btnForgotPwd");
+      const authModeSubtitle =
+        document.getElementById("authModeSubtitle");
 
-      const txtSubmit = document.getElementById("txtSubmit");
-      const btnSubmitAuth = document.getElementById("btnSubmitAuth");
-      const authFeedbackBanner = document.getElementById("authFeedbackBanner");
+      const wrapFullName =
+        document.getElementById("wrapFullName");
 
-      const inputFullName = document.getElementById("inputFullName");
-      const inputMobile = document.getElementById("inputMobile");
-      const inputEmail = document.getElementById("inputEmail");
-      const inputPassword = document.getElementById("inputPassword");
-      const inputConfirmPassword = document.getElementById("inputConfirmPassword");
+      const wrapMobile =
+        document.getElementById("wrapMobile");
 
-      const btnTogglePwd = document.getElementById("btnTogglePwd");
+      const wrapConfirmPwd =
+        document.getElementById("wrapConfirmPwd");
 
-      // Password Toggle
+      const btnForgotPwd =
+        document.getElementById("btnForgotPwd");
+
+      const txtSubmit =
+        document.getElementById("txtSubmit");
+
+      const btnSubmitAuth =
+        document.getElementById("btnSubmitAuth");
+
+      const authFeedbackBanner =
+        document.getElementById("authFeedbackBanner");
+
+      const inputFullName =
+        document.getElementById("inputFullName");
+
+      const inputMobile =
+        document.getElementById("inputMobile");
+
+      const inputEmail =
+        document.getElementById("inputEmail");
+
+      const inputPassword =
+        document.getElementById("inputPassword");
+
+      const inputConfirmPassword =
+        document.getElementById("inputConfirmPassword");
+
+      const btnTogglePwd =
+        document.getElementById("btnTogglePwd");
+
+
+      // =====================================================
+      // PASSWORD VISIBILITY
+      // =====================================================
+
       btnTogglePwd.addEventListener("click", () => {
+
         const type =
           inputPassword.type === "password"
             ? "text"
@@ -793,10 +811,17 @@
             : "HIDE";
       });
 
-      // Tab Switch Logic
+
+      // =====================================================
+      // NORMAL LOGIN / SIGNUP MODE
+      // =====================================================
+
       function toggleMode(mode) {
 
-        isSignUpMode = mode === "signup";
+        isRecoveryMode = false;
+
+        isSignUpMode =
+          mode === "signup";
 
         btnTabLogin.classList.toggle(
           "active",
@@ -810,219 +835,605 @@
 
         if (isSignUpMode) {
 
-          authModeHeading.textContent = "CREATE ACCOUNT";
+          authModeHeading.textContent =
+            "CREATE ACCOUNT";
 
           authModeSubtitle.textContent =
             "Join the VIP list to secure your silhouettes and track shipments.";
 
-          txtSubmit.textContent = "CREATE ACCOUNT";
+          txtSubmit.textContent =
+            "CREATE ACCOUNT";
 
-          wrapFullName.style.display = "flex";
-          wrapMobile.style.display = "flex";
-          wrapConfirmPwd.style.display = "flex";
+          wrapFullName.style.display =
+            "flex";
 
-          btnForgotPwd.style.display = "none";
+          wrapMobile.style.display =
+            "flex";
 
-          inputFullName.required = true;
-          inputMobile.required = true;
-          inputConfirmPassword.required = true;
+          wrapConfirmPwd.style.display =
+            "flex";
 
-          inputPassword.autocomplete = "new-password";
+          btnForgotPwd.style.display =
+            "none";
+
+          inputFullName.required =
+            true;
+
+          inputMobile.required =
+            true;
+
+          inputConfirmPassword.required =
+            true;
+
+          inputPassword.autocomplete =
+            "new-password";
 
         } else {
 
-          authModeHeading.textContent = "SIGN IN";
+          authModeHeading.textContent =
+            "SIGN IN";
 
           authModeSubtitle.textContent =
             "Access your saved dispatch addresses, track shipments live, and secure your silhouettes.";
 
-          txtSubmit.textContent = "SIGN IN";
+          txtSubmit.textContent =
+            "SIGN IN";
 
-          wrapFullName.style.display = "none";
-          wrapMobile.style.display = "none";
-          wrapConfirmPwd.style.display = "none";
+          wrapFullName.style.display =
+            "none";
 
-          btnForgotPwd.style.display = "block";
+          wrapMobile.style.display =
+            "none";
 
-          inputFullName.required = false;
-          inputMobile.required = false;
-          inputConfirmPassword.required = false;
+          wrapConfirmPwd.style.display =
+            "none";
 
-          inputPassword.autocomplete = "current-password";
+          btnForgotPwd.style.display =
+            "block";
+
+          inputFullName.required =
+            false;
+
+          inputMobile.required =
+            false;
+
+          inputConfirmPassword.required =
+            false;
+
+          inputPassword.autocomplete =
+            "current-password";
         }
 
         authFeedbackBanner.className =
           "auth-feedback-banner";
 
-        authFeedbackBanner.textContent = "";
+        authFeedbackBanner.textContent =
+          "";
       }
+
+
+      // =====================================================
+      // PASSWORD RECOVERY MODE
+      // =====================================================
+
+      function enterRecoveryMode() {
+
+        isRecoveryMode =
+          true;
+
+        isSignUpMode =
+          false;
+
+        btnTabLogin.classList.add(
+          "active"
+        );
+
+        btnTabSignup.classList.remove(
+          "active"
+        );
+
+        authModeHeading.textContent =
+          "RESET PASSWORD";
+
+        authModeSubtitle.textContent =
+          "Choose a new secure password for your BULKKOT account.";
+
+        txtSubmit.textContent =
+          "UPDATE PASSWORD";
+
+        wrapFullName.style.display =
+          "none";
+
+        wrapMobile.style.display =
+          "none";
+
+        wrapConfirmPwd.style.display =
+          "flex";
+
+        btnForgotPwd.style.display =
+          "none";
+
+        inputFullName.required =
+          false;
+
+        inputMobile.required =
+          false;
+
+        inputConfirmPassword.required =
+          true;
+
+        inputPassword.required =
+          true;
+
+        inputPassword.autocomplete =
+          "new-password";
+
+        inputConfirmPassword.autocomplete =
+          "new-password";
+
+        authFeedbackBanner.className =
+          "auth-feedback-banner";
+
+        authFeedbackBanner.textContent =
+          "";
+
+        inputEmail.disabled =
+          true;
+
+        inputEmail.style.opacity =
+          "0.55";
+
+        inputPassword.focus();
+      }
+
+
+      // =====================================================
+      // TAB EVENTS
+      // =====================================================
 
       btnTabLogin.addEventListener(
         "click",
-        () => toggleMode("signin")
+        () => {
+
+          inputEmail.disabled =
+            false;
+
+          inputEmail.style.opacity =
+            "1";
+
+          toggleMode("signin");
+        }
       );
+
 
       btnTabSignup.addEventListener(
         "click",
-        () => toggleMode("signup")
+        () => {
+
+          inputEmail.disabled =
+            false;
+
+          inputEmail.style.opacity =
+            "1";
+
+          toggleMode("signup");
+        }
       );
 
-      // Form Submit
-      document
-        .getElementById("authMainForm")
-        .addEventListener("submit", async (e) => {
 
-          e.preventDefault();
+      // =====================================================
+      // FORGOT PASSWORD
+      // =====================================================
 
-          // Reset feedback
+      btnForgotPwd.addEventListener(
+        "click",
+        async () => {
+
+          const email =
+            inputEmail.value.trim();
+
           authFeedbackBanner.className =
             "auth-feedback-banner";
 
-          authFeedbackBanner.textContent = "";
+          authFeedbackBanner.textContent =
+            "";
 
-          const email = inputEmail.value.trim();
-          const password = inputPassword.value;
-          const fullName = inputFullName.value.trim();
-          const mobile = inputMobile.value.trim();
-          const confirmPassword =
-            inputConfirmPassword.value;
+          if (!email) {
 
-          // Basic Validation
-          if (!email || !password) {
             showError(
-              "Please fill in email and password."
+              "Enter your email address first."
             );
+
+            inputEmail.focus();
+
             return;
           }
 
-          if (isSignUpMode) {
+          if (
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+          ) {
 
-            if (!fullName || !mobile) {
-              showError(
-                "Full Name and Mobile Number are required for registration."
-              );
-              return;
-            }
+            showError(
+              "Please enter a valid email address."
+            );
 
-            if (password !== confirmPassword) {
-              showError(
-                "Passwords do not match."
-              );
-              return;
-            }
+            inputEmail.focus();
 
-            if (
-              mobile
-                .replace(/\D/g, "")
-                .length < 10
-            ) {
-              showError(
-                "Please enter a valid 10-digit mobile number."
-              );
-              return;
-            }
+            return;
           }
 
-          // Loading State
-          btnSubmitAuth.classList.add("is-loading");
-          btnSubmitAuth.disabled = true;
+          btnForgotPwd.disabled =
+            true;
+
+          btnForgotPwd.textContent =
+            "SENDING...";
 
           try {
 
-            if (isSignUpMode) {
+            /*
+             * The reset email returns to signin.html.
+             *
+             * Supabase then creates a temporary recovery
+             * session and fires PASSWORD_RECOVERY.
+             */
 
-              // ==========================================
-              // SIGN UP
-              // ==========================================
+            const redirectTo =
+              new URL(
+                "./signin.html",
+                window.location.href
+              ).href;
 
-              /*
-               * After email confirmation, Supabase will
-               * redirect the user back to the storefront.
-               *
-               * This URL must exist in Supabase:
-               * Authentication → URL Configuration
-               */
-              const emailRedirectTo =
-                new URL(
-                  "./index.html",
-                  window.location.href
-                ).href;
-
-              const {
-                data,
-                error
-              } = await supabase.auth.signUp({
-
+            const {
+              error
+            } =
+              await supabase.auth.resetPasswordForEmail(
                 email,
-
-                password,
-
-                options: {
-
-                  emailRedirectTo,
-
-                  data: {
-                    full_name: fullName,
-                    phone: mobile
-                  }
+                {
+                  redirectTo
                 }
-              });
-
-              if (error) {
-                throw error;
-              }
-
-              /*
-               * With Confirm Email enabled:
-               *
-               * user  = created
-               * session = null
-               *
-               * So DO NOT redirect the user immediately.
-               */
-
-              /*
-               * IMPORTANT:
-               * Do not write to customer_profiles from the
-               * browser here.
-               *
-               * The Supabase database trigger now creates
-               * the customer_profiles row automatically
-               * when auth.users receives the new account.
-               */
-
-              showSuccess(
-                "Account created. Please check your email and click the verification link to activate your BULKKOT account."
               );
 
-              /*
-               * Stay on this page.
-               *
-               * The user must verify their email first.
-               * The database trigger has already handled the
-               * customer_profiles record.
-               */
-              inputPassword.value = "";
-              inputConfirmPassword.value = "";
+            if (error) {
+              throw error;
+            }
 
-            } else {
+            showSuccess(
+              "If an account exists for this email, a password reset link has been sent. Check your inbox."
+            );
 
-              // ==========================================
+          } catch (err) {
+
+            showError(
+              err.message ||
+              "Unable to send the password reset email. Please try again."
+            );
+
+          } finally {
+
+            btnForgotPwd.disabled =
+              false;
+
+            btnForgotPwd.textContent =
+              "Forgot password?";
+          }
+        }
+      );
+
+
+      // =====================================================
+      // SUPABASE AUTH STATE
+      // =====================================================
+
+      supabase.auth.onAuthStateChange(
+        (event) => {
+
+          if (
+            event === "PASSWORD_RECOVERY"
+          ) {
+
+            enterRecoveryMode();
+          }
+        }
+      );
+
+
+      // =====================================================
+      // FORM SUBMIT
+      // =====================================================
+
+      document
+        .getElementById("authMainForm")
+        .addEventListener(
+          "submit",
+          async (e) => {
+
+            e.preventDefault();
+
+            authFeedbackBanner.className =
+              "auth-feedback-banner";
+
+            authFeedbackBanner.textContent =
+              "";
+
+            const email =
+              inputEmail.value.trim();
+
+            const password =
+              inputPassword.value;
+
+            const fullName =
+              inputFullName.value.trim();
+
+            const mobile =
+              inputMobile.value.trim();
+
+            const confirmPassword =
+              inputConfirmPassword.value;
+
+
+            // =================================================
+            // RECOVERY VALIDATION
+            // =================================================
+
+            if (isRecoveryMode) {
+
+              if (
+                password.length < 8
+              ) {
+
+                showError(
+                  "Password must be at least 8 characters."
+                );
+
+                return;
+              }
+
+              if (
+                !/[a-z]/.test(password) ||
+                !/[A-Z]/.test(password) ||
+                !/[0-9]/.test(password) ||
+                !/[^A-Za-z0-9]/.test(password)
+              ) {
+
+                showError(
+                  "Password must include lowercase, uppercase, a number, and a symbol."
+                );
+
+                return;
+              }
+
+              if (
+                password !== confirmPassword
+              ) {
+
+                showError(
+                  "Passwords do not match."
+                );
+
+                return;
+              }
+            }
+
+
+            // =================================================
+            // NORMAL VALIDATION
+            // =================================================
+
+            if (!email && !isRecoveryMode) {
+
+              showError(
+                "Please enter your email address."
+              );
+
+              return;
+            }
+
+
+            if (
+              !password &&
+              !isRecoveryMode
+            ) {
+
+              showError(
+                "Please enter your password."
+              );
+
+              return;
+            }
+
+
+            if (isSignUpMode) {
+
+              if (
+                !fullName ||
+                !mobile
+              ) {
+
+                showError(
+                  "Full Name and Mobile Number are required for registration."
+                );
+
+                return;
+              }
+
+
+              if (
+                password !==
+                confirmPassword
+              ) {
+
+                showError(
+                  "Passwords do not match."
+                );
+
+                return;
+              }
+
+
+              if (
+                mobile
+                  .replace(/\D/g, "")
+                  .length < 10
+              ) {
+
+                showError(
+                  "Please enter a valid 10-digit mobile number."
+                );
+
+                return;
+              }
+            }
+
+
+            // =================================================
+            // LOADING
+            // =================================================
+
+            btnSubmitAuth.classList.add(
+              "is-loading"
+            );
+
+            btnSubmitAuth.disabled =
+              true;
+
+
+            try {
+
+              // =================================================
+              // PASSWORD RECOVERY
+              // =================================================
+
+              if (isRecoveryMode) {
+
+                const {
+                  error
+                } =
+                  await supabase.auth.updateUser(
+                    {
+                      password
+                    }
+                  );
+
+                if (error) {
+                  throw error;
+                }
+
+
+                /*
+                 * End the temporary recovery session.
+                 * The user can now sign in normally.
+                 */
+
+                await supabase.auth.signOut();
+
+
+                isRecoveryMode =
+                  false;
+
+                inputEmail.disabled =
+                  false;
+
+                inputEmail.style.opacity =
+                  "1";
+
+                inputPassword.value =
+                  "";
+
+                inputConfirmPassword.value =
+                  "";
+
+                toggleMode(
+                  "signin"
+                );
+
+                showSuccess(
+                  "Password updated successfully. You can now sign in with your new password."
+                );
+
+                return;
+              }
+
+
+              // =================================================
+              // SIGN UP
+              // =================================================
+
+              if (isSignUpMode) {
+
+                const emailRedirectTo =
+                  new URL(
+                    "./index.html",
+                    window.location.href
+                  ).href;
+
+
+                const {
+                  data,
+                  error
+                } =
+                  await supabase.auth.signUp(
+                    {
+                      email,
+
+                      password,
+
+                      options: {
+
+                        emailRedirectTo,
+
+                        data: {
+                          full_name:
+                            fullName,
+
+                          phone:
+                            mobile
+                        }
+                      }
+                    }
+                  );
+
+
+                if (error) {
+                  throw error;
+                }
+
+
+                showSuccess(
+                  "Account created. Please check your email and click the verification link to activate your BULKKOT account."
+                );
+
+
+                inputPassword.value =
+                  "";
+
+                inputConfirmPassword.value =
+                  "";
+
+                return;
+              }
+
+
+              // =================================================
               // SIGN IN
-              // ==========================================
+              // =================================================
 
               const {
                 data,
                 error
-              } = await supabase.auth.signInWithPassword({
-                email,
-                password
-              });
+              } =
+                await supabase.auth.signInWithPassword(
+                  {
+                    email,
+                    password
+                  }
+                );
+
 
               if (error) {
 
                 const errorMessage =
                   error.message.toLowerCase();
+
 
                 if (
                   errorMessage.includes(
@@ -1038,6 +1449,7 @@
                   );
                 }
 
+
                 if (
                   errorMessage.includes(
                     "invalid login credentials"
@@ -1049,16 +1461,15 @@
                   );
                 }
 
+
                 throw error;
               }
 
-              /*
-               * Extra safety check:
-               *
-               * If a session somehow exists but the
-               * user's email is not confirmed, do not
-               * allow normal storefront access.
-               */
+
+              // =================================================
+              // EXTRA EMAIL VERIFICATION SAFETY CHECK
+              // =================================================
+
               if (
                 data?.user &&
                 !data.user.email_confirmed_at
@@ -1071,48 +1482,72 @@
                 );
               }
 
+
               showSuccess(
                 "Welcome back! Redirecting..."
               );
 
-              setTimeout(() => {
-                window.location.href =
-                  "./index.html";
-              }, 1000);
+
+              setTimeout(
+                () => {
+
+                  window.location.href =
+                    "./index.html";
+
+                },
+                1000
+              );
+
+            } catch (err) {
+
+              showError(
+                err.message ||
+                "Authentication failed. Please try again."
+              );
+
+            } finally {
+
+              btnSubmitAuth.classList.remove(
+                "is-loading"
+              );
+
+              btnSubmitAuth.disabled =
+                false;
             }
-
-          } catch (err) {
-
-            showError(
-              err.message ||
-              "Authentication failed. Please try again."
-            );
-
-          } finally {
-
-            btnSubmitAuth.classList.remove(
-              "is-loading"
-            );
-
-            btnSubmitAuth.disabled = false;
           }
-        });
+        );
+
+
+      // =====================================================
+      // FEEDBACK HELPERS
+      // =====================================================
 
       function showError(msg) {
 
-        authFeedbackBanner.textContent = msg;
+        authFeedbackBanner.textContent =
+          msg;
 
         authFeedbackBanner.className =
           "auth-feedback-banner is-error";
       }
 
+
       function showSuccess(msg) {
 
-        authFeedbackBanner.textContent = msg;
+        authFeedbackBanner.textContent =
+          msg;
 
         authFeedbackBanner.className =
           "auth-feedback-banner is-success";
       }
+
+
+      // =====================================================
+      // INITIAL MODE
+      // =====================================================
+
+      toggleMode("signin");
+
     });
   </script>
 </body>
