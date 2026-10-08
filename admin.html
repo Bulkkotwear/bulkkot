@@ -503,6 +503,44 @@
       gap:14px;
     }
 
+    .category-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .category-card{
+      overflow:hidden;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+    }
+
+    .category-card__image{
+      aspect-ratio:1/1;
+      background:#171717;
+      position:relative;
+    }
+
+    .category-card__image img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    .category-card__body{padding:14px}
+    .category-card__name{font-weight:850;font-size:14px}
+    .category-card__meta{color:#777;font-size:11px;margin-top:4px}
+    .category-card__actions{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+    .category-card__actions .btn{flex:1;min-width:80px}
+
+    @media(max-width:1200px){
+      .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media(max-width:560px){
+      .category-grid{grid-template-columns:1fr}
+    }
+
     .product-card{
       overflow:hidden;
       background:var(--panel);
@@ -909,6 +947,12 @@
           <span id="navProductCount" class="nav-count">0</span>
         </button>
 
+        <button class="nav-btn" data-page="categories">
+          <span class="nav-icon">◉</span>
+          Categories
+          <span id="navCategoryCount" class="nav-count">0</span>
+        </button>
+
         <button class="nav-btn" data-page="orders">
           <span class="nav-icon">◫</span>
           Orders
@@ -1107,6 +1151,43 @@
 
           <div id="productsGrid" class="product-grid">
             <div class="loading-state"><span class="loader"></span></div>
+          </div>
+
+        </section>
+
+        <!-- CATEGORIES -->
+        <section id="page-categories" class="page">
+
+          <div class="page-head">
+            <div>
+              <h1>Categories</h1>
+              <p>Manage the category circles, names, slugs and images shown across the storefront.</p>
+            </div>
+            <div class="actions">
+              <button class="btn" onclick="loadCategories()">↻ Refresh</button>
+              <button class="btn btn-primary" onclick="openCategoryModal()">+ Add category</button>
+            </div>
+          </div>
+
+          <div class="card section-card">
+            <div class="section-title">
+              <h2>Storefront Categories</h2>
+              <span id="categoryCountLabel">0 categories</span>
+            </div>
+            <div id="categoriesGrid" class="category-grid">
+              <div class="loading-state"><span class="loader"></span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">
+              <h2>How it works</h2>
+              <span>Live storefront sync</span>
+            </div>
+            <div class="muted" style="line-height:1.7;font-size:12px">
+              Add a category once and it becomes available to the product category selector, homepage category circles and storefront filters.
+              Edit changes the category details, Replace lets you swap the circle image, and Delete removes the category after confirming what should happen to its products.
+            </div>
           </div>
 
         </section>
@@ -1583,8 +1664,8 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 const state = {
   user:null, products:[], orders:[], customers:[], coupons:[], waitlist:[],
-  cms:{}, settings:null, media:[], currentPage:"dashboard",
-  editingProduct:null, editingCoupon:null
+  cms:{}, settings:null, media:[], categories:[], currentPage:"dashboard",
+  editingProduct:null, editingCoupon:null, editingCategory:null
 };
 
 const $ = id => document.getElementById(id);
@@ -1691,7 +1772,7 @@ db.auth.onAuthStateChange(async(_,session)=>{
   }
 });
 
-const pageTitles={dashboard:"Dashboard",products:"Products",orders:"Orders",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health"};
+const pageTitles={dashboard:"Dashboard",products:"Products",categories:"Categories",orders:"Orders",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health"};
 function navigate(page){
   if(!pageTitles[page])return; state.currentPage=page;
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
@@ -1699,7 +1780,7 @@ function navigate(page){
   $("page-"+page)?.classList.add("active");
   document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add("active");
   $("topTitle").textContent=pageTitles[page]; $("sidebar").classList.remove("open");
-  const loaders={dashboard:loadDashboard,products:loadProducts,orders:loadOrders,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck};
+  const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck};
   loaders[page]?.();
 }
 document.querySelectorAll(".nav-btn[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));
@@ -1787,6 +1868,196 @@ async function toggleProductActive(id){
   }catch(e){showToast("Status update failed: "+normalizeError(e),"error");}
 }
 
+
+/* ===== CATEGORY MANAGEMENT ===== */
+const DEFAULT_CATEGORIES = [
+  {id:"tees",slug:"tees",name:"TEES",korean:"티셔츠",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",enabled:true},
+  {id:"hoods",slug:"hoods",name:"HOODIES",korean:"헤비 후드",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",enabled:true},
+  {id:"sweats",slug:"sweats",name:"SWEATS",korean:"스웨트",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png",enabled:true}
+];
+
+function categorySlug(c){return String(c?.slug||c?.id||"").trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^-|-$/g,"");}
+function normalizeCategory(c){
+  const slug=categorySlug(c);
+  return {
+    id:String(c?.id||slug),
+    slug,
+    name:String(c?.name||slug||"CATEGORY").trim().toUpperCase(),
+    korean:String(c?.korean||"").trim(),
+    image:String(c?.image||"").trim(),
+    enabled:c?.enabled!==false
+  };
+}
+function getCategoryValueFromRow(row){
+  return row?.content_value ?? row?.value ?? "";
+}
+async function writeSiteContentKey(key,value){
+  const existing=await db.from("site_content").select("*");
+  if(existing.error)throw existing.error;
+  const rows=existing.data||[];
+  const row=rows.find(x=>String(x.content_key||x.key)===String(key));
+  let r;
+  if(row?.id){
+    const payload=row.content_key!==undefined
+      ?{content_key:key,content_value:String(value)}
+      :{key,value:String(value)};
+    r=await db.from("site_content").update(payload).eq("id",row.id);
+  }else{
+    const payload=rows.some(x=>x.content_key!==undefined)
+      ?{content_key:key,content_value:String(value)}
+      :{key,value:String(value)};
+    r=await db.from("site_content").insert(payload);
+  }
+  if(r.error)throw r.error;
+}
+async function loadCategories(){
+  const root=$("categoriesGrid");if(root)root.innerHTML=loadingHTML();
+  try{
+    const r=await db.from("site_content").select("key,value,content_key,content_value");
+    if(r.error)throw r.error;
+    const row=(r.data||[]).find(x=>String(x.content_key||x.key)==="categories");
+    let parsed=safeJson(getCategoryValueFromRow(row));
+    if(!Array.isArray(parsed)||!parsed.length){
+      parsed=DEFAULT_CATEGORIES;
+      await writeSiteContentKey("categories",JSON.stringify(parsed));
+    }
+    state.categories=parsed.map(normalizeCategory).filter(x=>x.slug);
+    $("navCategoryCount").textContent=state.categories.length;
+    $("categoryCountLabel").textContent=state.categories.length+" categor"+(state.categories.length===1?"y":"ies");
+    renderCategories();
+    populateCategoryFilter();
+    renderProducts();
+  }catch(e){
+    state.categories=[];
+    if(root)root.innerHTML='<div class="card" style="grid-column:1/-1"><b style="color:#ff9298">Categories could not be loaded.</b><div class="muted" style="margin-top:6px">'+esc(normalizeError(e))+'</div></div>';
+  }
+}
+function renderCategories(){
+  const root=$("categoriesGrid");if(!root)return;
+  if(!state.categories.length){root.innerHTML=emptyHTML("No categories found.");return;}
+  root.innerHTML=state.categories.map(c=>{
+    const live=c.enabled!==false;
+    return '<article class="category-card">'+
+      '<div class="category-card__image">'+
+      (c.image?'<img src="'+esc(c.image)+'" alt="'+esc(c.name)+'">':'<div style="height:100%;display:grid;place-items:center;color:#555">NO IMAGE</div>')+
+      '<span class="badge '+(live?"green":"red")+'" style="position:absolute;top:10px;left:10px">'+(live?"LIVE":"HIDDEN")+'</span>'+
+      '</div>'+
+      '<div class="category-card__body">'+
+      '<div class="category-card__name">'+esc(c.name)+'</div>'+
+      '<div class="category-card__meta">'+esc(c.korean||"—")+' · '+esc(c.slug)+'</div>'+
+      '<div class="category-card__actions">'+
+      '<button class="btn btn-small" onclick=\'openCategoryModalById("'+esc(c.id)+'")\'>Edit</button>'+
+      '<button class="btn btn-small" onclick=\'openCategoryReplaceModalById("'+esc(c.id)+'")\'>Replace</button>'+
+      '<button class="btn btn-small '+(live?"btn-danger":"btn-success")+'" onclick=\'toggleCategoryActive("'+esc(c.id)+'")\'>'+(live?"Hide":"Show")+'</button>'+
+      '<button class="btn btn-small btn-danger" onclick=\'deleteCategory("'+esc(c.id)+'")\'>Delete</button>'+
+      '</div></div></article>';
+  }).join("");
+}
+function findCategory(id){return state.categories.find(c=>String(c.id)===String(id)||String(c.slug)===String(id));}
+function openCategoryModalById(id){const c=findCategory(id);if(c)openCategoryModal(c,false);}
+function openCategoryReplaceModalById(id){const c=findCategory(id);if(c)openCategoryModal(c,true);}
+function openCategoryModal(category=null,replaceOnly=false){
+  state.editingCategory=category;
+  const c=category||{name:"",slug:"",korean:"",image:"",enabled:true};
+  $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
+    '<div class="modal-head"><h2>'+(replaceOnly?"Replace category image":category?"Edit category":"Add category")+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
+    '<div class="modal-body"><div class="form-grid">'+
+    (!replaceOnly?'<div class="field"><label>NAME *</label><input id="categoryName" value="'+esc(c.name)+'"></div>'+
+    '<div class="field"><label>SLUG *</label><input id="categorySlug" value="'+esc(c.slug)+'" placeholder="e.g. jackets"></div>'+
+    '<div class="field"><label>KOREAN LABEL</label><input id="categoryKorean" value="'+esc(c.korean)+'" placeholder="카테고리"></div>'+
+    '<div class="field"><label>STATUS</label><select id="categoryEnabled"><option value="true">Live / Visible</option><option value="false">Hidden</option></select></div>':'')+
+    '<div class="field full"><label>CIRCLE IMAGE URL</label><input id="categoryImage" value="'+esc(c.image)+'" placeholder="https://…"></div>'+
+    '<div class="field full"><label>REPLACE IMAGE FILE</label><input id="categoryImageFile" type="file" accept="image/*">'+
+    '<div class="muted" style="margin-top:7px;font-size:11px">Upload a new image to the existing site-content-images bucket.</div></div>'+
+    '<div class="field full"><div id="categoryImagePreview" style="display:flex;gap:8px;flex-wrap:wrap">'+
+    (c.image?'<img src="'+esc(c.image)+'" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #292929">':'')+
+    '</div></div>'+
+    '</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button>'+
+    '<button class="btn btn-primary" onclick="saveCategory('+(replaceOnly?"true":"false")+')">'+(replaceOnly?"Replace image":category?"Save changes":"Create category")+'</button></div></div></div>';
+  if(!replaceOnly)$("categoryEnabled").value=c.enabled===false?"false":"true";
+  $("categoryImageFile")?.addEventListener("change",previewCategoryImage);
+}
+function previewCategoryImage(e){
+  const root=$("categoryImagePreview");if(!root)return;
+  root.innerHTML="";
+  [...(e.target.files||[])].forEach(file=>{
+    if(!file.type.startsWith("image/"))return;
+    const img=document.createElement("img");
+    img.style.cssText="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #292929";
+    img.src=URL.createObjectURL(file);root.appendChild(img);
+  });
+}
+async function uploadCategoryImage(){
+  const file=$("categoryImageFile")?.files?.[0];
+  if(!file)return "";
+  if(!file.type.startsWith("image/"))throw new Error("Only image files are allowed.");
+  if(file.size>10*1024*1024)throw new Error("Category image must be 10 MB or smaller.");
+  const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]+/g,"-");
+  const path="categories/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe;
+  const r=await db.storage.from(STORAGE_BUCKET).upload(path,file,{cacheControl:"3600",upsert:false});
+  if(r.error)throw r.error;
+  return db.storage.from(STORAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+async function saveCategory(replaceOnly=false){
+  const old=state.editingCategory;
+  try{
+    let image=String($("categoryImage")?.value||"").trim();
+    const uploaded=await uploadCategoryImage();
+    if(uploaded)image=uploaded;
+    if(!image)throw new Error("Category image is required.");
+    let categories=[...state.categories];
+    if(replaceOnly){
+      if(!old)throw new Error("Category not found.");
+      categories=categories.map(c=>String(c.id)===String(old.id)?{...c,image}:c);
+    }else{
+      const name=$("categoryName").value.trim();
+      const slug=categorySlug({slug:$("categorySlug").value});
+      if(!name||!slug)throw new Error("Category name and slug are required.");
+      const duplicate=categories.find(c=>String(c.slug)===slug&&String(c.id)!==String(old?.id));
+      if(duplicate)throw new Error("That category slug already exists.");
+      const next=normalizeCategory({id:old?.id||slug,slug,name,korean:$("categoryKorean").value.trim(),image,enabled:$("categoryEnabled").value==="true"});
+      if(old)categories=categories.map(c=>String(c.id)===String(old.id)?next:c);
+      else categories.push(next);
+    }
+    await writeSiteContentKey("categories",JSON.stringify(categories));
+    state.categories=categories.map(normalizeCategory);
+    closeModal();showToast(replaceOnly?"Category image replaced.":old?"Category updated.":"Category created.","success");
+    await loadCategories();
+  }catch(e){showToast("Category save failed: "+normalizeError(e),"error");}
+}
+async function toggleCategoryActive(id){
+  const c=findCategory(id);if(!c)return;
+  const categories=state.categories.map(x=>String(x.id)===String(c.id)?{...x,enabled:x.enabled===false}:x);
+  try{await writeSiteContentKey("categories",JSON.stringify(categories));await loadCategories();showToast(c.enabled===false?"Category shown.":"Category hidden.","success");}
+  catch(e){showToast("Category status update failed: "+normalizeError(e),"error");}
+}
+async function deleteCategory(id){
+  const c=findCategory(id);if(!c)return;
+  const affected=state.products.filter(p=>productCategory(p)===c.slug);
+  let replacement="";
+  if(affected.length){
+    const choices=state.categories.filter(x=>String(x.id)!==String(c.id)&&x.enabled!==false);
+    if(!choices.length){showToast("Create another category before deleting this one because products use it.","error");return;}
+    replacement=prompt('This category has '+affected.length+' product(s). Type the replacement category slug:\\n\\n'+choices.map(x=>x.slug).join(", "));
+    if(replacement===null)return;
+    replacement=replacement.trim().toLowerCase();
+    if(!choices.some(x=>x.slug===replacement)){showToast("Invalid replacement category.","error");return;}
+    if(!confirm('Move '+affected.length+' product(s) to "'+replacement+'" and delete "'+c.name+'"?'))return;
+  }else if(!confirm('Delete category "'+c.name+'"? This cannot be undone.'))return;
+  try{
+    if(affected.length){
+      const r=await db.from("products").update({category:replacement}).in("id",affected.map(p=>p.id));
+      if(r.error)throw r.error;
+    }
+    const categories=state.categories.filter(x=>String(x.id)!==String(c.id));
+    await writeSiteContentKey("categories",JSON.stringify(categories));
+    showToast("Category deleted.","success");
+    await loadProducts();await loadCategories();
+  }catch(e){showToast("Category delete failed: "+normalizeError(e),"error");}
+}
+
+/* ===== END CATEGORY MANAGEMENT ===== */
+
 async function loadOrders(){
   const root=$("ordersTable");if(root)root.innerHTML=loadingHTML();
   const r=await safeTable("orders","created_at");
@@ -1798,7 +2069,7 @@ function renderOrders(){
   const list=state.orders.filter(o=>{const hay=(orderNumber(o)+" "+customerName(o)+" "+customerPhone(o)+" "+getValue(o,"customer_email")).toLowerCase();return(!q||hay.includes(q))&&(!f||orderStatus(o)===f);});
   if(!list.length){root.innerHTML=emptyHTML("No orders found.");return;}
   root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Courier</th><th></th></tr></thead><tbody>'+
-    list.map(o=>'<tr><td><strong>'+esc(orderNumber(o))+'</strong></td><td>'+dateTime(o.created_at)+'</td><td><strong>'+esc(customerName(o))+'</strong><div class="muted">'+esc(customerPhone(o))+'</div></td><td>'+money(orderTotal(o))+'</td><td>'+statusBadge(paymentStatus(o))+'</td><td>'+statusBadge(orderStatus(o))+'</td><td>'+esc(getValue(o,"courier")||"—")+'</td><td><button class="btn btn-small" onclick=\'openOrderModalById("'+esc(o.id)+'")\'>View</button></td></tr>').join("")+
+    list.map(o=>'<tr><td><strong>'+esc(orderNumber(o))+'</strong></td><td>'+dateTime(o.created_at)+'</td><td><strong>'+esc(customerName(o))+'</strong><div class="muted">'+esc(customerPhone(o))+'</div></td><td>'+money(orderTotal(o))+'</td><td>'+statusBadge(paymentStatus(o))+'</td><td>'+statusBadge(orderStatus(o))+'</td><td>'+esc(getValue(o,"courier")||"—")+'</td><td style="white-space:nowrap"><button class="btn btn-small" onclick=\'openOrderModalById("'+esc(o.id)+'")\'>View</button> <button class="btn btn-small btn-danger" onclick=\'deleteOrder("'+esc(o.id)+'")\'>Delete</button></td></tr>').join("")+
     '</tbody></table></div>';
 }
 function openOrderModalById(id){const o=state.orders.find(x=>String(x.id)===String(id));if(o)openOrderModal(o);}
@@ -1818,8 +2089,21 @@ function openOrderModal(o){
   '<div class="field"><label>PAYMENT STATUS</label><select id="orderPaymentStatusEdit">'+["PENDING","PAID","FAILED","REFUNDED"].map(s=>'<option '+(paymentStatus(o)===s?"selected":"")+'>'+s+'</option>').join("")+'</select></div>'+
   '<div class="field"><label>COURIER</label><input id="orderCourierEdit" value="'+esc(getValue(o,"courier"))+'"></div>'+
   '<div class="field"><label>TRACKING / AWB</label><input id="orderTrackingEdit" value="'+esc(getValue(o,"tracking_number"))+'"></div>'+
-  '</div></div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick=\'saveOrder("'+esc(o.id)+'")\'>Save order</button></div></div></div>';
+  '</div></div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Close</button><button class="btn btn-danger" onclick=\'deleteOrder("'+esc(o.id)+'")\'>Delete order</button><button class="btn btn-primary" onclick=\'saveOrder("'+esc(o.id)+'")\'>Save order</button></div></div></div>';
 }
+async function deleteOrder(id){
+  const o=state.orders.find(x=>String(x.id)===String(id));if(!o)return;
+  const label=orderNumber(o);
+  if(!confirm('Delete order "'+label+'" permanently? This cannot be undone.'))return;
+  try{
+    const items=await db.from("order_items").delete().eq("order_id",id);
+    if(items.error && !/relation .* does not exist|could not find the table/i.test(items.error.message||"")) throw items.error;
+    const r=await db.from("orders").delete().eq("id",id);
+    if(r.error)throw r.error;
+    closeModal();showToast("Order "+label+" deleted.","success");await loadOrders();await loadDashboard();
+  }catch(e){showToast("Order delete failed: "+normalizeError(e),"error");}
+}
+
 async function saveOrder(id){
   const payload={order_status:$("orderStatusEdit").value,payment_status:$("orderPaymentStatusEdit").value,courier:$("orderCourierEdit").value.trim(),tracking_number:$("orderTrackingEdit").value.trim()};
   try{const r=await db.from("orders").update(payload).eq("id",id).select().single();if(r.error)throw r.error;closeModal();showToast("Order updated.","success");await loadOrders();}
@@ -2032,7 +2316,7 @@ window.addEventListener("error",e=>console.error("Admin error",e.error||e.messag
 window.addEventListener("unhandledrejection",e=>console.error("Admin promise",e.reason));
 
 async function initialLoad(){
-  await Promise.allSettled([loadProducts(),loadOrders(),loadCustomers(),loadCoupons(),loadWaitlist(),loadCMS(),loadSettings()]);
+  await Promise.allSettled([loadProducts(),loadCategories(),loadOrders(),loadCustomers(),loadCoupons(),loadWaitlist(),loadCMS(),loadSettings()]);
   await loadDashboard();
 }
 $("healthAdminEmail").textContent=ADMIN_EMAIL;$("healthSupabaseUrl").textContent=SUPABASE_URL;
@@ -2416,6 +2700,15 @@ async function saveCMS(){
 /* Make the new functions available to existing inline handlers. */
 window.openProductModal=openProductModal;
 window.openProductModalById=openProductModalById;
+window.loadCategories=loadCategories;
+window.renderCategories=renderCategories;
+window.openCategoryModal=openCategoryModal;
+window.openCategoryModalById=openCategoryModalById;
+window.openCategoryReplaceModalById=openCategoryReplaceModalById;
+window.saveCategory=saveCategory;
+window.toggleCategoryActive=toggleCategoryActive;
+window.deleteCategory=deleteCategory;
+window.deleteOrder=deleteOrder;
 window.saveProduct=saveProduct;
 window.toggleProductActive=toggleProductActive;
 window.archiveProduct=archiveProduct;
