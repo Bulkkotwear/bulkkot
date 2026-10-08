@@ -1820,6 +1820,13 @@ function renderProducts(){
       '<button class="btn btn-small '+(active?"btn-danger":"btn-success")+'" onclick=\'toggleProductActive("'+esc(p.id)+'")\'>'+(active?"Hide":"Publish")+'</button></div></div></article>';
   }).join("");
 }
+function categorySelectHTML(p){
+  const current=productCategory(p);
+  const cats=[...state.categories];
+  if(current && !cats.some(c=>c.slug===current)) cats.push(normalizeCategory({id:current,slug:current,name:current}));
+  if(!cats.length) return '<input id="productCategory" value="'+esc(current)+'" placeholder="category slug">';
+  return '<select id="productCategory">'+cats.map(c=>'<option value="'+esc(c.slug)+'" '+(c.slug===current?'selected':'')+'>'+esc(c.name)+' · '+esc(c.slug)+'</option>').join('')+'</select>';
+}
 function findProduct(id){return state.products.find(p=>String(p.id)===String(id));}
 function openProductModalById(id){openProductModal(findProduct(id)||null);}
 function openProductModal(product=null){
@@ -1829,7 +1836,7 @@ function openProductModal(product=null){
   '<div class="modal-body"><div class="form-grid">'+
   '<div class="field"><label>NAME *</label><input id="productName" value="'+esc(productName(p))+'"></div>'+
   '<div class="field"><label>PRICE *</label><input id="productPrice" type="number" min="0" step="0.01" value="'+esc(productPrice(p))+'"></div>'+
-  '<div class="field"><label>CATEGORY</label><input id="productCategory" value="'+esc(productCategory(p))+'"></div>'+
+  '<div class="field"><label>CATEGORY</label>'+categorySelectHTML(p)+'</div>'+
   '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'"></div>'+
   '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription">'+esc(getValue(p,"description"))+'</textarea></div>'+
   '<div class="field full"><label>IMAGE URLS — one per line</label><textarea id="productImages" style="min-height:100px">'+esc(imgs.join("\n"))+'</textarea></div>'+
@@ -2440,7 +2447,7 @@ function openProductModal(product=null){
   '<div class="modal-body"><div class="form-grid">'+
   '<div class="field"><label>NAME *</label><input id="productName" value="'+esc(productName(p))+'"></div>'+
   '<div class="field"><label>PRICE *</label><input id="productPrice" type="number" min="0" step="0.01" value="'+esc(productPrice(p))+'"></div>'+
-  '<div class="field"><label>CATEGORY</label><input id="productCategory" value="'+esc(productCategory(p))+'"></div>'+
+  '<div class="field"><label>CATEGORY</label>'+categorySelectHTML(p)+'</div>'+
   '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'"></div>'+
   '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription">'+esc(getValue(p,"description"))+'</textarea></div>'+
   '<div class="field full"><label>IMAGE URLS — one per line</label><textarea id="productImages" style="min-height:100px">'+esc(imgs.join("\n"))+'</textarea></div>'+
