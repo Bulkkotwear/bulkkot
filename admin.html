@@ -15,8 +15,6 @@
     button, input, select, textarea { font: inherit; }
     button { cursor: pointer; border: none; outline: none; }
     a { color: inherit; text-decoration: none; }
-    
-    /* THE FIX: Important display classes */
     .hidden { display: none !important; }
     
     /* --- LOGIN UI --- */
@@ -114,7 +112,7 @@
     /* Mobile specific adjustments to ensure it works on small screens */
     @media (max-width: 768px) {
       .app-layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; } /* Sidebar hidden on mobile for now, can be toggled later */
+      .sidebar { display: none; }
       .grid-4 { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
     }
@@ -133,7 +131,7 @@
 <!-- TOAST -->
 <div id="toast">Message saved</div>
 
-<!-- THE FIX: removed 'hidden' class so it is visible by default -->
+<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="login-wrapper">
   <div class="login-box">
     <h1>STORE OS</h1>
@@ -144,9 +142,6 @@
         JavaScript is required to run the Store OS. Please enable it in your browser.
       </div>
     </noscript>
-    <div id="jsFallbackError" style="color: #ff777e; font-weight: bold; margin-bottom: 15px; font-size: 12px; display: none;">
-      Network error: Could not load the database engine. Please check your internet connection or disable adblockers.
-    </div>
     <form onsubmit="event.preventDefault(); StoreOS.login(); return false;">
       <div class="field">
         <label>Admin Email</label>
@@ -345,4 +340,7 @@
           <div class="panel">
             <div class="panel-header"><h3 class="panel-title">Core Details</h3></div>
             <div class="panel-body form-grid">
-              <div c
+              <div class="field"><label>Store Name</label><input type="text" id="set_name" value="BULKKOT"></div>
+              <div class="field"><label>Support Email</label><input type="email" id="set_email"></div>
+              <div class="field"><label>WhatsApp Number</label><input type="text" id="set_phone" placeholder="+91..."></div>
+              <div class="field"><label>Shipping Fee (₹)</label><input type="number" id="set
