@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#070707">
   <title>BULKKOT (불꽃) — VIP Portal & Access</title>
-
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
-  
+
   <style>
     :root {
       --bg: #070707;
@@ -287,7 +286,10 @@
       font-size: 10px;
       cursor: pointer;
     }
-    .forgot-link:hover { color: #fff; }
+
+    .forgot-link:hover {
+      color: #fff;
+    }
 
     .form-field-wrap input {
       width: 100%;
@@ -342,7 +344,10 @@
       cursor: pointer;
       padding: 6px;
     }
-    .pwd-toggle-btn:hover { color: #fff; }
+
+    .pwd-toggle-btn:hover {
+      color: #fff;
+    }
 
     /* FEEDBACK BANNER */
     .auth-feedback-banner {
@@ -353,12 +358,14 @@
       line-height: 1.5;
       margin-bottom: 16px;
     }
+
     .auth-feedback-banner.is-error {
       display: block;
       background: rgba(227, 27, 35, 0.08);
       border: 1px solid rgba(227, 27, 35, 0.3);
       color: #ff7777;
     }
+
     .auth-feedback-banner.is-success {
       display: block;
       background: rgba(49, 196, 141, 0.08);
@@ -405,9 +412,20 @@
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
     }
-    .auth-submit-btn.is-loading #txtSubmit { display: none; }
-    .auth-submit-btn.is-loading .btn-spinner { display: block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .auth-submit-btn.is-loading #txtSubmit {
+      display: none;
+    }
+
+    .auth-submit-btn.is-loading .btn-spinner {
+      display: block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     /* LEGAL & EXIT */
     .auth-legal-note {
@@ -435,22 +453,28 @@
       margin-top: 24px;
       transition: color 0.15s ease;
     }
-    .exit-store-link:hover { color: #fff; }
+
+    .exit-store-link:hover {
+      color: #fff;
+    }
 
     /* RESPONSIVE MEDIA QUERIES */
     @media (max-width: 900px) {
       .auth-layout {
         grid-template-columns: 1fr;
       }
+
       .auth-editorial {
         display: none;
       }
+
       .auth-hub {
         min-height: 100vh;
         min-height: 100dvh;
         padding: 30px 20px;
         border-left: none;
       }
+
       .auth-mobile-header {
         display: flex;
       }
@@ -464,6 +488,7 @@
     <!-- LEFT BRAND EDITORIAL PANEL -->
     <section class="auth-editorial">
       <div class="editorial-backdrop"></div>
+
       <div class="editorial-content">
         <a href="./index.html" class="editorial-brand" aria-label="Return home">
           <span class="kr-logo">불꽃</span>
@@ -472,8 +497,17 @@
 
         <div class="editorial-copy">
           <span class="editorial-pill">DROP 001 · VIP ACCESS</span>
-          <h1>WEAR<br>YOUR<br><span class="fire-text">FIRE.</span></h1>
-          <p>Architectural streetwear silhouettes tailored from luxury heavyweight combed cotton. Quiet design, uncompromised presence.</p>
+
+          <h1>
+            WEAR<br>
+            YOUR<br>
+            <span class="fire-text">FIRE.</span>
+          </h1>
+
+          <p>
+            Architectural streetwear silhouettes tailored from luxury heavyweight combed cotton.
+            Quiet design, uncompromised presence.
+          </p>
         </div>
 
         <div class="editorial-footer">
@@ -492,82 +526,209 @@
           <a href="./index.html" class="mobile-logo">
             <span>불꽃</span> BULKKOT
           </a>
-          <a href="./index.html" class="mobile-exit" aria-label="Close">✕</a>
+
+          <a href="./index.html" class="mobile-exit" aria-label="Close">
+            ✕
+          </a>
         </div>
 
         <!-- Section Lead Title -->
         <div class="auth-lead">
           <span class="auth-eyebrow">EXCLUSIVE CLIENT PORTAL</span>
+
           <h2 id="authModeHeading">SIGN IN</h2>
-          <p id="authModeSubtitle">Access your saved dispatch addresses, track shipments live, and secure your silhouettes.</p>
+
+          <p id="authModeSubtitle">
+            Access your saved dispatch addresses, track shipments live, and secure your silhouettes.
+          </p>
         </div>
 
         <!-- Auth Tabs Switch -->
         <div class="auth-switch-bar">
-          <button type="button" class="auth-switch-btn active" id="btnTabLogin">SIGN IN</button>
-          <button type="button" class="auth-switch-btn" id="btnTabSignup">CREATE ACCOUNT</button>
+          <button
+            type="button"
+            class="auth-switch-btn active"
+            id="btnTabLogin"
+          >
+            SIGN IN
+          </button>
+
+          <button
+            type="button"
+            class="auth-switch-btn"
+            id="btnTabSignup"
+          >
+            CREATE ACCOUNT
+          </button>
         </div>
 
         <!-- Form Elements -->
         <form id="authMainForm" novalidate>
-          
+
           <!-- FULL NAME (Only for Signup) -->
-          <div class="form-field-wrap signup-field" id="wrapFullName" style="display: none;">
+          <div
+            class="form-field-wrap signup-field"
+            id="wrapFullName"
+            style="display: none;"
+          >
             <label for="inputFullName">FULL NAME</label>
-            <input type="text" id="inputFullName" name="full_name" placeholder="e.g. Garima Singh" autocomplete="name">
-            <span class="field-error-msg" id="errFullName"></span>
+
+            <input
+              type="text"
+              id="inputFullName"
+              name="full_name"
+              placeholder="e.g. Garima Singh"
+              autocomplete="name"
+            >
+
+            <span
+              class="field-error-msg"
+              id="errFullName"
+            ></span>
           </div>
 
           <!-- MOBILE NUMBER (Only for Signup - Mandatory) -->
-          <div class="form-field-wrap signup-field" id="wrapMobile" style="display: none;">
+          <div
+            class="form-field-wrap signup-field"
+            id="wrapMobile"
+            style="display: none;"
+          >
             <label for="inputMobile">MOBILE NUMBER</label>
-            <input type="tel" id="inputMobile" name="phone" placeholder="10-digit mobile number" autocomplete="tel">
-            <span class="field-error-msg" id="errMobile"></span>
+
+            <input
+              type="tel"
+              id="inputMobile"
+              name="phone"
+              placeholder="10-digit mobile number"
+              autocomplete="tel"
+            >
+
+            <span
+              class="field-error-msg"
+              id="errMobile"
+            ></span>
           </div>
 
           <!-- EMAIL ADDRESS -->
           <div class="form-field-wrap">
             <label for="inputEmail">EMAIL ADDRESS</label>
-            <input type="email" id="inputEmail" name="email" placeholder="name@domain.com" autocomplete="email" required>
-            <span class="field-error-msg" id="errEmail"></span>
+
+            <input
+              type="email"
+              id="inputEmail"
+              name="email"
+              placeholder="name@domain.com"
+              autocomplete="email"
+              required
+            >
+
+            <span
+              class="field-error-msg"
+              id="errEmail"
+            ></span>
           </div>
 
           <!-- PASSWORD -->
           <div class="form-field-wrap">
             <div class="field-label-split">
               <label for="inputPassword">PASSWORD</label>
-              <button type="button" class="forgot-link" id="btnForgotPwd">Forgot password?</button>
+
+              <button
+                type="button"
+                class="forgot-link"
+                id="btnForgotPwd"
+              >
+                Forgot password?
+              </button>
             </div>
+
             <div class="pwd-input-box">
-              <input type="password" id="inputPassword" name="password" placeholder="••••••••" autocomplete="current-password" required>
-              <button type="button" class="pwd-toggle-btn" id="btnTogglePwd" aria-label="Toggle password view">SHOW</button>
+              <input
+                type="password"
+                id="inputPassword"
+                name="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+              >
+
+              <button
+                type="button"
+                class="pwd-toggle-btn"
+                id="btnTogglePwd"
+                aria-label="Toggle password view"
+              >
+                SHOW
+              </button>
             </div>
-            <span class="field-error-msg" id="errPassword"></span>
+
+            <span
+              class="field-error-msg"
+              id="errPassword"
+            ></span>
           </div>
 
           <!-- CONFIRM PASSWORD (Only for Signup) -->
-          <div class="form-field-wrap signup-field" id="wrapConfirmPwd" style="display: none;">
+          <div
+            class="form-field-wrap signup-field"
+            id="wrapConfirmPwd"
+            style="display: none;"
+          >
             <label for="inputConfirmPassword">CONFIRM PASSWORD</label>
-            <input type="password" id="inputConfirmPassword" name="confirm_password" placeholder="Repeat your password" autocomplete="new-password">
-            <span class="field-error-msg" id="errConfirmPwd"></span>
+
+            <input
+              type="password"
+              id="inputConfirmPassword"
+              name="confirm_password"
+              placeholder="Repeat your password"
+              autocomplete="new-password"
+            >
+
+            <span
+              class="field-error-msg"
+              id="errConfirmPwd"
+            ></span>
           </div>
 
           <!-- FEEDBACK BANNER -->
-          <div class="auth-feedback-banner" id="authFeedbackBanner" role="alert"></div>
+          <div
+            class="auth-feedback-banner"
+            id="authFeedbackBanner"
+            role="alert"
+          ></div>
 
           <!-- SUBMIT BUTTON -->
-          <button type="submit" class="auth-submit-btn" id="btnSubmitAuth">
+          <button
+            type="submit"
+            class="auth-submit-btn"
+            id="btnSubmitAuth"
+          >
             <span id="txtSubmit">SIGN IN</span>
-            <div class="btn-spinner" id="spinSubmit"></div>
+
+            <div
+              class="btn-spinner"
+              id="spinSubmit"
+            ></div>
           </button>
         </form>
 
         <!-- LEGAL TEXT -->
         <div class="auth-legal-note">
-          <p>By proceeding, you agree to BULKKOT's <a href="./index.html#terms">Terms of Service</a> & <a href="./index.html#privacy">Privacy Protocol</a>.</p>
+          <p>
+            By proceeding, you agree to BULKKOT's
+            <a href="./index.html#terms">Terms of Service</a>
+            &
+            <a href="./index.html#privacy">Privacy Protocol</a>.
+          </p>
         </div>
 
-        <a href="./index.html" class="exit-store-link">← Return to Storefront</a>
+        <a
+          href="./index.html"
+          class="exit-store-link"
+        >
+          ← Return to Storefront
+        </a>
+
       </div>
     </section>
   </main>
@@ -578,26 +739,33 @@
       SUPABASE_ANON_KEY: "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP"
     };
   </script>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- JAVASCRIPT LOGIC EMBEDDED TO AVOID EXTERNAL FILE ISSUES -->
+
+  <!-- JAVASCRIPT LOGIC -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const supabase = window.supabase.createClient(window.BULKKOT_CONFIG.SUPABASE_URL, window.BULKKOT_CONFIG.SUPABASE_ANON_KEY);
-      
+
+      const supabase = window.supabase.createClient(
+        window.BULKKOT_CONFIG.SUPABASE_URL,
+        window.BULKKOT_CONFIG.SUPABASE_ANON_KEY
+      );
+
       let isSignUpMode = false;
 
       // DOM Elements
       const btnTabLogin = document.getElementById("btnTabLogin");
       const btnTabSignup = document.getElementById("btnTabSignup");
+
       const authModeHeading = document.getElementById("authModeHeading");
       const authModeSubtitle = document.getElementById("authModeSubtitle");
-      
+
       const wrapFullName = document.getElementById("wrapFullName");
       const wrapMobile = document.getElementById("wrapMobile");
       const wrapConfirmPwd = document.getElementById("wrapConfirmPwd");
+
       const btnForgotPwd = document.getElementById("btnForgotPwd");
-      
+
       const txtSubmit = document.getElementById("txtSubmit");
       const btnSubmitAuth = document.getElementById("btnSubmitAuth");
       const authFeedbackBanner = document.getElementById("authFeedbackBanner");
@@ -607,156 +775,365 @@
       const inputEmail = document.getElementById("inputEmail");
       const inputPassword = document.getElementById("inputPassword");
       const inputConfirmPassword = document.getElementById("inputConfirmPassword");
-      
+
       const btnTogglePwd = document.getElementById("btnTogglePwd");
 
       // Password Toggle
       btnTogglePwd.addEventListener("click", () => {
-        const type = inputPassword.type === "password" ? "text" : "password";
+        const type =
+          inputPassword.type === "password"
+            ? "text"
+            : "password";
+
         inputPassword.type = type;
-        btnTogglePwd.textContent = type === "password" ? "SHOW" : "HIDE";
+
+        btnTogglePwd.textContent =
+          type === "password"
+            ? "SHOW"
+            : "HIDE";
       });
 
       // Tab Switch Logic
       function toggleMode(mode) {
-        isSignUpMode = mode === 'signup';
-        
-        btnTabLogin.classList.toggle("active", !isSignUpMode);
-        btnTabSignup.classList.toggle("active", isSignUpMode);
-        
+
+        isSignUpMode = mode === "signup";
+
+        btnTabLogin.classList.toggle(
+          "active",
+          !isSignUpMode
+        );
+
+        btnTabSignup.classList.toggle(
+          "active",
+          isSignUpMode
+        );
+
         if (isSignUpMode) {
+
           authModeHeading.textContent = "CREATE ACCOUNT";
-          authModeSubtitle.textContent = "Join the VIP list to secure your silhouettes and track shipments.";
+
+          authModeSubtitle.textContent =
+            "Join the VIP list to secure your silhouettes and track shipments.";
+
           txtSubmit.textContent = "CREATE ACCOUNT";
-          
+
           wrapFullName.style.display = "flex";
           wrapMobile.style.display = "flex";
           wrapConfirmPwd.style.display = "flex";
+
           btnForgotPwd.style.display = "none";
-          
+
           inputFullName.required = true;
           inputMobile.required = true;
           inputConfirmPassword.required = true;
+
+          inputPassword.autocomplete = "new-password";
+
         } else {
+
           authModeHeading.textContent = "SIGN IN";
-          authModeSubtitle.textContent = "Access your saved dispatch addresses, track shipments live, and secure your silhouettes.";
+
+          authModeSubtitle.textContent =
+            "Access your saved dispatch addresses, track shipments live, and secure your silhouettes.";
+
           txtSubmit.textContent = "SIGN IN";
-          
+
           wrapFullName.style.display = "none";
           wrapMobile.style.display = "none";
           wrapConfirmPwd.style.display = "none";
+
           btnForgotPwd.style.display = "block";
-          
+
           inputFullName.required = false;
           inputMobile.required = false;
           inputConfirmPassword.required = false;
+
+          inputPassword.autocomplete = "current-password";
         }
-        
-        authFeedbackBanner.className = "auth-feedback-banner";
+
+        authFeedbackBanner.className =
+          "auth-feedback-banner";
+
         authFeedbackBanner.textContent = "";
       }
 
-      btnTabLogin.addEventListener("click", () => toggleMode('signin'));
-      btnTabSignup.addEventListener("click", () => toggleMode('signup'));
+      btnTabLogin.addEventListener(
+        "click",
+        () => toggleMode("signin")
+      );
 
-      // Form Submit (Persistence Logic)
-      document.getElementById("authMainForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        
-        // Reset feedback
-        authFeedbackBanner.className = "auth-feedback-banner";
-        authFeedbackBanner.textContent = "";
+      btnTabSignup.addEventListener(
+        "click",
+        () => toggleMode("signup")
+      );
 
-        const email = inputEmail.value.trim();
-        const password = inputPassword.value;
-        const fullName = inputFullName.value.trim();
-        const mobile = inputMobile.value.trim();
-        const confirmPassword = inputConfirmPassword.value;
+      // Form Submit
+      document
+        .getElementById("authMainForm")
+        .addEventListener("submit", async (e) => {
 
-        // Basic Validation
-        if (!email || !password) {
-          showError("Please fill in email and password.");
-          return;
-        }
+          e.preventDefault();
 
-        if (isSignUpMode) {
-          if (!fullName || !mobile) {
-            showError("Full Name and Mobile Number are required for registration.");
+          // Reset feedback
+          authFeedbackBanner.className =
+            "auth-feedback-banner";
+
+          authFeedbackBanner.textContent = "";
+
+          const email = inputEmail.value.trim();
+          const password = inputPassword.value;
+          const fullName = inputFullName.value.trim();
+          const mobile = inputMobile.value.trim();
+          const confirmPassword =
+            inputConfirmPassword.value;
+
+          // Basic Validation
+          if (!email || !password) {
+            showError(
+              "Please fill in email and password."
+            );
             return;
           }
-          if (password !== confirmPassword) {
-            showError("Passwords do not match.");
-            return;
-          }
-          if (mobile.replace(/\D/g, '').length < 10) {
-             showError("Please enter a valid 10-digit mobile number.");
-             return;
-          }
-        }
 
-        // Loading State
-        btnSubmitAuth.classList.add("is-loading");
-        btnSubmitAuth.disabled = true;
-
-        try {
           if (isSignUpMode) {
-            // SIGN UP
-            const { data, error } = await supabase.auth.signUp({
-              email,
-              password,
-              options: {
-                data: {
-                  full_name: fullName,
-                  phone: mobile
+
+            if (!fullName || !mobile) {
+              showError(
+                "Full Name and Mobile Number are required for registration."
+              );
+              return;
+            }
+
+            if (password !== confirmPassword) {
+              showError(
+                "Passwords do not match."
+              );
+              return;
+            }
+
+            if (
+              mobile
+                .replace(/\D/g, "")
+                .length < 10
+            ) {
+              showError(
+                "Please enter a valid 10-digit mobile number."
+              );
+              return;
+            }
+          }
+
+          // Loading State
+          btnSubmitAuth.classList.add("is-loading");
+          btnSubmitAuth.disabled = true;
+
+          try {
+
+            if (isSignUpMode) {
+
+              // ==========================================
+              // SIGN UP
+              // ==========================================
+
+              /*
+               * After email confirmation, Supabase will
+               * redirect the user back to the storefront.
+               *
+               * This URL must exist in Supabase:
+               * Authentication → URL Configuration
+               */
+              const emailRedirectTo =
+                new URL(
+                  "./index.html",
+                  window.location.href
+                ).href;
+
+              const {
+                data,
+                error
+              } = await supabase.auth.signUp({
+
+                email,
+
+                password,
+
+                options: {
+
+                  emailRedirectTo,
+
+                  data: {
+                    full_name: fullName,
+                    phone: mobile
+                  }
+                }
+              });
+
+              if (error) {
+                throw error;
+              }
+
+              /*
+               * With Confirm Email enabled:
+               *
+               * user  = created
+               * session = null
+               *
+               * So DO NOT redirect the user immediately.
+               */
+
+              if (data?.user) {
+
+                // Save details to database for persistence.
+                // This will be replaced with a secure DB
+                // trigger + RLS architecture in the next step.
+                try {
+
+                  await supabase
+                    .from("customer_profiles")
+                    .upsert({
+                      id: data.user.id,
+                      full_name: fullName,
+                      phone: mobile,
+                      updated_at:
+                        new Date().toISOString()
+                    });
+
+                } catch (profileError) {
+
+                  /*
+                   * Do not block the email verification
+                   * flow if profile persistence fails.
+                   *
+                   * We will secure this properly in the
+                   * next database step.
+                   */
+
+                  console.warn(
+                    "Profile persistence warning:",
+                    profileError
+                  );
                 }
               }
-            });
 
-            if (error) throw error;
+              showSuccess(
+                "Account created. Please check your email and click the verification link to activate your BULKKOT account."
+              );
 
-            if (data?.user) {
-              // Save details to database for persistence
-              await supabase.from('customer_profiles').upsert({
-                id: data.user.id,
-                full_name: fullName,
-                phone: mobile,
-                updated_at: new Date().toISOString()
+              /*
+               * Stay on this page.
+               *
+               * The user must verify their email first.
+               */
+              inputPassword.value = "";
+              inputConfirmPassword.value = "";
+
+            } else {
+
+              // ==========================================
+              // SIGN IN
+              // ==========================================
+
+              const {
+                data,
+                error
+              } = await supabase.auth.signInWithPassword({
+                email,
+                password
               });
-            }
 
-            showSuccess("Account created successfully! Redirecting to storefront...");
-            setTimeout(() => window.location.href = "./index.html", 2000);
+              if (error) {
 
-          } else {
-            // SIGN IN
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            
-            if (error) {
-              if (error.message.toLowerCase().includes('invalid login credentials')) {
-                throw new Error("Incorrect email or password. Are you trying to Create an Account?");
+                const errorMessage =
+                  error.message.toLowerCase();
+
+                if (
+                  errorMessage.includes(
+                    "email not confirmed"
+                  ) ||
+                  errorMessage.includes(
+                    "email_not_confirmed"
+                  )
+                ) {
+
+                  throw new Error(
+                    "Please verify your email address first. Check your inbox for the BULKKOT verification email."
+                  );
+                }
+
+                if (
+                  errorMessage.includes(
+                    "invalid login credentials"
+                  )
+                ) {
+
+                  throw new Error(
+                    "Incorrect email or password. Please check your details and try again."
+                  );
+                }
+
+                throw error;
               }
-              throw error;
+
+              /*
+               * Extra safety check:
+               *
+               * If a session somehow exists but the
+               * user's email is not confirmed, do not
+               * allow normal storefront access.
+               */
+              if (
+                data?.user &&
+                !data.user.email_confirmed_at
+              ) {
+
+                await supabase.auth.signOut();
+
+                throw new Error(
+                  "Please verify your email address before signing in."
+                );
+              }
+
+              showSuccess(
+                "Welcome back! Redirecting..."
+              );
+
+              setTimeout(() => {
+                window.location.href =
+                  "./index.html";
+              }, 1000);
             }
 
-            showSuccess("Welcome back! Redirecting...");
-            setTimeout(() => window.location.href = "./index.html", 1500);
+          } catch (err) {
+
+            showError(
+              err.message ||
+              "Authentication failed. Please try again."
+            );
+
+          } finally {
+
+            btnSubmitAuth.classList.remove(
+              "is-loading"
+            );
+
+            btnSubmitAuth.disabled = false;
           }
-        } catch (err) {
-          showError(err.message || "Authentication failed. Please try again.");
-        } finally {
-          btnSubmitAuth.classList.remove("is-loading");
-          btnSubmitAuth.disabled = false;
-        }
-      });
+        });
 
       function showError(msg) {
+
         authFeedbackBanner.textContent = msg;
-        authFeedbackBanner.className = "auth-feedback-banner is-error";
+
+        authFeedbackBanner.className =
+          "auth-feedback-banner is-error";
       }
 
       function showSuccess(msg) {
+
         authFeedbackBanner.textContent = msg;
-        authFeedbackBanner.className = "auth-feedback-banner is-success";
+
+        authFeedbackBanner.className =
+          "auth-feedback-banner is-success";
       }
     });
   </script>
