@@ -706,8 +706,8 @@
     <div class="sg-backdrop" data-size-guide-close></div>
     <div class="sg-content">
       <button type="button" data-size-guide-close style="position:absolute; right:15px; top:15px; background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">&times;</button>
-      <h2 style="margin:0 0 15px; font-size:16px; color:#fff; letter-spacing:0.08em;">SIZE GUIDE</h2>
-      <div style="color:#aaa; font-size:11px; line-height:1.6;">
+      <h2 data-size-guide-title style="margin:0 0 15px; font-size:16px; color:#fff; letter-spacing:0.08em;">SIZE GUIDE</h2>
+      <div data-size-guide-body style="color:#aaa; font-size:11px; line-height:1.6;">
         <p style="margin-top:0;">Oversized fit. Go true to size for the intended baggy look, or size down for a regular fit.</p>
         <table style="width:100%; text-align:left; border-collapse:collapse; margin-top:15px; font-size:10px;">
           <tr style="border-bottom:1px solid #333;"><th style="padding:8px 0; color:#fff;">SIZE</th><th>CHEST (IN)</th><th>LENGTH (IN)</th></tr>
@@ -1046,9 +1046,37 @@
       // Size Guide Modal JS
       const sizeModal = document.querySelector('[data-size-guide-modal]');
       const sizeGuideBtn = document.querySelector('[data-size-guide-open]');
+      async function loadCategorySizeGuide() {
+        const body = sizeModal?.querySelector('[data-size-guide-body]');
+        const title = sizeModal?.querySelector('[data-size-guide-title]');
+        if (!body || !supabaseClient || !product) return;
+        const key = String(product.category || '').trim().toLowerCase()
+          .replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        try {
+          const { data, error } = await supabaseClient.from('site_content')
+            .select('content_value').eq('content_key', 'size_guides').maybeSingle();
+          if (error || !data?.content_value) return;
+          const guides = typeof data.content_value === 'string' ? JSON.parse(data.content_value) : data.content_value;
+          const guide = guides && (guides[key] || guides[key.replace(/-+/g, '-')]);
+          if (!guide || !Array.isArray(guide.columns) || !Array.isArray(guide.rows)) return;
+          if (title) title.textContent = guide.title || 'SIZE GUIDE';
+          body.innerHTML = '<div style="color:#aaa;font-size:11px;line-height:1.6;">' +
+            (guide.description ? '<p style="margin-top:0;">' + escapeHtml(guide.description) + '</p>' : '') +
+            '<div style="width:100%;overflow-x:auto;"><table style="width:100%;text-align:left;border-collapse:collapse;margin-top:15px;font-size:10px;"><thead><tr style="border-bottom:1px solid #333;">' +
+            guide.columns.map(col => '<th style="padding:8px 8px 8px 0;color:#fff;white-space:nowrap;">' + escapeHtml(col) + '</th>').join('') +
+            '</tr></thead><tbody>' + guide.rows.map(row => '<tr style="border-bottom:1px solid #292929;">' +
+              guide.columns.map((_, i) => '<td style="padding:8px 8px 8px 0;color:' + (i === 0 ? '#fff' : '#aaa') + ';">' + escapeHtml(row[i] ?? '') + '</td>').join('') +
+              '</tr>').join('') + '</tbody></table></div>' +
+            (guide.note ? '<p style="margin:14px 0 0;">' + escapeHtml(guide.note) + '</p>' : '') +
+            '</div>';
+        } catch (error) {
+          console.warn('Category size guide could not be loaded:', error);
+        }
+      }
       if (sizeGuideBtn && sizeModal) {
         sizeGuideBtn.addEventListener('click', () => {
           sizeModal.classList.add('is-open');
+          loadCategorySizeGuide();
         });
       }
       document.querySelectorAll('[data-size-guide-close]').forEach(btn => {
