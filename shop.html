@@ -793,7 +793,7 @@
             console.warn("Category metadata unavailable; using current categories.", err);
           });
           const productsTask = withTimeout(
-            supabaseClient.from("products").select("id,name,category,images,image_url,image,active,price,stock,created_at,slug,sku,description").eq("active", true).order("created_at", { ascending: false }),
+            supabaseClient.from("products").select("id,name,category,images,image_url,image,active,price,stock,created_at,slug,sku,description").order("created_at", { ascending: false }),
             9000,
             "Product catalogue"
           );
