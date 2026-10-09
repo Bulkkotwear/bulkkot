@@ -1013,6 +1013,7 @@
         </button>
 
         <div class="nav-section">Content</div>
+        <button class="nav-btn" data-page="slider-manager"><span class="nav-icon">▣</span>Slider Manager</button>
         <button class="nav-btn" data-page="size-guides">
           <span class="nav-icon">↔</span>
           Size Guides
@@ -1349,6 +1350,13 @@
             <div id="waitlistTable"></div>
           </div>
 
+        </section>
+
+        <!-- EDITORIAL SLIDER MANAGER -->
+        <section id="page-slider-manager" class="page">
+          <div class="page-head"><div><h1>Editorial Slider Manager</h1><p>Manage homepage slides, images, Hangul, copy, buttons and destinations.</p></div><div class="actions"><button class="btn" onclick="loadEditorialSlides()">↻ Reload</button><button class="btn" onclick="addEditorialSlide()">＋ Add slide</button><button class="btn btn-primary" onclick="saveEditorialSlides()">Save slider</button></div></div>
+          <div class="card" style="margin-bottom:16px"><div class="section-title"><h2>How it works</h2><span>Homepage sync</span></div><p style="color:var(--muted);line-height:1.7;margin:0">Edit text in English or Hangul. Upload an image from your device or paste an image URL. Disable a slide to hide it without deleting it. Button destinations can be category URLs, product pages, or section links.</p></div>
+          <div id="editorialSlidesEditor" class="grid two-col"><div class="card"><p style="color:var(--muted)">Loading homepage slides…</p></div></div>
         </section>
 
         <!-- SIZE GUIDES -->
@@ -1874,7 +1882,7 @@ db.auth.onAuthStateChange(async(_,session)=>{
   }
 });
 
-const pageTitles={dashboard:"Dashboard",products:"Products",categories:"Categories",orders:"Orders","size-guides":"Size Guides",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health"};
+const pageTitles={dashboard:"Dashboard",products:"Products",categories:"Categories",orders:"Orders","slider-manager":"Slider Manager","size-guides":"Size Guides",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health"};
 function navigate(page){
   if(!pageTitles[page])return; state.currentPage=page;
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
@@ -1882,7 +1890,7 @@ function navigate(page){
   $("page-"+page)?.classList.add("active");
   document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add("active");
   $("topTitle").textContent=pageTitles[page]; $("sidebar").classList.remove("open");
-  const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"size-guides":loadSizeGuides,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck};
+  const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"slider-manager":loadEditorialSlides,"size-guides":loadSizeGuides,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck};
   loaders[page]?.();
 }
 document.querySelectorAll(".nav-btn[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));
@@ -3090,6 +3098,48 @@ function sizeGuideDefault(category){
     note:"Measurements are approximate. If between sizes, choose based on your preferred fit."
   };
 }
+const DEFAULT_EDITORIAL_SLIDES=[
+{image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png",alt:"BULKKOT Drop 001 Editorial",badge:"NEWS 01 // DROP 001",korean:"불꽃 · 001",heading:"LESS NOISE.",subtitle:"MORE PRESENCE.",description:"Architectural drop shoulders with pure matte combed yarn. Engineered for elevated movement.",buttonText:"DISCOVER DROP 001 →",buttonUrl:"#drop-001",enabled:true},
+{image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",alt:"BULKKOT Heavy Fleece",badge:"NEWS 02 // CRAFTSMANSHIP",korean:"서울에서 영감 · 헤비웨이트",heading:"450 GSM",subtitle:"LOOPBACK FLEECE.",description:"Premium heavyweight fleece. Built around structure, texture and lasting comfort.",buttonText:"EXPLORE HOODS →",buttonUrl:"shop.html?category=hoods",enabled:true},
+{image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png",alt:"BULKKOT Modern Silhouettes",badge:"NEWS 03 // SILHOUETTES",korean:"디자인 미학 · SEOUL TO WORLD",heading:"QUIETLY",subtitle:"DISTINCT.",description:"No loud exterior billboards. The garment commands attention through silhouette and proportion.",buttonText:"EXPLORE SWEATS →",buttonUrl:"shop.html?category=sweats",enabled:true},
+{image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",alt:"BULKKOT Limited Tees",badge:"NEWS 04 // LIMITED SUPPLY",korean:"한정판 수량 · 150 PCS",heading:"STRICTLY 150",subtitle:"PIECES PER CUT.",description:"Zero mass-production restocking. Every unit serialized and dispatched in custom matte black boxing.",buttonText:"EXPLORE TEES →",buttonUrl:"shop.html?category=tees",enabled:true}];
+let editorialSlidesStore=[];
+function editorialSlideField(slide,key,label,type="text",placeholder=""){const value=String(slide[key]??"");if(type==="textarea")return '<div class="field"><label>'+label+'</label><textarea data-es-field="'+key+'" rows="3" placeholder="'+placeholder+'">'+esc(value)+'</textarea></div>';return '<div class="field"><label>'+label+'</label><input data-es-field="'+key+'" type="text" value="'+esc(value)+'" placeholder="'+placeholder+'"></div>';}
+function renderEditorialSlidesEditor(){
+ const host=$("editorialSlidesEditor");if(!host)return;
+ if(!editorialSlidesStore.length){host.innerHTML='<div class="card"><p style="color:var(--muted)">No slides yet. Use Add slide to create one.</p></div>';return;}
+ host.innerHTML=editorialSlidesStore.map((s,n)=>'<div class="card" data-editorial-slide="'+n+'" style="align-self:start"><div class="section-title"><h2>Slide '+(n+1)+'</h2><div style="display:flex;align-items:center;gap:10px"><label style="display:flex;align-items:center;gap:6px;font-size:12px"><input data-es-field="enabled" type="checkbox" '+(s.enabled!==false?'checked':'')+'> Enabled</label><button type="button" class="btn btn-small" onclick="removeEditorialSlide('+n+')">Delete</button></div></div>'+
+ '<div style="display:flex;gap:12px;align-items:center;margin:10px 0 16px"><img src="'+esc(s.image||"")+'" alt="" data-es-preview style="width:104px;height:92px;object-fit:cover;background:#111;border:1px solid #333;border-radius:6px" onerror="this.style.opacity=.25"><div style="flex:1;min-width:0"><div class="field"><label>UPLOAD SLIDE IMAGE</label><input type="file" accept="image/*" data-es-upload="'+n+'"></div><p data-es-upload-status style="font-size:11px;color:var(--muted);margin:5px 0 0">Uploads to existing site-content-images storage.</p></div></div>'+
+ editorialSlideField(s,"image","IMAGE URL","text","https://…")+editorialSlideField(s,"alt","IMAGE ALT TEXT","text","Describe the image")+editorialSlideField(s,"badge","BADGE / EYEBROW","text","NEWS 01 // DROP")+editorialSlideField(s,"korean","KOREAN / HANGUL TEXT","text","불꽃 · 서울")+editorialSlideField(s,"heading","MAIN HEADING","text","LESS NOISE.")+editorialSlideField(s,"subtitle","SUBTITLE","text","MORE PRESENCE.")+editorialSlideField(s,"description","DESCRIPTION","textarea","Slide description")+editorialSlideField(s,"buttonText","BUTTON TEXT","text","EXPLORE →")+editorialSlideField(s,"buttonUrl","BUTTON DESTINATION URL","text","shop.html?category=tees")+'</div>').join("");
+ host.querySelectorAll("[data-es-field]").forEach(el=>el.addEventListener("input",()=>{const card=el.closest("[data-editorial-slide]"),idx=Number(card.dataset.editorialSlide),key=el.dataset.esField;editorialSlidesStore[idx][key]=el.type==="checkbox"?el.checked:el.value;if(key==="image"){const img=card.querySelector("[data-es-preview]");if(img)img.src=el.value;}}));
+ host.querySelectorAll('input[type="file"][data-es-upload]').forEach(el=>el.addEventListener("change",()=>uploadEditorialSlideImage(el)));
+}
+async function loadEditorialSlides(){
+ const host=$("editorialSlidesEditor");if(host)host.innerHTML=loadingHTML();
+ try{const r=await db.from("site_content").select("content_key,content_value").eq("content_key","editorial_slides").limit(1);if(r.error)throw r.error;
+ let parsed=[];try{parsed=JSON.parse(r.data?.[0]?.content_value||"[]");}catch(e){parsed=[];}
+ const hasSaved=Array.isArray(r.data)&&r.data.length>0;
+ editorialSlidesStore=Array.isArray(parsed)?parsed.map(s=>({...s,enabled:s.enabled!==false})):[];
+ if(!hasSaved)editorialSlidesStore=DEFAULT_EDITORIAL_SLIDES.map(s=>({...s}));
+ renderEditorialSlidesEditor();
+ }catch(e){if(host)host.innerHTML='<div class="card"><p style="color:#ff9298">Could not load slider settings: '+esc(normalizeError(e))+'</p><button class="btn" onclick="loadEditorialSlides()">Try again</button></div>';}
+}
+function addEditorialSlide(){editorialSlidesStore.push({image:"",alt:"BULKKOT editorial slide",badge:"NEWS // NEW DROP",korean:"불꽃",heading:"YOUR HEADING",subtitle:"YOUR SUBTITLE",description:"",buttonText:"EXPLORE →",buttonUrl:"shop.html",enabled:true});renderEditorialSlidesEditor();}
+function removeEditorialSlide(index){if(!confirm("Delete slide "+(index+1)+"? Save the slider to publish this change."))return;editorialSlidesStore.splice(index,1);renderEditorialSlidesEditor();}
+async function uploadEditorialSlideImage(input){
+ const index=Number(input.dataset.esUpload),file=input.files?.[0];if(!file)return;const card=input.closest("[data-editorial-slide]"),status=card?.querySelector("[data-es-upload-status]");
+ if(!file.type.startsWith("image/")){showToast("Choose an image file.","error");input.value="";return;}if(file.size>10*1024*1024){showToast("Maximum image size is 10 MB.","error");input.value="";return;}
+ try{if(status)status.textContent="Uploading image…";const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]+/g,"-"),path="editorial-slides/"+Date.now()+"-"+safe;const up=await db.storage.from(STORAGE_BUCKET).upload(path,file,{cacheControl:"3600",upsert:false});if(up.error)throw up.error;const url=db.storage.from(STORAGE_BUCKET).getPublicUrl(path).data.publicUrl;editorialSlidesStore[index].image=url;const field=card.querySelector('[data-es-field="image"]');if(field)field.value=url;const img=card.querySelector("[data-es-preview]");if(img)img.src=url;if(status)status.textContent="Image uploaded. Save slider to publish it.";showToast("Slide image uploaded.","success");}
+ catch(e){if(status)status.textContent="Upload failed: "+normalizeError(e);showToast("Image upload failed: "+normalizeError(e),"error");}input.value="";
+}
+async function saveEditorialSlides(){
+ try{if(!editorialSlidesStore.length&&!confirm("This will remove every editorial slide from the homepage. Continue?"))return;
+ const clean=editorialSlidesStore.map(s=>({image:String(s.image||"").trim(),alt:String(s.alt||"").trim(),badge:String(s.badge||"").trim(),korean:String(s.korean||""),heading:String(s.heading||""),subtitle:String(s.subtitle||""),description:String(s.description||""),buttonText:String(s.buttonText||"").trim(),buttonUrl:String(s.buttonUrl||"").trim(),enabled:s.enabled!==false}));
+ if(clean.some(s=>s.enabled&&!s.image)){showToast("Every enabled slide needs an image URL.","error");return;}
+ await writeSiteContentKey("editorial_slides",JSON.stringify(clean));editorialSlidesStore=clean;showToast("Homepage slider saved.","success");renderEditorialSlidesEditor();
+ }catch(e){showToast("Slider save failed: "+normalizeError(e),"error");}
+}
+
 async function loadSizeGuides(){
   const host=$("sizeGuidesEditor");if(!host)return;
   const r=await db.from("site_content").select("*");
