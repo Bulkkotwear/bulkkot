@@ -493,7 +493,7 @@
       function getCardImage(p) {
         const variant = getSelectedVariant(p);
         const variantImage = Array.isArray(variant?.images) ? variant.images.find(src => typeof src === "string" && src.trim()) : "";
-        return variantImage || getImages(p);
+        return variant ? (variantImage || FALLBACK_IMG) : getImages(p);
       }
 
       function getStock(p) {
