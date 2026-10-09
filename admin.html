@@ -3188,46 +3188,81 @@ function readVariantEditors(){
 
 openProductModal=function(product=null){
   state.editingProduct=product;
-  const p=product||{}, s=productStockMap(p), imgs=productImages(p), vars=productVariants(p);
-  $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
-  '<div class="modal-head"><h2>'+(product?"Edit product":"Add product")+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
+  const p=product||{};
+  const saved=productVariants(p).map((v,i)=>normalizeVariant(v,i));
+  const variants=saved.length?saved:[normalizeVariant({
+    id:crypto.randomUUID?crypto.randomUUID():Date.now()+"-main",
+    name:"",color:"",images:productImages(p),stock:productStockMap(p)
+  },0)];
+  $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal product-editor-modal" onclick="event.stopPropagation()">'+
+  '<div class="modal-head"><div><h2>'+(product?"Edit product":"Add product")+'</h2><div class="muted" style="font-size:11px;margin-top:4px">One product · every colour has its own photos and size-wise stock</div></div><button class="modal-close" onclick="closeModal()">×</button></div>'+
   '<div class="modal-body"><div class="form-grid">'+
-  '<div class="field"><label>NAME *</label><input id="productName" value="'+esc(productName(p))+'"></div>'+
-  '<div class="field"><label>PRICE *</label><input id="productPrice" type="number" min="0" step="0.01" value="'+esc(productPrice(p))+'"></div>'+
-  '<div class="field"><label>CATEGORY</label>'+categorySelectHTML(p)+'</div>'+ 
-  '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'"></div>'+ 
-  '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription">'+esc(getValue(p,"description"))+'</textarea></div>'+ 
-  '<div class="field full"><label>MAIN PRODUCT IMAGE URLS — one per line</label><textarea id="productImages" style="min-height:80px">'+esc(imgs.join("\n"))+'</textarea></div>'+ 
-  productImageFileHTML(imgs)+variantEditorHTML(vars)+
-  '<div class="field"><label>BASE SIZE S STOCK</label><input id="stockS" type="number" min="0" value="'+s.S+'"></div>'+ 
-  '<div class="field"><label>BASE SIZE M STOCK</label><input id="stockM" type="number" min="0" value="'+s.M+'"></div>'+ 
-  '<div class="field"><label>BASE SIZE L STOCK</label><input id="stockL" type="number" min="0" value="'+s.L+'"></div>'+ 
-  '<div class="field"><label>BASE SIZE XL STOCK</label><input id="stockXL" type="number" min="0" value="'+s.XL+'"></div>'+ 
-  '<div class="field"><label>CATALOG STATUS</label><select id="productActive"><option value="true">Live / Active</option><option value="false">Hidden / Draft</option></select></div>'+ 
-  '<div class="field"><label>SLUG</label><input id="productSlug" value="'+esc(getValue(p,"slug"))+'" placeholder="auto-generated if blank"></div>'+ 
-  '</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button>'+(product?'<button class="btn btn-danger" onclick=\'deleteProduct("'+esc(p.id)+'")\'>Delete</button>':'')+'<button class="btn btn-primary" onclick="saveProduct()">Save product</button></div></div></div>';
+  '<div class="field"><label>PRODUCT NAME *</label><input id="productName" value="'+esc(productName(p))+'" placeholder="e.g. Essential Oversized Hoodie" required></div>'+
+  '<div class="field"><label>PRICE (₹) *</label><input id="productPrice" type="number" min="0" step="1" value="'+esc(productPrice(p))+'" placeholder="1299" required></div>'+
+  '<div class="field"><label>CATEGORY *</label>'+categorySelectHTML(p)+'</div>'+
+  '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'" placeholder="Optional stock code"></div>'+
+  '<div class="field full"><label>PRODUCT DESCRIPTION</label><textarea id="productDescription" placeholder="Fit, fabric, feel and care details…">'+esc(getValue(p,"description"))+'</textarea></div>'+
+  '<div class="field"><label>URL / SLUG</label><input id="productSlug" value="'+esc(getValue(p,"slug"))+'" placeholder="Auto-generated if blank"></div>'+
+  '<div class="field"><label>STORE VISIBILITY</label><select id="productActive"><option value="true">Live / Active</option><option value="false">Hidden / Draft</option></select></div>'+
+  '</div>'+
+  '<div class="variant-editor-shell" style="margin-top:22px;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--panel)">'+
+  '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0;font-size:15px">Product colours & stock</h3><p class="muted" style="margin:5px 0 0;font-size:11px;line-height:1.5">Main colour and added colours use identical fields. Every colour has its own images and S / M / L / XL stock. All colours belong to this one product on the website.</p></div><button type="button" class="btn btn-primary btn-small" onclick="addVariantEditor()">+ Add colour</button></div>'+
+  '<div id="variantList" class="variant-list" style="margin-top:14px">'+variants.map((v,i)=>variantRowHTML(v,i)).join("")+'</div>'+
+  '</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button>'+
+  (product?'<button class="btn btn-danger" onclick=\'deleteProduct("'+esc(p.id)+'")\'>Delete</button>':'')+
+  '<button class="btn btn-primary" id="saveProductButton" onclick="saveProduct()">Save product & colours</button></div></div></div>';
   $("productActive").value=p.active===false?"false":"true";
-  $("productImageFiles")?.addEventListener("change",previewProductImageFiles);
-  [...document.querySelectorAll("#variantList .variant-row")].forEach((r,i)=>r.dataset.variantId=vars[i]?.id||"");
+  [...document.querySelectorAll("#variantList .variant-row")].forEach((row,i)=>row.dataset.variantId=variants[i]?.id||"");
 };
 
 saveProduct=async function(){
-  const name=$("productName").value.trim();if(!name){showToast("Product name is required.","error");return;}
-  const slug=($("productSlug").value.trim()||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
-  const existingImages=$("productImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const button=$("saveProductButton");
+  const name=$("productName")?.value.trim();
+  if(!name){showToast("Product name is required.","error");$("productName")?.focus();return;}
+  const rows=[...document.querySelectorAll("#variantList .variant-row")];
+  if(!rows.length){showToast("Add at least one colour.","error");return;}
+  const variants=[], seen=new Set();
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i], variantName=row.querySelector(".variant-name")?.value.trim()||"", color=row.querySelector(".variant-color")?.value.trim()||"";
+    const images=(row.querySelector(".variant-images")?.value||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    const fileInput=row.querySelector(".variant-files");
+    if(!color){showToast("Enter a colour label for colour "+(i+1)+".","error");row.querySelector(".variant-color")?.focus();return;}
+    if(!variantName){showToast("Enter a colour name for colour "+(i+1)+".","error");row.querySelector(".variant-name")?.focus();return;}
+    if(seen.has(color.toLowerCase())){showToast("Duplicate colour detected: "+color+". Each colour must be unique.","error");return;}
+    seen.add(color.toLowerCase());
+    if(!images.length&&!(fileInput?.files?.length)){showToast("Add at least one image for colour "+color+".","error");return;}
+    variants.push(normalizeVariant({
+      id:row.dataset.variantId||undefined,name:variantName,color,images,
+      stock:{S:num(row.querySelector(".variant-stock-s")?.value),M:num(row.querySelector(".variant-stock-m")?.value),L:num(row.querySelector(".variant-stock-l")?.value),XL:num(row.querySelector(".variant-stock-xl")?.value)}
+    },i));
+  }
+  if(button){button.disabled=true;button.textContent="Saving product…";}
+  const slug=$("productSlug").value.trim()||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  const wasEditing=Boolean(state.editingProduct?.id);
   try{
-    const uploaded=await uploadProductFiles(); existingImages.push(...uploaded);
-    const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:existingImages,stock:{S:num($("stockS").value),M:num($("stockM").value),L:num($("stockL").value),XL:num($("stockXL").value)},active:$("productActive").value==="true"};
-    let r=state.editingProduct?.id?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single():await db.from("products").insert(payload).select().single();
-    if(r.error)throw r.error;
-    const productId=r.data?.id||state.editingProduct?.id;if(!productId)throw new Error("Product ID was not returned.");
-    const variants=readVariantEditors();
-    for(let i=0;i<variants.length;i++){const extra=await uploadVariantFiles(productId,i);variants[i].images.push(...extra);}
-    variants.forEach(v=>{if(!v.name && !v.color)throw new Error("Every variant needs a colour/name.");if(!v.images.length)throw new Error("Every colour variant needs at least one image.");});
-    state.productVariants[String(productId)]=variants;
+    const first=variants[0];
+    const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:[...first.images],stock:{...first.stock},active:$("productActive").value==="true"};
+    let result=state.editingProduct?.id
+      ?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single()
+      :await db.from("products").insert(payload).select().single();
+    if(result.error)throw result.error;
+    const productId=String(result.data?.id||state.editingProduct?.id||"");
+    if(!productId)throw new Error("Product ID was not returned.");
+    for(let i=0;i<variants.length;i++){
+      const uploaded=await uploadVariantFiles(productId,i);
+      if(uploaded.length)variants[i].images.push(...uploaded);
+    }
+    const main=variants[0];
+    const syncResult=await db.from("products").update({images:[...main.images],stock:{...main.stock}}).eq("id",productId);
+    if(syncResult.error)throw syncResult.error;
+    state.productVariants=state.productVariants||{};
+    state.productVariants[productId]=variants.map(v=>({...v,stock:{...v.stock},images:[...v.images]}));
     await saveProductVariants();
-    closeModal();showToast(state.editingProduct?"Product and variants updated.":"Product and variants created.","success");await loadProducts();
-  }catch(e){showToast("Product save failed: "+normalizeError(e),"error");}
+    closeModal();showToast(wasEditing?"Product and colours updated.":"Product and colours created.","success");await loadProducts();
+  }catch(e){
+    showToast("Product save failed: "+normalizeError(e),"error");
+    if(button){button.disabled=false;button.textContent="Save product & colours";}
+  }
 };
 
 /* Rich order item helpers: colour/variant + size + quantity + image. */
