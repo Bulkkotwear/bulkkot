@@ -2553,7 +2553,7 @@ function itemQty(item){
   return num(getValue(item,"quantity","qty","count")) || 1;
 }
 function itemSize(item){
-  return getValue(item,"size","variant_size","selected_size","variant") || "";
+  return getValue(item,"size","variant_size","selected_size","selectedSize","size_name") || "";
 }
 function itemImage(item){
   return getValue(item,"image","image_url","thumbnail","product_image") || "";
@@ -3022,12 +3022,40 @@ saveProduct=async function(){
 };
 
 /* Rich order item helpers: colour/variant + size + quantity + image. */
-function itemColor(item){return getValue(item,"color","colour","variant_color","selected_color","variant_name","variantName");}
-function itemVariant(item){return getValue(item,"variant","variant_name","variantName","color","colour");}
-function itemUnitPrice(item){return num(getValue(item,"price","unit_price","selling_price","amount"));}
+function itemColor(item){
+  const direct=getValue(item,"color","colour","variant_color","selected_color","color_name","colour_name","variant_name","variantName");
+  if(direct)return direct;
+  const variantId=getValue(item,"variant_id","variantId","selected_variant_id");
+  const productId=itemProductId(item);
+  const variants=state.productVariants?.[String(productId)]||[];
+  const match=variants.find(v=>String(v.id)===String(variantId));
+  return match?(match.color||match.name||""):"";
+}
+function itemVariant(item){
+  const direct=getValue(item,"variant","variant_name","variantName","selected_variant","selectedVariant");
+  if(direct && typeof direct==="string")return direct;
+  const variantId=getValue(item,"variant_id","variantId","selected_variant_id");
+  const productId=itemProductId(item);
+  const variants=state.productVariants?.[String(productId)]||[];
+  const match=variants.find(v=>String(v.id)===String(variantId));
+  return match?(match.name||match.color||""):"";
+}
+function itemUnitPrice(item){return num(getValue(item,"price","unit_price","selling_price","amount","unitPrice"));}
 function itemDetailsLine(item){
-  const bits=[];const v=itemColor(item)||itemVariant(item);const size=itemSize(item);const q=itemQty(item);
-  if(v)bits.push("Colour: "+v);if(size)bits.push("Size: "+size);bits.push("Qty: "+q);if(itemUnitPrice(item))bits.push("Unit: "+money(itemUnitPrice(item)));return bits.join(" · ");
+  const bits=[];
+  const colour=itemColor(item);
+  const variant=itemVariant(item);
+  const size=itemSize(item);
+  const q=itemQty(item);
+  if(colour)bits.push("Colour: "+colour);
+  if(variant && variant.toLowerCase()!==String(colour||"").toLowerCase())bits.push("Variant: "+variant);
+  if(size)bits.push("Size: "+size);
+  bits.push("Qty: "+q);
+  const price=itemUnitPrice(item);
+  if(price)bits.push("Unit: "+money(price));
+  const lineTotal=num(getValue(item,"line_total","subtotal","total","item_total"));
+  if(lineTotal)bits.push("Line total: "+money(lineTotal));
+  return bits.join(" · ");
 }
 orderItemsHTML=function(order){
   const items=Array.isArray(order?._adminItems)?order._adminItems:normalizeOrderItems(order);if(!items.length)return '<span class="muted">Product details unavailable</span>';
