@@ -429,8 +429,8 @@
         : null;
 
       // Legacy hard-coded demo catalogue entries are not admin-managed products.
-      const DEMO_PRODUCT_IDS = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02"]);
-      const DEMO_PRODUCT_NAMES = new Set(["HEAVY ARCHITECTURAL BOXY TEE", "STRUCTURED LOOPBACK HOODIE", "MINIMALIST OVERSIZED SWEATSHIRT", "SEOUL SILHOUETTE GRAPHIC TEE"]);
+      const DEMO_PRODUCT_IDS = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02", "mock-tee-01", "mock-hood-01", "mock-sweat-01", "mock-tee-02"]);
+      const DEMO_PRODUCT_NAMES = new Set(["HEAVY ARCHITECTURAL BOXY TEE", "STRUCTURED LOOPBACK HOODIE", "MINIMALIST OVERSIZED SWEATSHIRT", "SEOUL SILHOUETTE GRAPHIC TEE", "ARCHITECTURAL BOXY TEE", "STRUCTURED HEAVYWEIGHT HOODIE", "MINIMALIST OVERSIZED SWEAT", "SEOUL EDITION GRAPHIC TEE"]);
       const isDemoProduct = item => item && (DEMO_PRODUCT_IDS.has(String(item.id || "").trim().toLowerCase()) || DEMO_PRODUCT_NAMES.has(String(item.name || "").trim().toUpperCase()));
 
       const loadingEl = document.getElementById("shopLoading");
@@ -574,7 +574,7 @@
         }
         
         filteredProducts = products.filter(p => {
-          if (p.active === false) return false;
+          if (p.active === false || isDemoProduct(p)) return false;
           const cat = String(p.category || "").toLowerCase();
           if (activeCategory !== "all" && canonicalCategory(cat) !== canonicalCategory(activeCategory) && !cat.includes(activeCategory)) return false;
           if (term) {
