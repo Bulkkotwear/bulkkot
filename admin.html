@@ -2448,20 +2448,25 @@ function renderWaitlist(){
 
 async function loadCMS(){
   const r=await db.from("site_content").select("*");
-  if(r.error){showToast("CMS could not be loaded: "+normalizeError(r.error),"warning");return;}
-  const c={};(r.data||[]).forEach(row=>{const k=row.content_key;if(k)c[k]=row.content_value??"";});
+  if(r.error){showToast("CMS could not be loaded: "+normalizeError(r.error),"error");return;}
+  const c={};
+  (r.data||[]).forEach(row=>{
+    const key=String(row.content_key||row.key||"").trim();
+    if(key)c[key]=row.content_value??row.value??"";
+  });
   state.cms=c;
-  $("cmsAnnouncement").value=c.announcement_1||c.announcement||"DROP 001 — DROPPING SOON";
-  $("cmsHeroTitle").value=c.hero_title||"";
-  $("cmsHeroSubtitle").value=c.hero_subtitle||"";
-  $("cmsHeroImage").value=c.hero_image||"";
-  $("cmsPrimaryButton").value=c.primary_button_text||"SHOP NOW";
-  $("cmsPrimaryUrl").value=c.primary_button_url||"shop.html";
-  $("cmsTagline").value=c.tagline||"Less noise. More presence.";
-  $("cmsAboutTitle").value=c.about_title||"ABOUT BULKKOT";
-  $("cmsAboutText").value=c.about_text||"";
-  $("cmsFooterText").value=c.footer_text||"";
-  $("cmsInstagram").value=c.instagram||c.instagram_url||"";
+  const field=(key,fallback="")=>c[key]===undefined?fallback:String(c[key]??"");
+  $("cmsAnnouncement").value=field("announcement_1",field("announcement","DROP 001 — DROPPING SOON"));
+  $("cmsHeroTitle").value=field("hero_title","BULKKOT");
+  $("cmsHeroSubtitle").value=field("hero_subtitle","Korean-inspired minimalist heavyweight essentials.");
+  $("cmsHeroImage").value=field("hero_image","https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png");
+  $("cmsPrimaryButton").value=field("primary_button_text",field("hero_button_text","EXPLORE DROP 001"));
+  $("cmsPrimaryUrl").value=field("primary_button_url",field("hero_button_url","#drop-001"));
+  $("cmsTagline").value=field("tagline","Less noise. More presence.");
+  $("cmsAboutTitle").value=field("about_title","불꽃");
+  $("cmsAboutText").value=field("about_text","Premium clothing shouldn't feel unreachable.");
+  $("cmsFooterText").value=field("footer_text","Korean-inspired premium everyday wear.");
+  $("cmsInstagram").value=field("instagram",field("instagram_url","https://www.instagram.com/bulkkot.wear/"));
   $("cmsJson").value=JSON.stringify(c,null,2);
 }
 async function saveCMS(){
@@ -2978,15 +2983,53 @@ async function saveCMS(){
   let advanced={};
   try{
     advanced=JSON.parse($("cmsJson").value||"{}");
-    if(!advanced||Array.isArray(advanced)||typeof advanced!=="object") throw new Error("JSON must be an object.");
-  }catch(e){showToast("Advanced CMS JSON is invalid.","error");return;}
-  const merged={...advanced,announcement_1:$('cmsAnnouncement').value,hero_title:$('cmsHeroTitle').value,hero_subtitle:$('cmsHeroSubtitle').value,hero_image:$('cmsHeroImage').value,primary_button_text:$('cmsPrimaryButton').value,primary_button_url:$('cmsPrimaryUrl').value,tagline:$('cmsTagline').value,about_title:$('cmsAboutTitle').value,about_text:$('cmsAboutText').value,footer_text:$('cmsFooterText').value,instagram:$('cmsInstagram').value};
-  try{
-    for(const [key,value] of Object.entries(merged)) await writeSiteContentKey(key,value);
-    state.cms=merged;$("cmsJson").value=JSON.stringify(merged,null,2);showToast("CMS saved. Storefront content updated.","success");
-  }catch(e){showToast("CMS save failed: "+normalizeError(e),"error");}
-}
+    if(!advanced||Array.isArray(advanced)||typeof advanced!=="object")throw new Error("JSON must be an object.");
+  }catch(e){showToast("Advanced CMS JSON is invalid. Nothing was saved.","error");return;}
 
+  const button=document.querySelector('#page-cms button[onclick="saveCMS()"]');
+  if(button?.disabled)return;
+  const oldText=button?.textContent;
+  if(button){button.disabled=true;button.textContent="Saving…";}
+
+  const heroButtonText=$("cmsPrimaryButton").value;
+  const heroButtonUrl=$("cmsPrimaryUrl").value;
+  const instagram=$("cmsInstagram").value.trim();
+  const merged={
+    ...advanced,
+    announcement_1:$("cmsAnnouncement").value,
+    hero_title:$("cmsHeroTitle").value,
+    hero_subtitle:$("cmsHeroSubtitle").value,
+    hero_image:$("cmsHeroImage").value.trim(),
+    primary_button_text:heroButtonText,
+    hero_button_text:heroButtonText,
+    primary_button_url:heroButtonUrl,
+    hero_button_url:heroButtonUrl,
+    tagline:$("cmsTagline").value,
+    about_title:$("cmsAboutTitle").value,
+    about_text:$("cmsAboutText").value,
+    footer_text:$("cmsFooterText").value,
+    instagram,
+    instagram_url:instagram
+  };
+
+  try{
+    const entries=Object.entries(merged);
+    const results=await Promise.allSettled(entries.map(([key,value])=>writeSiteContentKey(key,String(value??""))));
+    const failed=results.map((result,index)=>result.status==="rejected"?{key:entries[index][0],error:result.reason}:null).filter(Boolean);
+    if(failed.length){
+      const detail=failed.slice(0,4).map(item=>item.key+": "+normalizeError(item.error)).join(" · ");
+      showToast("Some content fields could not be saved: "+detail,"error");
+      return;
+    }
+    state.cms=merged;
+    $("cmsJson").value=JSON.stringify(merged,null,2);
+    showToast("Content saved to the live storefront database.","success");
+  }catch(e){
+    showToast("Content save failed: "+normalizeError(e),"error");
+  }finally{
+    if(button){button.disabled=false;button.textContent=oldText||"Save changes";}
+  }
+}
 /* Make the new functions available to existing inline handlers. */
 window.openProductModal=openProductModal;
 window.openProductModalById=openProductModalById;
