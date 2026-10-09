@@ -1874,7 +1874,7 @@ db.auth.onAuthStateChange(async(_,session)=>{
   }
 });
 
-const pageTitles={dashboard:"Dashboard",products:"Products",categories:"Categories",orders:"Orders",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health"};
+const pageTitles={dashboard:"Dashboard",products:"Products",categories:"Categories",orders:"Orders","size-guides":"Size Guides",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health"};
 function navigate(page){
   if(!pageTitles[page])return; state.currentPage=page;
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
