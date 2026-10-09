@@ -3115,7 +3115,7 @@ saveProduct=async function(){
     if(r.error)throw r.error;
     const productId=r.data?.id||state.editingProduct?.id;if(!productId)throw new Error("Product ID was not returned.");
     for(let i=0;i<variants.length;i++){const extra=await uploadVariantFiles(productId,i);variants[i].images.push(...extra);}
-    variants.forEach(v=>{if(!v.name.trim()&&!v.color.trim())throw new Error("Every colour variant needs a name.");if(!v.images.length)throw new Error("Add at least one image for "+(v.color||v.name)+".");});
+    variants.forEach((v,i)=>{if(!v.name.trim()&&!v.color.trim())throw new Error("Every colour variant needs a name.");if(!v.images.length&&!(i===0&&Array.isArray(payload.images)&&payload.images.length))throw new Error("Add at least one image for "+(v.color||v.name)+".");});
     // Keep legacy catalogue fields aligned with the first real colour variant.
     // Storefront cards and older integrations read products.images / products.stock.
     const canonicalUpdate=await db.from("products").update({images:payload.images,stock:variants[0].stock}).eq("id",productId);
