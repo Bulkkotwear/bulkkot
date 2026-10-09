@@ -170,7 +170,7 @@
     }
 
     let dismissed = false;
-    const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
+    const hasSeen = sessionStorage.getItem('bulkkot_welcome_seen_session');
 
     function dismissPopup() {
       if (dismissed) return;
@@ -178,7 +178,7 @@
       popup.classList.remove('is-open');
       popup.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('modal-open');
-      localStorage.setItem('bulkkot_welcome_seen', 'true');
+      sessionStorage.setItem('bulkkot_welcome_seen_session', 'true');
     }
 
     closeBtn?.addEventListener('click', dismissPopup);
