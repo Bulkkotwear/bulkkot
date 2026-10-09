@@ -1344,6 +1344,20 @@
             </select>
           </div>
 
+          <div class="card" style="margin-bottom:14px">
+            <div class="section-title" style="align-items:center;gap:12px;flex-wrap:wrap">
+              <div>
+                <h2>Order Cleanup</h2>
+                <div class="muted" style="margin-top:5px">Select individual orders or all orders matching the current filters, then delete them together.</div>
+              </div>
+              <button class="btn btn-danger" id="deleteSelectedOrdersBtn" onclick="deleteSelectedOrders()" disabled>Delete selected</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px">
+              <label style="display:flex;align-items:center;gap:9px;cursor:pointer"><input id="selectVisibleOrders" type="checkbox" onchange="toggleVisibleOrderSelection(this.checked)"> Select all orders currently shown</label>
+              <span id="orderBulkCount" class="muted">0 orders selected</span>
+            </div>
+          </div>
+
           <div class="card">
             <div id="ordersTable"></div>
           </div>
@@ -3272,11 +3286,57 @@ orderItemsHTML=function(order){
 };
 
 renderOrders=function(){
-  const root=$("ordersTable");if(!root)return;const q=($("orderSearch")?.value||"").toLowerCase().trim(),f=($("orderStatusFilter")?.value||"").toUpperCase();
+  const root=$("ordersTable");if(!root)return;
+  const q=($("orderSearch")?.value||"").toLowerCase().trim(),f=($("orderStatusFilter")?.value||"").toUpperCase();
   const list=state.orders.filter(o=>{const hay=(orderNumber(o)+" "+customerName(o)+" "+customerPhone(o)+" "+getValue(o,"customer_email")+" "+orderItemsHTML(o).replace(/<[^>]*>/g," ")).toLowerCase();return(!q||hay.includes(q))&&(!f||orderStatus(o)===f);});
-  if(!list.length){root.innerHTML=emptyHTML("No orders found.");return;}
-  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Products / Variants</th><th>Total</th><th>Payment</th><th>Status</th><th>Courier</th><th>Actions</th></tr></thead><tbody>'+list.map(o=>'<tr><td><strong>'+esc(orderNumber(o))+'</strong></td><td>'+dateTime(o.created_at)+'</td><td><strong>'+esc(customerName(o))+'</strong><div class="muted">'+esc(customerPhone(o))+'</div><div class="muted">'+esc(getValue(o,"customer_email"))+'</div></td><td>'+orderItemsHTML(o)+'</td><td>'+money(orderTotal(o))+'</td><td>'+statusBadge(paymentStatus(o))+'</td><td>'+statusBadge(orderStatus(o))+'</td><td>'+esc(getValue(o,"courier")||"—")+'</td><td style="white-space:nowrap"><button class="btn btn-small" onclick=\'openOrderModalById("'+esc(o.id)+'")\'>View</button> <button class="btn btn-small btn-danger" onclick=\'deleteOrder("'+esc(o.id)+'")\'>Delete</button></td></tr>').join("")+'</tbody></table></div>';
+  const selected=window._bulkSelectedOrderIds||(window._bulkSelectedOrderIds=new Set());
+  if(!list.length){root.innerHTML=emptyHTML("No orders found.");updateOrderBulkControls(list);return;}
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Select</th><th>Order</th><th>Date</th><th>Customer</th><th>Products / Variants</th><th>Total</th><th>Payment</th><th>Status</th><th>Courier</th><th>Actions</th></tr></thead><tbody>'+list.map(o=>'<tr><td><input type="checkbox" aria-label="Select order '+esc(orderNumber(o))+'" '+(selected.has(String(o.id))?'checked':'')+' onchange=\'toggleOrderSelection("'+esc(o.id)+'",this.checked)\'></td><td><strong>'+esc(orderNumber(o))+'</strong></td><td>'+dateTime(o.created_at)+'</td><td><strong>'+esc(customerName(o))+'</strong><div class="muted">'+esc(customerPhone(o))+'</div><div class="muted">'+esc(getValue(o,"customer_email"))+'</div></td><td>'+orderItemsHTML(o)+'</td><td>'+money(orderTotal(o))+'</td><td>'+statusBadge(paymentStatus(o))+'</td><td>'+statusBadge(orderStatus(o))+'</td><td>'+esc(getValue(o,"courier")||"—")+'</td><td style="white-space:nowrap"><button class="btn btn-small" onclick=\'openOrderModalById("'+esc(o.id)+'")\'>View</button> <button class="btn btn-small btn-danger" onclick=\'deleteOrder("'+esc(o.id)+'")\'>Delete</button></td></tr>').join("")+'</tbody></table></div>';
+  updateOrderBulkControls(list);
 };
+
+function updateOrderBulkControls(visibleOrders=[]){
+  const selected=window._bulkSelectedOrderIds||(window._bulkSelectedOrderIds=new Set());
+  const count=$("orderBulkCount"),btn=$("deleteSelectedOrdersBtn"),all=$("selectVisibleOrders");
+  if(count)count.textContent=selected.size+" order"+(selected.size===1?"":"s")+" selected";
+  if(btn)btn.disabled=selected.size===0;
+  if(all){
+    const ids=visibleOrders.map(o=>String(o.id));
+    all.checked=ids.length>0&&ids.every(id=>selected.has(id));
+    all.indeterminate=ids.some(id=>selected.has(id))&&!all.checked;
+  }
+}
+function toggleOrderSelection(id,checked){
+  const selected=window._bulkSelectedOrderIds||(window._bulkSelectedOrderIds=new Set());
+  if(checked)selected.add(String(id));else selected.delete(String(id));
+  const q=($("orderSearch")?.value||"").toLowerCase().trim(),f=($("orderStatusFilter")?.value||"").toUpperCase();
+  const visible=state.orders.filter(o=>{const hay=(orderNumber(o)+" "+customerName(o)+" "+customerPhone(o)+" "+getValue(o,"customer_email")+" "+orderItemsHTML(o).replace(/<[^>]*>/g," ")).toLowerCase();return(!q||hay.includes(q))&&(!f||orderStatus(o)===f);});
+  updateOrderBulkControls(visible);
+}
+function toggleVisibleOrderSelection(checked){
+  const selected=window._bulkSelectedOrderIds||(window._bulkSelectedOrderIds=new Set());
+  const q=($("orderSearch")?.value||"").toLowerCase().trim(),f=($("orderStatusFilter")?.value||"").toUpperCase();
+  const visible=state.orders.filter(o=>{const hay=(orderNumber(o)+" "+customerName(o)+" "+customerPhone(o)+" "+getValue(o,"customer_email")+" "+orderItemsHTML(o).replace(/<[^>]*>/g," ")).toLowerCase();return(!q||hay.includes(q))&&(!f||orderStatus(o)===f);});
+  visible.forEach(o=>{if(checked)selected.add(String(o.id));else selected.delete(String(o.id));});
+  renderOrders();
+}
+async function deleteSelectedOrders(){
+  const selected=window._bulkSelectedOrderIds||(window._bulkSelectedOrderIds=new Set());
+  const ids=[...selected].filter(id=>state.orders.some(o=>String(o.id)===id));
+  if(!ids.length){showToast("Select at least one order first.","error");return;}
+  if(!confirm("Permanently delete "+ids.length+" selected order"+(ids.length===1?"":"s")+" and their saved line items? This cannot be undone."))return;
+  try{
+    const child=await db.from("order_items").delete().in("order_id",ids);
+    if(child.error&&!/relation|does not exist|not found|could not find the table/i.test(child.error.message||""))throw child.error;
+    const result=await db.from("orders").delete().in("id",ids);
+    if(result.error)throw result.error;
+    ids.forEach(id=>selected.delete(String(id)));
+    closeModal();
+    showToast(ids.length+" order"+(ids.length===1?"":"s")+" deleted.","success");
+    await loadOrders();
+    if(typeof loadSalesAnalytics==="function")await loadSalesAnalytics();
+  }catch(e){showToast("Bulk order delete failed: "+normalizeError(e),"error");}
+}
 
 openOrderModal=function(o){
   const items=Array.isArray(o._adminItems)?o._adminItems:[];
@@ -3466,6 +3526,7 @@ async function saveSizeGuides(){
 window.loadSizeGuides=loadSizeGuides;window.saveSizeGuides=saveSizeGuides;window.resetSizeGuide=resetSizeGuide;
 
 /* Re-export all new functions for inline handlers. */
+window.toggleOrderSelection=toggleOrderSelection;window.toggleVisibleOrderSelection=toggleVisibleOrderSelection;window.deleteSelectedOrders=deleteSelectedOrders;
 window.openProductModal=openProductModal;window.saveProduct=saveProduct;window.renderOrders=renderOrders;window.openOrderModal=openOrderModal;window.deleteOrder=deleteOrder;window.loadSalesAnalytics=loadSalesAnalytics;window.renderSalesAnalytics=renderSalesAnalytics;window.addVariantEditor=addVariantEditor;window.removeVariantEditor=removeVariantEditor;window.previewVariantFiles=previewVariantFiles;window.saveCategoryWithPosition=saveCategoryWithPosition;
 
 </script>
