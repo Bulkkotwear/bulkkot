@@ -3010,6 +3010,14 @@ button, input, select {
   color: #fff;
 }
 
+/* Match BULKKOT's red press/focus feedback on slider CTA buttons. */
+.slide-cta:active,
+.slide-cta:focus-visible {
+  background: var(--bk-red, #e31b23);
+  color: #fff;
+  border-color: var(--bk-red, #e31b23);
+}
+
 /* Minimalist Circular Arrows */
 .carousel-control {
   position: absolute !important;
@@ -3629,6 +3637,13 @@ button, input, select {
   color: #fff !important;
   border-color: rgba(255, 255, 255, 0.25) !important;
   transform: translateY(-50%) !important;
+}
+
+/* Red click feedback, consistent with the rest of the site. */
+.carousel-control:active {
+  background: var(--bk-red, #e31b23) !important;
+  color: #fff !important;
+  border-color: var(--bk-red, #e31b23) !important;
 }
 
 .carousel-control--prev { left: 24px !important; }
