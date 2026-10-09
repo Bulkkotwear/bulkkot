@@ -2138,9 +2138,9 @@ async function writeSiteContentKey(key,value){
 async function loadCategories(){
   const root=$("categoriesGrid");if(root)root.innerHTML=loadingHTML();
   try{
-    const r=await db.from("site_content").select("*");
+    const r=await db.from("site_content").select("content_key,content_value").eq("content_key","categories").limit(1).maybeSingle();
     if(r.error)throw r.error;
-    const row=(r.data||[]).find(x=>String(x.content_key||"")==="categories");
+    const row=r.data||null;
     let parsed=safeJson(getCategoryValueFromRow(row));
     if(!Array.isArray(parsed)||!parsed.length){
       parsed=DEFAULT_CATEGORIES;
@@ -2974,9 +2974,9 @@ function variantsStoreObject(){
 }
 async function loadProductVariants(){
   try{
-    const r=await db.from("site_content").select("*");
+    const r=await db.from("site_content").select("content_key,content_value").eq("content_key","product_variants").limit(1).maybeSingle();
     if(r.error) return;
-    const row=(r.data||[]).find(x=>String(x.content_key||"")==="product_variants");
+    const row=r.data||null;
     const parsed=safeJson(row?.content_value);
     state.productVariants=(parsed && typeof parsed==="object" && !Array.isArray(parsed))?parsed:{};
   }catch(e){state.productVariants={};}
@@ -3062,7 +3062,7 @@ function readVariantEditors(){
 
 openProductModal=function(product=null){
   state.editingProduct=product;
-  const p=product||{}, s=productStockMap(p), imgs=productImages(p), vars=productVariants(p);
+  const p=product||{}, s=productStockMap(p), imgs=productImages(p), vars=product?productVariants(p):[normalizeVariant({name:"Colour 1",color:"",images:[],stock:{S:0,M:0,L:0,XL:0}},0)];
   $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
   '<div class="modal-head"><h2>'+(product?"Edit product":"Add product")+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
   '<div class="modal-body"><div class="form-grid">'+
@@ -3291,9 +3291,9 @@ async function saveEditorialSlides(){
 
 async function loadSizeGuides(){
   const host=$("sizeGuidesEditor");if(!host)return;
-  const r=await db.from("site_content").select("*");
+  const r=await db.from("site_content").select("content_key,content_value").eq("content_key","size_guides").limit(1).maybeSingle();
   if(r.error){showToast("Size guides could not be loaded: "+normalizeError(r.error),"error");return;}
-  const row=(r.data||[]).find(x=>String(x.content_key||"")==="size_guides");
+  const row=r.data||null;
   try{sizeGuidesStore=JSON.parse(row?.content_value||"{}");if(!sizeGuidesStore||typeof sizeGuidesStore!=="object"||Array.isArray(sizeGuidesStore))sizeGuidesStore={};}catch(e){sizeGuidesStore={};}
   const categories=(state.categories||[]).length?state.categories:[{name:"Tees",slug:"tees"},{name:"Hoods",slug:"hoods"},{name:"Sweat Pants",slug:"sweat-pants"}];
   host.innerHTML=categories.map(cat=>{
