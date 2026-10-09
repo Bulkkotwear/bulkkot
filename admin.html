@@ -3077,6 +3077,7 @@ function readVariantEditors(){
 openProductModal=function(product=null){
   state.editingProduct=product;
   const p=product||{}, s=productStockMap(p), imgs=productImages(p), savedVariants=product?productVariants(p):[], vars=savedVariants.length?savedVariants:(product?[normalizeVariant({id:"legacy-"+String(p.id),name:"Colour 1",color:"Colour 1",images:imgs,stock:s},0)]:[normalizeVariant({name:"Colour 1",color:"",images:[],stock:{S:0,M:0,L:0,XL:0}},0)]);
+  if(product && vars.length && !vars[0].images.length && imgs.length) vars[0].images=[...imgs];
   $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
   '<div class="modal-head"><h2>'+(product?"Edit product":"Add product")+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
   '<div class="modal-body"><div class="form-grid">'+
