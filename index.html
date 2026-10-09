@@ -1637,8 +1637,9 @@
             .filter(item => item.slug)
             .sort((a,b) => Number(a.position || 0) - Number(b.position || 0));
           const legacyDemoIds = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02"]);
+          const legacyDemoNames = new Set(["HEAVY ARCHITECTURAL BOXY TEE", "STRUCTURED LOOPBACK HOODIE", "MINIMALIST OVERSIZED SWEATSHIRT", "SEOUL SILHOUETTE GRAPHIC TEE"]);
           const products = (Array.isArray(productResult.data) ? productResult.data : [])
-            .filter(item => item && !legacyDemoIds.has(String(item.id)));
+            .filter(item => item && !legacyDemoIds.has(String(item.id || "").trim().toLowerCase()) && !legacyDemoNames.has(String(item.name || "").trim().toUpperCase()));
           row.innerHTML = categories.map(category => {
             const product = products.find(item => {
               const productCategory = slugify(item.category);
