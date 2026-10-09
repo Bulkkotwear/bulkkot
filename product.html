@@ -1211,7 +1211,8 @@
           const [productResult, variantsResult] = await Promise.all([productTask, variantsTask]);
           const { data, error } = productResult;
 
-          if (error || !data || data.active === false) {
+          const legacyDemoIds = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02"]);
+          if (error || !data || data.active === false || legacyDemoIds.has(String(data.id))) {
             showNotFound("This piece could not be found.");
             return;
           }
