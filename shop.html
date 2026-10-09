@@ -458,6 +458,8 @@
       let searchTerm = "";
       let sortMode = "featured";
       const quickAddSelections = new Map();
+      const quickVariantSelections = new Map();
+      let productVariantsById = {};
 
       try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -479,7 +481,23 @@
         return p?.image_url || p?.image || FALLBACK_IMG;
       }
 
+      function getVariants(p) { return Array.isArray(productVariantsById[String(p?.id)]) ? productVariantsById[String(p.id)] : []; }
+
+      function getSelectedVariant(p) {
+        const variants = getVariants(p);
+        if (!variants.length) return null;
+        const selectedId = quickVariantSelections.get(String(p.id));
+        return variants.find(v => String(v.id) === String(selectedId)) || variants[0];
+      }
+
+      function getCardImage(p) {
+        const variant = getSelectedVariant(p);
+        return variant?.images?.[0] || getImages(p);
+      }
+
       function getStock(p) {
+        const variant = getSelectedVariant(p);
+        if (variant) return variant.stock || {};
         if (p?.stock && typeof p.stock === "object" && !Array.isArray(p.stock)) return p.stock;
         return { S: 10, M: 10, L: 10, XL: 10 };
       }
@@ -588,7 +606,9 @@
           productsGrid.innerHTML = filteredProducts.map(p => {
             const id = String(p.id);
             const name = p.name || "GARMENT";
-            const img = getImages(p);
+            const img = getCardImage(p);
+            const variants = getVariants(p);
+            const selectedVariant = getSelectedVariant(p);
             const stockData = getStock(p);
             const availableSizes = SIZES.filter(s => Number(stockData[s] || 0) > 0);
             const soldOut = availableSizes.length === 0;
@@ -615,6 +635,7 @@
                   </div>
                 </a>
                 <div class="p-quickadd" data-quickadd-id="${id}">
+                  ${variants.length ? `<div class="p-variant-swatches" role="group" aria-label="Select colour for ${escapeHtml(name)}" style="display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 5px;grid-column:1/-1;">${variants.map(v => { const label = v.color || v.name || "Colour"; const active = String(v.id) === String(selectedVariant?.id); const colorMap = {black:"#111",white:"#f5f5f5",grey:"#888",gray:"#888",red:"#e31b23",blue:"#3566d6",green:"#367a50",beige:"#cbb99b",brown:"#704b35",navy:"#17284f"}; const swatch = colorMap[label.toLowerCase()] || label; const isHex = /^#[0-9a-f]{3,8}$/i.test(swatch); return `<button type="button" data-variant-id="${escapeHtml(v.id)}" aria-pressed="${active}" title="${escapeHtml(label)}" aria-label="Select ${escapeHtml(label)}" style="width:23px;height:23px;border-radius:50%;padding:0;border:2px solid ${active ? "#fff" : "#444"};outline:${active ? "1px solid #fff" : "none"};outline-offset:2px;background:${isHex ? swatch : "#222"};cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2);">${!isHex ? `<span style="font-size:7px;color:#fff;">${escapeHtml(label.slice(0,2).toUpperCase())}</span>` : ""}</button>`; }).join("")}<span data-selected-variant-label style="align-self:center;color:#aaa;font-size:10px;margin-left:3px;">${escapeHtml(selectedVariant?.color || selectedVariant?.name || "")}</span></div>` : ""}
                   ${SIZES.map(s => {
                     const inStock = Number(stockData[s] || 0) > 0;
                     return `<button type="button" class="p-size-chip ${selectedSize === s ? 'active' : ''}" data-size="${s}" ${!inStock ? 'disabled' : ''}>${s}</button>`;
@@ -633,6 +654,25 @@
 
       if (productsGrid) {
         productsGrid.addEventListener("click", e => {
+          const variantBtn = e.target.closest("[data-variant-id]");
+          if (variantBtn) {
+            const wrap = variantBtn.closest("[data-quickadd-id]");
+            const id = wrap?.dataset.quickaddId;
+            const product = products.find(p => String(p.id) === String(id));
+            if (wrap && product) {
+              quickVariantSelections.set(String(id), String(variantBtn.dataset.variantId));
+              const variant = getSelectedVariant(product);
+              wrap.querySelectorAll("[data-variant-id]").forEach(b => { const active = String(b.dataset.variantId) === String(variant?.id); b.setAttribute("aria-pressed", String(active)); b.style.borderColor = active ? "#fff" : "#444"; b.style.outline = active ? "1px solid #fff" : "none"; });
+              const label = wrap.querySelector("[data-selected-variant-label]"); if (label) label.textContent = variant?.color || variant?.name || "";
+              const card = wrap.closest(".p-card"); const img = card?.querySelector(".p-thumb img"); if (img) img.src = getCardImage(product);
+              const stock = getStock(product);
+              const available = SIZES.filter(size => Number(stock[size] || 0) > 0);
+              if (!available.includes(quickAddSelections.get(String(id)))) quickAddSelections.set(String(id), available[0] || "");
+              wrap.querySelectorAll(".p-size-chip").forEach(b => { const ok = Number(stock[b.dataset.size] || 0) > 0; b.disabled = !ok; b.classList.toggle("active", b.dataset.size === quickAddSelections.get(String(id))); });
+              const add = wrap.querySelector("[data-quick-add]"); if (add) { add.disabled = !available.length; add.textContent = available.length ? "ADD TO BAG" : "SOLD OUT"; }
+            }
+            return;
+          }
           const sizeBtn = e.target.closest(".p-size-chip");
           if (sizeBtn && !sizeBtn.disabled) {
             const wrap = sizeBtn.closest("[data-quickadd-id]");
@@ -653,12 +693,16 @@
               if (!product || !window.BULKKOT_CART) return;
 
               const size = quickAddSelections.get(id) || "M";
+              const variant = getSelectedVariant(product);
               window.BULKKOT_CART.addItem({
                 id: product.id,
                 name: product.name,
                 price: Number(product.price || 0),
                 size: size,
-                image: getImages(product),
+                image: getCardImage(product),
+                color: variant ? (variant.color || variant.name || "") : "",
+                variant: variant ? (variant.name || variant.color || "") : "",
+                variant_id: variant ? variant.id : "",
                 quantity: 1
               });
             }
@@ -743,8 +787,22 @@
 
           products = data;
           quickAddSelections.clear();
+          quickVariantSelections.clear();
+          productVariantsById = {};
+          try {
+            const { data: variantRows, error: variantError } = await supabaseClient.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1);
+            if (!variantError && variantRows?.length) {
+              const raw = variantRows[0].content_value;
+              const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+              if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) productVariantsById = parsed;
+            }
+          } catch (variantError) { console.warn("Colour variants could not be loaded:", variantError); }
           products.forEach(p => {
-            const available = getAvailableSizes(p);
+            const variants = getVariants(p);
+            if (variants.length) quickVariantSelections.set(String(p.id), String(variants[0].id));
+            const activeVariant = getSelectedVariant(p);
+            const stockSource = activeVariant ? (activeVariant.stock || {}) : getStock(p);
+            const available = SIZES.filter(size => Number(stockSource[size] || 0) > 0);
             if (available.length) quickAddSelections.set(String(p.id), available[0]);
           });
           applyFilters();
