@@ -569,32 +569,40 @@
   }
 
   async function loadStorefrontCategories(){
-    // Keep the homepage's current categories if Supabase is temporarily unavailable.
-    // Do not render hard-coded defaults over categories already loaded by the homepage bridge.
-    if(!supabase) return;
+    // One renderer owns the category row; reveal stable fallback markup if the CMS is unavailable.
+    const revealFallback = () => {
+      const row = document.querySelector(".circle-items-row");
+      if (row) { row.classList.remove("is-loading"); row.classList.add("is-ready"); }
+    };
+    if(!supabase) { revealFallback(); return; }
+    let timeoutId;
     try{
-      // Use select("*") so this works with either supported site_content column layout.
-      const {data,error}=await supabase.from("site_content").select("*");
-      if(error){
-        console.warn("Storefront categories could not be refreshed:",error.message);
-        return;
-      }
+      const timeout = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error("Category request timed out")), 6500);
+      });
+      const request = supabase.from("site_content").select("*");
+      const {data,error}=await Promise.race([request,timeout]);
+      clearTimeout(timeoutId);
+      if(error) throw error;
       const row=(data||[]).find(x=>String(x.content_key||x.key)==="categories");
-      if(!row) return;
+      if(!row) { revealFallback(); return; }
       const raw=row.content_value ?? row.value ?? "";
       let parsed=raw;
       if(typeof raw==="string"){
         try{parsed=JSON.parse(raw);}catch(e){
           console.warn("Storefront categories contain invalid JSON.");
+          revealFallback();
           return;
         }
       }
-      if(!Array.isArray(parsed)) return;
+      if(!Array.isArray(parsed)) { revealFallback(); return; }
       storefrontCategories=parsed.map(normalizeStorefrontCategory).filter(c=>c.slug)
         .sort((a,b)=>Number(a.position||0)-Number(b.position||0));
       renderStorefrontCategories();
     }catch(e){
+      clearTimeout(timeoutId);
       console.warn("Storefront categories could not be refreshed:",e);
+      revealFallback();
     }
   }
 
