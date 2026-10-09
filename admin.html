@@ -3086,7 +3086,7 @@ openProductModal=function(product=null){
   '<div class="field"><label>CATEGORY</label>'+categorySelectHTML(p)+'</div>'+ 
   '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'"></div>'+ 
   '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription">'+esc(getValue(p,"description"))+'</textarea></div>'+ 
-  '<div class="field full"><label>LEGACY / DEFAULT IMAGE URLS (optional — used only if the first colour has no images) — one per line</label><textarea id="productImages" style="min-height:80px">'+esc(imgs.join("\n"))+'</textarea></div>'+ 
+  '<div class="field full"><label>MAIN PRODUCT / CATALOGUE IMAGE URLS — one per line (shown before a colour is selected)</label><textarea id="productImages" style="min-height:80px">'+esc(imgs.join("\n"))+'</textarea></div>'+ 
   productImageFileHTML(imgs)+variantEditorHTML(vars)+
   '<div class="field full"><p class="muted" style="margin:0">Stock is managed independently for each colour above. The first colour remains the default catalogue variant.</p></div>'+ 
   '<div class="field"><label>CATALOG STATUS</label><select id="productActive"><option value="true">Live / Active</option><option value="false">Hidden / Draft</option></select></div>'+ 
@@ -3107,12 +3107,10 @@ saveProduct=async function(){
   try{
     const variants=readVariantEditors();
     if(!variants.length)throw new Error("Add at least one colour variant.");
-    // Preserve legacy product images by adopting them as the first colour's images when needed.
-    if(!variants[0].images.length && existingImages.length) variants[0].images=[...existingImages];
-    variants.forEach((v,i)=>{const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');if(!v.name.trim()&&!v.color.trim())throw new Error("Enter a colour name for variant "+(i+1)+".");if(!v.images.length&&!row?.querySelector(".variant-files")?.files?.length&&!(i===0&&document.querySelector("#productImageFiles")?.files?.length))throw new Error("Add at least one image for "+(v.color||v.name)+".");});
+    // Main catalogue images are independent from each colour's image gallery.
+    variants.forEach((v,i)=>{const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');if(!v.name.trim()&&!v.color.trim())throw new Error("Enter a colour name for variant "+(i+1)+".");if(!v.images.length&&!row?.querySelector(".variant-files")?.files?.length&&!(i===0&&(existingImages.length||document.querySelector("#productImageFiles")?.files?.length)))throw new Error("Add a main product image or at least one image for "+(v.color||v.name)+".");if(i>0&&!v.images.length&&!row?.querySelector(".variant-files")?.files?.length)throw new Error("Add at least one image for "+(v.color||v.name)+".");});
     const uploaded=await uploadProductFiles();existingImages.push(...uploaded);
-    if(!variants[0].images.length && existingImages.length) variants[0].images=[...existingImages];
-    const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:variants[0].images.length?variants[0].images:existingImages,stock:variants[0].stock,active:$("productActive").value==="true"};
+    const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:existingImages.length?existingImages:variants[0].images,stock:variants[0].stock,active:$("productActive").value==="true"};
     let r=state.editingProduct?.id?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single():await db.from("products").insert(payload).select().single();
     if(r.error)throw r.error;
     const productId=r.data?.id||state.editingProduct?.id;if(!productId)throw new Error("Product ID was not returned.");
@@ -3120,7 +3118,7 @@ saveProduct=async function(){
     variants.forEach(v=>{if(!v.name.trim()&&!v.color.trim())throw new Error("Every colour variant needs a name.");if(!v.images.length)throw new Error("Add at least one image for "+(v.color||v.name)+".");});
     // Keep legacy catalogue fields aligned with the first real colour variant.
     // Storefront cards and older integrations read products.images / products.stock.
-    const canonicalUpdate=await db.from("products").update({images:variants[0].images,stock:variants[0].stock}).eq("id",productId);
+    const canonicalUpdate=await db.from("products").update({images:payload.images,stock:variants[0].stock}).eq("id",productId);
     if(canonicalUpdate.error)throw canonicalUpdate.error;
     state.productVariants[String(productId)]=variants;
     await saveProductVariants();
