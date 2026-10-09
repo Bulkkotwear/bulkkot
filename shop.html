@@ -487,7 +487,7 @@
         const variants = getVariants(p);
         if (!variants.length) return null;
         const selectedId = quickVariantSelections.get(String(p.id));
-        return variants.find(v => String(v.id) === String(selectedId)) || variants[0];
+        return variants.find(v => String(v.id) === String(selectedId)) || null;
       }
 
       function getCardImage(p) {
@@ -503,6 +503,8 @@
       function getStock(p) {
         const variant = getSelectedVariant(p);
         if (variant) return variant.stock || {};
+        // A colour-specific product has no selectable size stock until a colour is chosen.
+        if (getVariants(p).length) return {};
         if (p?.stock && typeof p.stock === "object" && !Array.isArray(p.stock)) return p.stock;
         return { S: 10, M: 10, L: 10, XL: 10 };
       }
@@ -623,7 +625,14 @@
             const selectedVariant = getSelectedVariant(p);
             const stockData = getStock(p);
             const availableSizes = SIZES.filter(s => Number(stockData[s] || 0) > 0);
-            const soldOut = availableSizes.length === 0;
+            const allVariants = getVariants(p);
+            const allColoursSoldOut = allVariants.length
+              ? allVariants.every(v => SIZES.every(size => Number(v.stock?.[size] || 0) <= 0))
+              : availableSizes.length === 0;
+            const hasSelectedColour = !allVariants.length || Boolean(selectedVariant);
+            const selectedColourSoldOut = allVariants.length && selectedVariant ? availableSizes.length === 0 : false;
+            const soldOut = allColoursSoldOut;
+            const canQuickAdd = hasSelectedColour && availableSizes.length > 0;
             const selectedSize = quickAddSelections.get(id) || availableSizes[0] || "M";
             const tag = p.tag ? p.tag : (p.category ? String(p.category).toUpperCase() : "DROP 001");
 
@@ -650,10 +659,10 @@
                   ${variants.length ? `<div class="p-variant-swatches" role="group" aria-label="Select colour for ${escapeHtml(name)}" style="display:flex;flex-wrap:nowrap;align-items:center;gap:7px;margin:0 0 5px;grid-column:1/-1;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 2px 7px;scrollbar-width:thin;scrollbar-color:#383838 transparent;-webkit-overflow-scrolling:touch;">${variants.map(v => { const label = v.color || v.name || "Colour"; const active = String(v.id) === String(selectedVariant?.id); const colorMap = {black:"#111",white:"#f5f5f5",grey:"#888",gray:"#888",red:"#e31b23",blue:"#3566d6",green:"#367a50",beige:"#cbb99b",brown:"#704b35",navy:"#17284f"}; const swatch = colorMap[label.toLowerCase()] || label; const isHex = /^#[0-9a-f]{3,8}$/i.test(swatch); return `<button type="button" data-variant-id="${escapeHtml(v.id)}" aria-pressed="${active}" title="${escapeHtml(label)}" aria-label="Select ${escapeHtml(label)}" style="width:23px;height:23px;border-radius:50%;padding:0;border:2px solid ${active ? "#fff" : "#444"};outline:${active ? "1px solid #fff" : "none"};outline-offset:2px;background:${isHex ? swatch : "#222"};cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2);">${!isHex ? `<span style="font-size:7px;color:#fff;">${escapeHtml(label.slice(0,2).toUpperCase())}</span>` : ""}</button>`; }).join("")}<span data-selected-variant-label style="align-self:center;color:#aaa;font-size:10px;margin-left:3px;">${escapeHtml(selectedVariant?.color || selectedVariant?.name || "")}</span></div>` : ""}
                   ${SIZES.map(s => {
                     const inStock = Number(stockData[s] || 0) > 0;
-                    return `<button type="button" class="p-size-chip ${selectedSize === s ? 'active' : ''}" data-size="${s}" ${!inStock ? 'disabled' : ''}>${s}</button>`;
+                    return `<button type="button" class="p-size-chip ${selectedSize === s ? 'active' : ''}" data-size="${s}" ${(!inStock || !hasSelectedColour) ? 'disabled' : ''}>${s}</button>`;
                   }).join('')}
-                  <button type="button" class="p-quickadd-btn" data-quick-add ${soldOut ? 'disabled' : ''}>
-                    ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
+                  <button type="button" class="p-quickadd-btn" data-quick-add ${!canQuickAdd ? 'disabled' : ''}>
+                    ${!hasSelectedColour ? "SELECT COLOUR" : (selectedColourSoldOut || soldOut ? "SOLD OUT" : "ADD TO BAG")}
                   </button>
                 </div>
               </article>
@@ -830,8 +839,7 @@
             }
           } catch (variantError) { console.warn("Colour variants could not be loaded:", variantError); }
           products.forEach(p => {
-            const variants = getVariants(p);
-            if (variants.length) quickVariantSelections.set(String(p.id), String(variants[0].id));
+            // Keep the main catalogue image visible until the shopper explicitly chooses a colour.
             const activeVariant = getSelectedVariant(p);
             const stockSource = activeVariant ? (activeVariant.stock || {}) : getStock(p);
             const available = SIZES.filter(size => Number(stockSource[size] || 0) > 0);
