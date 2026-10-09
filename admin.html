@@ -1978,12 +1978,23 @@ function getCategoryValueFromRow(row){
 async function writeSiteContentKey(key,value){
   const normalizedKey=String(key||"").trim();
   if(!normalizedKey) throw new Error("Content key is required.");
-  const existing=await db.from("site_content").select("id,content_key,content_value");
-  if(existing.error) throw existing.error;
-  const rows=existing.data||[];
-  const row=rows.find(x=>String(x.content_key||"")===normalizedKey);
   const payload={content_key:normalizedKey,content_value:String(value??"")};
-  const r=row?.id ? await db.from("site_content").update(payload).eq("id",row.id) : await db.from("site_content").insert(payload);
+
+  /* site_content uses content_key/content_value; do not assume an id column exists. */
+  const existing=await db.from("site_content")
+    .select("content_key")
+    .eq("content_key",normalizedKey)
+    .limit(1);
+  if(existing.error) throw existing.error;
+
+  let r;
+  if(Array.isArray(existing.data) && existing.data.length){
+    r=await db.from("site_content")
+      .update({content_value:payload.content_value})
+      .eq("content_key",normalizedKey);
+  }else{
+    r=await db.from("site_content").insert(payload);
+  }
   if(r.error) throw r.error;
 }
 
