@@ -430,6 +430,8 @@
 
       // Legacy hard-coded demo catalogue entries are not admin-managed products.
       const DEMO_PRODUCT_IDS = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02"]);
+      const DEMO_PRODUCT_NAMES = new Set(["HEAVY ARCHITECTURAL BOXY TEE", "STRUCTURED LOOPBACK HOODIE", "MINIMALIST OVERSIZED SWEATSHIRT", "SEOUL SILHOUETTE GRAPHIC TEE"]);
+      const isDemoProduct = item => item && (DEMO_PRODUCT_IDS.has(String(item.id || "").trim().toLowerCase()) || DEMO_PRODUCT_NAMES.has(String(item.name || "").trim().toUpperCase()));
 
       const loadingEl = document.getElementById("shopLoading");
       const errorEl = document.getElementById("shopError");
@@ -810,7 +812,7 @@
           }
 
           // Only show real, admin-managed catalogue rows in the public shop.
-          products = data.filter(item => item && !DEMO_PRODUCT_IDS.has(String(item.id)));
+          products = data.filter(item => !isDemoProduct(item));
           quickAddSelections.clear();
           quickVariantSelections.clear();
           productVariantsById = {};
