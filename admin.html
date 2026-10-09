@@ -1895,7 +1895,7 @@ function productStockMap(p){
   if(raw && typeof raw==="object" && !Array.isArray(raw)) return {S:num(raw.S),M:num(raw.M),L:num(raw.L),XL:num(raw.XL)};
   const n=num(raw); return {S:0,M:n,L:0,XL:0};
 }
-function totalStock(p){const s=productStockMap(p);return s.S+s.M+s.L+s.XL;}
+function totalStock(p){const variants=productVariants(p);if(variants.length)return variants.reduce((sum,v)=>sum+num(v.stock?.S)+num(v.stock?.M)+num(v.stock?.L)+num(v.stock?.XL),0);const s=productStockMap(p);return s.S+s.M+s.L+s.XL;}
 function orderStatus(o){return String(getValue(o,"order_status","status")||"PLACED").toUpperCase();}
 function paymentStatus(o){return String(getValue(o,"payment_status")||"PENDING").toUpperCase();}
 function orderNumber(o){return getValue(o,"order_number","order_no") || (o?.id?String(o.id).slice(0,8).toUpperCase():"—");}
@@ -2870,7 +2870,7 @@ function renderProducts(){
   });
   if(!list.length){root.innerHTML=emptyHTML("No products match the current filters.");return;}
   root.innerHTML=list.map(p=>{
-    const imgs=productImages(p), stock=totalStock(p), archived=productArchived(p), active=productIsLive(p);
+    const variants=productVariants(p), imgs=(variants.find(v=>Array.isArray(v.images)&&v.images.length)?.images||productImages(p)), stock=totalStock(p), archived=productArchived(p), active=productIsLive(p);
     const cls=stock===0?"red":stock<=5?"yellow":"green";
     return '<article class="product-card"><div class="product-img">'+
       (imgs[0]?'<img src="'+esc(imgs[0])+'" alt="'+esc(productName(p))+'" loading="lazy">':'<div style="height:100%;display:grid;place-items:center;color:#555">NO IMAGE</div>')+
