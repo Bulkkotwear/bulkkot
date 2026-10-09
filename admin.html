@@ -2695,9 +2695,9 @@ async function enrichOrdersWithItems(){
 
 function productImageFileHTML(images=[]){
   return '<div class="field full">'+
-    '<label>PRODUCT IMAGE FILES — upload directly</label>'+
+    '<label>MAIN CATALOGUE IMAGE FILES — upload directly</label>'+
     '<input id="productImageFiles" type="file" accept="image/*" multiple>'+
-    '<div style="margin-top:7px;color:#666;font-size:11px">You can upload one or multiple images. They are stored in the existing <b>'+esc(STORAGE_BUCKET)+'</b> bucket.</div>'+
+    '<div style="margin-top:7px;color:#666;font-size:11px">Upload the default image(s) shown on the shop listing before a colour is chosen. Variant-specific galleries are managed below. Files are stored in the existing <b>'+esc(STORAGE_BUCKET)+'</b> bucket.</div>'+
     '<div id="productUploadStatus" style="margin-top:8px;color:#777;font-size:11px"></div>'+
     '<div id="productImagePreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
       images.map(u=>'<img src="'+esc(u)+'" style="width:58px;height:72px;object-fit:cover;border-radius:7px;border:1px solid #292929">').join("")+
@@ -3098,32 +3098,127 @@ openProductModal=function(product=null){
 };
 
 saveProduct=async function(){
-  const name=$("productName").value.trim();if(!name){showToast("Product name is required.","error");return;}
+  const name=$("productName")?.value.trim()||"";
+  const price=Number($("productPrice")?.value);
+  const category=String($("productCategory")?.value||"").trim().toLowerCase();
+  const sku=String($("productSku")?.value||"").trim();
+  const description=String($("productDescription")?.value||"").trim();
+  const desiredActive=$("productActive")?.value==="true";
+  const wasEditing=!!state.editingProduct?.id;
   const saveButton=document.querySelector("#modalRoot .modal-foot .btn-primary");
   if(saveButton?.disabled)return;
+  if(!name){showToast("Product name is required.","error");$("productName")?.focus();return;}
+  if(!Number.isFinite(price)||price<=0){showToast("Enter a valid product price greater than ₹0.","error");$("productPrice")?.focus();return;}
+  if(!category){showToast("Choose a product category.","error");$("productCategory")?.focus();return;}
   if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving…";}
-  const slug=($("productSlug").value.trim()||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
-  const existingImages=$("productImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+
+  const rawSlug=String($("productSlug")?.value||"").trim()||name;
+  const slug=rawSlug.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||("product-"+Date.now());
+  const existingImages=String($("productImages")?.value||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const mainFileInput=$("productImageFiles");
+  const mainFiles=[...(mainFileInput?.files||[])];
+  const validImageUrl=(value)=>{
+    try{const url=new URL(value,window.location.href);return url.protocol==="http:"||url.protocol==="https:";}catch(e){return false;}
+  };
+  const validateUrls=(urls,label)=>{
+    urls.forEach((url,i)=>{if(!validImageUrl(url))throw new Error(label+" image URL "+(i+1)+" is invalid. Use a complete http(s) URL.");});
+  };
+  const validateFiles=(files,label)=>{
+    for(const file of files){
+      if(!file.type.startsWith("image/"))throw new Error(label+": "+file.name+" is not an image.");
+      if(file.size>10*1024*1024)throw new Error(label+": "+file.name+" exceeds the 10 MB limit.");
+    }
+  };
+
   try{
+    const duplicateSlug=state.products.find(p=>String(p.id)!==String(state.editingProduct?.id)&&String(getValue(p,"slug")||"").trim().toLowerCase()===slug);
+    if(duplicateSlug)throw new Error("This product slug is already used. Enter a unique slug.");
+    if(sku){
+      const duplicateSku=state.products.find(p=>String(p.id)!==String(state.editingProduct?.id)&&String(getValue(p,"sku")||"").trim().toLowerCase()===sku.toLowerCase());
+      if(duplicateSku)throw new Error("This SKU is already used by another product.");
+    }
+
     const variants=readVariantEditors();
     if(!variants.length)throw new Error("Add at least one colour variant.");
-    // Main catalogue images are independent from each colour's image gallery.
-    variants.forEach((v,i)=>{const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');if(!v.name.trim()&&!v.color.trim())throw new Error("Enter a colour name for variant "+(i+1)+".");if(!v.images.length&&!row?.querySelector(".variant-files")?.files?.length&&!(i===0&&(existingImages.length||document.querySelector("#productImageFiles")?.files?.length)))throw new Error("Add a main product image or at least one image for "+(v.color||v.name)+".");if(i>0&&!v.images.length&&!row?.querySelector(".variant-files")?.files?.length)throw new Error("Add at least one image for "+(v.color||v.name)+".");});
-    const uploaded=await uploadProductFiles();existingImages.push(...uploaded);
-    const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:existingImages.length?existingImages:variants[0].images,stock:variants[0].stock,active:$("productActive").value==="true"};
-    let r=state.editingProduct?.id?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single():await db.from("products").insert(payload).select().single();
-    if(r.error)throw r.error;
-    const productId=r.data?.id||state.editingProduct?.id;if(!productId)throw new Error("Product ID was not returned.");
-    for(let i=0;i<variants.length;i++){const extra=await uploadVariantFiles(productId,i);variants[i].images.push(...extra);}
-    variants.forEach((v,i)=>{if(!v.name.trim()&&!v.color.trim())throw new Error("Every colour variant needs a name.");if(!v.images.length&&!(i===0&&Array.isArray(payload.images)&&payload.images.length))throw new Error("Add at least one image for "+(v.color||v.name)+".");});
-    // Keep legacy catalogue fields aligned with the first real colour variant.
-    // Storefront cards and older integrations read products.images / products.stock.
-    const canonicalUpdate=await db.from("products").update({images:payload.images,stock:variants[0].stock}).eq("id",productId);
+    validateUrls(existingImages,"Main catalogue");
+    validateFiles(mainFiles,"Main catalogue upload");
+    const seenColours=new Set();
+    variants.forEach((v,i)=>{
+      const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');
+      const files=[...(row?.querySelector(".variant-files")?.files||[])];
+      if(!v.color.trim())throw new Error("Enter a colour name for variant "+(i+1)+".");
+      const colourKey=v.color.trim().toLowerCase();
+      if(seenColours.has(colourKey))throw new Error("Colour variant names must be unique. Duplicate: "+v.color+".");
+      seenColours.add(colourKey);
+      for(const size of ["S","M","L","XL"]){
+        if(!Number.isInteger(Number(v.stock[size]))||Number(v.stock[size])<0)throw new Error(v.color+" — stock for size "+size+" must be a whole number of 0 or more.");
+      }
+      validateUrls(v.images,v.color);
+      validateFiles(files,v.color+" upload");
+      if(i>0&&!v.images.length&&!files.length)throw new Error("Add at least one image for the "+v.color+" variant.");
+    });
+    const firstRow=document.querySelector('.variant-row[data-variant-index="0"]');
+    const firstVariantFiles=[...(firstRow?.querySelector(".variant-files")?.files||[])];
+    if(!existingImages.length&&!mainFiles.length&&!variants[0].images.length&&!firstVariantFiles.length){
+      throw new Error("Add a main catalogue image or an image for the first colour variant.");
+    }
+
+    const uploaded=await uploadProductFiles();
+    if(uploaded.length){
+      existingImages.push(...uploaded);
+      $("productImages").value=existingImages.join("\n");
+      if(mainFileInput)mainFileInput.value="";
+    }
+    const payload={
+      name,slug,category,price,sku,description,
+      images:existingImages.length?existingImages:variants[0].images,
+      stock:variants[0].stock
+    };
+    // Keep a new item hidden until its colour galleries and variant metadata are saved.
+    if(!wasEditing)payload.active=false;
+    const result=wasEditing
+      ?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single()
+      :await db.from("products").insert(payload).select().single();
+    if(result.error)throw result.error;
+    const productId=result.data?.id||state.editingProduct?.id;
+    if(!productId)throw new Error("Product ID was not returned.");
+    // If a later storage write fails, a retry updates this same product instead of creating a duplicate.
+    state.editingProduct={...(state.editingProduct||{}),...(result.data||{}),id:productId};
+
+    for(let i=0;i<variants.length;i++){
+      const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');
+      const input=row?.querySelector(".variant-files");
+      const extra=await uploadVariantFiles(productId,i);
+      if(extra.length){
+        variants[i].images.push(...extra);
+        const imagesField=row?.querySelector(".variant-images");
+        if(imagesField)imagesField.value=variants[i].images.join("\n");
+        if(input)input.value="";
+      }
+    }
+    variants.forEach((v,i)=>{
+      if(!v.images.length&&!(i===0&&Array.isArray(payload.images)&&payload.images.length)){
+        throw new Error("Add at least one image for the "+v.color+" variant.");
+      }
+    });
+    const catalogueImages=existingImages.length?existingImages:variants[0].images;
+    if(!catalogueImages.length)throw new Error("The main catalogue image could not be resolved.");
+    const canonicalUpdate=await db.from("products").update({images:catalogueImages,stock:variants[0].stock}).eq("id",productId);
     if(canonicalUpdate.error)throw canonicalUpdate.error;
+
+    state.productVariants=state.productVariants||{};
     state.productVariants[String(productId)]=variants;
     await saveProductVariants();
-    closeModal();showToast(state.editingProduct?"Product and colour variants updated.":"Product and colour variants created.","success");await loadProducts();
-  }catch(e){showToast("Product save failed: "+normalizeError(e),"error");if(saveButton){saveButton.disabled=false;saveButton.textContent="Save product";}}
+    const publishResult=await db.from("products").update({active:desiredActive}).eq("id",productId);
+    if(publishResult.error)throw publishResult.error;
+
+    closeModal();
+    showToast(wasEditing?"Product and colour variants updated.":"Product and colour variants created.", "success");
+    try{await loadProducts();}catch(refreshError){showToast("Product saved, but the admin list could not refresh. Reopen Products to reload it.","error");}
+  }catch(e){
+    showToast("Product save failed: "+normalizeError(e),"error");
+    if(saveButton){saveButton.disabled=false;saveButton.textContent="Save product";}
+  }
 };
 
 /* Rich order item helpers: colour/variant + size + quantity + image. */
