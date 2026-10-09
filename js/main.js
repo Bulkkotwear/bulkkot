@@ -634,8 +634,14 @@
     const grid = document.getElementById("products-grid");
     if (!grid) return;
 
+    const heading = document.getElementById("homeProductsHeading");
+    const showingResults = Boolean(activeSearch) || activeCategory !== "all";
+    if (heading) {
+      heading.textContent = showingResults ? "SEARCH RESULTS" : "LATEST RELEASES";
+    }
+
     if (!items.length) {
-      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;">No garments found matching your filter.</p>';
+      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;"><strong style="display:block;color:#fff;font-size:14px;margin-bottom:8px;">NO PRODUCTS FOUND</strong>No garments found matching your filter.</p>';
       return;
     }
 
