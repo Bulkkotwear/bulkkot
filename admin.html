@@ -1895,7 +1895,7 @@ function productStockMap(p){
   if(raw && typeof raw==="object" && !Array.isArray(raw)) return {S:num(raw.S),M:num(raw.M),L:num(raw.L),XL:num(raw.XL)};
   const n=num(raw); return {S:0,M:n,L:0,XL:0};
 }
-function totalStock(p){const variants=productVariants(p);if(variants.length)return variants.reduce((sum,v)=>sum+v.stock.S+v.stock.M+v.stock.L+v.stock.XL,0);const s=productStockMap(p);return s.S+s.M+s.L+s.XL;}
+function totalStock(p){const s=productStockMap(p);return s.S+s.M+s.L+s.XL;}
 function orderStatus(o){return String(getValue(o,"order_status","status")||"PLACED").toUpperCase();}
 function paymentStatus(o){return String(getValue(o,"payment_status")||"PENDING").toUpperCase();}
 function orderNumber(o){return getValue(o,"order_number","order_no") || (o?.id?String(o.id).slice(0,8).toUpperCase():"—");}
@@ -2995,50 +2995,40 @@ loadProducts=async function(){
 
 function variantEditorHTML(variants){
   const list=(variants||[]).map(normalizeVariant);
-  if(!list.length) list.push(normalizeVariant({},0));
   return '<div class="field full">'+
-    '<div class="section-title"><h2>Colour variants</h2><button type="button" class="btn btn-small btn-primary" onclick="addVariantEditor()">+ Add another colour</button></div>'+
-    '<div class="muted" style="font-size:11px;margin:-2px 0 10px">The first colour is the main/default product shown in the shop. Add its colour, photos and size-wise stock here, then add other colours below. Every colour has its own photos and S/M/L/XL inventory.</div>'+
-    '<div id="variantList" class="variant-list">'+list.map((v,i)=>variantRowHTML(v,i)).join("")+'</div>'+
+    '<div class="section-title"><h2>Colour / Variant options</h2><button type="button" class="btn btn-small btn-primary" onclick="addVariantEditor()">+ Add variant</button></div>'+
+    '<div class="muted" style="font-size:11px;margin:-2px 0 10px">Each colour can have its own images and size stock. These variants are saved separately from the main product images.</div>'+
+    '<div id="variantList" class="variant-list">'+(list.length?list.map((v,i)=>variantRowHTML(v,i)).join(""):emptyHTML("No colour variants yet. Add one if this product has multiple colours."))+'</div>'+
   '</div>';
 }
 function variantRowHTML(v,i){
   const x=normalizeVariant(v,i);
   return '<div class="variant-row" data-variant-index="'+i+'">'+
-    '<div class="variant-head"><strong>'+(i===0?'Main colour · Default':'Additional colour '+i)+'</strong>'+(i===0?'<span class="badge blue">Shown first on website</span>':'<button type="button" class="btn btn-small btn-danger" onclick="removeVariantEditor('+i+')">Remove</button>')+'</div>'+
+    '<div class="variant-head"><strong>Variant '+(i+1)+'</strong><button type="button" class="btn btn-small btn-danger" onclick="removeVariantEditor('+i+')">Remove</button></div>'+
     '<div class="variant-grid">'+
-      '<div class="field"><label>COLOUR NAME *</label><input class="variant-name" value="'+esc(x.name)+'" placeholder="Black"></div>'+
-      '<div class="field"><label>COLOUR *</label><input class="variant-color" value="'+esc(x.color)+'" placeholder="Black"></div>'+
-      '<div class="field"><label>SIZE S STOCK</label><input class="variant-stock-s" type="number" min="0" value="'+x.stock.S+'"></div>'+
-      '<div class="field"><label>SIZE M STOCK</label><input class="variant-stock-m" type="number" min="0" value="'+x.stock.M+'"></div>'+
-      '<div class="field"><label>SIZE L STOCK</label><input class="variant-stock-l" type="number" min="0" value="'+x.stock.L+'"></div>'+
-      '<div class="field"><label>SIZE XL STOCK</label><input class="variant-stock-xl" type="number" min="0" value="'+x.stock.XL+'"></div>'+
-      '<div class="field full"><label>THIS COLOUR’S IMAGE URLS — one per line</label><textarea class="variant-images" style="min-height:72px" placeholder="Paste one image URL per line">'+esc(x.images.join("\n"))+'</textarea></div>'+
-      '<div class="field full"><label>UPLOAD '+(i===0?'MAIN COLOUR':'COLOUR')+' IMAGES</label><input class="variant-files" type="file" accept="image/*" multiple onchange="previewVariantFiles(this,'+i+')"><div class="variant-images-preview" id="variantPreview'+i+'">'+x.images.map(u=>'<img src="'+esc(u)+'" alt="Variant image">').join("")+'</div></div>'+
-    '</div>'+
+      '<div class="field"><label>VARIANT / COLOUR NAME</label><input class="variant-name" value="'+esc(x.name)+'" placeholder="Black"></div>'+
+      '<div class="field"><label>COLOUR</label><input class="variant-color" value="'+esc(x.color)+'" placeholder="Black"></div>'+
+      '<div class="field"><label>SIZE S</label><input class="variant-stock-s" type="number" min="0" value="'+x.stock.S+'"></div>'+
+      '<div class="field"><label>SIZE M</label><input class="variant-stock-m" type="number" min="0" value="'+x.stock.M+'"></div>'+
+      '<div class="field"><label>SIZE L</label><input class="variant-stock-l" type="number" min="0" value="'+x.stock.L+'"></div>'+
+      '<div class="field"><label>SIZE XL</label><input class="variant-stock-xl" type="number" min="0" value="'+x.stock.XL+'"></div>'+
+      '<div class="field full"><label>IMAGE URLS — one per line</label><textarea class="variant-images" style="min-height:72px">'+esc(x.images.join("\n"))+'</textarea></div>'+ 
+      '<div class="field full"><label>UPLOAD VARIANT IMAGES</label><input class="variant-files" type="file" accept="image/*" multiple onchange="previewVariantFiles(this,'+i+')"><div class="variant-images-preview" id="variantPreview'+i+'">'+x.images.map(u=>'<img src="'+esc(u)+'">').join("")+'</div></div>'+ 
+    '</div>'+ 
   '</div>';
 }
 function addVariantEditor(){
   const root=$("variantList");if(!root)return;
   const rows=[...root.querySelectorAll(".variant-row")];
-  root.insertAdjacentHTML("beforeend",variantRowHTML(normalizeVariant({},rows.length),rows.length));
+  const v=normalizeVariant({},rows.length);
+  if(root.querySelector(".empty"))root.innerHTML="";
+  root.insertAdjacentHTML("beforeend",variantRowHTML(v,rows.length));
 }
 function removeVariantEditor(i){
-  if(Number(i)===0){showToast("The main/default colour cannot be removed. Change its details or add another colour.","warning");return;}
   const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');
   if(row)row.remove();
-  [...document.querySelectorAll("#variantList .variant-row")].forEach((r,n)=>{
-    r.dataset.variantIndex=n;
-    r.querySelector(".variant-head strong").textContent=n===0?"Main colour · Default":"Additional colour "+n;
-    const b=r.querySelector(".variant-head button");
-    if(n===0){if(b)b.remove();if(!r.querySelector(".variant-head .badge"))r.querySelector(".variant-head").insertAdjacentHTML("beforeend",'<span class="badge blue">Shown first on website</span>');}
-    else if(b)b.setAttribute("onclick","removeVariantEditor("+n+")");
-    else r.querySelector(".variant-head").insertAdjacentHTML("beforeend",'<button type="button" class="btn btn-small btn-danger" onclick="removeVariantEditor('+n+')">Remove</button>');
-    const input=r.querySelector(".variant-files");if(input)input.setAttribute("onchange","previewVariantFiles(this,"+n+")");
-    const preview=r.querySelector(".variant-images-preview");if(preview)preview.id="variantPreview"+n;
-  });
+  [...document.querySelectorAll("#variantList .variant-row")].forEach((r,n)=>{r.dataset.variantIndex=n;r.querySelector(".variant-head strong").textContent="Variant "+(n+1);const b=r.querySelector(".variant-head button");b.setAttribute("onclick","removeVariantEditor("+n+")");});
 }
-function previewVariantFiles(input,i){
 function previewVariantFiles(input,i){
   const root=$("variantPreview"+i);if(!root)return;
   root.innerHTML="";
@@ -3072,68 +3062,48 @@ function readVariantEditors(){
 
 openProductModal=function(product=null){
   state.editingProduct=product;
-  const p=product||{}, s=productStockMap(p), imgs=productImages(p);
-  let vars=productVariants(p);
-  if(!vars.length){
-    const legacyColour=String(getValue(p,"color","colour","variant_color")||"").trim();
-    vars=[normalizeVariant({name:legacyColour,color:legacyColour,images:imgs,stock:s},0)];
-  }
+  const p=product||{}, s=productStockMap(p), imgs=productImages(p), vars=productVariants(p);
   $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
-  '<div class="modal-head"><div><h2>'+(product?"Edit product":"Add product")+'</h2><div class="muted" style="font-size:11px;margin-top:4px">Set the default colour first; add more colours below.</div></div><button class="modal-close" onclick="closeModal()">×</button></div>'+
+  '<div class="modal-head"><h2>'+(product?"Edit product":"Add product")+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
   '<div class="modal-body"><div class="form-grid">'+
-  '<div class="field"><label>PRODUCT NAME *</label><input id="productName" value="'+esc(productName(p))+'" placeholder="e.g. Essential Oversized Tee"></div>'+
-  '<div class="field"><label>PRICE (₹) *</label><input id="productPrice" type="number" min="0" step="0.01" value="'+esc(productPrice(p))+'"></div>'+
-  '<div class="field"><label>CATEGORY</label>'+categorySelectHTML(p)+'</div>'+
-  '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'" placeholder="Optional product code"></div>'+
-  '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription" placeholder="Fit, fabric and product details">'+esc(getValue(p,"description"))+'</textarea></div>'+
-  variantEditorHTML(vars)+
-  '<div class="field"><label>CATALOG STATUS</label><select id="productActive"><option value="true">Live / Active</option><option value="false">Hidden / Draft</option></select></div>'+
-  '<div class="field"><label>SLUG</label><input id="productSlug" value="'+esc(getValue(p,"slug"))+'" placeholder="Auto-generated if blank"></div>'+
-  '</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button>'+(product?'<button class="btn btn-danger" onclick=\'deleteProduct("'+esc(p.id)+'")\'>Delete</button>':'')+'<button class="btn btn-primary" onclick="saveProduct()">Save product & colours</button></div></div></div>';
+  '<div class="field"><label>NAME *</label><input id="productName" value="'+esc(productName(p))+'"></div>'+
+  '<div class="field"><label>PRICE *</label><input id="productPrice" type="number" min="0" step="0.01" value="'+esc(productPrice(p))+'"></div>'+
+  '<div class="field"><label>CATEGORY</label>'+categorySelectHTML(p)+'</div>'+ 
+  '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'"></div>'+ 
+  '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription">'+esc(getValue(p,"description"))+'</textarea></div>'+ 
+  '<div class="field full"><label>MAIN PRODUCT IMAGE URLS — one per line</label><textarea id="productImages" style="min-height:80px">'+esc(imgs.join("\n"))+'</textarea></div>'+ 
+  productImageFileHTML(imgs)+variantEditorHTML(vars)+
+  '<div class="field"><label>BASE SIZE S STOCK</label><input id="stockS" type="number" min="0" value="'+s.S+'"></div>'+ 
+  '<div class="field"><label>BASE SIZE M STOCK</label><input id="stockM" type="number" min="0" value="'+s.M+'"></div>'+ 
+  '<div class="field"><label>BASE SIZE L STOCK</label><input id="stockL" type="number" min="0" value="'+s.L+'"></div>'+ 
+  '<div class="field"><label>BASE SIZE XL STOCK</label><input id="stockXL" type="number" min="0" value="'+s.XL+'"></div>'+ 
+  '<div class="field"><label>CATALOG STATUS</label><select id="productActive"><option value="true">Live / Active</option><option value="false">Hidden / Draft</option></select></div>'+ 
+  '<div class="field"><label>SLUG</label><input id="productSlug" value="'+esc(getValue(p,"slug"))+'" placeholder="auto-generated if blank"></div>'+ 
+  '</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button>'+(product?'<button class="btn btn-danger" onclick=\'deleteProduct("'+esc(p.id)+'")\'>Delete</button>':'')+'<button class="btn btn-primary" onclick="saveProduct()">Save product</button></div></div></div>';
   $("productActive").value=p.active===false?"false":"true";
-  [...document.querySelectorAll("#variantList .variant-row")].forEach((row,i)=>row.dataset.variantId=vars[i]?.id||"");
+  $("productImageFiles")?.addEventListener("change",previewProductImageFiles);
+  [...document.querySelectorAll("#variantList .variant-row")].forEach((r,i)=>r.dataset.variantId=vars[i]?.id||"");
 };
+
 saveProduct=async function(){
-  const name=$("productName").value.trim();
-  if(!name){showToast("Product name is required.","error");return;}
+  const name=$("productName").value.trim();if(!name){showToast("Product name is required.","error");return;}
   const slug=($("productSlug").value.trim()||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
-  const variants=readVariantEditors();
-  if(!variants.length){showToast("Add a main colour before saving.","error");return;}
-  for(let i=0;i<variants.length;i++){
-    const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');
-    const fileCount=[...(row?.querySelector(".variant-files")?.files||[])].length;
-    if(!variants[i].name||!variants[i].color){showToast("Enter both colour name and colour for every variant.","error");return;}
-    if(!variants[i].images.length&&!fileCount){showToast("Add at least one image for "+variants[i].name+".","error");return;}
-  }
-  const main=variants[0];
-  const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:main.images.slice(),stock:{...main.stock},active:$("productActive").value==="true"};
-  const saveBtn=document.querySelector("#modalRoot .modal-foot .btn-primary");
-  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent="Saving product…";}
+  const existingImages=$("productImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
   try{
-    let r=state.editingProduct?.id
-      ?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single()
-      :await db.from("products").insert(payload).select().single();
+    const uploaded=await uploadProductFiles(); existingImages.push(...uploaded);
+    const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:existingImages,stock:{S:num($("stockS").value),M:num($("stockM").value),L:num($("stockL").value),XL:num($("stockXL").value)},active:$("productActive").value==="true"};
+    let r=state.editingProduct?.id?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single():await db.from("products").insert(payload).select().single();
     if(r.error)throw r.error;
-    const productId=r.data?.id||state.editingProduct?.id;
-    if(!productId)throw new Error("Product ID was not returned.");
-    for(let i=0;i<variants.length;i++){
-      const extra=await uploadVariantFiles(productId,i);
-      variants[i].images=[...variants[i].images,...extra];
-    }
-    const first=variants[0];
-    const updateResult=await db.from("products").update({images:first.images,stock:{...first.stock}}).eq("id",productId).select().single();
-    if(updateResult.error)throw updateResult.error;
+    const productId=r.data?.id||state.editingProduct?.id;if(!productId)throw new Error("Product ID was not returned.");
+    const variants=readVariantEditors();
+    for(let i=0;i<variants.length;i++){const extra=await uploadVariantFiles(productId,i);variants[i].images.push(...extra);}
+    variants.forEach(v=>{if(!v.name && !v.color)throw new Error("Every variant needs a colour/name.");if(!v.images.length)throw new Error("Every colour variant needs at least one image.");});
     state.productVariants[String(productId)]=variants;
     await saveProductVariants();
-    closeModal();
-    showToast(state.editingProduct?"Product and colours updated.":"Product and colours created.","success");
-    await loadProducts();
-  }catch(e){
-    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent="Save product & colours";}
-    showToast("Product save failed: "+normalizeError(e),"error");
-  }
+    closeModal();showToast(state.editingProduct?"Product and variants updated.":"Product and variants created.","success");await loadProducts();
+  }catch(e){showToast("Product save failed: "+normalizeError(e),"error");}
 };
-/* Rich order item helpers:
+
 /* Rich order item helpers: colour/variant + size + quantity + image. */
 function itemColor(item){
   const direct=getValue(item,"color","colour","variant_color","selected_color","color_name","colour_name","variant_name","variantName");
