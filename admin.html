@@ -2791,6 +2791,7 @@ async function saveProduct(){
   }
   if(button){button.disabled=true;button.textContent="Saving product…";}
   const slug=($("productSlug").value.trim()||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
+  const wasEditing=Boolean(state.editingProduct?.id);
   try{
     // Upload variant galleries first so the product record is not changed if upload fails.
     for(let i=0;i<variants.length;i++){
@@ -2816,7 +2817,7 @@ async function saveProduct(){
     state.productVariants[productId]=variants.map(v=>({...v,stock:{...v.stock},images:[...v.images]}));
     await saveProductVariants();
     closeModal();
-    showToast(state.editingProduct?"Product and colour variants updated.":"Product and colour variants created.","success");
+    showToast(wasEditing?"Product and colour variants updated.":"Product and colour variants created.","success");
     await loadProducts();
   }catch(e){
     showToast("Product save failed: "+normalizeError(e),"error");
