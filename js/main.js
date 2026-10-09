@@ -79,12 +79,17 @@
   }
 
   function getProductImages(product) {
-    if (Array.isArray(product?.images) && product.images.length > 0) {
-      return product.images.filter(Boolean);
-    }
-    if (product?.image_url) {
-      return [product.image_url];
-    }
+    const catalogueImages = Array.isArray(product?.images)
+      ? product.images.filter(src => typeof src === "string" && src.trim())
+      : [];
+    if (catalogueImages.length) return catalogueImages;
+    const variants = productVariantsById[String(product?.id)];
+    const defaultVariantImages = Array.isArray(variants?.[0]?.images)
+      ? variants[0].images.filter(src => typeof src === "string" && src.trim())
+      : [];
+    if (defaultVariantImages.length) return defaultVariantImages;
+    if (typeof product?.image_url === "string" && product.image_url.trim()) return [product.image_url.trim()];
+    if (typeof product?.image === "string" && product.image.trim()) return [product.image.trim()];
     return ['https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
   }
 
