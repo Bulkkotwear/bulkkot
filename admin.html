@@ -3021,7 +3021,7 @@ function variantRowHTML(v,i){
     '<div class="variant-head"><strong>Variant '+(i+1)+'</strong><button type="button" class="btn btn-small btn-danger" onclick="removeVariantEditor('+i+')">Remove</button></div>'+
     '<div class="variant-grid">'+
       '<div class="field"><label>VARIANT / COLOUR NAME</label><input class="variant-name" value="'+esc(x.name)+'" placeholder="Black"></div>'+
-      '<div class="field"><label>COLOUR</label><input class="variant-color" value="'+esc(x.color)+'" placeholder="Black"></div>'+
+      '<div class="field"><label>COLOUR *</label><input class="variant-color" value="'+esc(x.color)+'" placeholder="Black" oninput="syncVariantName(this)"></div>'+
       '<div class="field"><label>SIZE S</label><input class="variant-stock-s" type="number" min="0" value="'+x.stock.S+'"></div>'+
       '<div class="field"><label>SIZE M</label><input class="variant-stock-m" type="number" min="0" value="'+x.stock.M+'"></div>'+
       '<div class="field"><label>SIZE L</label><input class="variant-stock-l" type="number" min="0" value="'+x.stock.L+'"></div>'+
@@ -3030,6 +3030,13 @@ function variantRowHTML(v,i){
       '<div class="field full"><label>UPLOAD VARIANT IMAGES</label><input class="variant-files" type="file" accept="image/*" multiple onchange="previewVariantFiles(this,'+i+')"><div class="variant-images-preview" id="variantPreview'+i+'">'+x.images.map(u=>'<img src="'+esc(u)+'">').join("")+'</div></div>'+ 
     '</div>'+ 
   '</div>';
+}
+function syncVariantName(input){
+  const row=input?.closest(".variant-row");
+  const nameField=row?.querySelector(".variant-name");
+  if(!nameField)return;
+  const current=nameField.value.trim();
+  if(!current||/^variant\s+\d+$/i.test(current)||/^colour\s+\d+$/i.test(current))nameField.value=input.value.trim();
 }
 function addVariantEditor(){
   const root=$("variantList");if(!root)return;
