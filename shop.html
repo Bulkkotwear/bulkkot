@@ -507,9 +507,10 @@
         if (!supabaseClient) return;
         try {
           const { data, error } = await supabaseClient.from("site_content")
-            .select("content_value").eq("content_key", "categories").maybeSingle();
-          if (error || !data?.content_value) return;
-          const parsed = typeof data.content_value === "string" ? JSON.parse(data.content_value) : data.content_value;
+            .select("content_value").eq("content_key", "categories").limit(1);
+          if (error || !data?.length || !data[0]?.content_value) return;
+          const contentValue = data[0].content_value;
+          const parsed = typeof contentValue === "string" ? JSON.parse(contentValue) : contentValue;
           if (!Array.isArray(parsed) || !parsed.length) return;
           categories = parsed.map(c => ({
             slug: String(c.slug || c.id || "").trim().toLowerCase(),
