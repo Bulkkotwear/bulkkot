@@ -1212,7 +1212,8 @@
           const { data, error } = productResult;
 
           const legacyDemoIds = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02"]);
-          if (error || !data || data.active === false || legacyDemoIds.has(String(data.id))) {
+          const legacyDemoNames = new Set(["HEAVY ARCHITECTURAL BOXY TEE", "STRUCTURED LOOPBACK HOODIE", "MINIMALIST OVERSIZED SWEATSHIRT", "SEOUL SILHOUETTE GRAPHIC TEE"]);
+          if (error || !data || data.active === false || legacyDemoIds.has(String(data.id || "").trim().toLowerCase()) || legacyDemoNames.has(String(data.name || "").trim().toUpperCase())) {
             showNotFound("This piece could not be found.");
             return;
           }
