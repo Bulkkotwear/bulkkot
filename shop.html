@@ -491,9 +491,13 @@
       }
 
       function getCardImage(p) {
-        const variant = getSelectedVariant(p);
+        const explicitlySelectedId = quickVariantSelections.get(String(p?.id));
+        // Before the shopper chooses a colour, show the main catalogue image.
+        if (!explicitlySelectedId) return getImages(p);
+        const variant = getVariants(p).find(v => String(v.id) === String(explicitlySelectedId));
         const variantImage = Array.isArray(variant?.images) ? variant.images.find(src => typeof src === "string" && src.trim()) : "";
-        return variant ? (variantImage || FALLBACK_IMG) : getImages(p);
+        const mainImages = Array.isArray(p?.images) ? p.images.filter(src => typeof src === "string" && src.trim()) : [];
+        return variantImage || (variant === getVariants(p)[0] ? (mainImages[0] || p?.image_url || FALLBACK_IMG) : FALLBACK_IMG);
       }
 
       function getStock(p) {
