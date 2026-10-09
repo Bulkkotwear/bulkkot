@@ -2142,7 +2142,8 @@ async function loadCategories(){
     if(r.error)throw r.error;
     const row=(r.data||[]).find(x=>String(x.content_key||"")==="categories");
     let parsed=safeJson(getCategoryValueFromRow(row));
-    if(!Array.isArray(parsed)||!parsed.length){
+    // Seed defaults only when the stored value is missing/invalid; an intentional empty list stays empty.
+    if(!Array.isArray(parsed)){
       parsed=DEFAULT_CATEGORIES;
       await writeSiteContentKey("categories",JSON.stringify(parsed));
     }
@@ -3031,8 +3032,8 @@ async function saveProductVariants(){
 
 /* Keep product loading compatible with the existing schema, while also loading variant data stored in site_content. */
 const _loadProductsBase=loadProducts;
-const LEGACY_DEMO_PRODUCT_IDS=["bk-tee-01","bk-hood-01","bk-sweat-01","bk-tee-02"];
-const LEGACY_DEMO_PRODUCT_NAMES=["HEAVY ARCHITECTURAL BOXY TEE","STRUCTURED LOOPBACK HOODIE","MINIMALIST OVERSIZED SWEATSHIRT","SEOUL SILHOUETTE GRAPHIC TEE"];
+const LEGACY_DEMO_PRODUCT_IDS=["bk-tee-01","bk-hood-01","bk-sweat-01","bk-tee-02","mock-tee-01","mock-hood-01","mock-sweat-01","mock-tee-02"];
+const LEGACY_DEMO_PRODUCT_NAMES=["HEAVY ARCHITECTURAL BOXY TEE","STRUCTURED LOOPBACK HOODIE","MINIMALIST OVERSIZED SWEATSHIRT","SEOUL SILHOUETTE GRAPHIC TEE","ARCHITECTURAL BOXY TEE","STRUCTURED HEAVYWEIGHT HOODIE","MINIMALIST OVERSIZED SWEAT","SEOUL EDITION GRAPHIC TEE"];
 function isLegacyDemoProduct(p){
   const id=String(p?.id||"").trim().toLowerCase();
   const name=String(p?.name||"").trim().toUpperCase();
@@ -3041,41 +3042,13 @@ function isLegacyDemoProduct(p){
 loadProducts=async function(){
   await _loadProductsBase();
 
-  // Retry the exact legacy demo rows on refresh until the database confirms removal.
-  const demoRows=(state.products||[]).filter(isLegacyDemoProduct);
-  let demoRowsDeleted=false;
-  if(demoRows.length){
-    try{
-      const byId=await db.from("products").delete().in("id",LEGACY_DEMO_PRODUCT_IDS);
-      if(byId.error) throw byId.error;
-      const byName=await db.from("products").delete().in("name",LEGACY_DEMO_PRODUCT_NAMES);
-      if(byName.error) throw byName.error;
-      demoRowsDeleted=true;
-    }catch(error){
-      console.error("Legacy demo product cleanup failed:",error);
-      showToast("Demo products are hidden. Database delete was rejected: "+normalizeError(error),"error");
-    }
-  }
-
-  // Hide known demos by ID or exact legacy name even if database deletion is blocked.
+  // Keep known demo rows out of the admin catalogue without deleting database records.
   state.products=(state.products||[]).filter(p=>!isLegacyDemoProduct(p));
   const count=state.products.length;
   if($("navProductCount")) $("navProductCount").textContent=count;
   if($("statProducts")) $("statProducts").textContent=count;
 
   await loadProductVariants();
-  const variants=state.productVariants||{};
-  let variantsChanged=false;
-  for(const id of LEGACY_DEMO_PRODUCT_IDS){
-    if(Object.prototype.hasOwnProperty.call(variants,id)){
-      delete variants[id];
-      variantsChanged=true;
-    }
-  }
-  if(variantsChanged && demoRowsDeleted){
-    try{await saveProductVariants();}
-    catch(error){console.error("Legacy demo variant metadata cleanup failed:",error);}
-  }
   renderProducts();
 };
 
