@@ -553,21 +553,32 @@
   }
 
   async function loadStorefrontCategories(){
-    if(!supabase){renderStorefrontCategories();return;}
+    // Keep the homepage's current categories if Supabase is temporarily unavailable.
+    // Do not render hard-coded defaults over categories already loaded by the homepage bridge.
+    if(!supabase) return;
     try{
       const {data,error}=await supabase.from("site_content").select("key,value,content_key,content_value");
-      const row=(data||[]).find(x=>String(x.content_key||x.key)==="categories");
-      let parsed=null;
-      try{parsed=JSON.parse(row?.content_value ?? row?.value ?? "");}catch(e){}
-      if(!error && Array.isArray(parsed) && parsed.length){
-        storefrontCategories=parsed.map(normalizeStorefrontCategory).filter(c=>c.slug);
-      }else{
-        storefrontCategories=[...DEFAULT_STOREFRONT_CATEGORIES];
+      if(error){
+        console.warn("Storefront categories could not be refreshed:",error.message);
+        return;
       }
+      const row=(data||[]).find(x=>String(x.content_key||x.key)==="categories");
+      if(!row) return;
+      const raw=row.content_value ?? row.value ?? "";
+      let parsed=raw;
+      if(typeof raw==="string"){
+        try{parsed=JSON.parse(raw);}catch(e){
+          console.warn("Storefront categories contain invalid JSON.");
+          return;
+        }
+      }
+      if(!Array.isArray(parsed)) return;
+      storefrontCategories=parsed.map(normalizeStorefrontCategory).filter(c=>c.slug)
+        .sort((a,b)=>Number(a.position||0)-Number(b.position||0));
+      renderStorefrontCategories();
     }catch(e){
-      storefrontCategories=[...DEFAULT_STOREFRONT_CATEGORIES];
+      console.warn("Storefront categories could not be refreshed:",e);
     }
-    renderStorefrontCategories();
   }
 
   /* =========================================================
