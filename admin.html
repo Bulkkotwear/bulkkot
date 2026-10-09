@@ -3389,9 +3389,10 @@ function renderEditorialSlidesEditor(){
 }
 async function loadEditorialSlides(){
  const host=$("editorialSlidesEditor");if(host)host.innerHTML=loadingHTML();
- try{const r=await db.from("site_content").select("content_key,content_value").eq("content_key","editorial_slides").limit(1);if(r.error)throw r.error;
- let parsed=[];try{parsed=JSON.parse(r.data?.[0]?.content_value||"[]");}catch(e){parsed=[];}
- const hasSaved=Array.isArray(r.data)&&r.data.length>0;
+ try{const r=await db.from("site_content").select("*");if(r.error)throw r.error;
+ const row=(r.data||[]).find(x=>String(x.content_key??x.key??"")==="editorial_slides");
+ let parsed=[];try{parsed=JSON.parse(row?.content_value??row?.value??"[]");}catch(e){parsed=[];}
+ const hasSaved=!!row;
  editorialSlidesStore=Array.isArray(parsed)?parsed.map(s=>({...s,enabled:s.enabled!==false})):[];
  if(!hasSaved)editorialSlidesStore=DEFAULT_EDITORIAL_SLIDES.map(s=>({...s}));
  renderEditorialSlidesEditor();
