@@ -438,14 +438,14 @@
   <div class="announcement-bar" aria-label="Announcement">
     <div class="announcement-track">
       <div class="announcement-content">
-        <span>DROP 001 — DROPPING SOON</span>
-        <span>불꽃 DROP 001 — COMING SOON</span>
-        <span>JOIN THE VIP WAITLIST</span>
+        <span data-cms-key="announcement_1">DROP 001 — DROPPING SOON</span>
+        <span data-cms-key="announcement_2">불꽃 DROP 001 — COMING SOON</span>
+        <span data-cms-key="announcement_3">JOIN THE VIP WAITLIST</span>
       </div>
       <div class="announcement-content" aria-hidden="true">
-        <span>DROP 001 — DROPPING SOON</span>
-        <span>불꽃 DROP 001 — COMING SOON</span>
-        <span>JOIN THE VIP WAITLIST</span>
+        <span data-cms-key="announcement_1">DROP 001 — DROPPING SOON</span>
+        <span data-cms-key="announcement_2">불꽃 DROP 001 — COMING SOON</span>
+        <span data-cms-key="announcement_3">JOIN THE VIP WAITLIST</span>
       </div>
     </div>
   </div>
@@ -489,7 +489,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M16 16L21 21"/></svg>
         </button>
 
-        <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="header-action instagram-action" aria-label="BULKKOT Instagram">
+        <a href="https://www.instagram.com/bulkkot.wear/" data-cms-href="instagram" target="_blank" rel="noopener noreferrer" class="header-action instagram-action" aria-label="BULKKOT Instagram">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
         </a>
 
@@ -543,7 +543,7 @@
     </nav>
 
     <div class="mobile-drawer__footer">
-      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">@bulkkot.wear</a>
+      <a href="https://www.instagram.com/bulkkot.wear/" data-cms-href="instagram" target="_blank" rel="noopener noreferrer">@bulkkot.wear</a>
       <a href="mailto:bulkkotwear@gmail.com">bulkkotwear@gmail.com</a>
     </div>
   </aside>
@@ -559,10 +559,10 @@
 
       <div class="hero-content">
         <p class="hero-korean">불꽃</p>
-        <h1>BULKKOT</h1>
+        <h1 data-cms-key="hero_title">BULKKOT</h1>
         <p class="hero-label">PREMIUM EVERYDAY WEAR</p>
-        <p class="hero-description">Korean-inspired minimalist heavyweight essentials.</p>
-        <a href="#drop-001" class="button button--primary" data-cms-key="hero_button_text">EXPLORE DROP 001</a>
+        <p class="hero-description" data-cms-key="hero_subtitle">Korean-inspired minimalist heavyweight essentials.</p>
+        <a href="#drop-001" class="button button--primary" data-cms-key="hero_button_text" data-cms-href="hero_button_url">EXPLORE DROP 001</a>
       </div>
     </section>
 
@@ -745,12 +745,12 @@
       <div class="about-grid">
         <div class="about-intro">
           <p class="eyebrow">THE BRAND · 브랜드</p>
-          <h2>불꽃</h2>
+          <h2 data-cms-key="about_title">불꽃</h2>
           <span>THE SPARK</span>
         </div>
 
         <div class="about-copy">
-          <p class="about-lead">Premium clothing shouldn't feel unreachable.</p>
+          <p class="about-lead" data-cms-key="about_text">Premium clothing shouldn't feel unreachable.</p>
           <p>BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
           <p>We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.</p>
           <p class="about-signature">Less noise. More presence.</p>
@@ -775,7 +775,7 @@
         <span>불꽃을 팔로우하세요</span>
       </div>
 
-      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer" class="instagram-handle">@bulkkot.wear</a>
+      <a href="https://www.instagram.com/bulkkot.wear/" data-cms-href="instagram" target="_blank" rel="noopener noreferrer" class="instagram-handle">@bulkkot.wear</a>
     </section>
 
     <!-- WAITLIST -->
@@ -833,8 +833,8 @@
         </span>
       </a>
 
-      <p>Korean-inspired premium everyday wear.</p>
-      <p class="footer-tagline">Less noise. More presence.</p>
+      <p data-cms-key="footer_text">Korean-inspired premium everyday wear.</p>
+      <p class="footer-tagline" data-cms-key="tagline">Less noise. More presence.</p>
     </div>
 
     <div class="footer-column">
@@ -869,7 +869,7 @@
 
     <div class="footer-column">
       <h3>CONNECT</h3>
-      <a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">Instagram</a>
+      <a href="https://www.instagram.com/bulkkot.wear/" data-cms-href="instagram" target="_blank" rel="noopener noreferrer">Instagram</a>
       <a href="mailto:bulkkotwear@gmail.com">Email</a>
     </div>
 
@@ -1193,7 +1193,7 @@
 
   <!-- Core Scripts -->
   <script src="js/cart.js?v=20261009-variants" defer></script>
-  <script src="js/main.js?v=20261009-hide-demo-products-2" defer></script>
+  <script src="js/main.js?v=20261009-content-cms-1" defer></script>
 
   <!-- BULKKOT AUTH/PROFILE BRIDGE -->
   <script>
