@@ -601,6 +601,8 @@
         
         filteredProducts = products.filter(p => {
           if (p.active === false) return false;
+          // Category is stored as the admin-selected slug; tolerate legacy name/ID
+          // values as well so products stay visible after category edits/renames.
           if (activeCategory !== "all" && !productMatchesCategory(p, activeCategory)) return false;
           if (term) {
             const text = [p.name, p.category, p.korean, p.tag].join(" ").toLowerCase();
