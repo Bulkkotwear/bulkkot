@@ -893,6 +893,10 @@
         box-shadow:var(--shadow);
       }
       .sidebar.open{transform:translateX(0)}
+      .sidebar{z-index:120;overscroll-behavior:contain}
+      .sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);z-index:110;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility .22s ease}
+      .sidebar-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
+      body.sidebar-lock{overflow:hidden}
       .main{margin-left:0}
       .mobile-menu{display:block}
       .topbar{padding:0 15px}
@@ -1059,11 +1063,13 @@
       </nav>
     </aside>
 
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
     <main class="main">
 
       <header class="topbar">
         <div style="display:flex;align-items:center;gap:10px">
-          <button id="mobileMenu" class="mobile-menu">☰</button>
+          <button id="mobileMenu" class="mobile-menu" type="button" aria-label="Open navigation menu" aria-controls="sidebar" aria-expanded="false">☰</button>
           <div id="topTitle" class="top-title">Dashboard</div>
         </div>
 
@@ -1895,7 +1901,7 @@ function navigate(page){
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
   $("page-"+page)?.classList.add("active");
   document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add("active");
-  $("topTitle").textContent=pageTitles[page]; $("sidebar").classList.remove("open");
+  $("topTitle").textContent=pageTitles[page]; closeSidebar();
   const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"slider-manager":loadEditorialSlides,"size-guides":loadSizeGuides,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck,sales:loadSalesAnalytics};
   // Ignore rapid repeat navigation to a page whose data request is already running.
   if(!state.loadingPages[page] && loaders[page]){
@@ -1904,7 +1910,12 @@ function navigate(page){
   }
 }
 document.querySelectorAll(".nav-btn[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));
-$("mobileMenu").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
+$("mobileMenu").addEventListener("click",e=>{e.preventDefault();e.stopPropagation();setSidebarOpen(!$("sidebar").classList.contains("open"));});
+$("sidebarBackdrop").addEventListener("click",closeSidebar);
+$("sidebar").addEventListener("click",e=>{const nav=e.target.closest(".nav-btn[data-page]");if(nav){closeSidebar();return;} });
+function setSidebarOpen(open){const sidebar=$("sidebar"),backdrop=$("sidebarBackdrop"),button=$("mobileMenu");const mobile=window.matchMedia("(max-width: 850px)").matches;const show=!!open&&mobile;sidebar.classList.toggle("open",show);backdrop.classList.toggle("open",show);document.body.classList.toggle("sidebar-lock",show);button.setAttribute("aria-expanded",String(show));button.setAttribute("aria-label",show?"Close navigation menu":"Open navigation menu");button.textContent=show?"×":"☰";backdrop.setAttribute("aria-hidden",String(!show));}
+function closeSidebar(){setSidebarOpen(false);}
+window.addEventListener("resize",()=>{if(!window.matchMedia("(max-width: 850px)").matches)closeSidebar();});
 $("refreshBtn").addEventListener("click",()=>navigate(state.currentPage));
 
 async function loadProducts(){
@@ -2478,7 +2489,7 @@ function renderDashboardHealth(){
 }
 
 function closeModal(event){if(event&&event.target&&!event.target.classList.contains("modal-backdrop"))return;$("modalRoot").innerHTML="";state.editingProduct=null;state.editingCoupon=null;}
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();$("sidebar").classList.remove("open");}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeSidebar();}});
 window.addEventListener("error",e=>console.error("Admin error",e.error||e.message));
 window.addEventListener("unhandledrejection",e=>console.error("Admin promise",e.reason));
 
@@ -2502,7 +2513,7 @@ $("healthAdminEmail").textContent=ADMIN_EMAIL;$("healthSupabaseUrl").textContent
   }
 })();
 
-window.navigate=navigate;window.loadDashboard=loadDashboard;window.loadProducts=loadProducts;window.renderProducts=renderProducts;window.openProductModal=openProductModal;window.openProductModalById=openProductModalById;window.saveProduct=saveProduct;window.toggleProductActive=toggleProductActive;
+window.navigate=navigate;window.closeSidebar=closeSidebar;window.setSidebarOpen=setSidebarOpen;window.loadDashboard=loadDashboard;window.loadProducts=loadProducts;window.renderProducts=renderProducts;window.openProductModal=openProductModal;window.openProductModalById=openProductModalById;window.saveProduct=saveProduct;window.toggleProductActive=toggleProductActive;
 window.loadOrders=loadOrders;window.renderOrders=renderOrders;window.openOrderModal=openOrderModal;window.openOrderModalById=openOrderModalById;window.saveOrder=saveOrder;
 window.renderInventory=renderInventory;window.loadCustomers=loadCustomers;window.renderCustomers=renderCustomers;window.loadCoupons=loadCoupons;window.renderCoupons=renderCoupons;window.openCouponModal=openCouponModal;window.openCouponModalById=openCouponModalById;window.saveCoupon=saveCoupon;
 window.loadWaitlist=loadWaitlist;window.renderWaitlist=renderWaitlist;window.loadCMS=loadCMS;window.saveCMS=saveCMS;window.loadMedia=loadMedia;window.uploadMedia=uploadMedia;window.toggleHiddenMedia=toggleHiddenMedia;window.hideMediaFromAdmin=hideMediaFromAdmin;window.copyText=copyText;window.loadSettings=loadSettings;window.saveSettings=saveSettings;window.runHealthCheck=runHealthCheck;window.closeModal=closeModal;
