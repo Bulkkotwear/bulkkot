@@ -428,6 +428,13 @@
       const sortSelect = document.getElementById("shopSort");
       const filterStrip = document.getElementById("filterStrip");
 
+      const DEFAULT_CATEGORIES = [
+        { slug: "tees", name: "TEES", enabled: true },
+        { slug: "hoods", name: "HOODIES", enabled: true },
+        { slug: "sweats", name: "SWEATS", enabled: true }
+      ];
+      let categories = [...DEFAULT_CATEGORIES];
+
       let products = [];
       let filteredProducts = [];
       let activeCategory = "all";
@@ -471,13 +478,57 @@
         })[char]);
       }
 
+      function canonicalCategory(value) {
+        const slug = String(value || "").trim().toLowerCase();
+        if (slug === "hoodies") return "hoods";
+        if (slug === "tee") return "tees";
+        if (slug === "sweatshirts" || slug === "sweatshirt") return "sweats";
+        return slug;
+      }
+
+      function renderCategoryFilters() {
+        if (!filterStrip) return;
+        const visible = categories.filter(c => c.enabled !== false && c.slug);
+        const buttons = [{ slug: "all", name: "ALL" }, ...visible];
+        filterStrip.innerHTML = buttons.map(c =>
+          '<button type="button" class="filter-btn' +
+          ((canonicalCategory(activeCategory) === canonicalCategory(c.slug)) ? ' active' : '') +
+          '" data-category="' + escapeHtml(c.slug) + '" role="tab">' +
+          escapeHtml(c.name || c.slug.toUpperCase()) + '</button>'
+        ).join("");
+        if (activeCategory !== "all" && !visible.some(c => canonicalCategory(c.slug) === canonicalCategory(activeCategory))) {
+          activeCategory = "all";
+          const allButton = filterStrip.querySelector('[data-category="all"]');
+          if (allButton) allButton.classList.add("active");
+        }
+      }
+
+      async function loadStoreCategories() {
+        if (!supabaseClient) return;
+        try {
+          const { data, error } = await supabaseClient.from("site_content")
+            .select("content_value").eq("content_key", "categories").maybeSingle();
+          if (error || !data?.content_value) return;
+          const parsed = typeof data.content_value === "string" ? JSON.parse(data.content_value) : data.content_value;
+          if (!Array.isArray(parsed) || !parsed.length) return;
+          categories = parsed.map(c => ({
+            slug: String(c.slug || c.id || "").trim().toLowerCase(),
+            name: String(c.name || c.slug || c.id || "CATEGORY").trim().toUpperCase(),
+            enabled: c.enabled !== false,
+            position: Number(c.position || 0)
+          })).filter(c => c.slug).sort((a, b) => a.position - b.position);
+        } catch (err) {
+          console.warn("Using default shop categories.", err);
+        }
+      }
+
       function applyFilters() {
         const term = searchTerm.toLowerCase();
         
         filteredProducts = products.filter(p => {
           if (p.active === false) return false;
           const cat = String(p.category || "").toLowerCase();
-          if (activeCategory !== "all" && cat !== activeCategory && !cat.includes(activeCategory)) return false;
+          if (activeCategory !== "all" && canonicalCategory(cat) !== canonicalCategory(activeCategory) && !cat.includes(activeCategory)) return false;
           if (term) {
             const text = [p.name, p.category, p.korean, p.tag].join(" ").toLowerCase();
             if (!text.includes(term)) return false;
@@ -633,6 +684,8 @@
 
       async function initializeData() {
         try {
+          await loadStoreCategories();
+          renderCategoryFilters();
           // Instant Optimistic Load
           products = [...FALLBACK_PRODUCTS];
           products.forEach(p => {
@@ -640,9 +693,7 @@
             if (available.length) quickAddSelections.set(String(p.id), available[0]);
           });
           
-          if (filterStrip) {
-            filterStrip.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.category === activeCategory));
-          }
+          renderCategoryFilters();
           
           applyFilters();
 
