@@ -1872,9 +1872,16 @@ async function loadProducts(){
   populateCategoryFilter(); renderProducts(); renderInventory(); renderDashboardLowStock();
 }
 function populateCategoryFilter(){
-  const s=$("productCategoryFilter"); if(!s)return; const cur=s.value;
-  const cats=[...new Set(state.products.map(productCategory).filter(Boolean))].sort();
-  s.innerHTML='<option value="">All categories</option>'+cats.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join("");s.value=cur;
+  const select=$("productCategoryFilter"); if(!select)return;
+  const current=select.value;
+  const fromCategories=state.categories.map(c=>({value:c.slug,label:c.name+" · "+c.slug}));
+  const productOnly=[...new Set(state.products.map(productCategory).filter(Boolean))]
+    .filter(slug=>!fromCategories.some(c=>c.value===slug))
+    .sort()
+    .map(slug=>({value:slug,label:slug+" · legacy"}));
+  const options=[...fromCategories,...productOnly];
+  select.innerHTML='<option value="">All categories</option>'+options.map(c=>'<option value="'+esc(c.value)+'">'+esc(c.label)+'</option>').join("");
+  select.value=options.some(c=>c.value===current)?current:"";
 }
 function renderProducts(){
   const root=$("productsGrid"); if(!root)return;
@@ -2009,7 +2016,8 @@ async function loadCategories(){
       parsed=DEFAULT_CATEGORIES;
       await writeSiteContentKey("categories",JSON.stringify(parsed));
     }
-    state.categories=parsed.map(normalizeCategory).filter(x=>x.slug);
+    state.categories=parsed.map(normalizeCategory).filter(x=>x.slug)
+      .sort((a,b)=>a.position-b.position || a.name.localeCompare(b.name));
     $("navCategoryCount").textContent=state.categories.length;
     $("categoryCountLabel").textContent=state.categories.length+" categor"+(state.categories.length===1?"y":"ies");
     renderCategories();
@@ -2103,9 +2111,19 @@ async function saveCategory(replaceOnly=false){
       if(!name||!slug)throw new Error("Category name and slug are required.");
       const duplicate=categories.find(c=>String(c.slug)===slug&&String(c.id)!==String(old?.id));
       if(duplicate)throw new Error("That category slug already exists.");
-      const next=normalizeCategory({id:old?.id||slug,slug,name,korean:$("categoryKorean").value.trim(),image,enabled:$("categoryEnabled").value==="true"});
+      const next=normalizeCategory({
+        id:old?.id||slug,
+        slug,
+        name,
+        korean:$("categoryKorean").value.trim(),
+        image,
+        enabled:$("categoryEnabled").value==="true",
+        position:old ? old.position : (categories.reduce((max,c)=>Math.max(max,num(c.position)), -1)+1)
+      });
       if(old)categories=categories.map(c=>String(c.id)===String(old.id)?next:c);
       else categories.push(next);
+      categories=categories.map((c,index)=>({...normalizeCategory(c),position:Number.isFinite(Number(c.position))?Number(c.position):index}))
+        .sort((a,b)=>a.position-b.position || a.name.localeCompare(b.name));
     }
     await writeSiteContentKey("categories",JSON.stringify(categories));
     state.categories=categories.map(normalizeCategory);
@@ -2115,7 +2133,8 @@ async function saveCategory(replaceOnly=false){
 }
 async function toggleCategoryActive(id){
   const c=findCategory(id);if(!c)return;
-  const categories=state.categories.map(x=>String(x.id)===String(c.id)?{...x,enabled:x.enabled===false}:x);
+  const categories=state.categories.map(x=>String(x.id)===String(c.id)?{...x,enabled:x.enabled===false}:x)
+    .sort((a,b)=>a.position-b.position || a.name.localeCompare(b.name));
   try{await writeSiteContentKey("categories",JSON.stringify(categories));await loadCategories();showToast(c.enabled===false?"Category shown.":"Category hidden.","success");}
   catch(e){showToast("Category status update failed: "+normalizeError(e),"error");}
 }
