@@ -78,7 +78,7 @@
   function addItem(item) {
     loadCart();
     const existingIndex = cart.findIndex(
-      (i) => String(i.id) === String(item.id) && i.size === item.size
+      (i) => String(i.id) === String(item.id) && i.size === item.size && String(i.variant_id || i.color || "") === String(item.variant_id || item.color || "")
     );
 
     if (existingIndex > -1) {
@@ -89,6 +89,9 @@
         name: item.name,
         price: Number(item.price || 0),
         size: item.size || 'M',
+        color: item.color || item.colour || '',
+        variant: item.variant || item.variant_name || item.color || item.colour || '',
+        variant_id: item.variant_id || '',
         image: item.image || '',
         quantity: Number(item.quantity || 1)
       });
@@ -247,7 +250,7 @@
                 <h4>${escapeHTML(item.name)}</h4>
                 <button type="button" class="cart-remove-btn" data-cart-remove="${idx}">×</button>
               </div>
-              <p class="cart-size-label">SIZE: <strong style="color:#fff;">${escapeHTML(item.size)}</strong></p>
+              <p class="cart-size-label">${item.color || item.variant ? `COLOUR: <strong style="color:#fff;">${escapeHTML(item.color || item.variant)}</strong> · ` : ''}SIZE: <strong style="color:#fff;">${escapeHTML(item.size)}</strong></p>
             </div>
             <div class="cart-bottom-row">
               <div class="cart-qty-pill">
@@ -498,7 +501,7 @@
         const client = getSupabase();
         if (!client) throw new Error('Database connection unavailable.');
 
-        const rpcItems = cart.map((item) => ({ id: item.id, size: item.size, quantity: item.quantity }));
+        const rpcItems = cart.map((item) => ({ id: item.id, size: item.size, quantity: item.quantity, color: item.color || "", variant: item.variant || item.color || "", variant_id: item.variant_id || "", image: item.image || "" }));
         const customerPayload = {
           customer_name: name, customer_email: email, customer_phone: phone,
           shipping_address: address, shipping_city: city, shipping_state: state,
