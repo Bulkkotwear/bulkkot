@@ -2569,13 +2569,15 @@ window.addEventListener("error",e=>console.error("Admin error",e.error||e.messag
 window.addEventListener("unhandledrejection",e=>console.error("Admin promise",e.reason));
 
 async function initialLoad(){
-  // Load only the data needed for the first screen; defer secondary admin sections so login feels responsive.
-  await Promise.allSettled([loadProducts(),loadCategories(),loadOrders(),loadSettings()]);
+  // Paint the dashboard quickly: orders and secondary sections must not block product/category controls.
+  await Promise.allSettled([loadProducts(),loadCategories(),loadSettings()]);
   await loadDashboard();
-  Promise.allSettled([loadCustomers(),loadCoupons(),loadWaitlist(),loadCMS()]);
   let savedPage="dashboard";
   try{const candidate=sessionStorage.getItem("bulkKkotAdminPage");if(pageTitles[candidate])savedPage=candidate;}catch(e){}
   if(savedPage!=="dashboard")navigate(savedPage);
+  // Hydrate slower, non-critical admin data in the background after the UI is usable.
+  if(savedPage!=="orders") Promise.resolve().then(loadOrders).catch(e=>console.warn("Orders background load failed",e));
+  Promise.allSettled([loadCustomers(),loadCoupons(),loadWaitlist(),loadCMS()]);
 }
 $("healthAdminEmail").textContent=ADMIN_EMAIL;$("healthSupabaseUrl").textContent=SUPABASE_URL;
 
