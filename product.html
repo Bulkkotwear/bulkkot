@@ -648,6 +648,11 @@
         <div class="pdp-meta-price" id="pdpPrice">₹0</div>
         <p class="pdp-desc" id="pdpDesc"></p>
 
+        <div id="pdpVariantSection" hidden style="margin:18px 0 22px;">
+          <div class="opt-label" style="margin-bottom:10px;"><span>SELECT COLOUR</span><span id="pdpSelectedColour" style="color:#aaa;font-size:11px;"></span></div>
+          <div id="pdpVariantOptions" role="group" aria-label="Select product colour" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+        </div>
+
         <!-- SIZE -->
         <div class="opt-label">
           <span>SELECT SIZE (UK/INDIA)</span>
@@ -765,6 +770,8 @@
       let product = null;
       let selectedSize = null;
       let activeImageIndex = 0;
+      let productVariants = [];
+      let selectedVariant = null;
 
       /* =====================================================
          HELPERS
@@ -779,6 +786,8 @@
       function formatPrice(value) {
         return `₹${Number(value || 0).toLocaleString("en-IN")}`;
       }
+
+      function getEffectiveProduct() { return selectedVariant ? { ...product, images: selectedVariant.images, stock: selectedVariant.stock } : product; }
 
       function getImages(item) {
         if (Array.isArray(item?.images)) {
@@ -835,7 +844,7 @@
          ===================================================== */
 
       function renderGallery() {
-        const images = getImages(product);
+        const images = getImages(getEffectiveProduct());
         activeImageIndex = 0;
 
         function setActiveImage(index) {
@@ -878,8 +887,9 @@
          ===================================================== */
 
       function renderSizes() {
-        const stock = getStock(product);
-        const available = getAvailableSizes(product);
+        const effectiveProduct = getEffectiveProduct();
+        const stock = getStock(effectiveProduct);
+        const available = getAvailableSizes(effectiveProduct);
 
         if (!selectedSize || !available.includes(selectedSize)) {
             selectedSize = available[0] || null;
@@ -915,6 +925,23 @@
          PRODUCT INFO
          ===================================================== */
 
+      function renderVariantOptions() {
+        const section = document.getElementById("pdpVariantSection");
+        const options = document.getElementById("pdpVariantOptions");
+        const label = document.getElementById("pdpSelectedColour");
+        if (!section || !options) return;
+        if (!productVariants.length) { section.hidden = true; selectedVariant = null; return; }
+        section.hidden = false;
+        if (!selectedVariant || !productVariants.some(v => String(v.id) === String(selectedVariant.id))) selectedVariant = productVariants[0];
+        if (label) label.textContent = selectedVariant.color || selectedVariant.name || "";
+        options.innerHTML = productVariants.map(v => {
+          const title = v.color || v.name || "Colour";
+          const active = String(v.id) === String(selectedVariant.id);
+          const soldOut = !SIZES.some(size => Number(v.stock?.[size] || 0) > 0);
+          return `<button type="button" data-variant-id="${escapeHtml(v.id)}" aria-pressed="${active}" aria-label="Select ${escapeHtml(title)}${soldOut ? " (sold out)" : ""}" title="${escapeHtml(title)}" style="min-width:58px;padding:8px 12px;border:1px solid ${active ? "#f5f5f5" : "#333"};background:${active ? "#f5f5f5" : "#111"};color:${active ? "#080808" : "#eee"};border-radius:4px;font-size:11px;font-weight:800;cursor:pointer;opacity:${soldOut ? ".55" : "1"};">${escapeHtml(title)}${soldOut ? " · OUT" : ""}</button>`;
+        }).join("");
+      }
+
       function renderProductInfo() {
         const name = product.name || "Untitled Garment";
         const description = String(product.description || "").trim();
@@ -945,6 +972,7 @@
 
         document.getElementById("pdpFeatureList").innerHTML = features.map((feature) => `<div>${escapeHtml(feature)}</div>`).join("");
 
+        renderVariantOptions();
         renderGallery();
         renderSizes();
         updateMeta();
@@ -985,7 +1013,7 @@
         const size = button.dataset.size;
         if (!SIZES.includes(size)) return;
 
-        const stock = getStock(product);
+        const stock = getStock(getEffectiveProduct());
         if (Number(stock[size] || 0) <= 0) return;
 
         selectedSize = size;
@@ -1000,6 +1028,19 @@
         if (prompt) prompt.hidden = true;
         
         addBtn.disabled = false;
+      });
+
+      document.getElementById("pdpVariantOptions")?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-variant-id]");
+        if (!button) return;
+        selectedVariant = productVariants.find(v => String(v.id) === String(button.dataset.variantId)) || null;
+        selectedSize = null;
+        renderVariantOptions();
+        renderGallery();
+        renderSizes();
+        updateMeta();
+        const prompt = document.getElementById("pdpSizePrompt");
+        if (prompt) prompt.hidden = true;
       });
 
       // Size Guide Modal JS
@@ -1032,7 +1073,7 @@
           return;
         }
 
-        const stock = getStock(product);
+        const stock = getStock(getEffectiveProduct());
         if (Number(stock[selectedSize] || 0) <= 0) {
           renderSizes();
           return;
@@ -1051,7 +1092,10 @@
           name: product.name || "Untitled Garment",
           price: Number(product.price || 0),
           size: selectedSize,
-          image: getImages(product)[0] || FALLBACK_IMG,
+          image: getImages(getEffectiveProduct())[0] || FALLBACK_IMG,
+          color: selectedVariant ? (selectedVariant.color || selectedVariant.name || "") : "",
+          variant: selectedVariant ? (selectedVariant.name || selectedVariant.color || "") : "",
+          variant_id: selectedVariant ? selectedVariant.id : "",
           quantity: 1
         });
       });
@@ -1130,6 +1174,16 @@
           }
 
           product = data;
+          try {
+            const { data: contentRows, error: variantsError } = await supabaseClient.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1);
+            if (!variantsError && contentRows?.length) {
+              const raw = contentRows[0].content_value;
+              const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+              const saved = parsed && typeof parsed === "object" ? parsed[String(data.id)] : null;
+              if (Array.isArray(saved)) productVariants = saved.map((v, i) => ({ id: String(v.id || i), name: String(v.name || v.color || "Colour"), color: String(v.color || v.name || ""), images: Array.isArray(v.images) ? v.images.filter(Boolean) : [], stock: v.stock && typeof v.stock === "object" ? v.stock : {} })).filter(v => v.images.length || Object.values(v.stock).some(n => Number(n) > 0));
+            }
+          } catch (variantError) { console.warn("Product colour options could not be loaded:", variantError); }
+          selectedVariant = productVariants[0] || null;
           renderProductInfo();
           loadSimilar();
 
