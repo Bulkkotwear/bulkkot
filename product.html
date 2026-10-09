@@ -557,7 +557,17 @@
         animation: none !important; transition: none !important;
       }
     }
-  </style>
+  
+    .pdp-variant-options {
+      display:flex; flex-wrap:nowrap; align-items:center; gap:10px;
+      max-width:100%; overflow-x:auto; overflow-y:hidden; padding:4px 3px 10px;
+      scroll-snap-type:x proximity; overscroll-behavior-x:contain;
+      -webkit-overflow-scrolling:touch; scrollbar-width:thin; scrollbar-color:#383838 transparent;
+    }
+    .pdp-variant-options::-webkit-scrollbar { height:4px; }
+    .pdp-variant-options::-webkit-scrollbar-thumb { background:#383838; border-radius:999px; }
+    .pdp-variant-options > button { flex:0 0 auto; white-space:nowrap; scroll-snap-align:start; }
+</style>
 </head>
 
 <body>
@@ -650,7 +660,7 @@
 
         <div id="pdpVariantSection" hidden style="margin:18px 0 22px;">
           <div class="opt-label" style="margin-bottom:10px;"><span>SELECT COLOUR</span><span id="pdpSelectedColour" style="color:#aaa;font-size:11px;"></span></div>
-          <div id="pdpVariantOptions" role="group" aria-label="Select product colour" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+          <div id="pdpVariantOptions" role="group" aria-label="Select product colour" class="pdp-variant-options"></div>
         </div>
 
         <!-- SIZE -->
