@@ -920,6 +920,78 @@
       .detail-grid{grid-template-columns:1fr}
       .top-title{font-size:15px}
     }
+  
+    /* Premium admin refinements: responsive forms, pages and variant editor */
+    .page-head > div:first-child{min-width:0}
+    .page-head p{line-height:1.6;max-width:760px}
+    .actions{align-items:center}
+    .card{min-width:0}
+    .toolbar > *{min-width:0}
+    .form-grid .field{min-width:0}
+    .form-grid .field input,.form-grid .field select,.form-grid .field textarea{min-width:0}
+    .modal-backdrop{overscroll-behavior:contain}
+    .modal{width:min(900px,100%);max-height:min(90dvh,900px);overscroll-behavior:contain}
+    .modal-body{padding:clamp(14px,2.5vw,24px)}
+    .modal-foot{gap:8px;flex-wrap:wrap}
+    .variant-row{padding:clamp(10px,2vw,16px)}
+    .variant-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .variant-grid .field{min-width:0}
+    .variant-grid input,.variant-grid textarea{min-width:0}
+    .variant-images-preview img{width:56px;height:68px;flex:0 0 auto}
+    .product-img img{object-position:center}
+    .product-actions .btn{min-width:0}
+    @media(max-width:850px){
+      .content{padding:clamp(12px,3vw,20px)}
+      .page-head{align-items:stretch;flex-direction:column;gap:12px}
+      .page-head h1{font-size:clamp(22px,5vw,28px);line-height:1.15}
+      .page-head .actions{width:100%}
+      .page-head .actions .btn{flex:1 1 auto}
+      .card{padding:clamp(12px,3vw,18px);border-radius:13px}
+      .section-title{align-items:flex-start}
+      .toolbar{align-items:stretch}
+      .toolbar .search,.toolbar input,.toolbar select{flex:1 1 100%;width:100%;min-width:0}
+      .modal-backdrop{padding:10px;align-items:flex-end}
+      .modal{width:100%;max-height:92dvh;border-radius:18px 18px 10px 10px}
+      .modal-head{padding:14px 16px}
+      .modal-foot{padding:12px 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .modal-foot .btn{width:100%;min-width:0}
+      .variant-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      .variant-grid .field.full{grid-column:1/-1}
+      .variant-head{align-items:flex-start}
+      .table-wrap{max-width:100%;-webkit-overflow-scrolling:touch}
+      .setting-row{align-items:flex-start;gap:12px}
+    }
+    @media(max-width:560px){
+      .content{padding:12px}
+      .topbar{padding:0 12px;gap:8px}
+      .top-title{font-size:14px;max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .top-right{gap:6px}
+      .mobile-menu{width:38px;height:38px;flex:0 0 38px}
+      .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+      .product-img{aspect-ratio:3/4}
+      .product-name{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+      .product-price{font-size:11px;line-height:1.5}
+      .product-body{padding:9px}
+      .product-actions{flex-direction:column;gap:6px}
+      .product-actions .btn{width:100%;padding:8px 6px}
+      .actions{gap:7px}
+      .actions .btn{font-size:12px;padding:9px 10px}
+      .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .stat-card{min-height:100px;padding:12px}
+      .stat-value{font-size:23px}
+      .detail-grid{grid-template-columns:1fr}
+      .login-card{padding:22px}
+      .modal-foot{grid-template-columns:1fr 1fr}
+      .modal-foot .btn{font-size:12px;padding:10px 8px}
+      .variant-images-preview img{width:48px;height:58px}
+    }
+    @media(max-width:360px){
+      .product-grid{grid-template-columns:1fr}
+      .variant-grid{grid-template-columns:1fr}
+      .variant-grid .field.full{grid-column:auto}
+      .stats-grid{grid-template-columns:1fr}
+    }
+
   </style>
 </head>
 
@@ -1947,13 +2019,16 @@ function renderProducts(){
   });
   if(!list.length){root.innerHTML=emptyHTML("No products match the current filters.");return;}
   root.innerHTML=list.map(p=>{
-    const imgs=productImages(p), stock=totalStock(p), active=p.active!==false;
+    const imgs=productImages(p), variants=productVariants(p), stock=totalStock(p), active=p.active!==false;
+    // A variant-only product may not have a separate base image; use the first variant image as the catalogue fallback.
+    const displayImage=imgs[0] || variants.find(v=>Array.isArray(v.images)&&v.images.length)?.images[0] || "";
     const cls=stock===0?"red":stock<=5?"yellow":"green";
     return '<article class="product-card"><div class="product-img">'+
-      (imgs[0]?'<img src="'+esc(imgs[0])+'" alt="'+esc(productName(p))+'" loading="lazy">':'<div style="height:100%;display:grid;place-items:center;color:#555">NO IMAGE</div>')+
+      (displayImage?'<img src="'+esc(displayImage)+'" alt="'+esc(productName(p))+'" loading="lazy">':'<div style="height:100%;display:grid;place-items:center;color:#555">NO IMAGE</div>')+
       '<span class="badge '+cls+' stock-label">'+(stock===0?"Out of stock":stock+" total")+'</span></div>'+
       '<div class="product-body"><div class="product-name">'+esc(productName(p))+'</div>'+
       '<div class="product-price">'+money(productPrice(p))+' · '+esc(productCategory(p))+' · '+(active?"Live":"Hidden")+'</div>'+
+      (variants.length?'<div class="muted" style="font-size:11px;margin-top:6px">'+variants.length+' colour / variant'+(variants.length===1?'':'s')+'</div>':'')+
       '<div class="product-actions"><button class="btn btn-small" onclick=\'openProductModalById("'+esc(p.id)+'")\'>Edit</button>'+
       '<button class="btn btn-small '+(active?"btn-danger":"btn-success")+'" onclick=\'toggleProductActive("'+esc(p.id)+'")\'>'+(active?"Hide":"Publish")+'</button></div></div></article>';
   }).join("");
