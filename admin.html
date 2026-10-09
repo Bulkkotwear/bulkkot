@@ -3018,9 +3018,9 @@ function variantsStoreObject(){
 }
 async function loadProductVariants(){
   try{
-    const r=await db.from("site_content").select("*");
+    const r=await db.from("site_content").select("content_key,content_value").eq("content_key","product_variants").limit(1);
     if(r.error) return;
-    const row=(r.data||[]).find(x=>String(x.content_key||"")==="product_variants");
+    const row=(r.data||[])[0];
     const parsed=safeJson(row?.content_value);
     state.productVariants=(parsed && typeof parsed==="object" && !Array.isArray(parsed))?parsed:{};
   }catch(e){state.productVariants={};}
