@@ -64,7 +64,11 @@
   }
 
   function getCategory(product) {
-    return canonicalCategory(product?.category || "tees");
+    const raw = product?.category;
+    if (raw && typeof raw === "object") {
+      return canonicalCategory(raw.slug || raw.id || raw.name || "tees");
+    }
+    return canonicalCategory(raw || product?.category_slug || product?.category_id || product?.category_name || "tees");
   }
 
   function getStockBadge(product, size) {
@@ -739,7 +743,7 @@
               <span class="product-price">${formatPrice(p.price)}</span>
             </a>
             <a href="${productUrl}" class="button button--primary product-add-button" style="display:block;text-align:center;text-decoration:none;">
-              CHOOSE OPTIONS →
+              SHOP NOW →
             </a>
           </div>
         </article>
