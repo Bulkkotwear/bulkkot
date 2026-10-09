@@ -3123,6 +3123,7 @@ function resetSizeGuide(key){
   card.querySelector("[data-sg-note]").value=d.note;
 }
 async function saveSizeGuides(){
+  try {
   const next={...sizeGuidesStore};
   document.querySelectorAll(".size-guide-editor-card").forEach(card=>{
     const key=card.dataset.sizeGuideKey;
@@ -3131,7 +3132,6 @@ async function saveSizeGuides(){
     if(!columns.length||rows.some(row=>row.length!==columns.length))throw new Error("Check the column headings and measurement rows for "+key+". Each row must have "+columns.length+" values.");
     next[key]={title:card.querySelector("[data-sg-title]").value.trim(),description:card.querySelector("[data-sg-description]").value.trim(),columns,rows,note:card.querySelector("[data-sg-note]").value.trim()};
   });
-  try{
     await writeSiteContentKey("size_guides",JSON.stringify(next));
     sizeGuidesStore=next;
     showToast("Category size guides saved. Storefront guides updated.","success");
