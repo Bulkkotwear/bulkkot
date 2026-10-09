@@ -3707,3 +3707,34 @@ button, input, select {
   ) !important;
   opacity: 1 !important;
 }
+
+/* MOBILE EDITORIAL TEXT LEGIBILITY — keep photo natural, lift copy */
+@media (max-width: 768px) {
+  .editorial-carousel .editorial-slide .editorial-slide__overlay {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.62) 0%,
+      rgba(0, 0, 0, 0.34) 58%,
+      rgba(0, 0, 0, 0.08) 100%
+    ) !important;
+  }
+
+  .editorial-carousel .editorial-slide__content {
+    z-index: 2 !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72) !important;
+  }
+
+  .editorial-carousel .slide-sub {
+    color: #f2f2f2 !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85) !important;
+  }
+
+  .editorial-carousel .slide-desc {
+    color: #f0f0f0 !important;
+    font-size: 12px !important;
+    line-height: 1.65 !important;
+    font-weight: 600 !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95) !important;
+    max-width: 100% !important;
+  }
+}
