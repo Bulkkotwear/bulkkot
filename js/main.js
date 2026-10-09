@@ -508,6 +508,11 @@
             el.textContent = value;
           }
         });
+        // Content fields can update link destinations as well as visible text.
+        document.querySelectorAll(`[data-cms-href="${CSS.escape(key)}"]`).forEach(el => {
+          if (String(value || "").trim()) el.setAttribute("href", String(value).trim());
+          else el.removeAttribute("href");
+        });
       });
     } catch (e) {}
   }
