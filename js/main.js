@@ -744,7 +744,7 @@
      return `
         <article class="product-card" data-product-card data-category="${cat}">
           <a href="product.html?id=${p.id}" class="product-card__thumb" style="display:block; text-decoration:none;">
-            <img src="${escapeHTML(coverImage)}" alt="${escapeHTML(p.name)}" loading="lazy">
+            <img src="${escapeHTML(coverImage)}" alt="${escapeHTML(p.name)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'">
             <span class="product-status">${totalStock <= 0 ? 'SOLD OUT' : 'DROP 001'}</span>
           </a>
           <div class="product-information">
