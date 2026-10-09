@@ -2227,6 +2227,7 @@ async function uploadCategoryImage(){
 }
 async function saveCategory(replaceOnly=false){
   const old=state.editingCategory;
+  let renamedFrom="",renamedTo="",renamedProductIds=[];
   try{
     let image=String($("categoryImage")?.value||"").trim();
     const uploaded=await uploadCategoryImage();
@@ -2251,15 +2252,34 @@ async function saveCategory(replaceOnly=false){
         enabled:$("categoryEnabled").value==="true",
         position:old ? old.position : (categories.reduce((max,c)=>Math.max(max,num(c.position)), -1)+1)
       });
+      if(old && old.slug!==next.slug){renamedFrom=old.slug;renamedTo=next.slug;}
       if(old)categories=categories.map(c=>String(c.id)===String(old.id)?next:c);
       else categories.push(next);
       categories=categories.map((c,index)=>({...normalizeCategory(c),position:Number.isFinite(Number(c.position))?Number(c.position):index}))
         .sort((a,b)=>a.position-b.position || a.name.localeCompare(b.name));
     }
-    await writeSiteContentKey("categories",JSON.stringify(categories));
+
+    // When a category slug changes, move its products too so storefront filters still match.
+    if(renamedFrom){
+      const moved=await db.from("products").update({category:renamedTo}).eq("category",renamedFrom).select("id");
+      if(moved.error)throw moved.error;
+      renamedProductIds=(moved.data||[]).map(p=>p.id).filter(Boolean);
+    }
+    try{
+      await writeSiteContentKey("categories",JSON.stringify(categories));
+    }catch(writeError){
+      if(renamedFrom && renamedProductIds.length){
+        const rollback=await db.from("products").update({category:renamedFrom}).in("id",renamedProductIds);
+        if(rollback.error)console.error("Category rename rollback failed:",rollback.error);
+      }
+      throw writeError;
+    }
+
     state.categories=categories.map(normalizeCategory);
-    closeModal();showToast(replaceOnly?"Category image replaced.":old?"Category updated.":"Category created.","success");
+    closeModal();
+    showToast(replaceOnly?"Category image replaced.":old?"Category updated.":"Category created.","success");
     await loadCategories();
+    if(renamedFrom)await loadProducts();
   }catch(e){showToast("Category save failed: "+normalizeError(e),"error");}
 }
 async function toggleCategoryActive(id){
