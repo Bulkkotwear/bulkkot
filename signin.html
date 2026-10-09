@@ -1102,11 +1102,16 @@
             );
 
           } catch (err) {
+            const message = String(err?.message || "");
+            const lower = message.toLowerCase();
 
-            showError(
-              err.message ||
-              "Unable to send the password reset email. Please try again."
-            );
+            if (lower.includes("rate limit") || lower.includes("email rate limit") || lower.includes("over_email_send_rate_limit")) {
+              showError("Supabase has temporarily limited password-reset emails. Please stop retrying for now and wait for the limit window to pass. To prevent this recurring, configure a custom SMTP provider in Supabase Dashboard → Authentication → SMTP Settings; changing website code alone cannot remove this limit.");
+            } else if (lower.includes("redirect") || lower.includes("allow list") || lower.includes("not authorized")) {
+              showError("Supabase blocked the reset redirect. Add this site's signin.html URL to Authentication → URL Configuration → Redirect URLs.");
+            } else {
+              showError(message || "Unable to send the password reset email. Please try again later.");
+            }
 
           } finally {
 
@@ -1394,20 +1399,35 @@
 
 
                 if (error) {
+                  const message = String(error.message || "").toLowerCase();
+
+                  if (message.includes("rate limit") || message.includes("email rate limit")) {
+                    throw new Error("BULKKOT email verification is temporarily rate-limited by the email service. Please wait before trying again. If this keeps happening, the store owner needs to configure a custom SMTP provider in Supabase Auth.");
+                  }
+                  if (message.includes("already registered") || message.includes("already been registered") || message.includes("user already exists")) {
+                    throw new Error("An account may already exist for this email. Switch to Log In, or use Forgot Password if you don't remember the password.");
+                  }
                   throw error;
                 }
 
+                // Supabase may deliberately return a user with no identities for
+                // an already-registered email to prevent account enumeration.
+                if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+                  showError("An account may already exist for this email. Switch to Log In, or use Forgot Password if you don't remember the password.");
+                  return;
+                }
 
-                showSuccess(
-                  "Account created. Please check your email and click the verification link to activate your BULKKOT account."
-                );
+                if (data?.session) {
+                  showSuccess("Your BULKKOT account is created and you're signed in. Redirecting...");
+                  setTimeout(() => { window.location.href = "./index.html"; }, 900);
+                  return;
+                }
+
+                showSuccess("Registration received. Check your inbox for the verification email before logging in. If no email arrives, wait before retrying—Supabase's default email service has strict sending limits.");
 
 
-                inputPassword.value =
-                  "";
-
-                inputConfirmPassword.value =
-                  "";
+                inputPassword.value = "";
+                inputConfirmPassword.value = "";
 
                 return;
               }
@@ -1432,7 +1452,11 @@
               if (error) {
 
                 const errorMessage =
-                  error.message.toLowerCase();
+                  String(error.message || "").toLowerCase();
+
+                if (errorMessage.includes("rate limit") || errorMessage.includes("email rate limit")) {
+                  throw new Error("Too many authentication email requests have been made. Please wait before retrying. If this happened during sign-up, the Supabase email service limit may have blocked the verification email.");
+                }
 
 
                 if (
