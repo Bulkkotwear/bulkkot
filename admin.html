@@ -1895,7 +1895,7 @@ function productStockMap(p){
   if(raw && typeof raw==="object" && !Array.isArray(raw)) return {S:num(raw.S),M:num(raw.M),L:num(raw.L),XL:num(raw.XL)};
   const n=num(raw); return {S:0,M:n,L:0,XL:0};
 }
-function totalStock(p){const s=productStockMap(p);return s.S+s.M+s.L+s.XL;}
+function totalStock(p){const variants=productVariants(p);if(variants.length)return variants.reduce((sum,v)=>sum+v.stock.S+v.stock.M+v.stock.L+v.stock.XL,0);const s=productStockMap(p);return s.S+s.M+s.L+s.XL;}
 function orderStatus(o){return String(getValue(o,"order_status","status")||"PLACED").toUpperCase();}
 function paymentStatus(o){return String(getValue(o,"payment_status")||"PENDING").toUpperCase();}
 function orderNumber(o){return getValue(o,"order_number","order_no") || (o?.id?String(o.id).slice(0,8).toUpperCase():"—");}
