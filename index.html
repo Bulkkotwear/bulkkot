@@ -1480,6 +1480,44 @@
         );
       }
     })();
+
+      /* Storefront category circles are managed from Admin > Categories. */
+      (async function syncAdminCategories() {
+        const row = document.querySelector(".circle-items-row");
+        if (!row || !window.supabase || typeof window.supabase.createClient !== "function") return;
+        try {
+          const client = window.bulkkotSupabase || window.supabase.createClient(
+            "https://pgubjluqgqvrybvehzeh.supabase.co",
+            "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP"
+          );
+          window.bulkkotSupabase = client;
+          const { data, error } = await client.from("site_content")
+            .select("content_value").eq("content_key", "categories").limit(1);
+          if (error || !data?.length || !data[0]?.content_value) return;
+          const parsed = typeof data[0].content_value === "string"
+            ? JSON.parse(data[0].content_value) : data[0].content_value;
+          if (!Array.isArray(parsed) || !parsed.length) return;
+          const safe = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
+            "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+          })[ch]);
+          const visible = parsed.filter(c => c && c.enabled !== false && String(c.slug || c.id || "").trim())
+            .sort((a,b) => Number(a.position || 0) - Number(b.position || 0));
+          if (!visible.length) return;
+          row.innerHTML = visible.map(c => {
+            const slug = String(c.slug || c.id).trim().toLowerCase();
+            const name = String(c.name || slug).trim().toUpperCase();
+            const korean = String(c.korean || "").trim();
+            const image = String(c.image || "").trim();
+            return '<a href="shop.html?category=' + encodeURIComponent(slug) + '" class="collection-circle-card">' +
+              '<div class="circle-frame">' + (image ? '<img src="' + safe(image) + '" alt="' + safe(name) + '" loading="lazy">' : '') + '</div>' +
+              '<div class="circle-meta"><span class="circle-label">' + safe(name) + '</span>' +
+              (korean ? '<span class="circle-korean">' + safe(korean) + '</span>' : '') +
+              '<span class="circle-action-btn">VIEW ALL →</span></div></a>';
+          }).join("");
+        } catch (error) {
+          console.warn("Using default homepage categories.", error);
+        }
+      })();
   </script>
 
 </body>
