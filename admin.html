@@ -2990,17 +2990,19 @@ async function saveProductVariants(){
 /* Keep product loading compatible with the existing schema, while also loading variant data stored in site_content. */
 const _loadProductsBase=loadProducts;
 loadProducts=async function(){
-  await _loadProductsBase();
-  await loadProductVariants();
+  // Fetch catalogue and colour data together to avoid a second, delayed product-card render.
+  await Promise.all([_loadProductsBase(),loadProductVariants()]);
   renderProducts();
 };
 
 function variantEditorHTML(variants){
-  const list=(variants||[]).map(normalizeVariant);
+  // Variant 1 is the default/main colour; additional colours are added as further variants.
+  const source=(variants&&variants.length)?variants:[{id:"",name:"Black",color:"Black",images:[],stock:{S:0,M:0,L:0,XL:0}}];
+  const list=source.map(normalizeVariant);
   return '<div class="field full">'+
-    '<div class="section-title"><h2>Colour / Variant options</h2><button type="button" class="btn btn-small btn-primary" onclick="addVariantEditor()">+ Add variant</button></div>'+
-    '<div class="muted" style="font-size:11px;margin:-2px 0 10px">Each colour can have its own images and size stock. These variants are saved separately from the main product images.</div>'+
-    '<div id="variantList" class="variant-list">'+(list.length?list.map((v,i)=>variantRowHTML(v,i)).join(""):emptyHTML("No colour variants yet. Add one if this product has multiple colours."))+'</div>'+
+    '<div class="section-title"><h2>Colour variants</h2><button type="button" class="btn btn-small btn-primary" onclick="addVariantEditor()">+ Add colour</button></div>'+
+    '<div class="muted" style="font-size:11px;margin:-2px 0 10px">Variant 1 is the default colour shown first on the website. Choose its colour, add images and stock, then add more colours if needed.</div>'+
+    '<div id="variantList" class="variant-list">'+list.map((v,i)=>variantRowHTML(v,i)).join("")+'</div>'+
   '</div>';
 }
 function variantRowHTML(v,i){
@@ -3104,10 +3106,15 @@ saveProduct=async function(){
     if(r.error)throw r.error;
     const productId=r.data?.id||state.editingProduct?.id;if(!productId)throw new Error("Product ID was not returned.");
     for(let i=0;i<variants.length;i++){const extra=await uploadVariantFiles(productId,i);variants[i].images.push(...extra);}
-    variants.forEach(v=>{if(!v.name.trim()&&!v.color.trim())throw new Error("Every variant needs a colour/name.");if(!v.images.length)throw new Error("Every colour variant needs at least one image.");});
+    variants.forEach(v=>{if(!v.name.trim()&&!v.color.trim())throw new Error("Every colour variant needs a name.");if(!v.images.length)throw new Error("Add at least one image for "+(v.color||v.name)+".");});
+    // The first colour supplies the default product image across Admin and storefront.
+    if(!existingImages.length&&variants[0]?.images?.length){
+      payload.images=variants[0].images;
+      const imageUpdate=await db.from("products").update({images:payload.images}).eq("id",productId);
+      if(imageUpdate.error)throw imageUpdate.error;
+    }
     state.productVariants[String(productId)]=variants;
     await saveProductVariants();
-    if(!existingImages.length&&variants[0]?.images?.length){const imageUpdate=await db.from("products").update({images:variants[0].images}).eq("id",productId);if(imageUpdate.error)throw imageUpdate.error;}
     closeModal();showToast(state.editingProduct?"Product and colour variants updated.":"Product and colour variants created.","success");await loadProducts();
   }catch(e){showToast("Product save failed: "+normalizeError(e),"error");if(saveButton){saveButton.disabled=false;saveButton.textContent="Save product";}}
 };
