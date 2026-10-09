@@ -2583,6 +2583,9 @@ function orderItemsHTML(order){
 async function enrichOrdersWithItems(){
   const orders=state.orders||[];
   if(!orders.length) return;
+  // Variant IDs are stored in site_content, so load that map before resolving
+  // line items that contain only variant_id rather than a readable colour name.
+  if(typeof loadProductVariants==="function") await loadProductVariants();
   orders.forEach(o=>{o._adminItems=normalizeOrderItems(o);});
   const ids=orders.map(o=>o.id).filter(Boolean);
   if(!ids.length) return;
