@@ -1858,7 +1858,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 const state = {
   user:null, products:[], orders:[], customers:[], coupons:[], waitlist:[],
   cms:{}, settings:null, media:[], categories:[], currentPage:"dashboard", mediaShowHidden:false,
-  editingProduct:null, editingCoupon:null, editingCategory:null, loadingPages:Object.create(null)
+  editingProduct:null, editingCoupon:null, editingCategory:null, loadingPages:Object.create(null), loadedPages:Object.create(null)
 };
 
 const $ = id => document.getElementById(id);
@@ -1968,7 +1968,7 @@ db.auth.onAuthStateChange(async(_,session)=>{
 });
 
 const pageTitles={dashboard:"Dashboard",products:"Products",categories:"Categories",orders:"Orders","slider-manager":"Slider Manager","size-guides":"Size Guides",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health",sales:"Sales Analytics"};
-function navigate(page){
+function navigate(page,force=false){
   if(!pageTitles[page])return; state.currentPage=page;
   try{sessionStorage.setItem("bulkKkotAdminPage",page);}catch(e){}
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
@@ -1978,9 +1978,9 @@ function navigate(page){
   $("topTitle").textContent=pageTitles[page]; closeSidebar();
   const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"slider-manager":loadEditorialSlides,"size-guides":loadSizeGuides,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck,sales:loadSalesAnalytics};
   // Ignore rapid repeat navigation to a page whose data request is already running.
-  if(!state.loadingPages[page] && loaders[page]){
+  if(!state.loadingPages[page] && loaders[page] && (force || !state.loadedPages[page])){
     state.loadingPages[page]=true;
-    Promise.resolve().then(()=>loaders[page]()).catch(e=>showToast("Could not load "+pageTitles[page]+": "+normalizeError(e),"error")).finally(()=>{state.loadingPages[page]=false;});
+    Promise.resolve().then(()=>loaders[page]()).then(()=>{state.loadedPages[page]=true;}).catch(e=>showToast("Could not load "+pageTitles[page]+": "+normalizeError(e),"error")).finally(()=>{state.loadingPages[page]=false;});
   }
 }
 document.querySelectorAll(".nav-btn[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));
@@ -1990,7 +1990,7 @@ $("sidebar").addEventListener("click",e=>{const nav=e.target.closest(".nav-btn[d
 function setSidebarOpen(open){const sidebar=$("sidebar"),backdrop=$("sidebarBackdrop"),button=$("mobileMenu");const mobile=window.matchMedia("(max-width: 850px)").matches;const show=!!open&&mobile;sidebar.classList.toggle("open",show);backdrop.classList.toggle("open",show);document.body.classList.toggle("sidebar-lock",show);button.setAttribute("aria-expanded",String(show));button.setAttribute("aria-label",show?"Close navigation menu":"Open navigation menu");button.textContent=show?"×":"☰";backdrop.setAttribute("aria-hidden",String(!show));}
 function closeSidebar(){setSidebarOpen(false);}
 window.addEventListener("resize",()=>{if(!window.matchMedia("(max-width: 850px)").matches)closeSidebar();});
-$("refreshBtn").addEventListener("click",()=>navigate(state.currentPage));
+$("refreshBtn").addEventListener("click",()=>navigate(state.currentPage,true));
 
 async function loadProducts(){
   const root=$("productsGrid"); if(root)root.innerHTML=loadingHTML();
@@ -2574,6 +2574,7 @@ window.addEventListener("unhandledrejection",e=>console.error("Admin promise",e.
 async function initialLoad(){
   // Paint the dashboard quickly: orders and secondary sections must not block product/category controls.
   await Promise.allSettled([loadProducts(),loadCategories(),loadSettings()]);
+  state.loadedPages.products=true;state.loadedPages.categories=true;state.loadedPages.settings=true;
   await loadDashboard();
   let savedPage="dashboard";
   try{const candidate=sessionStorage.getItem("bulkKkotAdminPage");if(pageTitles[candidate])savedPage=candidate;}catch(e){}
