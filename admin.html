@@ -2556,7 +2556,13 @@ function itemSize(item){
   return getValue(item,"size","variant_size","selected_size","selectedSize","size_name") || "";
 }
 function itemImage(item){
-  return getValue(item,"image","image_url","thumbnail","product_image") || "";
+  const saved=getValue(item,"image","image_url","thumbnail","product_image","variant_image","product_image_url");
+  if(saved)return saved;
+  const product=findProduct(itemProductId(item));
+  const variantId=getValue(item,"variant_id","variantId","selected_variant_id");
+  const variants=state.productVariants?.[String(itemProductId(item))]||[];
+  const variant=variants.find(v=>String(v.id)===String(variantId));
+  return variant?.images?.[0] || productImages(product)[0] || "";
 }
 
 function productLabelFromItem(item){
@@ -2571,12 +2577,11 @@ function productLabelFromItem(item){
 function orderItemsHTML(order){
   const items=Array.isArray(order?._adminItems)?order._adminItems:normalizeOrderItems(order);
   if(!items.length) return '<span class="muted">Product details unavailable</span>';
-  return '<div style="display:flex;flex-direction:column;gap:7px;min-width:210px">'+items.map(item=>{
-    const name=productLabelFromItem(item), qty=itemQty(item), size=itemSize(item), img=itemImage(item);
-    return '<div style="display:flex;align-items:center;gap:8px">'+
-      (img?'<img src="'+esc(img)+'" style="width:32px;height:38px;border-radius:6px;object-fit:cover;background:#1a1a1a" loading="lazy">':'')+
-      '<div><strong>'+esc(name)+'</strong><div class="muted">'+
-      (size?'Size '+esc(size)+' · ':'')+'Qty '+qty+'</div></div></div>';
+  return '<div style="display:flex;flex-direction:column;gap:9px;min-width:230px">'+items.map(item=>{
+    const name=productLabelFromItem(item), img=itemImage(item);
+    return '<div style="display:flex;align-items:center;gap:9px">'+
+      (img?'<img src="'+esc(img)+'" alt="'+esc(name)+'" style="width:54px;height:66px;flex:0 0 54px;border-radius:7px;object-fit:cover;background:#1a1a1a" loading="lazy" onerror="this.style.display=\'none\'">':'<div style="width:54px;height:66px;flex:0 0 54px;border-radius:7px;background:#171717;display:grid;place-items:center;color:#666;font-size:9px">NO IMAGE</div>')+
+      '<div><strong>'+esc(name)+'</strong><div class="muted" style="margin-top:4px;line-height:1.6">'+esc(itemDetailsLine(item)||"Variant details unavailable")+'</div></div></div>';
   }).join("")+'</div>';
 }
 
