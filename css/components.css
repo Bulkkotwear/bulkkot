@@ -3753,3 +3753,22 @@ button, input, select {
     max-width: 100% !important;
   }
 }
+
+
+/* BULKKOT slider: keep the site-wide red interaction feedback above late theme overrides. */
+.editorial-carousel .slide-cta:active,
+.editorial-carousel .slide-cta:focus,
+.editorial-carousel .slide-cta:focus-visible {
+  background: var(--bk-red, #e31b23) !important;
+  color: #fff !important;
+  border-color: var(--bk-red, #e31b23) !important;
+}
+
+.editorial-carousel .carousel-control:active,
+.editorial-carousel .carousel-control:focus,
+.editorial-carousel .carousel-control:focus-visible {
+  background: var(--bk-red, #e31b23) !important;
+  color: #fff !important;
+  border-color: var(--bk-red, #e31b23) !important;
+  outline-color: var(--bk-red, #e31b23) !important;
+}
