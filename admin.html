@@ -1775,7 +1775,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 const state = {
   user:null, products:[], orders:[], customers:[], coupons:[], waitlist:[],
   cms:{}, settings:null, media:[], categories:[], currentPage:"dashboard",
-  editingProduct:null, editingCoupon:null, editingCategory:null
+  editingProduct:null, editingCoupon:null, editingCategory:null, loadingPages:Object.create(null)
 };
 
 const $ = id => document.getElementById(id);
@@ -1891,7 +1891,11 @@ function navigate(page){
   document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add("active");
   $("topTitle").textContent=pageTitles[page]; $("sidebar").classList.remove("open");
   const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"slider-manager":loadEditorialSlides,"size-guides":loadSizeGuides,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck};
-  loaders[page]?.();
+  // Ignore rapid repeat navigation to a page whose data request is already running.
+  if(!state.loadingPages[page] && loaders[page]){
+    state.loadingPages[page]=true;
+    Promise.resolve().then(()=>loaders[page]()).catch(e=>showToast("Could not load "+pageTitles[page]+": "+normalizeError(e),"error")).finally(()=>{state.loadingPages[page]=false;});
+  }
 }
 document.querySelectorAll(".nav-btn[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));
 $("mobileMenu").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
@@ -2350,13 +2354,23 @@ async function loadCMS(){
 async function saveCMS(){
   let advanced={};try{advanced=JSON.parse($("cmsJson").value||"{}");if(!advanced||Array.isArray(advanced)||typeof advanced!=="object")throw 0;}catch(e){showToast("Advanced CMS JSON is invalid.","error");return;}
   const merged={...advanced,announcement_1:$("cmsAnnouncement").value,hero_title:$("cmsHeroTitle").value,hero_subtitle:$("cmsHeroSubtitle").value,hero_image:$("cmsHeroImage").value,primary_button_text:$("cmsPrimaryButton").value,primary_button_url:$("cmsPrimaryUrl").value,tagline:$("cmsTagline").value,about_title:$("cmsAboutTitle").value,about_text:$("cmsAboutText").value,footer_text:$("cmsFooterText").value,instagram:$("cmsInstagram").value};
-  let ok=0,last=null;
-  for(const [key,value] of Object.entries(merged)){
-    try{await writeSiteContentKey(key,String(value??""));ok++;}
-    catch(e){last=e;}
-  }
-  if(!ok&&last){showToast("CMS save failed: "+normalizeError(last),"error");return;}
-  state.cms=merged;$("cmsJson").value=JSON.stringify(merged,null,2);showToast("CMS saved.","success");
+  const saveBtn=document.querySelector('#page-cms button[onclick="saveCMS()"]');
+  if(saveBtn?.disabled)return;
+  const originalText=saveBtn?.textContent;
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent="Saving…";}
+  try{
+    // Different CMS keys are independent; save concurrently instead of waiting for
+    // two database round-trips per key one-by-one.
+    const results=await Promise.allSettled(Object.entries(merged).map(([key,value])=>writeSiteContentKey(key,String(value??""))));
+    const failed=results.map((r,i)=>r.status==="rejected"?{key:Object.keys(merged)[i],error:r.reason}:null).filter(Boolean);
+    if(failed.length){
+      const detail=failed.slice(0,3).map(x=>x.key+": "+normalizeError(x.error)).join(" · ");
+      showToast("Some CMS fields could not be saved: "+detail,"error");
+      return;
+    }
+    state.cms=merged;$("cmsJson").value=JSON.stringify(merged,null,2);showToast("CMS saved. Storefront content updated.","success");
+  }catch(e){showToast("CMS save failed: "+normalizeError(e),"error");}
+  finally{if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=originalText||"Save changes";}}
 }
 
 async function loadSettings(){
