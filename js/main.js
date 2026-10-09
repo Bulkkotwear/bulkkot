@@ -635,7 +635,10 @@
     if (!grid) return;
 
     const heading = document.getElementById("homeProductsHeading");
-    const showingResults = Boolean(activeSearch) || activeCategory !== "all";
+    const searchInput = document.getElementById("liveSearchInput");
+    const typedSearch = String(searchInput?.value || activeSearch || "").trim();
+    const selectedCategory = document.querySelector("[data-shop-category].is-active")?.dataset.shopCategory || activeCategory;
+    const showingResults = Boolean(typedSearch) || selectedCategory !== "all";
     if (heading) {
       heading.textContent = showingResults ? "SEARCH RESULTS" : "LATEST RELEASES";
     }
