@@ -3692,3 +3692,18 @@ button, input, select {
     width: 28px !important;
   }
 }
+
+
+/* FINAL MOBILE EDITORIAL SLIDER VISIBILITY OVERRIDE */
+.editorial-carousel .editorial-slide img {
+  filter: brightness(1.45) contrast(1.02) !important;
+}
+.editorial-carousel .editorial-slide .editorial-slide__overlay {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.18) 0%,
+    rgba(0, 0, 0, 0.08) 52%,
+    rgba(0, 0, 0, 0.04) 100%
+  ) !important;
+  opacity: 1 !important;
+}
