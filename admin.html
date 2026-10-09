@@ -3031,9 +3031,45 @@ async function saveProductVariants(){
 
 /* Keep product loading compatible with the existing schema, while also loading variant data stored in site_content. */
 const _loadProductsBase=loadProducts;
+const LEGACY_DEMO_PRODUCT_IDS=["bk-tee-01","bk-hood-01","bk-sweat-01","bk-tee-02"];
+let legacyDemoCleanupAttempted=false;
 loadProducts=async function(){
   await _loadProductsBase();
+
+  // Permanently remove only the four known legacy demo rows; never touch real/admin-created products.
+  const demoRows=(state.products||[]).filter(p=>LEGACY_DEMO_PRODUCT_IDS.includes(String(p.id)));
+  let demoRowsDeleted=false;
+  if(demoRows.length && !legacyDemoCleanupAttempted){
+    legacyDemoCleanupAttempted=true;
+    try{
+      const result=await db.from("products").delete().in("id",demoRows.map(p=>p.id));
+      if(result.error) throw result.error;
+      demoRowsDeleted=true;
+    }catch(error){
+      console.error("Legacy demo product cleanup failed:",error);
+      showToast("Demo products are hidden, but database cleanup needs attention: "+normalizeError(error),"error");
+    }
+  }
+
+  // Always keep these known demo entries out of the admin catalogue and public-facing product management.
+  state.products=(state.products||[]).filter(p=>!LEGACY_DEMO_PRODUCT_IDS.includes(String(p.id)));
+  const count=state.products.length;
+  if($("navProductCount")) $("navProductCount").textContent=count;
+  if($("statProducts")) $("statProducts").textContent=count;
+
   await loadProductVariants();
+  const variants=state.productVariants||{};
+  let variantsChanged=false;
+  for(const id of LEGACY_DEMO_PRODUCT_IDS){
+    if(Object.prototype.hasOwnProperty.call(variants,id)){
+      delete variants[id];
+      variantsChanged=true;
+    }
+  }
+  if(variantsChanged && demoRowsDeleted){
+    try{await saveProductVariants();}
+    catch(error){console.error("Legacy demo variant metadata cleanup failed:",error);}
+  }
   renderProducts();
 };
 
