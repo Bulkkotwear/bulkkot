@@ -1636,7 +1636,9 @@
             .map(item => ({...item, slug: slugify(item.slug || item.id || item.name), name: String(item.name || item.slug || item.id || "CATEGORY").trim()}))
             .filter(item => item.slug)
             .sort((a,b) => Number(a.position || 0) - Number(b.position || 0));
-          const products = Array.isArray(productResult.data) ? productResult.data : [];
+          const legacyDemoIds = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02"]);
+          const products = (Array.isArray(productResult.data) ? productResult.data : [])
+            .filter(item => item && !legacyDemoIds.has(String(item.id)));
           row.innerHTML = categories.map(category => {
             const product = products.find(item => {
               const productCategory = slugify(item.category);
