@@ -492,7 +492,8 @@
 
       function getCardImage(p) {
         const variant = getSelectedVariant(p);
-        return variant?.images?.[0] || getImages(p);
+        const variantImage = Array.isArray(variant?.images) ? variant.images.find(src => typeof src === "string" && src.trim()) : "";
+        return variantImage || getImages(p);
       }
 
       function getStock(p) {
@@ -801,10 +802,9 @@
             return { data: [], error: err };
           });
 
-          const [ , productResult, variantResult ] = await Promise.all([
-            categoriesTask, productsTask, variantsTask
-          ]);
-          renderCategoryFilters();
+          const [productResult, variantResult] = await Promise.all([productsTask, variantsTask]);
+          // Product cards should render as soon as catalogue + colour data arrive; categories can finish independently.
+          categoriesTask.then(() => renderCategoryFilters()).catch(() => {});
 
           const { data, error } = productResult;
           if (error || !Array.isArray(data)) {
