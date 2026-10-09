@@ -37,16 +37,9 @@
     return Math.max(0, Number(product?.stock?.[size] || 0));
   }
 
-  let productVariantsById = {};
-
   function getTotalStock(product) {
-    const variants = productVariantsById[String(product?.id)];
-    if (Array.isArray(variants) && variants.length) {
-      return variants.reduce((total, variant) =>
-        total + ["S", "M", "L", "XL"].reduce((sum, size) => sum + Math.max(0, Number(variant?.stock?.[size] || 0)), 0), 0);
-    }
     const stock = product?.stock || {};
-    return ["S", "M", "L", "XL"].reduce((tot, size) => tot + Math.max(0, Number(stock[size] || 0)), 0);
+    return ["S", "M", "L", "XL"].reduce((tot, s) => tot + Number(stock[s] || 0), 0);
   }
 
   function canonicalCategory(value) {
@@ -64,11 +57,7 @@
   }
 
   function getCategory(product) {
-    const raw = product?.category;
-    if (raw && typeof raw === "object") {
-      return canonicalCategory(raw.slug || raw.id || raw.name || "tees");
-    }
-    return canonicalCategory(raw || product?.category_slug || product?.category_id || product?.category_name || "tees");
+    return canonicalCategory(product?.category || "tees");
   }
 
   function getStockBadge(product, size) {
@@ -79,17 +68,12 @@
   }
 
   function getProductImages(product) {
-    const catalogueImages = Array.isArray(product?.images)
-      ? product.images.filter(src => typeof src === "string" && src.trim())
-      : [];
-    if (catalogueImages.length) return catalogueImages;
-    const variants = productVariantsById[String(product?.id)];
-    const defaultVariantImages = Array.isArray(variants?.[0]?.images)
-      ? variants[0].images.filter(src => typeof src === "string" && src.trim())
-      : [];
-    if (defaultVariantImages.length) return defaultVariantImages;
-    if (typeof product?.image_url === "string" && product.image_url.trim()) return [product.image_url.trim()];
-    if (typeof product?.image === "string" && product.image.trim()) return [product.image.trim()];
+    if (Array.isArray(product?.images) && product.images.length > 0) {
+      return product.images.filter(Boolean);
+    }
+    if (product?.image_url) {
+      return [product.image_url];
+    }
     return ['https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
   }
 
@@ -625,6 +609,49 @@
   /* =========================================================
      CATALOGUE & FALLBACK PRODUCTS
      ========================================================= */
+  const COMING_SOON_TEMPLATES = [
+    {
+      id: "mock-tee-01",
+      name: "ARCHITECTURAL BOXY TEE",
+      category: "tees",
+      price: 2499,
+      description: "280 GSM heavyweight combed luxury cotton. Custom boxy fall tailored with Korean minimalist drop-shoulder proportions.",
+      stock: { S: 10, M: 15, L: 8, XL: 4 },
+      active: true,
+      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"]
+    },
+    {
+      id: "mock-hood-01",
+      name: "STRUCTURED HEAVYWEIGHT HOODIE",
+      category: "hoods",
+      price: 4499,
+      description: "450 GSM diagonal loopback fleece. Double-layered hood without drawstrings for an uncompromising, clean silhouette.",
+      stock: { S: 5, M: 8, L: 10, XL: 2 },
+      active: true,
+      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"]
+    },
+    {
+      id: "mock-sweat-01",
+      name: "MINIMALIST OVERSIZED SWEAT",
+      category: "sweats",
+      price: 3699,
+      description: "380 GSM brushed interior cotton. High-density ribbing that retains volume even after extensive everyday wear.",
+      stock: { S: 6, M: 12, L: 9, XL: 5 },
+      active: true,
+      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"]
+    },
+    {
+      id: "mock-tee-02",
+      name: "SEOUL EDITION GRAPHIC TEE",
+      category: "tees",
+      price: 2699,
+      description: "High-density screen print with subtle Korean Hangul accents. Built with zero-compromise streetwear architecture.",
+      stock: { S: 8, M: 14, L: 12, XL: 3 },
+      active: true,
+      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"]
+    }
+  ];
+
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
     if (!grid) return;
@@ -641,41 +668,25 @@
           }), 8000);
         });
         const request = supabase.from("products")
-          .select("*").order("created_at", { ascending: false });
+          .select("*").eq("active", true).order("created_at", { ascending: false });
         const res = await Promise.race([request, timeout]);
         clearTimeout(timeoutId);
-        if (!res.error && Array.isArray(res.data)) {
-          // Match the dedicated shop: treat legacy rows without an active flag as live,
-          // but never show products explicitly hidden from the catalogue.
-          data = res.data.filter(product => product && product.active !== false);
+        if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
+          data = res.data;
         } else if (res.error) {
-          console.warn("Live catalogue could not be loaded:", res.error.message);
+          console.warn("Using storefront fallback products:", res.error.message);
         }
       }
 
-      liveProducts = data;
-      productVariantsById = {};
+      liveProducts = data.length > 0 ? data : COMING_SOON_TEMPLATES;
 
       liveProducts.forEach(p => {
-        selectedSizes[p.id] = ["S", "M", "L", "XL"].find(size => getStock(p, size) > 0) || "M";
+        selectedSizes[p.id] = ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
       });
 
-      // Render real products immediately; variant metadata updates stock badges as soon as it arrives.
       renderProducts(getFilteredProducts());
-      if (supabase) {
-        supabase.from("site_content").select("content_value").eq("content_key", "product_variants").limit(1)
-          .then(({ data: rows, error }) => {
-            if (error) throw error;
-            const raw = rows?.[0]?.content_value;
-            const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-            productVariantsById = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-            renderProducts(getFilteredProducts());
-          })
-          .catch(error => console.warn("Variant stock metadata unavailable for homepage badges.", error));
-      }
     } catch (err) {
-      console.warn("Homepage catalogue failed to load.", err);
-      liveProducts = [];
+      liveProducts = COMING_SOON_TEMPLATES;
       renderProducts(getFilteredProducts());
     }
 
@@ -714,14 +725,12 @@
     const typedSearch = String(searchInput?.value || activeSearch || "").trim();
     const selectedCategory = document.querySelector("[data-shop-category].is-active")?.dataset.shopCategory || activeCategory;
     const showingResults = Boolean(typedSearch) || selectedCategory !== "all";
-    if (heading) heading.textContent = showingResults ? "SEARCH RESULTS" : "LATEST RELEASES";
+    if (heading) {
+      heading.textContent = showingResults ? "SEARCH RESULTS" : "LATEST RELEASES";
+    }
 
     if (!items.length) {
-      const emptyTitle = liveProducts.length ? "NO PRODUCTS FOUND" : "NO LIVE PRODUCTS YET";
-      const emptyCopy = liveProducts.length
-        ? "No garments match your current filter."
-        : "New silhouettes will appear here as soon as they are published.";
-      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1;text-align:center;padding:40px 20px;color:#888;"><strong style="display:block;color:#fff;font-size:14px;margin-bottom:8px;">' + emptyTitle + '</strong>' + emptyCopy + '</p>';
+      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;"><strong style="display:block;color:#fff;font-size:14px;margin-bottom:8px;">NO PRODUCTS FOUND</strong>No garments found matching your filter.</p>';
       return;
     }
 
@@ -729,27 +738,34 @@
       const cat = getCategory(p);
       const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
       const totalStock = getTotalStock(p);
+      const curSize = selectedSizes[p.id] || "M";
+      const badge = getStockBadge(p, curSize);
       const images = getProductImages(p);
       const coverImage = images[0];
-      const productUrl = "product.html?id=" + encodeURIComponent(String(p.id));
 
-      return `
-        <article class="product-card" data-product-card data-category="${escapeHTML(cat)}">
-          <a href="${productUrl}" class="product-card__thumb" style="display:block;text-decoration:none;">
+      const sizePills = ["S", "M", "L", "XL"].map(s => {
+        const qty = getStock(p, s);
+        const sel = curSize === s;
+        return `<button type="button" class="product-size-btn ${sel ? 'is-selected' : ''} ${qty <= 0 ? 'is-disabled' : ''}" data-action="size" data-id="${p.id}" data-size="${s}">${s}</button>`;
+      }).join('');
+
+     return `
+        <article class="product-card" data-product-card data-category="${cat}">
+          <a href="product.html?id=${p.id}" class="product-card__thumb" style="display:block; text-decoration:none;">
             <img src="${escapeHTML(coverImage)}" alt="${escapeHTML(p.name)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'">
             <span class="product-status">${totalStock <= 0 ? 'SOLD OUT' : 'DROP 001'}</span>
           </a>
           <div class="product-information">
-            <a href="${productUrl}" class="product-information__header" style="display:flex;text-decoration:none;color:inherit;">
+            <a href="product.html?id=${p.id}" class="product-information__header" style="display:flex; text-decoration:none; color:inherit;">
               <div>
                 <h3>${escapeHTML(p.name)}</h3>
                 <p class="product-category">${catKorean}</p>
               </div>
               <span class="product-price">${formatPrice(p.price)}</span>
             </a>
-            <a href="${productUrl}" class="button button--primary product-add-button" style="display:block;text-align:center;text-decoration:none;">
-              SHOP NOW →
-            </a>
+            <button type="button" class="button button--primary product-add-button" data-action="add" data-id="${p.id}" ${badge.disabled ? 'disabled' : ''}>
+              ${badge.disabled ? 'SOLD OUT' : 'ADD TO BAG'}
+            </button>
           </div>
         </article>
       `;
