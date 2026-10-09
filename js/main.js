@@ -442,9 +442,10 @@
   async function loadCMSContent() {
     if (!supabase) return;
     try {
+      // Read available columns without assuming both legacy and current key/value schemas exist.
       const { data, error } = await supabase
         .from("site_content")
-        .select("key, value, content_key, content_value");
+        .select("*");
 
       const bar = document.querySelector('.announcement-bar');
       const track = document.querySelector('.announcement-track');
