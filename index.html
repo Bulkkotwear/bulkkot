@@ -1538,5 +1538,90 @@
       })();
   </script>
 
+
+  <!-- BULKKOT_WAITLIST_HANDLER -->
+  <script>
+    (function () {
+      'use strict';
+
+      const form = document.querySelector('[data-waitlist-form]');
+      if (!form) return;
+
+      const emailInput = form.querySelector('input[name="email"]');
+      const message = form.querySelector('[data-waitlist-message]');
+      const submitButton = form.querySelector('button[type="submit"]');
+
+      function showMessage(text, success) {
+        if (!message) return;
+        message.textContent = text;
+        message.style.color = success ? '#31c48d' : '#ff7777';
+      }
+
+      function getSupabaseClient() {
+        if (window.bulkkotSupabase) return window.bulkkotSupabase;
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          window.bulkkotSupabase = window.supabase.createClient(
+            'https://pgubjluqgqvrybvehzeh.supabase.co',
+            'sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP'
+          );
+          return window.bulkkotSupabase;
+        }
+        return null;
+      }
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const email = String(emailInput?.value || '').trim().toLowerCase();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showMessage('Please enter a valid email address.', false);
+          emailInput?.focus();
+          return;
+        }
+
+        const client = getSupabaseClient();
+        if (!client) {
+          showMessage('Connection is unavailable right now. Please try again.', false);
+          return;
+        }
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.dataset.originalText = submitButton.textContent;
+          submitButton.textContent = 'JOINING...';
+        }
+        showMessage('', false);
+
+        try {
+          const { error } = await client
+            .from('newsletter')
+            .insert([{ email: email, source: 'homepage_waitlist' }]);
+
+          if (error) {
+            const details = String(error.message || '').toLowerCase();
+            if (error.code === '23505' || details.includes('duplicate') || details.includes('already exists')) {
+              showMessage("You're already on the waitlist — we'll be in touch!", true);
+            } else {
+              console.error('BULKKOT waitlist submission failed:', error);
+              showMessage('Could not join the waitlist right now. Please try again later.', false);
+            }
+            return;
+          }
+
+          showMessage("You're on the list. We'll notify you before Drop 001 launches.", true);
+          form.reset();
+        } catch (error) {
+          console.error('BULKKOT waitlist submission failed:', error);
+          showMessage('Could not join the waitlist right now. Please try again later.', false);
+        } finally {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = submitButton.dataset.originalText || 'JOIN';
+          }
+        }
+      });
+    })();
+  </script>
+
 </body>
 </html>
