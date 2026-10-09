@@ -2569,8 +2569,10 @@ window.addEventListener("error",e=>console.error("Admin error",e.error||e.messag
 window.addEventListener("unhandledrejection",e=>console.error("Admin promise",e.reason));
 
 async function initialLoad(){
-  await Promise.allSettled([loadProducts(),loadCategories(),loadOrders(),loadCustomers(),loadCoupons(),loadWaitlist(),loadCMS(),loadSettings()]);
+  // Load only the data needed for the first screen; defer secondary admin sections so login feels responsive.
+  await Promise.allSettled([loadProducts(),loadCategories(),loadOrders(),loadSettings()]);
   await loadDashboard();
+  Promise.allSettled([loadCustomers(),loadCoupons(),loadWaitlist(),loadCMS()]);
   let savedPage="dashboard";
   try{const candidate=sessionStorage.getItem("bulkKkotAdminPage");if(pageTitles[candidate])savedPage=candidate;}catch(e){}
   if(savedPage!=="dashboard")navigate(savedPage);
@@ -3071,7 +3073,7 @@ openProductModal=function(product=null){
   '<div class="field"><label>CATEGORY</label>'+categorySelectHTML(p)+'</div>'+ 
   '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'"></div>'+ 
   '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription">'+esc(getValue(p,"description"))+'</textarea></div>'+ 
-  '<div class="field full"><label>MAIN PRODUCT IMAGE URLS — one per line</label><textarea id="productImages" style="min-height:80px">'+esc(imgs.join("\n"))+'</textarea></div>'+ 
+  '<div class="field full"><label>MAIN PRODUCT IMAGE URLS (optional — first colour image is used automatically) — one per line</label><textarea id="productImages" style="min-height:80px">'+esc(imgs.join("\n"))+'</textarea></div>'+ 
   productImageFileHTML(imgs)+variantEditorHTML(vars)+
   '<div class="field"><label>BASE SIZE S STOCK</label><input id="stockS" type="number" min="0" value="'+s.S+'"></div>'+ 
   '<div class="field"><label>BASE SIZE M STOCK</label><input id="stockM" type="number" min="0" value="'+s.M+'"></div>'+ 
