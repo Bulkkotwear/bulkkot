@@ -1194,8 +1194,13 @@
         }
 
         try {
-          const { data, error } = await supabaseClient.from("products").select("*").eq("id", productId).maybeSingle();
-          
+          // Fetch the product and variant settings concurrently; neither query
+          // depends on the other, so avoid serial network latency on every PDP.
+          const productTask = supabaseClient.from("products").select("*").eq("id", productId).maybeSingle();
+          const variantsTask = supabaseClient.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1);
+          const [productResult, variantsResult] = await Promise.all([productTask, variantsTask]);
+          const { data, error } = productResult;
+
           if (error || !data || data.active === false) {
             showNotFound("This piece could not be found.");
             return;
@@ -1203,7 +1208,7 @@
 
           product = data;
           try {
-            const { data: contentRows, error: variantsError } = await supabaseClient.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1);
+            const { data: contentRows, error: variantsError } = variantsResult;
             if (!variantsError && contentRows?.length) {
               const raw = contentRows[0].content_value;
               const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
