@@ -59,6 +59,9 @@
       color: #fff;
     }
 
+    .circle-items-row.is-loading { visibility: hidden; }
+    .circle-items-row.is-ready { visibility: visible; }
+
     .circle-items-row {
       display: flex;
       justify-content: center;
@@ -555,7 +558,7 @@
           <h2>THE SILHOUETTES</h2>
         </div>
 
-        <div class="circle-items-row">
+        <div class="circle-items-row is-loading">
           <a href="shop.html?category=tees" class="collection-circle-card">
             <div class="circle-frame">
               <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="Oversized Tees">
@@ -1207,7 +1210,7 @@
 
   <!-- Core Scripts -->
   <script src="js/cart.js" defer></script>
-  <script src="js/main.js?v=20261009-category-persistence-fix" defer></script>
+  <script src="js/main.js?v=20261009-no-content-flash" defer></script>
 
   <!-- BULKKOT AUTH/PROFILE BRIDGE -->
   <script>
@@ -1481,10 +1484,18 @@
       }
     })();
 
-      /* Storefront category circles are managed from Admin > Categories. */
+      /* Render admin-managed categories before revealing the category row. */
       (async function syncAdminCategories() {
         const row = document.querySelector(".circle-items-row");
-        if (!row || !window.supabase || typeof window.supabase.createClient !== "function") return;
+        if (!row) return;
+        const revealRow = () => {
+          row.classList.remove("is-loading");
+          row.classList.add("is-ready");
+        };
+        if (!window.supabase || typeof window.supabase.createClient !== "function") {
+          revealRow();
+          return;
+        }
         try {
           const client = window.bulkkotSupabase || window.supabase.createClient(
             "https://pgubjluqgqvrybvehzeh.supabase.co",
@@ -1493,16 +1504,21 @@
           window.bulkkotSupabase = client;
           const { data, error } = await client.from("site_content")
             .select("content_value").eq("content_key", "categories").limit(1);
-          if (error || !data?.length || !data[0]?.content_value) return;
+          if (error || !data?.length || data[0]?.content_value == null) {
+            revealRow();
+            return;
+          }
           const parsed = typeof data[0].content_value === "string"
             ? JSON.parse(data[0].content_value) : data[0].content_value;
-          if (!Array.isArray(parsed) || !parsed.length) return;
+          if (!Array.isArray(parsed)) {
+            revealRow();
+            return;
+          }
           const safe = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
             "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
           })[ch]);
           const visible = parsed.filter(c => c && c.enabled !== false && String(c.slug || c.id || "").trim())
             .sort((a,b) => Number(a.position || 0) - Number(b.position || 0));
-          if (!visible.length) return;
           row.innerHTML = visible.map(c => {
             const slug = String(c.slug || c.id).trim().toLowerCase();
             const name = String(c.name || slug).trim().toUpperCase();
@@ -1514,8 +1530,10 @@
               (korean ? '<span class="circle-korean">' + safe(korean) + '</span>' : '') +
               '<span class="circle-action-btn">VIEW ALL →</span></div></a>';
           }).join("");
+          revealRow();
         } catch (error) {
-          console.warn("Using default homepage categories.", error);
+          console.warn("Could not load admin categories; showing existing category markup.", error);
+          revealRow();
         }
       })();
   </script>
