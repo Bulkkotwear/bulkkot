@@ -797,7 +797,7 @@
         return `₹${Number(value || 0).toLocaleString("en-IN")}`;
       }
 
-      function getEffectiveProduct() { return selectedVariant ? { ...product, images: (Array.isArray(selectedVariant.images) && selectedVariant.images.length) ? selectedVariant.images : (Array.isArray(product.images) && product.images.length ? product.images : selectedVariant.images), stock: selectedVariant.stock } : product; }
+      function getEffectiveProduct() { const variantImages = Array.isArray(selectedVariant?.images) ? selectedVariant.images.filter(src => typeof src === "string" && src.trim()) : []; const baseImages = Array.isArray(product?.images) ? product.images.filter(src => typeof src === "string" && src.trim()) : []; const legacyImage = typeof product?.image_url === "string" && product.image_url.trim() ? [product.image_url.trim()] : []; return selectedVariant ? { ...product, images: variantImages.length ? variantImages : (baseImages.length ? baseImages : legacyImage), stock: selectedVariant.stock && typeof selectedVariant.stock === "object" ? selectedVariant.stock : (product.stock || {}) } : product; }
 
       function getImages(item) {
         if (Array.isArray(item?.images)) {
