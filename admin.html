@@ -2018,7 +2018,7 @@ function renderProducts(){
   const q=($("productSearch")?.value||"").toLowerCase().trim(), cat=$("productCategoryFilter")?.value||"", sf=$("productStockFilter")?.value||"";
   const list=state.products.filter(p=>{
     const hay=(productName(p)+" "+productCategory(p)+" "+getValue(p,"sku")).toLowerCase(), stock=totalStock(p);
-    return (!q||hay.includes(q))&&(!cat||productCategory(p)===cat)&&(!sf||(sf==="in"&&stock>0)||(sf==="low"&&stock>0&&stock<=5)||(sf==="out"&&stock<=0));
+    return (!q||hay.includes(q))&&(!cat||adminCategoryKey(productCategory(p))===adminCategoryKey(cat))&&(!sf||(sf==="in"&&stock>0)||(sf==="low"&&stock>0&&stock<=5)||(sf==="out"&&stock<=0));
   });
   if(!list.length){root.innerHTML=emptyHTML("No products match the current filters.");return;}
   root.innerHTML=list.map(p=>{
@@ -2036,12 +2036,18 @@ function renderProducts(){
       '<button class="btn btn-small '+(active?"btn-danger":"btn-success")+'" onclick=\'toggleProductActive("'+esc(p.id)+'")\'>'+(active?"Hide":"Publish")+'</button></div></div></article>';
   }).join("");
 }
+function adminCategoryKey(value){
+  const slug=String(value||"").trim().toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  const aliases={"tee":"tees","t-shirt":"tees","t-shirts":"tees","tshirt":"tees","hoodie":"hoods","hoodies":"hoods","hood":"hoods","sweat":"sweats","sweatshirt":"sweats","sweatshirts":"sweats","sweatpant":"sweatpants","sweat-pant":"sweatpants","sweat-pants":"sweatpants"};
+  return aliases[slug]||slug;
+}
 function categorySelectHTML(p){
   const current=productCategory(p);
   const cats=[...state.categories];
-  if(current && !cats.some(c=>c.slug===current)) cats.push(normalizeCategory({id:current,slug:current,name:current}));
+  const matched=cats.find(c=>adminCategoryKey(c.slug)===adminCategoryKey(current));
+  if(current && !matched) cats.push(normalizeCategory({id:current,slug:current,name:current}));
   if(!cats.length) return '<input id="productCategory" value="'+esc(current)+'" placeholder="category slug">';
-  return '<select id="productCategory">'+cats.map(c=>'<option value="'+esc(c.slug)+'" '+(c.slug===current?'selected':'')+'>'+esc(c.name)+' · '+esc(c.slug)+'</option>').join('')+'</select>';
+  return '<select id="productCategory">'+cats.map(c=>'<option value="'+esc(c.slug)+'" '+(adminCategoryKey(c.slug)===adminCategoryKey(current)?'selected':'')+'>'+esc(c.name)+' · '+esc(c.slug)+'</option>').join('')+'</select>';
 }
 function findProduct(id){return state.products.find(p=>String(p.id)===String(id));}
 function openProductModalById(id){openProductModal(findProduct(id)||null);}
