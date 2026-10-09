@@ -138,7 +138,12 @@
     }
 
     .btn:hover{background:#202020}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn:focus{outline:none}
+    .btn:focus-visible{outline:2px solid #777;outline-offset:2px}
+    .btn:active:not(:disabled){transform:translateY(1px)}
+    .btn:disabled{opacity:.58;cursor:wait;transform:none}
+    .btn{transition:background .15s ease,border-color .15s ease,opacity .15s ease,transform .12s ease}
+    button{-webkit-tap-highlight-color:transparent}
     .btn-primary{
       background:var(--accent);
       border-color:var(--accent);
@@ -1535,7 +1540,7 @@
           <div class="card" style="margin-top:15px">
             <div class="section-title">
               <h2>Recent media</h2>
-              <button class="btn btn-small" onclick="loadMedia()">Refresh</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-small" onclick="toggleHiddenMedia()">Show hidden</button><button class="btn btn-small" onclick="loadMedia()">Refresh</button></div>
             </div>
             <div id="mediaList"></div>
           </div>
@@ -1774,7 +1779,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 const state = {
   user:null, products:[], orders:[], customers:[], coupons:[], waitlist:[],
-  cms:{}, settings:null, media:[], categories:[], currentPage:"dashboard",
+  cms:{}, settings:null, media:[], categories:[], currentPage:"dashboard", mediaShowHidden:false,
   editingProduct:null, editingCoupon:null, editingCategory:null, loadingPages:Object.create(null)
 };
 
@@ -1882,15 +1887,16 @@ db.auth.onAuthStateChange(async(_,session)=>{
   }
 });
 
-const pageTitles={dashboard:"Dashboard",products:"Products",categories:"Categories",orders:"Orders","slider-manager":"Slider Manager","size-guides":"Size Guides",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health"};
+const pageTitles={dashboard:"Dashboard",products:"Products",categories:"Categories",orders:"Orders","slider-manager":"Slider Manager","size-guides":"Size Guides",inventory:"Inventory",customers:"Customers",coupons:"Coupons",waitlist:"Waitlist",cms:"Storefront CMS",media:"Media",settings:"Settings",health:"Store Health",sales:"Sales Analytics"};
 function navigate(page){
   if(!pageTitles[page])return; state.currentPage=page;
+  try{sessionStorage.setItem("bulkKkotAdminPage",page);}catch(e){}
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));
   $("page-"+page)?.classList.add("active");
   document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add("active");
   $("topTitle").textContent=pageTitles[page]; $("sidebar").classList.remove("open");
-  const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"slider-manager":loadEditorialSlides,"size-guides":loadSizeGuides,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck};
+  const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"slider-manager":loadEditorialSlides,"size-guides":loadSizeGuides,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck,sales:loadSalesAnalytics};
   // Ignore rapid repeat navigation to a page whose data request is already running.
   if(!state.loadingPages[page] && loaders[page]){
     state.loadingPages[page]=true;
@@ -2408,14 +2414,20 @@ async function listMediaFolder(prefix="",depth=0){
   }
   return out;
 }
+const HIDDEN_MEDIA_KEY="bulkKkotHiddenAdminMedia";
+function getHiddenMediaPaths(){try{const x=JSON.parse(localStorage.getItem(HIDDEN_MEDIA_KEY)||"[]");return new Set(Array.isArray(x)?x:[]);}catch(e){return new Set();}}
+function toggleHiddenMedia(){state.mediaShowHidden=!state.mediaShowHidden;const b=document.querySelector('#page-media button[onclick="toggleHiddenMedia()"]');if(b)b.textContent=state.mediaShowHidden?"Hide hidden":"Show hidden";loadMedia();}
+function hideMediaFromAdmin(path){if(!confirm("Hide this file from the Admin Media list? The stored file and any storefront use will remain untouched."))return;const hidden=getHiddenMediaPaths();hidden.add(path);try{localStorage.setItem(HIDDEN_MEDIA_KEY,JSON.stringify([...hidden]));}catch(e){showToast("Could not save hidden-media preference in this browser.","error");return;}showToast("Hidden from Admin only. Website file was not deleted.","success");loadMedia();}
 async function loadMedia(){
   const root=$("mediaList");if(root)root.innerHTML=loadingHTML();
   try{
     state.media=await listMediaFolder();
-    root.innerHTML=state.media.length?'<div class="table-wrap"><table><thead><tr><th>File</th><th>Created</th><th>Size</th><th></th></tr></thead><tbody>'+
-      state.media.map(f=>{const u=db.storage.from(STORAGE_BUCKET).getPublicUrl(f.path).data.publicUrl;return '<tr><td><strong>'+esc(f.path)+'</strong></td><td>'+dateTime(f.created_at)+'</td><td>'+(f.metadata?.size?Math.round(f.metadata.size/1024)+" KB":"—")+'</td><td><button class="btn btn-small" onclick=\'copyText("'+esc(u)+'")\'>Copy URL</button></td></tr>';}).join("")+
-      '</tbody></table></div>':emptyHTML("No media found.");
-    $("mediaHealth").innerHTML='<span class="health-dot ok"></span><div><strong>Storage bucket available</strong><span>'+state.media.length+' files indexed</span></div>';
+    const hidden=getHiddenMediaPaths();
+    const visible=state.media.filter(f=>state.mediaShowHidden||!hidden.has(f.path));
+    root.innerHTML=visible.length?'<div class="table-wrap"><table><thead><tr><th>File</th><th>Created</th><th>Size</th><th>Actions</th></tr></thead><tbody>'+
+      visible.map(f=>{const u=db.storage.from(STORAGE_BUCKET).getPublicUrl(f.path).data.publicUrl;const isHidden=hidden.has(f.path);return '<tr><td><strong>'+esc(f.path)+'</strong>'+(isHidden?'<div class="muted">Hidden from normal list</div>':'')+'</td><td>'+dateTime(f.created_at)+'</td><td>'+(f.metadata?.size?Math.round(f.metadata.size/1024)+" KB":"—")+'</td><td style="white-space:nowrap"><button class="btn btn-small" onclick=\'copyText("'+esc(u)+'")\'>Copy URL</button> <button class="btn btn-small" onclick=\'hideMediaFromAdmin("'+esc(f.path)+'")\'>'+(isHidden?"Hide again":"Hide")+'</button></td></tr>';}).join("")+
+      '</tbody></table></div>':emptyHTML(state.mediaShowHidden?"No media found.":"No visible media. Use Show hidden to review hidden files.");
+    $("mediaHealth").innerHTML='<span class="health-dot ok"></span><div><strong>Storage bucket available</strong><span>'+state.media.length+' stored files · '+(state.media.length-visible.length)+' hidden in Admin</span></div>';
   }catch(e){root.innerHTML='<div style="padding:20px;color:#ff9298">Storage unavailable.<div class="muted" style="margin-top:6px">'+esc(normalizeError(e))+'</div></div>';$("mediaHealth").innerHTML='<span class="health-dot bad"></span><div><strong>Storage unavailable</strong><span>'+esc(normalizeError(e))+'</span></div>';}
 }
 async function uploadMedia(){
@@ -2473,6 +2485,9 @@ window.addEventListener("unhandledrejection",e=>console.error("Admin promise",e.
 async function initialLoad(){
   await Promise.allSettled([loadProducts(),loadCategories(),loadOrders(),loadCustomers(),loadCoupons(),loadWaitlist(),loadCMS(),loadSettings()]);
   await loadDashboard();
+  let savedPage="dashboard";
+  try{const candidate=sessionStorage.getItem("bulkKkotAdminPage");if(pageTitles[candidate])savedPage=candidate;}catch(e){}
+  if(savedPage!=="dashboard")navigate(savedPage);
 }
 $("healthAdminEmail").textContent=ADMIN_EMAIL;$("healthSupabaseUrl").textContent=SUPABASE_URL;
 
@@ -2490,7 +2505,7 @@ $("healthAdminEmail").textContent=ADMIN_EMAIL;$("healthSupabaseUrl").textContent
 window.navigate=navigate;window.loadDashboard=loadDashboard;window.loadProducts=loadProducts;window.renderProducts=renderProducts;window.openProductModal=openProductModal;window.openProductModalById=openProductModalById;window.saveProduct=saveProduct;window.toggleProductActive=toggleProductActive;
 window.loadOrders=loadOrders;window.renderOrders=renderOrders;window.openOrderModal=openOrderModal;window.openOrderModalById=openOrderModalById;window.saveOrder=saveOrder;
 window.renderInventory=renderInventory;window.loadCustomers=loadCustomers;window.renderCustomers=renderCustomers;window.loadCoupons=loadCoupons;window.renderCoupons=renderCoupons;window.openCouponModal=openCouponModal;window.openCouponModalById=openCouponModalById;window.saveCoupon=saveCoupon;
-window.loadWaitlist=loadWaitlist;window.renderWaitlist=renderWaitlist;window.loadCMS=loadCMS;window.saveCMS=saveCMS;window.loadMedia=loadMedia;window.uploadMedia=uploadMedia;window.copyText=copyText;window.loadSettings=loadSettings;window.saveSettings=saveSettings;window.runHealthCheck=runHealthCheck;window.closeModal=closeModal;
+window.loadWaitlist=loadWaitlist;window.renderWaitlist=renderWaitlist;window.loadCMS=loadCMS;window.saveCMS=saveCMS;window.loadMedia=loadMedia;window.uploadMedia=uploadMedia;window.toggleHiddenMedia=toggleHiddenMedia;window.hideMediaFromAdmin=hideMediaFromAdmin;window.copyText=copyText;window.loadSettings=loadSettings;window.saveSettings=saveSettings;window.runHealthCheck=runHealthCheck;window.closeModal=closeModal;
 
 /* ===== BULKKOT ADMIN FIX PACK =====
    Preserves the existing UI/theme and only adds/fixes requested operations.
@@ -3094,9 +3109,7 @@ function renderSalesAnalytics(){
   $("salesTable").innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Period</th><th>Sales</th><th>Pieces</th><th>Orders</th><th>Avg order</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><strong>'+esc(salesLabel(r.key,period))+'</strong></td><td>'+money(r.amount)+'</td><td>'+r.pieces.toLocaleString("en-IN")+' PCS</td><td>'+r.orders+'</td><td>'+money(r.orders?r.amount/r.orders:0)+'</td></tr>').join("")+'</tbody></table></div>':emptyHTML("No sales data available.");
 }
 
-/* Sales nav works with the existing navigation without disturbing other pages. */
-const salesNav=document.querySelector('.nav-btn[data-page="sales"]');
-if(salesNav)salesNav.addEventListener("click",()=>{document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".nav-btn").forEach(x=>x.classList.remove("active"));$("page-sales").classList.add("active");salesNav.classList.add("active");$("topTitle").textContent="Sales Analytics";$('sidebar').classList.remove("open");loadSalesAnalytics();});
+/* Sales Analytics uses the shared navigation and page persistence. */
 
 /* Category-specific size guides stored in site_content.size_guides. */
 let sizeGuidesStore = {};
