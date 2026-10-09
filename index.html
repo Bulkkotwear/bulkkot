@@ -1623,5 +1623,42 @@
     })();
   </script>
 
+  <script>
+    // Admin-managed editorial carousel; built-in slides remain the fallback.
+    (function () {
+      const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
+      const escHtml = value => String(value == null ? "" : value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+      const safeHref = value => { const url=String(value||"").trim(); return !url||/^javascript:/i.test(url)||/^data:/i.test(url) ? "#" : url; };
+      function setupCarousel(root, slides) {
+        const track=root.querySelector("[data-carousel-track]"), indicators=root.querySelector(".carousel-indicators");
+        if(!track||!indicators)return;
+        track.innerHTML=slides.map((s,n)=>'<article class="editorial-slide'+(n===0?' is-active':'')+'" data-slide="'+n+'"><img src="'+escHtml(s.image)+'" alt="'+escHtml(s.alt||"BULKKOT editorial slide")+'" loading="'+(n===0?'eager':'lazy')+'"><div class="editorial-slide__overlay"></div><div class="editorial-slide__content">'+
+          (s.badge?'<span class="slide-badge">'+escHtml(s.badge)+'</span>':'')+(s.korean?'<p class="slide-korean">'+escHtml(s.korean)+'</p>':'')+(s.heading?'<h2>'+escHtml(s.heading)+'</h2>':'')+(s.subtitle?'<span class="slide-sub">'+escHtml(s.subtitle)+'</span>':'')+(s.description?'<p class="slide-desc">'+escHtml(s.description)+'</p>':'')+(s.buttonText?'<a href="'+escHtml(safeHref(s.buttonUrl))+'" class="slide-cta">'+escHtml(s.buttonText)+'</a>':'')+'</div></article>').join("");
+        indicators.innerHTML=slides.map((_,n)=>'<button type="button" class="carousel-indicator'+(n===0?' is-active':'')+'" data-slide-indicator="'+n+'" aria-label="Slide '+(n+1)+'"><span class="indicator-bar"></span></button>').join("");
+        let active=0;
+        const show=n=>{active=(n+slides.length)%slides.length;track.querySelectorAll(".editorial-slide").forEach((el,j)=>el.classList.toggle("is-active",j===active));indicators.querySelectorAll("[data-slide-indicator]").forEach((el,j)=>{el.classList.toggle("is-active",j===active);el.setAttribute("aria-current",j===active?"true":"false");});};
+        root.querySelector("[data-carousel-prev]")?.addEventListener("click",()=>show(active-1));
+        root.querySelector("[data-carousel-next]")?.addEventListener("click",()=>show(active+1));
+        indicators.addEventListener("click",event=>{const button=event.target.closest("[data-slide-indicator]");if(button)show(Number(button.dataset.slideIndicator));});
+        if(slides.length<2){root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(b=>b.hidden=true);indicators.hidden=true;}
+        else window.setInterval(()=>{if(!document.hidden)show(active+1);},6500);
+      }
+      async function loadAdminSlides(){
+        const root=document.getElementById("editorialCarousel");if(!root||!window.supabase||typeof window.supabase.createClient!=="function")return;
+        try{
+          const client=window.bulkkotSupabase||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);window.bulkkotSupabase=client;
+          const result=await client.from("site_content").select("content_value").eq("content_key","editorial_slides").limit(1);
+          if(result.error||!result.data||!result.data.length)return;
+          const parsed=JSON.parse(result.data[0].content_value||"[]");if(!Array.isArray(parsed))return;
+          const enabled=parsed.filter(s=>s&&s.enabled!==false&&String(s.image||"").trim());
+          if(!enabled.length){root.querySelector("[data-carousel-track]").innerHTML="";root.querySelector(".carousel-indicators").innerHTML="";root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(b=>b.hidden=true);return;}
+          setupCarousel(root,enabled);
+        }catch(error){console.warn("Editorial slider settings unavailable; showing built-in slides.",error);}
+      }
+      if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadAdminSlides,{once:true});else loadAdminSlides();
+    })();
+  </script>
+
 </body>
 </html>
