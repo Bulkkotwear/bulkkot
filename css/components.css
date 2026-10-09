@@ -3504,19 +3504,17 @@ button, input, select {
   background: #000 !important;
 }
 
-/* Subtle Cinematic Gradient - lets the model blend naturally */
+/* Lighter editorial gradient - keeps the model clearly visible */
+.editorial-slide img {
+  filter: brightness(1.08) contrast(1.02) !important;
+}
+
 .editorial-slide__overlay {
-  background: radial-gradient(
-    circle at 75% 45%,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.75) 55%,
-    rgba(0, 0, 0, 0.95) 100%
-  ),
-  linear-gradient(
+  background: linear-gradient(
     90deg,
-    rgba(0, 0, 0, 0.96) 0%,
-    rgba(0, 0, 0, 0.8) 42%,
-    rgba(0, 0, 0, 0.25) 100%
+    rgba(0, 0, 0, 0.48) 0%,
+    rgba(0, 0, 0, 0.20) 48%,
+    rgba(0, 0, 0, 0.12) 100%
   ) !important;
 }
 
