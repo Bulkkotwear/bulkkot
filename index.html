@@ -1492,8 +1492,10 @@
           row.classList.remove("is-loading");
           row.classList.add("is-ready");
         };
+        // Show the built-in category cards immediately; replace them with the
+        // admin-managed set when the network response arrives.
+        revealRow();
         if (!window.supabase || typeof window.supabase.createClient !== "function") {
-          revealRow();
           return;
         }
         try {
