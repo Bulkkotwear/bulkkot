@@ -616,49 +616,6 @@
   /* =========================================================
      CATALOGUE & FALLBACK PRODUCTS
      ========================================================= */
-  const COMING_SOON_TEMPLATES = [
-    {
-      id: "mock-tee-01",
-      name: "ARCHITECTURAL BOXY TEE",
-      category: "tees",
-      price: 2499,
-      description: "280 GSM heavyweight combed luxury cotton. Custom boxy fall tailored with Korean minimalist drop-shoulder proportions.",
-      stock: { S: 10, M: 15, L: 8, XL: 4 },
-      active: true,
-      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png"]
-    },
-    {
-      id: "mock-hood-01",
-      name: "STRUCTURED HEAVYWEIGHT HOODIE",
-      category: "hoods",
-      price: 4499,
-      description: "450 GSM diagonal loopback fleece. Double-layered hood without drawstrings for an uncompromising, clean silhouette.",
-      stock: { S: 5, M: 8, L: 10, XL: 2 },
-      active: true,
-      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png"]
-    },
-    {
-      id: "mock-sweat-01",
-      name: "MINIMALIST OVERSIZED SWEAT",
-      category: "sweats",
-      price: 3699,
-      description: "380 GSM brushed interior cotton. High-density ribbing that retains volume even after extensive everyday wear.",
-      stock: { S: 6, M: 12, L: 9, XL: 5 },
-      active: true,
-      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"]
-    },
-    {
-      id: "mock-tee-02",
-      name: "SEOUL EDITION GRAPHIC TEE",
-      category: "tees",
-      price: 2699,
-      description: "High-density screen print with subtle Korean Hangul accents. Built with zero-compromise streetwear architecture.",
-      stock: { S: 8, M: 14, L: 12, XL: 3 },
-      active: true,
-      images: ["https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png"]
-    }
-  ];
-
   async function initCatalog() {
     const grid = document.getElementById("products-grid");
     if (!grid) return;
