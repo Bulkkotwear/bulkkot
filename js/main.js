@@ -154,24 +154,30 @@
   async function initWelcomePopup() {
     const popup = document.getElementById('welcomePopupModal');
     const closeBtn = document.getElementById('welcomePopupClose');
+    const signInBtn = document.getElementById('welcomeEmailBtn');
 
     if (!popup || !supabase) return;
 
-    // SIRF GUEST (logged-out) USERS KO DIKHEGA
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) return; 
-
-    const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
-    if (!hasSeen) {
-      setTimeout(() => {
-        popup.classList.add('is-open');
-        popup.setAttribute('aria-hidden', 'false');
-      }, 1500);
+    // Show only to logged-out visitors. A previous dismissal is remembered
+    // in this browser, so the welcome modal won't keep interrupting visits.
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) console.warn('Welcome popup session check:', error.message);
+      if (data?.session) return;
+    } catch (error) {
+      console.warn('Welcome popup could not check session:', error);
+      return;
     }
 
+    let dismissed = false;
+    const hasSeen = localStorage.getItem('bulkkot_welcome_seen');
+
     function dismissPopup() {
+      if (dismissed) return;
+      dismissed = true;
       popup.classList.remove('is-open');
       popup.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
       localStorage.setItem('bulkkot_welcome_seen', 'true');
     }
 
@@ -179,6 +185,28 @@
     popup.addEventListener('click', (e) => {
       if (e.target === popup) dismissPopup();
     });
+    signInBtn?.addEventListener('click', () => {
+      localStorage.setItem('bulkkot_welcome_seen', 'true');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && popup.classList.contains('is-open')) {
+        dismissPopup();
+      }
+    });
+
+    if (!hasSeen) {
+      window.setTimeout(() => {
+        // Re-check the session before opening in case the visitor signed in meanwhile.
+        supabase.auth.getSession().then(({ data }) => {
+          if (!data?.session && !dismissed) {
+            popup.classList.add('is-open');
+            popup.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+          }
+        }).catch(() => {});
+      }, 1500);
+    }
   }
 
   /* =========================================================
