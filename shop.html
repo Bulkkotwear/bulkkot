@@ -541,10 +541,13 @@
       }
 
       function applyFilters() {
-        const term = searchTerm.trim().toLowerCase();
+        const term = String(searchInput ? searchInput.value : searchTerm).trim().toLowerCase();
+        searchTerm = term;
         const showingSearchResults = Boolean(term) || activeCategory !== "all";
-        if (productsHeading) {
-          productsHeading.textContent = showingSearchResults ? "SEARCH RESULTS" : "RECENT PRODUCTS";
+        const heading = document.getElementById("productsHeading");
+        if (heading) {
+          heading.textContent = showingSearchResults ? "SEARCH RESULTS" : "RECENT PRODUCTS";
+          heading.setAttribute("data-view", showingSearchResults ? "search-results" : "recent-products");
         }
         
         filteredProducts = products.filter(p => {
@@ -676,6 +679,12 @@
       if (searchInput) {
         searchInput.addEventListener("input", () => {
           searchTerm = searchInput.value || "";
+          const heading = document.getElementById("productsHeading");
+          if (heading) {
+            const isSearching = Boolean(searchTerm.trim()) || activeCategory !== "all";
+            heading.textContent = isSearching ? "SEARCH RESULTS" : "RECENT PRODUCTS";
+            heading.setAttribute("data-view", isSearching ? "search-results" : "recent-products");
+          }
           applyFilters();
         });
       }
