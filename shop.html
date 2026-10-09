@@ -428,12 +428,8 @@
         ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
         : null;
 
-      const FALLBACK_PRODUCTS = [
-        { id: "bk-tee-01", name: "HEAVY ARCHITECTURAL BOXY TEE", category: "tees", korean: "오버사이즈 티셔츠", price: 2499, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" },
-        { id: "bk-hood-01", name: "STRUCTURED LOOPBACK HOODIE", category: "hoods", korean: "헤비웨이트 후드", price: 4499, tag: "LIMITED", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" },
-        { id: "bk-sweat-01", name: "MINIMALIST OVERSIZED SWEATSHIRT", category: "sweats", korean: "미니멀 스웨트", price: 3699, tag: "CORE", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" },
-        { id: "bk-tee-02", name: "SEOUL SILHOUETTE GRAPHIC TEE", category: "tees", korean: "그래픽 티셔츠", price: 2699, tag: "DROP 001", image: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" }
-      ];
+      // Legacy hard-coded demo catalogue entries are not admin-managed products.
+      const DEMO_PRODUCT_IDS = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02"]);
 
       const loadingEl = document.getElementById("shopLoading");
       const errorEl = document.getElementById("shopError");
@@ -813,7 +809,8 @@
             return;
           }
 
-          products = data;
+          // Only show real, admin-managed catalogue rows in the public shop.
+          products = data.filter(item => item && !DEMO_PRODUCT_IDS.has(String(item.id)));
           quickAddSelections.clear();
           quickVariantSelections.clear();
           productVariantsById = {};
