@@ -64,11 +64,22 @@
 
     .circle-items-row {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 40px;
+      justify-content: flex-start;
+      align-items: stretch;
+      gap: 28px;
       margin-top: 10px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 8px 4px 14px;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: #383838 transparent;
     }
+    .circle-items-row::-webkit-scrollbar { height: 4px; }
+    .circle-items-row::-webkit-scrollbar-thumb { background: #383838; border-radius: 999px; }
+    .circle-items-row .collection-circle-card { flex: 0 0 170px; scroll-snap-align: start; }
 
     .collection-circle-card {
       display: flex;
@@ -166,12 +177,17 @@
       }
 
       .circle-items-row {
-        gap: 12px !important;
-        justify-content: space-around;
+        gap: 14px !important;
+        justify-content: flex-start !important;
+        margin-left: -2px;
+        margin-right: -2px;
+        padding: 6px 2px 12px;
       }
 
+      .circle-items-row .collection-circle-card,
       .collection-circle-card {
         width: 105px !important;
+        flex: 0 0 105px !important;
       }
 
       .circle-frame {
@@ -558,39 +574,7 @@
           <h2>THE SILHOUETTES</h2>
         </div>
 
-        <div class="circle-items-row is-loading">
-          <a href="shop.html?category=tees" class="collection-circle-card">
-            <div class="circle-frame">
-              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="Oversized Tees">
-            </div>
-            <div class="circle-meta">
-              <span class="circle-label">TEES</span>
-              <span class="circle-korean">티셔츠</span>
-              <span class="circle-action-btn">VIEW ALL →</span>
-            </div>
-          </a>
-
-          <a href="shop.html?category=hoods" class="collection-circle-card">
-            <div class="circle-frame">
-              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="Oversized Hoods">
-            </div>
-            <div class="circle-meta">
-              <span class="circle-label">HOODIES</span>
-              <span class="circle-korean">헤비 후드</span>
-              <span class="circle-action-btn">VIEW ALL →</span>
-            </div>
-          </a>
-
-          <a href="shop.html?category=sweats" class="collection-circle-card">
-            <div class="circle-frame">
-              <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="Oversized Sweats">
-            </div>
-            <div class="circle-meta">
-              <span class="circle-label">SWEATS</span>
-              <span class="circle-korean">스웨트</span>
-              <span class="circle-action-btn">VIEW ALL →</span>
-            </div>
-          </a>
+        <div class="circle-items-row is-loading" id="homeCategoryCarousel" aria-label="Shop categories"></div>
         </div>
       </div>
     </section>
@@ -1616,6 +1600,67 @@
         }catch(error){console.warn("Editorial slider settings unavailable; showing built-in slides.",error);}
       }
       if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadAdminSlides,{once:true});else loadAdminSlides();
+    })();
+  </script>
+
+
+  <script>
+    (function () {
+      const row = document.getElementById("homeCategoryCarousel");
+      if (!row) return;
+      const fallbackImages = {
+        tees: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",
+        tee: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",
+        hoods: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",
+        hoodies: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",
+        sweats: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"
+      };
+      const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[ch]));
+      const slugify = value => String(value || "").trim().toLowerCase()
+        .replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+      async function renderHomeCategories() {
+        try {
+          if (!window.supabase || typeof window.supabase.createClient !== "function") throw new Error("Supabase unavailable");
+          const client = window.bulkkotSupabase || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          window.bulkkotSupabase = client;
+          const [categoryResult, productResult] = await Promise.all([
+            client.from("site_content").select("content_value").eq("content_key","categories").limit(1),
+            client.from("products").select("id,name,category,images,image_url,image,active").eq("active",true)
+          ]);
+          if (categoryResult.error || !categoryResult.data?.length) throw categoryResult.error || new Error("Categories unavailable");
+          const raw = categoryResult.data[0].content_value;
+          const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (!Array.isArray(parsed)) throw new Error("Invalid categories");
+          const categories = parsed.filter(item => item && item.enabled !== false)
+            .map(item => ({...item, slug: slugify(item.slug || item.id || item.name), name: String(item.name || item.slug || item.id || "CATEGORY").trim()}))
+            .filter(item => item.slug)
+            .sort((a,b) => Number(a.position || 0) - Number(b.position || 0));
+          const products = Array.isArray(productResult.data) ? productResult.data : [];
+          row.innerHTML = categories.map(category => {
+            const product = products.find(item => {
+              const productCategory = slugify(item.category);
+              return productCategory && (productCategory === category.slug || productCategory.includes(category.slug) || category.slug.includes(productCategory));
+            });
+            const productImages = Array.isArray(product?.images) ? product.images : [];
+            const image = category.image || category.image_url || productImages[0] || product?.image_url || product?.image || fallbackImages[category.slug] || fallbackImages.tees;
+            return '<a href="shop.html?category=' + encodeURIComponent(category.slug) + '" class="collection-circle-card">' +
+              '<div class="circle-frame"><img src="' + esc(image) + '" alt="' + esc(category.name) + '" loading="lazy"></div>' +
+              '<div class="circle-meta"><span class="circle-label">' + esc(category.name) + '</span>' +
+              (category.korean ? '<span class="circle-korean">' + esc(category.korean) + '</span>' : '') +
+              '<span class="circle-action-btn">VIEW ALL →</span></div></a>';
+          }).join("");
+          row.classList.remove("is-loading");
+          row.classList.add("is-ready");
+        } catch (error) {
+          console.warn("Home categories could not be loaded dynamically.", error);
+          row.classList.remove("is-loading");
+          row.classList.add("is-ready");
+        }
+      }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderHomeCategories, { once: true });
+      else renderHomeCategories();
     })();
   </script>
 
