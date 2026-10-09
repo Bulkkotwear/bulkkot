@@ -1923,6 +1923,10 @@ async function safeTable(table, order="created_at"){
   try{return await selectAll(table,order);}catch(e){return {data:null,error:e};}
 }
 
+/* Keep slider/size-guide state initialized before auth boot can restore a saved admin page. */
+let editorialSlidesStore=[];
+let sizeGuidesStore = {};
+
 async function verifyAdmin(user){
   return !!user && String(user.email||"").trim().toLowerCase()===ADMIN_EMAIL;
 }
@@ -3356,7 +3360,6 @@ function renderSalesAnalytics(){
 /* Sales Analytics uses the shared navigation and page persistence. */
 
 /* Category-specific size guides stored in site_content.size_guides. */
-let sizeGuidesStore = {};
 function sizeGuideKey(category){return String(category||"").trim().toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
 function sizeGuideDefault(category){
   const c=String(category||"").toLowerCase();
@@ -3374,7 +3377,6 @@ const DEFAULT_EDITORIAL_SLIDES=[
 {image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",alt:"BULKKOT Heavy Fleece",badge:"NEWS 02 // CRAFTSMANSHIP",korean:"서울에서 영감 · 헤비웨이트",heading:"450 GSM",subtitle:"LOOPBACK FLEECE.",description:"Premium heavyweight fleece. Built around structure, texture and lasting comfort.",buttonText:"EXPLORE HOODS →",buttonUrl:"shop.html?category=hoods",enabled:true},
 {image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png",alt:"BULKKOT Modern Silhouettes",badge:"NEWS 03 // SILHOUETTES",korean:"디자인 미학 · SEOUL TO WORLD",heading:"QUIETLY",subtitle:"DISTINCT.",description:"No loud exterior billboards. The garment commands attention through silhouette and proportion.",buttonText:"EXPLORE SWEATS →",buttonUrl:"shop.html?category=sweats",enabled:true},
 {image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",alt:"BULKKOT Limited Tees",badge:"NEWS 04 // LIMITED SUPPLY",korean:"한정판 수량 · 150 PCS",heading:"STRICTLY 150",subtitle:"PIECES PER CUT.",description:"Zero mass-production restocking. Every unit serialized and dispatched in custom matte black boxing.",buttonText:"EXPLORE TEES →",buttonUrl:"shop.html?category=tees",enabled:true}];
-let editorialSlidesStore=[];
 function editorialSlideField(slide,key,label,type="text",placeholder=""){const value=String(slide[key]??"");if(type==="textarea")return '<div class="field"><label>'+label+'</label><textarea data-es-field="'+key+'" rows="3" placeholder="'+placeholder+'">'+esc(value)+'</textarea></div>';return '<div class="field"><label>'+label+'</label><input data-es-field="'+key+'" type="text" value="'+esc(value)+'" placeholder="'+placeholder+'"></div>';}
 function renderEditorialSlidesEditor(){
  const host=$("editorialSlidesEditor");if(!host)return;
@@ -3413,10 +3415,11 @@ async function saveEditorialSlides(){
 
 async function loadSizeGuides(){
   const host=$("sizeGuidesEditor");if(!host)return;
+  try{
   const r=await db.from("site_content").select("*");
-  if(r.error){showToast("Size guides could not be loaded: "+normalizeError(r.error),"error");return;}
-  const row=(r.data||[]).find(x=>String(x.content_key||"")==="size_guides");
-  try{sizeGuidesStore=JSON.parse(row?.content_value||"{}");if(!sizeGuidesStore||typeof sizeGuidesStore!=="object"||Array.isArray(sizeGuidesStore))sizeGuidesStore={};}catch(e){sizeGuidesStore={};}
+  if(r.error)throw r.error;
+  const row=(r.data||[]).find(x=>String(x.content_key??x.key??"")==="size_guides");
+  try{sizeGuidesStore=JSON.parse(row?.content_value??row?.value??"{}");if(!sizeGuidesStore||typeof sizeGuidesStore!=="object"||Array.isArray(sizeGuidesStore))sizeGuidesStore={};}catch(e){sizeGuidesStore={};}
   const categories=(state.categories||[]).length?state.categories:[{name:"Tees",slug:"tees"},{name:"Hoods",slug:"hoods"},{name:"Sweat Pants",slug:"sweat-pants"}];
   host.innerHTML=categories.map(cat=>{
     const name=String(cat.name||cat.title||cat.slug||"Category");
@@ -3432,6 +3435,7 @@ async function loadSizeGuides(){
       '<button class="btn" type="button" onclick="resetSizeGuide(\''+esc(key)+'\')">Reset this category</button>'+
     '</div>';
   }).join("");
+  }catch(e){host.innerHTML='<div class="card"><p style="color:#ff9298">Size guides could not be loaded: '+esc(normalizeError(e))+'</p><button class="btn" type="button" onclick="loadSizeGuides()">Try again</button></div>';}
 }
 function resetSizeGuide(key){
   const card=document.querySelector('[data-size-guide-key="'+CSS.escape(key)+'"]');if(!card)return;
