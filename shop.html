@@ -487,24 +487,17 @@
         const variants = getVariants(p);
         if (!variants.length) return null;
         const selectedId = quickVariantSelections.get(String(p.id));
-        return variants.find(v => String(v.id) === String(selectedId)) || null;
+        return variants.find(v => String(v.id) === String(selectedId)) || variants[0];
       }
 
       function getCardImage(p) {
-        const explicitlySelectedId = quickVariantSelections.get(String(p?.id));
-        // Before the shopper chooses a colour, show the main catalogue image.
-        if (!explicitlySelectedId) return getImages(p);
-        const variant = getVariants(p).find(v => String(v.id) === String(explicitlySelectedId));
-        const variantImage = Array.isArray(variant?.images) ? variant.images.find(src => typeof src === "string" && src.trim()) : "";
-        const mainImages = Array.isArray(p?.images) ? p.images.filter(src => typeof src === "string" && src.trim()) : [];
-        return variantImage || (variant === getVariants(p)[0] ? (mainImages[0] || p?.image_url || FALLBACK_IMG) : FALLBACK_IMG);
+        const variant = getSelectedVariant(p);
+        return variant?.images?.[0] || getImages(p);
       }
 
       function getStock(p) {
         const variant = getSelectedVariant(p);
         if (variant) return variant.stock || {};
-        // A colour-specific product has no selectable size stock until a colour is chosen.
-        if (getVariants(p).length) return {};
         if (p?.stock && typeof p.stock === "object" && !Array.isArray(p.stock)) return p.stock;
         return { S: 10, M: 10, L: 10, XL: 10 };
       }
@@ -533,23 +526,6 @@
           "sweat-pants": "sweatpants"
         };
         return aliases[slug] || slug;
-      }
-
-      // Match both the stored category slug and its display name/ID. This keeps
-      // products created before a category was renamed compatible with the live filter.
-      function productMatchesCategory(product, selectedSlug) {
-        const selected = categories.find(c =>
-          [c.slug, c.id, c.name].some(value =>
-            canonicalCategory(value) === canonicalCategory(selectedSlug)
-          )
-        );
-        const selectedKeys = new Set([
-          selectedSlug, selected?.slug, selected?.id, selected?.name
-        ].map(canonicalCategory).filter(Boolean));
-        const productKeys = [
-          product?.category, product?.category_slug, product?.category_id, product?.category_name
-        ].map(canonicalCategory).filter(Boolean);
-        return productKeys.some(key => selectedKeys.has(key));
       }
 
       function renderCategoryFilters() {
@@ -601,9 +577,8 @@
         
         filteredProducts = products.filter(p => {
           if (p.active === false) return false;
-          // Category is stored as the admin-selected slug; tolerate legacy name/ID
-          // values as well so products stay visible after category edits/renames.
-          if (activeCategory !== "all" && !productMatchesCategory(p, activeCategory)) return false;
+          const cat = String(p.category || "").toLowerCase();
+          if (activeCategory !== "all" && canonicalCategory(cat) !== canonicalCategory(activeCategory) && !cat.includes(activeCategory)) return false;
           if (term) {
             const text = [p.name, p.category, p.korean, p.tag].join(" ").toLowerCase();
             if (!text.includes(term)) return false;
@@ -643,14 +618,7 @@
             const selectedVariant = getSelectedVariant(p);
             const stockData = getStock(p);
             const availableSizes = SIZES.filter(s => Number(stockData[s] || 0) > 0);
-            const allVariants = getVariants(p);
-            const allColoursSoldOut = allVariants.length
-              ? allVariants.every(v => SIZES.every(size => Number(v.stock?.[size] || 0) <= 0))
-              : availableSizes.length === 0;
-            const hasSelectedColour = !allVariants.length || Boolean(selectedVariant);
-            const selectedColourSoldOut = allVariants.length && selectedVariant ? availableSizes.length === 0 : false;
-            const soldOut = allColoursSoldOut;
-            const canQuickAdd = hasSelectedColour && availableSizes.length > 0;
+            const soldOut = availableSizes.length === 0;
             const selectedSize = quickAddSelections.get(id) || availableSizes[0] || "M";
             const tag = p.tag ? p.tag : (p.category ? String(p.category).toUpperCase() : "DROP 001");
 
@@ -677,10 +645,10 @@
                   ${variants.length ? `<div class="p-variant-swatches" role="group" aria-label="Select colour for ${escapeHtml(name)}" style="display:flex;flex-wrap:nowrap;align-items:center;gap:7px;margin:0 0 5px;grid-column:1/-1;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 2px 7px;scrollbar-width:thin;scrollbar-color:#383838 transparent;-webkit-overflow-scrolling:touch;">${variants.map(v => { const label = v.color || v.name || "Colour"; const active = String(v.id) === String(selectedVariant?.id); const colorMap = {black:"#111",white:"#f5f5f5",grey:"#888",gray:"#888",red:"#e31b23",blue:"#3566d6",green:"#367a50",beige:"#cbb99b",brown:"#704b35",navy:"#17284f"}; const swatch = colorMap[label.toLowerCase()] || label; const isHex = /^#[0-9a-f]{3,8}$/i.test(swatch); return `<button type="button" data-variant-id="${escapeHtml(v.id)}" aria-pressed="${active}" title="${escapeHtml(label)}" aria-label="Select ${escapeHtml(label)}" style="width:23px;height:23px;border-radius:50%;padding:0;border:2px solid ${active ? "#fff" : "#444"};outline:${active ? "1px solid #fff" : "none"};outline-offset:2px;background:${isHex ? swatch : "#222"};cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2);">${!isHex ? `<span style="font-size:7px;color:#fff;">${escapeHtml(label.slice(0,2).toUpperCase())}</span>` : ""}</button>`; }).join("")}<span data-selected-variant-label style="align-self:center;color:#aaa;font-size:10px;margin-left:3px;">${escapeHtml(selectedVariant?.color || selectedVariant?.name || "")}</span></div>` : ""}
                   ${SIZES.map(s => {
                     const inStock = Number(stockData[s] || 0) > 0;
-                    return `<button type="button" class="p-size-chip ${selectedSize === s ? 'active' : ''}" data-size="${s}" ${(!inStock || !hasSelectedColour) ? 'disabled' : ''}>${s}</button>`;
+                    return `<button type="button" class="p-size-chip ${selectedSize === s ? 'active' : ''}" data-size="${s}" ${!inStock ? 'disabled' : ''}>${s}</button>`;
                   }).join('')}
-                  <button type="button" class="p-quickadd-btn" data-quick-add ${!canQuickAdd ? 'disabled' : ''}>
-                    ${!hasSelectedColour ? "SELECT COLOUR" : (selectedColourSoldOut || soldOut ? "SOLD OUT" : "ADD TO BAG")}
+                  <button type="button" class="p-quickadd-btn" data-quick-add ${soldOut ? 'disabled' : ''}>
+                    ${soldOut ? "SOLD OUT" : "ADD TO BAG"}
                   </button>
                 </div>
               </article>
@@ -820,7 +788,7 @@
             console.warn("Category metadata unavailable; using current categories.", err);
           });
           const productsTask = withTimeout(
-            supabaseClient.from("products").select("id,name,category,images,image_url,image,active,price,stock,created_at,slug,sku,description").order("created_at", { ascending: false }),
+            supabaseClient.from("products").select("*").eq("active", true).order("created_at", { ascending: false }),
             9000,
             "Product catalogue"
           );
@@ -833,14 +801,10 @@
             return { data: [], error: err };
           });
 
-          const [productResult, variantResult] = await Promise.all([productsTask, variantsTask]);
-          // Product cards should render as soon as catalogue + colour data arrive; categories can finish independently.
-          categoriesTask.then(() => {
-            renderCategoryFilters();
-            // Re-apply after the live category list arrives so URL deep-links and
-            // dynamically-created categories are never filtered against stale defaults.
-            applyFilters();
-          }).catch(() => {});
+          const [ , productResult, variantResult ] = await Promise.all([
+            categoriesTask, productsTask, variantsTask
+          ]);
+          renderCategoryFilters();
 
           const { data, error } = productResult;
           if (error || !Array.isArray(data)) {
@@ -862,7 +826,8 @@
             }
           } catch (variantError) { console.warn("Colour variants could not be loaded:", variantError); }
           products.forEach(p => {
-            // Keep the main catalogue image visible until the shopper explicitly chooses a colour.
+            const variants = getVariants(p);
+            if (variants.length) quickVariantSelections.set(String(p.id), String(variants[0].id));
             const activeVariant = getSelectedVariant(p);
             const stockSource = activeVariant ? (activeVariant.stock || {}) : getStock(p);
             const available = SIZES.filter(size => Number(stockSource[size] || 0) > 0);
