@@ -3087,21 +3087,27 @@ openProductModal=function(product=null){
 
 saveProduct=async function(){
   const name=$("productName").value.trim();if(!name){showToast("Product name is required.","error");return;}
+  const saveButton=document.querySelector("#modalRoot .modal-foot .btn-primary");
+  if(saveButton?.disabled)return;
+  if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving…";}
   const slug=($("productSlug").value.trim()||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
   const existingImages=$("productImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
   try{
-    const uploaded=await uploadProductFiles(); existingImages.push(...uploaded);
+    const variants=readVariantEditors();
+    if(!variants.length)throw new Error("Add at least one colour variant.");
+    variants.forEach((v,i)=>{const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');if(!v.name.trim()&&!v.color.trim())throw new Error("Enter a colour name for variant "+(i+1)+".");if(!v.images.length&&!row?.querySelector(".variant-files")?.files?.length)throw new Error("Add at least one image for "+(v.color||v.name)+".");});
+    const uploaded=await uploadProductFiles();existingImages.push(...uploaded);
     const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:existingImages,stock:{S:num($("stockS").value),M:num($("stockM").value),L:num($("stockL").value),XL:num($("stockXL").value)},active:$("productActive").value==="true"};
     let r=state.editingProduct?.id?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single():await db.from("products").insert(payload).select().single();
     if(r.error)throw r.error;
     const productId=r.data?.id||state.editingProduct?.id;if(!productId)throw new Error("Product ID was not returned.");
-    const variants=readVariantEditors();
     for(let i=0;i<variants.length;i++){const extra=await uploadVariantFiles(productId,i);variants[i].images.push(...extra);}
-    variants.forEach(v=>{if(!v.name && !v.color)throw new Error("Every variant needs a colour/name.");if(!v.images.length)throw new Error("Every colour variant needs at least one image.");});
+    variants.forEach(v=>{if(!v.name.trim()&&!v.color.trim())throw new Error("Every variant needs a colour/name.");if(!v.images.length)throw new Error("Every colour variant needs at least one image.");});
     state.productVariants[String(productId)]=variants;
     await saveProductVariants();
-    closeModal();showToast(state.editingProduct?"Product and variants updated.":"Product and variants created.","success");await loadProducts();
-  }catch(e){showToast("Product save failed: "+normalizeError(e),"error");}
+    if(!existingImages.length&&variants[0]?.images?.length){const imageUpdate=await db.from("products").update({images:variants[0].images}).eq("id",productId);if(imageUpdate.error)throw imageUpdate.error;}
+    closeModal();showToast(state.editingProduct?"Product and colour variants updated.":"Product and colour variants created.","success");await loadProducts();
+  }catch(e){showToast("Product save failed: "+normalizeError(e),"error");if(saveButton){saveButton.disabled=false;saveButton.textContent="Save product";}}
 };
 
 /* Rich order item helpers: colour/variant + size + quantity + image. */
