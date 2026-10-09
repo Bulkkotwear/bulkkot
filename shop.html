@@ -265,6 +265,18 @@
     }
     .p-quickadd-btn:hover:not(:disabled) { background: #e31b23; color: #fff; border-color: #e31b23; }
 
+    .shop-results-heading {
+      margin: 28px 0 16px;
+    }
+    .shop-results-heading h2 {
+      margin: 0;
+      color: #f5f5f5;
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+    }
+
     .shop-state { padding: 90px 20px; text-align: center; color: var(--shop-muted); }
     .shop-state strong { display: block; margin-bottom: 10px; color: #fff; font-size: 16px; font-weight: 900; }
     .shop-state p { font-size: 11px; margin-bottom: 18px; }
@@ -354,6 +366,10 @@
     </section>
 
     <!-- UI STATES -->
+    <section class="shop-results-heading" aria-live="polite">
+      <h2 id="productsHeading">RECENT PRODUCTS</h2>
+    </section>
+
     <section id="shopLoading" class="shop-skeleton-grid" style="display: none;">
       <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
       <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
@@ -424,6 +440,7 @@
       const emptyEl = document.getElementById("shopEmpty");
       const productsGrid = document.getElementById("productsGrid");
       const emptyTextEl = document.getElementById("shopEmptyText");
+      const productsHeading = document.getElementById("productsHeading");
       const searchInput = document.getElementById("shopSearch");
       const sortSelect = document.getElementById("shopSort");
       const filterStrip = document.getElementById("filterStrip");
@@ -524,7 +541,11 @@
       }
 
       function applyFilters() {
-        const term = searchTerm.toLowerCase();
+        const term = searchTerm.trim().toLowerCase();
+        const showingSearchResults = Boolean(term) || activeCategory !== "all";
+        if (productsHeading) {
+          productsHeading.textContent = showingSearchResults ? "SEARCH RESULTS" : "RECENT PRODUCTS";
+        }
         
         filteredProducts = products.filter(p => {
           if (p.active === false) return false;
@@ -549,7 +570,13 @@
 
       function renderProducts() {
         if (!filteredProducts.length) {
-          if (emptyTextEl) emptyTextEl.textContent = searchTerm ? `No pieces match "${searchTerm}".` : "Try another category.";
+          if (emptyTextEl) {
+            emptyTextEl.textContent = searchTerm.trim()
+              ? `No products match "${searchTerm.trim()}".`
+              : (activeCategory !== "all" ? "No products found in this category." : "Try another search or clear your filters.");
+          }
+          const emptyTitle = emptyEl ? emptyEl.querySelector("strong") : null;
+          if (emptyTitle) emptyTitle.textContent = "NO PRODUCTS FOUND";
           setViewState("empty");
           return;
         }
