@@ -1326,7 +1326,8 @@
               <h1>Orders</h1>
               <p>Order management, payment and fulfilment status.</p>
             </div>
-            <div class="actions">
+            <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-danger" id="deleteSelectedOrdersBtn" onclick="deleteSelectedOrders()" disabled>Delete selected <span id="orderBulkCount">(0)</span></button>
               <button class="btn" onclick="loadOrders()">↻ Refresh</button>
             </div>
           </div>
@@ -1342,20 +1343,7 @@
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
-          </div>
-
-          <div class="card" style="margin-bottom:14px">
-            <div class="section-title" style="align-items:center;gap:12px;flex-wrap:wrap">
-              <div>
-                <h2>Order Cleanup</h2>
-                <div class="muted" style="margin-top:5px">Select individual orders or all orders matching the current filters, then delete them together.</div>
-              </div>
-              <button class="btn btn-danger" id="deleteSelectedOrdersBtn" onclick="deleteSelectedOrders()" disabled>Delete selected</button>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px">
-              <label style="display:flex;align-items:center;gap:9px;cursor:pointer"><input id="selectVisibleOrders" type="checkbox" onchange="toggleVisibleOrderSelection(this.checked)"> Select all orders currently shown</label>
-              <span id="orderBulkCount" class="muted">0 orders selected</span>
-            </div>
+            <label style="display:flex;align-items:center;gap:8px;white-space:nowrap;cursor:pointer"><input id="selectVisibleOrders" type="checkbox" onchange="toggleVisibleOrderSelection(this.checked)"> Select all shown</label>
           </div>
 
           <div class="card">
@@ -3298,7 +3286,7 @@ renderOrders=function(){
 function updateOrderBulkControls(visibleOrders=[]){
   const selected=window._bulkSelectedOrderIds||(window._bulkSelectedOrderIds=new Set());
   const count=$("orderBulkCount"),btn=$("deleteSelectedOrdersBtn"),all=$("selectVisibleOrders");
-  if(count)count.textContent=selected.size+" order"+(selected.size===1?"":"s")+" selected";
+  if(count)count.textContent="("+selected.size+")";
   if(btn)btn.disabled=selected.size===0;
   if(all){
     const ids=visibleOrders.map(o=>String(o.id));
