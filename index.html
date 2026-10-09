@@ -1636,13 +1636,23 @@
         track.innerHTML=slides.map((s,n)=>'<article class="editorial-slide'+(n===0?' is-active':'')+'" data-slide="'+n+'"><img src="'+escHtml(s.image)+'" alt="'+escHtml(s.alt||"BULKKOT editorial slide")+'" loading="'+(n===0?'eager':'lazy')+'"><div class="editorial-slide__overlay"></div><div class="editorial-slide__content">'+
           (s.badge?'<span class="slide-badge">'+escHtml(s.badge)+'</span>':'')+(s.korean?'<p class="slide-korean">'+escHtml(s.korean)+'</p>':'')+(s.heading?'<h2>'+escHtml(s.heading)+'</h2>':'')+(s.subtitle?'<span class="slide-sub">'+escHtml(s.subtitle)+'</span>':'')+(s.description?'<p class="slide-desc">'+escHtml(s.description)+'</p>':'')+(s.buttonText?'<a href="'+escHtml(safeHref(s.buttonUrl))+'" class="slide-cta">'+escHtml(s.buttonText)+'</a>':'')+'</div></article>').join("");
         indicators.innerHTML=slides.map((_,n)=>'<button type="button" class="carousel-indicator'+(n===0?' is-active':'')+'" data-slide-indicator="'+n+'" aria-label="Slide '+(n+1)+'"><span class="indicator-bar"></span></button>').join("");
-        let active=0;
+        let active=0, autoTimer=null, touchStartX=0, touchStartY=0, pointerStartX=null;
         const show=n=>{active=(n+slides.length)%slides.length;track.querySelectorAll(".editorial-slide").forEach((el,j)=>el.classList.toggle("is-active",j===active));indicators.querySelectorAll("[data-slide-indicator]").forEach((el,j)=>{el.classList.toggle("is-active",j===active);el.setAttribute("aria-current",j===active?"true":"false");});};
-        root.querySelector("[data-carousel-prev]")?.addEventListener("click",()=>show(active-1));
-        root.querySelector("[data-carousel-next]")?.addEventListener("click",()=>show(active+1));
-        indicators.addEventListener("click",event=>{const button=event.target.closest("[data-slide-indicator]");if(button)show(Number(button.dataset.slideIndicator));});
+        const stopAuto=()=>{if(autoTimer!==null){window.clearInterval(autoTimer);autoTimer=null;}};
+        const startAuto=()=>{stopAuto();if(slides.length>1)autoTimer=window.setInterval(()=>{if(!document.hidden&&!root.matches(":hover"))show(active+1);},5000);};
+        root.querySelector("[data-carousel-prev]")?.addEventListener("click",()=>{show(active-1);startAuto();});
+        root.querySelector("[data-carousel-next]")?.addEventListener("click",()=>{show(active+1);startAuto();});
+        indicators.addEventListener("click",event=>{const button=event.target.closest("[data-slide-indicator]");if(button){show(Number(button.dataset.slideIndicator));startAuto();}});
+        // Swipe support for touchscreens and mouse/trackpad pointer gestures.
+        root.addEventListener("touchstart",event=>{const t=event.changedTouches[0];touchStartX=t.clientX;touchStartY=t.clientY;},{passive:true});
+        root.addEventListener("touchend",event=>{const t=event.changedTouches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.25){show(active+(dx<0?1:-1));startAuto();}},{passive:true});
+        root.addEventListener("pointerdown",event=>{if(event.pointerType==="mouse")pointerStartX=event.clientX;});
+        root.addEventListener("pointerup",event=>{if(pointerStartX===null||event.pointerType!=="mouse")return;const dx=event.clientX-pointerStartX;pointerStartX=null;if(Math.abs(dx)>65){show(active+(dx<0?1:-1));startAuto();}});
+        root.addEventListener("mouseenter",stopAuto);
+        root.addEventListener("mouseleave",startAuto);
+        document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAuto();else startAuto();});
         if(slides.length<2){root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(b=>b.hidden=true);indicators.hidden=true;}
-        else window.setInterval(()=>{if(!document.hidden)show(active+1);},6500);
+        else startAuto();
       }
       async function loadAdminSlides(){
         const root=document.getElementById("editorialCarousel");if(!root||!window.supabase||typeof window.supabase.createClient!=="function")return;
