@@ -413,7 +413,7 @@
   </div>
 
   <script src="js/cart.js?v=20261009-variants"></script>
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=20261009-stable-categories"></script>
 
   <script>
     (() => {
@@ -514,11 +514,18 @@
       }
 
       function canonicalCategory(value) {
-        const slug = String(value || "").trim().toLowerCase();
-        if (slug === "hoodies") return "hoods";
-        if (slug === "tee") return "tees";
-        if (slug === "sweatshirts" || slug === "sweatshirt") return "sweats";
-        return slug;
+        const slug = String(value || "").trim().toLowerCase()
+          .replace(/&/g, "and")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        const aliases = {
+          "tee": "tees", "t-shirt": "tees", "t-shirts": "tees", "tshirt": "tees",
+          "hoodie": "hoods", "hoodies": "hoods", "hood": "hoods",
+          "sweat": "sweats", "sweatshirt": "sweats", "sweatshirts": "sweats",
+          "sweatpant": "sweatpants", "sweat-pant": "sweatpants",
+          "sweat-pants": "sweatpants"
+        };
+        return aliases[slug] || slug;
       }
 
       function renderCategoryFilters() {
@@ -772,11 +779,27 @@
           return;
         }
         try {
-          const categoriesTask = loadStoreCategories();
-          const productsTask = supabaseClient.from("products")
-            .select("*").eq("active", true).order("created_at", { ascending: false });
-          const variantsTask = supabaseClient.from("site_content")
-            .select("content_key,content_value").eq("content_key", "product_variants").limit(1);
+          // Category/variant metadata must not block the actual product catalogue.
+          const withTimeout = (promise, ms, label) => Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error(label + " timed out")), ms))
+          ]);
+          const categoriesTask = loadStoreCategories().catch(err => {
+            console.warn("Category metadata unavailable; using current categories.", err);
+          });
+          const productsTask = withTimeout(
+            supabaseClient.from("products").select("*").eq("active", true).order("created_at", { ascending: false }),
+            9000,
+            "Product catalogue"
+          );
+          const variantsTask = withTimeout(
+            supabaseClient.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1),
+            6500,
+            "Product variants"
+          ).catch(err => {
+            console.warn("Variant metadata unavailable.", err);
+            return { data: [], error: err };
+          });
 
           const [ , productResult, variantResult ] = await Promise.all([
             categoriesTask, productsTask, variantsTask
