@@ -16,6 +16,8 @@
 
   let liveProducts = [];
   const selectedSizes = {};
+  const selectedVariants = {};
+  let productVariantsById = {};
   let activeCategory = "all";
   let activeSearch = "";
   let activeSort = "featured";
@@ -33,11 +35,28 @@
     return "₹" + Number(val || 0).toLocaleString("en-IN");
   }
 
+  function getVariants(product) {
+    const variants = productVariantsById[String(product?.id)];
+    return Array.isArray(variants) ? variants : [];
+  }
+
+  function getSelectedVariant(product) {
+    const variants = getVariants(product);
+    if (!variants.length) return null;
+    const selectedId = selectedVariants[String(product.id)];
+    return variants.find(v => String(v.id) === String(selectedId)) || variants[0];
+  }
+
   function getStock(product, size) {
-    return Math.max(0, Number(product?.stock?.[size] || 0));
+    const variant = getSelectedVariant(product);
+    const stock = variant ? variant.stock : product?.stock;
+    return Math.max(0, Number(stock?.[size] || 0));
   }
 
   function getTotalStock(product) {
+    const variants = getVariants(product);
+    if (variants.length) return variants.reduce((total, variant) =>
+      total + ["S", "M", "L", "XL"].reduce((sum, size) => sum + Number(variant.stock?.[size] || 0), 0), 0);
     const stock = product?.stock || {};
     return ["S", "M", "L", "XL"].reduce((tot, s) => tot + Number(stock[s] || 0), 0);
   }
@@ -68,13 +87,17 @@
   }
 
   function getProductImages(product) {
-    if (Array.isArray(product?.images) && product.images.length > 0) {
-      return product.images.filter(Boolean);
-    }
-    if (product?.image_url) {
-      return [product.image_url];
-    }
+    const variant = getSelectedVariant(product);
+    if (variant && Array.isArray(variant.images) && variant.images.length) return variant.images.filter(Boolean);
+    if (Array.isArray(product?.images) && product.images.length > 0) return product.images.filter(Boolean);
+    if (product?.image_url) return [product.image_url];
     return ['https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'];
+  }
+
+  function variantSwatchColor(label) {
+    const key = String(label || "").trim().toLowerCase();
+    const colors = {black:"#111111",white:"#f5f5f5",grey:"#888888",gray:"#888888",red:"#e31b23",blue:"#3566d6",green:"#367a50",beige:"#cbb99b",brown:"#704b35",navy:"#17284f",cream:"#eee5d4",pink:"#d98ca4"};
+    return colors[key] || (/^#[0-9a-f]{3,8}$/i.test(key) ? key : "#292929");
   }
 
   /* =========================================================
@@ -664,8 +687,23 @@
       }
 
       liveProducts = data;
+      productVariantsById = {};
+      if (supabase) {
+        try {
+          const variantResult = await supabase.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1);
+          if (!variantResult.error && variantResult.data?.length) {
+            const raw = variantResult.data[0].content_value;
+            const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) productVariantsById = parsed;
+          }
+        } catch (variantError) {
+          console.warn("Homepage colour variants could not be loaded:", variantError);
+        }
+      }
 
       liveProducts.forEach(p => {
+        const variants = getVariants(p);
+        if (variants.length) selectedVariants[String(p.id)] = String(variants[0].id);
         selectedSizes[p.id] = ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
       });
 
@@ -728,11 +766,19 @@
       const images = getProductImages(p);
       const coverImage = images[0];
 
-      const sizePills = ["S", "M", "L", "XL"].map(s => {
-        const qty = getStock(p, s);
-        const sel = curSize === s;
-        return `<button type="button" class="product-size-btn ${sel ? 'is-selected' : ''} ${qty <= 0 ? 'is-disabled' : ''}" data-action="size" data-id="${p.id}" data-size="${s}">${s}</button>`;
-      }).join('');
+      const variants = getVariants(p);
+      const selectedVariant = getSelectedVariant(p);
+      const variantOptions = variants.length > 1 ? `
+        <div class="home-variant-swatches" role="group" aria-label="Select colour for ${escapeHTML(p.name)}" style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:11px 0 13px;">
+          ${variants.map(v => {
+            const label = v.color || v.name || "Colour";
+            const active = String(v.id) === String(selectedVariant?.id);
+            const swatch = variantSwatchColor(label);
+            return `<button type="button" data-action="variant" data-id="${escapeHTML(p.id)}" data-variant-id="${escapeHTML(v.id)}" aria-pressed="${active}" aria-label="Select ${escapeHTML(label)}" title="${escapeHTML(label)}" style="display:inline-flex;align-items:center;gap:6px;border:1px solid ${active ? "#f5f5f5" : "#393939"};border-radius:20px;padding:5px 8px;background:${active ? "#202020" : "transparent"};color:#eee;font-size:10px;font-weight:750;cursor:pointer;max-width:100%;">
+              <span style="width:13px;height:13px;border-radius:50%;background:${swatch};border:1px solid #666;display:inline-block;flex:none;"></span><span>${escapeHTML(label)}</span>
+            </button>`;
+          }).join("")}
+        </div>` : "";
 
      return `
         <article class="product-card" data-product-card data-category="${cat}">
@@ -748,6 +794,7 @@
               </div>
               <span class="product-price">${formatPrice(p.price)}</span>
             </a>
+            ${variantOptions}
             <button type="button" class="button button--primary product-add-button" data-action="add" data-id="${p.id}" ${badge.disabled ? 'disabled' : ''}>
               ${badge.disabled ? 'SOLD OUT' : 'ADD TO BAG'}
             </button>
@@ -1277,6 +1324,10 @@
 
     if (action === "quickview" && p) {
       openPdpModal(p.id);
+    } else if (action === "variant" && p) {
+      selectedVariants[String(id)] = String(btn.dataset.variantId || "");
+      selectedSizes[id] = ["S", "M", "L", "XL"].find(size => getStock(p, size) > 0) || "M";
+      renderProducts(getFilteredProducts());
     } else if (action === "size" && p) {
       selectedSizes[id] = btn.dataset.size;
       renderProducts(getFilteredProducts());
@@ -1284,12 +1335,16 @@
       const size = selectedSizes[id] || "M";
       if (getStock(p, size) <= 0) return;
       const images = getProductImages(p);
+      const variant = getSelectedVariant(p);
       if (window.BULKKOT_CART && typeof window.BULKKOT_CART.addItem === "function") {
         window.BULKKOT_CART.addItem({
           id: p.id,
           name: p.name,
           price: Number(p.price || 0),
           size: size,
+          color: variant ? (variant.color || variant.name || "") : "",
+          variant: variant ? (variant.name || variant.color || "") : "",
+          variant_id: variant?.id || "",
           image: images[0]
         });
       }
