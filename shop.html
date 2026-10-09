@@ -720,35 +720,37 @@
       });
 
       async function initializeData() {
+        // Keep loading visible until the authoritative catalogue has arrived.
+        // Never flash demo garments before replacing them with live products.
+        setViewState("loading");
         try {
           await loadStoreCategories();
           renderCategoryFilters();
-          // Instant Optimistic Load
-          products = [...FALLBACK_PRODUCTS];
+
+          if (!supabaseClient) {
+            setViewState("error");
+            return;
+          }
+
+          const { data, error } = await supabaseClient.from("products")
+            .select("*").eq("active", true).order("created_at", { ascending: false });
+
+          if (error || !Array.isArray(data)) {
+            console.warn("Could not load live catalogue:", error?.message || "Invalid product response");
+            setViewState("error");
+            return;
+          }
+
+          products = data;
+          quickAddSelections.clear();
           products.forEach(p => {
             const available = getAvailableSizes(p);
             if (available.length) quickAddSelections.set(String(p.id), available[0]);
           });
-          
-          renderCategoryFilters();
-          
           applyFilters();
-
-          // Background Supabase Sync
-          if (supabaseClient) {
-            const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
-            if (!error && Array.isArray(data) && data.length > 0) {
-              products = data;
-              quickAddSelections.clear();
-              products.forEach(p => {
-                const available = getAvailableSizes(p);
-                if (available.length) quickAddSelections.set(String(p.id), available[0]);
-              });
-              applyFilters();
-            }
-          }
         } catch (err) {
-          console.warn("Using fallback products due to Supabase delay.");
+          console.warn("Could not load live catalogue:", err);
+          setViewState("error");
         }
       }
 
