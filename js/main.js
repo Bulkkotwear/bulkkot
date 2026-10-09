@@ -37,9 +37,16 @@
     return Math.max(0, Number(product?.stock?.[size] || 0));
   }
 
+  let productVariantsById = {};
+
   function getTotalStock(product) {
+    const variants = productVariantsById[String(product?.id)];
+    if (Array.isArray(variants) && variants.length) {
+      return variants.reduce((total, variant) =>
+        total + ["S", "M", "L", "XL"].reduce((sum, size) => sum + Math.max(0, Number(variant?.stock?.[size] || 0)), 0), 0);
+    }
     const stock = product?.stock || {};
-    return ["S", "M", "L", "XL"].reduce((tot, s) => tot + Number(stock[s] || 0), 0);
+    return ["S", "M", "L", "XL"].reduce((tot, size) => tot + Math.max(0, Number(stock[size] || 0)), 0);
   }
 
   function canonicalCategory(value) {
@@ -668,25 +675,41 @@
           }), 8000);
         });
         const request = supabase.from("products")
-          .select("*").eq("active", true).order("created_at", { ascending: false });
+          .select("*").order("created_at", { ascending: false });
         const res = await Promise.race([request, timeout]);
         clearTimeout(timeoutId);
-        if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
-          data = res.data;
+        if (!res.error && Array.isArray(res.data)) {
+          // Match the dedicated shop: treat legacy rows without an active flag as live,
+          // but never show products explicitly hidden from the catalogue.
+          data = res.data.filter(product => product && product.active !== false);
         } else if (res.error) {
-          console.warn("Using storefront fallback products:", res.error.message);
+          console.warn("Live catalogue could not be loaded:", res.error.message);
         }
       }
 
-      liveProducts = data.length > 0 ? data : COMING_SOON_TEMPLATES;
+      liveProducts = data;
+      productVariantsById = {};
 
       liveProducts.forEach(p => {
-        selectedSizes[p.id] = ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
+        selectedSizes[p.id] = ["S", "M", "L", "XL"].find(size => getStock(p, size) > 0) || "M";
       });
 
+      // Render real products immediately; variant metadata updates stock badges as soon as it arrives.
       renderProducts(getFilteredProducts());
+      if (supabase) {
+        supabase.from("site_content").select("content_value").eq("content_key", "product_variants").limit(1)
+          .then(({ data: rows, error }) => {
+            if (error) throw error;
+            const raw = rows?.[0]?.content_value;
+            const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+            productVariantsById = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+            renderProducts(getFilteredProducts());
+          })
+          .catch(error => console.warn("Variant stock metadata unavailable for homepage badges.", error));
+      }
     } catch (err) {
-      liveProducts = COMING_SOON_TEMPLATES;
+      console.warn("Homepage catalogue failed to load.", err);
+      liveProducts = [];
       renderProducts(getFilteredProducts());
     }
 
@@ -725,12 +748,14 @@
     const typedSearch = String(searchInput?.value || activeSearch || "").trim();
     const selectedCategory = document.querySelector("[data-shop-category].is-active")?.dataset.shopCategory || activeCategory;
     const showingResults = Boolean(typedSearch) || selectedCategory !== "all";
-    if (heading) {
-      heading.textContent = showingResults ? "SEARCH RESULTS" : "LATEST RELEASES";
-    }
+    if (heading) heading.textContent = showingResults ? "SEARCH RESULTS" : "LATEST RELEASES";
 
     if (!items.length) {
-      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1; text-align:center; padding:40px; color:#888;"><strong style="display:block;color:#fff;font-size:14px;margin-bottom:8px;">NO PRODUCTS FOUND</strong>No garments found matching your filter.</p>';
+      const emptyTitle = liveProducts.length ? "NO PRODUCTS FOUND" : "NO LIVE PRODUCTS YET";
+      const emptyCopy = liveProducts.length
+        ? "No garments match your current filter."
+        : "New silhouettes will appear here as soon as they are published.";
+      grid.innerHTML = '<p class="catalog-message" style="grid-column:1/-1;text-align:center;padding:40px 20px;color:#888;"><strong style="display:block;color:#fff;font-size:14px;margin-bottom:8px;">' + emptyTitle + '</strong>' + emptyCopy + '</p>';
       return;
     }
 
@@ -738,34 +763,27 @@
       const cat = getCategory(p);
       const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
       const totalStock = getTotalStock(p);
-      const curSize = selectedSizes[p.id] || "M";
-      const badge = getStockBadge(p, curSize);
       const images = getProductImages(p);
       const coverImage = images[0];
+      const productUrl = "product.html?id=" + encodeURIComponent(String(p.id));
 
-      const sizePills = ["S", "M", "L", "XL"].map(s => {
-        const qty = getStock(p, s);
-        const sel = curSize === s;
-        return `<button type="button" class="product-size-btn ${sel ? 'is-selected' : ''} ${qty <= 0 ? 'is-disabled' : ''}" data-action="size" data-id="${p.id}" data-size="${s}">${s}</button>`;
-      }).join('');
-
-     return `
-        <article class="product-card" data-product-card data-category="${cat}">
-          <a href="product.html?id=${p.id}" class="product-card__thumb" style="display:block; text-decoration:none;">
+      return `
+        <article class="product-card" data-product-card data-category="${escapeHTML(cat)}">
+          <a href="${productUrl}" class="product-card__thumb" style="display:block;text-decoration:none;">
             <img src="${escapeHTML(coverImage)}" alt="${escapeHTML(p.name)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png'">
             <span class="product-status">${totalStock <= 0 ? 'SOLD OUT' : 'DROP 001'}</span>
           </a>
           <div class="product-information">
-            <a href="product.html?id=${p.id}" class="product-information__header" style="display:flex; text-decoration:none; color:inherit;">
+            <a href="${productUrl}" class="product-information__header" style="display:flex;text-decoration:none;color:inherit;">
               <div>
                 <h3>${escapeHTML(p.name)}</h3>
                 <p class="product-category">${catKorean}</p>
               </div>
               <span class="product-price">${formatPrice(p.price)}</span>
             </a>
-            <button type="button" class="button button--primary product-add-button" data-action="add" data-id="${p.id}" ${badge.disabled ? 'disabled' : ''}>
-              ${badge.disabled ? 'SOLD OUT' : 'ADD TO BAG'}
-            </button>
+            <a href="${productUrl}" class="button button--primary product-add-button" style="display:block;text-align:center;text-decoration:none;">
+              CHOOSE OPTIONS →
+            </a>
           </div>
         </article>
       `;
