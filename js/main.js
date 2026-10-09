@@ -535,6 +535,8 @@
             <span class="circle-action-btn">VIEW ALL →</span>
           </div>
         </a>`).join('');
+      circleRow.classList.remove("is-loading");
+      circleRow.classList.add("is-ready");
     }
 
     document.querySelectorAll(".shop-filters").forEach(filter=>{
