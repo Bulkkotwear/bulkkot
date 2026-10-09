@@ -535,6 +535,23 @@
         return aliases[slug] || slug;
       }
 
+      // Match both the stored category slug and its display name/ID. This keeps
+      // products created before a category was renamed compatible with the live filter.
+      function productMatchesCategory(product, selectedSlug) {
+        const selected = categories.find(c =>
+          [c.slug, c.id, c.name].some(value =>
+            canonicalCategory(value) === canonicalCategory(selectedSlug)
+          )
+        );
+        const selectedKeys = new Set([
+          selectedSlug, selected?.slug, selected?.id, selected?.name
+        ].map(canonicalCategory).filter(Boolean));
+        const productKeys = [
+          product?.category, product?.category_slug, product?.category_id, product?.category_name
+        ].map(canonicalCategory).filter(Boolean);
+        return productKeys.some(key => selectedKeys.has(key));
+      }
+
       function renderCategoryFilters() {
         if (!filterStrip) return;
         const visible = categories.filter(c => c.enabled !== false && c.slug);
@@ -584,8 +601,7 @@
         
         filteredProducts = products.filter(p => {
           if (p.active === false) return false;
-          const cat = String(p.category || "").toLowerCase();
-          if (activeCategory !== "all" && canonicalCategory(cat) !== canonicalCategory(activeCategory) && !cat.includes(activeCategory)) return false;
+          if (activeCategory !== "all" && !productMatchesCategory(p, activeCategory)) return false;
           if (term) {
             const text = [p.name, p.category, p.korean, p.tag].join(" ").toLowerCase();
             if (!text.includes(term)) return false;
@@ -817,7 +833,12 @@
 
           const [productResult, variantResult] = await Promise.all([productsTask, variantsTask]);
           // Product cards should render as soon as catalogue + colour data arrive; categories can finish independently.
-          categoriesTask.then(() => renderCategoryFilters()).catch(() => {});
+          categoriesTask.then(() => {
+            renderCategoryFilters();
+            // Re-apply after the live category list arrives so URL deep-links and
+            // dynamically-created categories are never filtered against stale defaults.
+            applyFilters();
+          }).catch(() => {});
 
           const { data, error } = productResult;
           if (error || !Array.isArray(data)) {
