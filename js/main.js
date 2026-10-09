@@ -42,8 +42,22 @@
     return ["S", "M", "L", "XL"].reduce((tot, s) => tot + Number(stock[s] || 0), 0);
   }
 
+  function canonicalCategory(value) {
+    const slug = String(value || "").trim().toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const aliases = {
+      "tee": "tees", "t-shirt": "tees", "t-shirts": "tees", "tshirt": "tees",
+      "hoodie": "hoods", "hoodies": "hoods", "hood": "hoods",
+      "sweat": "sweats", "sweatshirt": "sweats", "sweatshirts": "sweats",
+      "sweat-pant": "sweats", "sweat-pants": "sweats", "sweatpants": "sweats"
+    };
+    return aliases[slug] || slug;
+  }
+
   function getCategory(product) {
-    return String(product?.category || "tees").trim().toLowerCase();
+    return canonicalCategory(product?.category || "tees");
   }
 
   function getStockBadge(product, size) {
@@ -559,7 +573,8 @@
     // Do not render hard-coded defaults over categories already loaded by the homepage bridge.
     if(!supabase) return;
     try{
-      const {data,error}=await supabase.from("site_content").select("key,value,content_key,content_value");
+      // Use select("*") so this works with either supported site_content column layout.
+      const {data,error}=await supabase.from("site_content").select("*");
       if(error){
         console.warn("Storefront categories could not be refreshed:",error.message);
         return;
@@ -636,9 +651,22 @@
     try {
       let data = [];
       if (supabase) {
-        const res = await supabase.from("products").select("*").eq("active", true).order("created_at", { ascending: false });
-        if (!res.error && res.data && res.data.length > 0) {
+        // Do not let a slow network/database request leave the storefront stuck on "Loading".
+        let timeoutId;
+        const timeout = new Promise(resolve => {
+          timeoutId = setTimeout(() => resolve({
+            data: null,
+            error: new Error("Catalogue request timed out")
+          }), 8000);
+        });
+        const request = supabase.from("products")
+          .select("*").eq("active", true).order("created_at", { ascending: false });
+        const res = await Promise.race([request, timeout]);
+        clearTimeout(timeoutId);
+        if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
           data = res.data;
+        } else if (res.error) {
+          console.warn("Using storefront fallback products:", res.error.message);
         }
       }
 
@@ -663,7 +691,16 @@
 
   function getFilteredProducts() {
     let list = [...liveProducts];
-    if (activeCategory !== "all") list = list.filter(p => getCategory(p) === activeCategory.toLowerCase());
+    if (activeCategory !== "all") {
+      const selected = storefrontCategories.find(c => canonicalCategory(c.slug) === canonicalCategory(activeCategory));
+      const accepted = new Set([
+        canonicalCategory(activeCategory),
+        canonicalCategory(selected?.slug),
+        canonicalCategory(selected?.name),
+        canonicalCategory(selected?.id)
+      ].filter(Boolean));
+      list = list.filter(p => accepted.has(getCategory(p)));
+    }
     if (activeSearch) list = list.filter(p => (p.name || '').toLowerCase().includes(activeSearch));
     if (activeSort === "price-low") list.sort((a, b) => Number(a.price) - Number(b.price));
     if (activeSort === "price-high") list.sort((a, b) => Number(b.price) - Number(a.price));
