@@ -1891,6 +1891,8 @@ function productImages(p){
   const x=getValue(p,"image_url","image","thumbnail"); return x?[x]:[];
 }
 function productStockMap(p){
+  const variants=typeof productVariants==="function"?productVariants(p):[];
+  if(variants.length) return variants.reduce((total,v)=>{for(const size of ["S","M","L","XL"])total[size]+=num(v.stock?.[size]);return total;},{S:0,M:0,L:0,XL:0});
   const raw=p?.stock;
   if(raw && typeof raw==="object" && !Array.isArray(raw)) return {S:num(raw.S),M:num(raw.M),L:num(raw.L),XL:num(raw.XL)};
   const n=num(raw); return {S:0,M:n,L:0,XL:0};
@@ -2011,6 +2013,7 @@ function populateCategoryFilter(){
   select.value=options.some(c=>c.value===current)?current:"";
 }
 function renderProducts(){
+  if(state.loadingProductVariants)return;
   const root=$("productsGrid"); if(!root)return;
   const q=($("productSearch")?.value||"").toLowerCase().trim(), cat=$("productCategoryFilter")?.value||"", sf=$("productStockFilter")?.value||"";
   const list=state.products.filter(p=>{
@@ -2992,9 +2995,13 @@ async function saveProductVariants(){
 /* Keep product loading compatible with the existing schema, while also loading variant data stored in site_content. */
 const _loadProductsBase=loadProducts;
 loadProducts=async function(){
-  // Fetch catalogue and colour data together to avoid a second, delayed product-card render.
-  await Promise.all([_loadProductsBase(),loadProductVariants()]);
+  // Suppress the base loader's first render until colour metadata is ready.
+  state.loadingProductVariants=true;
+  try{await Promise.all([_loadProductsBase(),loadProductVariants()]);}
+  finally{state.loadingProductVariants=false;}
   renderProducts();
+  renderInventory();
+  renderDashboardLowStock();
 };
 
 function variantEditorHTML(variants){
@@ -3068,7 +3075,7 @@ function readVariantEditors(){
 
 openProductModal=function(product=null){
   state.editingProduct=product;
-  const p=product||{}, s=productStockMap(p), imgs=productImages(p), vars=product?productVariants(p):[normalizeVariant({name:"Colour 1",color:"",images:[],stock:{S:0,M:0,L:0,XL:0}},0)];
+  const p=product||{}, s=productStockMap(p), imgs=productImages(p), savedVariants=product?productVariants(p):[], vars=savedVariants.length?savedVariants:(product?[normalizeVariant({id:"legacy-"+String(p.id),name:"Colour 1",color:"Colour 1",images:imgs,stock:s},0)]:[normalizeVariant({name:"Colour 1",color:"",images:[],stock:{S:0,M:0,L:0,XL:0}},0)]);
   $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()">'+
   '<div class="modal-head"><h2>'+(product?"Edit product":"Add product")+'</h2><button class="modal-close" onclick="closeModal()">×</button></div>'+
   '<div class="modal-body"><div class="form-grid">'+
@@ -3077,12 +3084,9 @@ openProductModal=function(product=null){
   '<div class="field"><label>CATEGORY</label>'+categorySelectHTML(p)+'</div>'+ 
   '<div class="field"><label>SKU</label><input id="productSku" value="'+esc(getValue(p,"sku"))+'"></div>'+ 
   '<div class="field full"><label>DESCRIPTION</label><textarea id="productDescription">'+esc(getValue(p,"description"))+'</textarea></div>'+ 
-  '<div class="field full"><label>MAIN PRODUCT IMAGE URLS (optional — first colour image is used automatically) — one per line</label><textarea id="productImages" style="min-height:80px">'+esc(imgs.join("\n"))+'</textarea></div>'+ 
+  '<div class="field full"><label>LEGACY / DEFAULT IMAGE URLS (optional — used only if the first colour has no images) — one per line</label><textarea id="productImages" style="min-height:80px">'+esc(imgs.join("\n"))+'</textarea></div>'+ 
   productImageFileHTML(imgs)+variantEditorHTML(vars)+
-  '<div class="field"><label>BASE SIZE S STOCK</label><input id="stockS" type="number" min="0" value="'+s.S+'"></div>'+ 
-  '<div class="field"><label>BASE SIZE M STOCK</label><input id="stockM" type="number" min="0" value="'+s.M+'"></div>'+ 
-  '<div class="field"><label>BASE SIZE L STOCK</label><input id="stockL" type="number" min="0" value="'+s.L+'"></div>'+ 
-  '<div class="field"><label>BASE SIZE XL STOCK</label><input id="stockXL" type="number" min="0" value="'+s.XL+'"></div>'+ 
+  '<div class="field full"><p class="muted" style="margin:0">Stock is managed independently for each colour above. The first colour remains the default catalogue variant.</p></div>'+ 
   '<div class="field"><label>CATALOG STATUS</label><select id="productActive"><option value="true">Live / Active</option><option value="false">Hidden / Draft</option></select></div>'+ 
   '<div class="field"><label>SLUG</label><input id="productSlug" value="'+esc(getValue(p,"slug"))+'" placeholder="auto-generated if blank"></div>'+ 
   '</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button>'+(product?'<button class="btn btn-danger" onclick=\'deleteProduct("'+esc(p.id)+'")\'>Delete</button>':'')+'<button class="btn btn-primary" onclick="saveProduct()">Save product</button></div></div></div>';
@@ -3101,20 +3105,21 @@ saveProduct=async function(){
   try{
     const variants=readVariantEditors();
     if(!variants.length)throw new Error("Add at least one colour variant.");
-    variants.forEach((v,i)=>{const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');if(!v.name.trim()&&!v.color.trim())throw new Error("Enter a colour name for variant "+(i+1)+".");if(!v.images.length&&!row?.querySelector(".variant-files")?.files?.length)throw new Error("Add at least one image for "+(v.color||v.name)+".");});
+    // Preserve legacy product images by adopting them as the first colour's images when needed.
+    if(!variants[0].images.length && existingImages.length) variants[0].images=[...existingImages];
+    variants.forEach((v,i)=>{const row=document.querySelector('.variant-row[data-variant-index="'+i+'"]');if(!v.name.trim()&&!v.color.trim())throw new Error("Enter a colour name for variant "+(i+1)+".");if(!v.images.length&&!row?.querySelector(".variant-files")?.files?.length&&!(i===0&&document.querySelector("#productImageFiles")?.files?.length))throw new Error("Add at least one image for "+(v.color||v.name)+".");});
     const uploaded=await uploadProductFiles();existingImages.push(...uploaded);
-    const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:existingImages,stock:{S:num($("stockS").value),M:num($("stockM").value),L:num($("stockL").value),XL:num($("stockXL").value)},active:$("productActive").value==="true"};
+    if(!variants[0].images.length && existingImages.length) variants[0].images=[...existingImages];
+    const payload={name,slug,category:$("productCategory").value.trim().toLowerCase()||"tees",price:num($("productPrice").value),sku:$("productSku").value.trim(),description:$("productDescription").value.trim(),images:variants[0].images.length?variants[0].images:existingImages,stock:variants[0].stock,active:$("productActive").value==="true"};
     let r=state.editingProduct?.id?await db.from("products").update(payload).eq("id",state.editingProduct.id).select().single():await db.from("products").insert(payload).select().single();
     if(r.error)throw r.error;
     const productId=r.data?.id||state.editingProduct?.id;if(!productId)throw new Error("Product ID was not returned.");
     for(let i=0;i<variants.length;i++){const extra=await uploadVariantFiles(productId,i);variants[i].images.push(...extra);}
     variants.forEach(v=>{if(!v.name.trim()&&!v.color.trim())throw new Error("Every colour variant needs a name.");if(!v.images.length)throw new Error("Add at least one image for "+(v.color||v.name)+".");});
-    // The first colour supplies the default product image across Admin and storefront.
-    if(!existingImages.length&&variants[0]?.images?.length){
-      payload.images=variants[0].images;
-      const imageUpdate=await db.from("products").update({images:payload.images}).eq("id",productId);
-      if(imageUpdate.error)throw imageUpdate.error;
-    }
+    // Keep legacy catalogue fields aligned with the first real colour variant.
+    // Storefront cards and older integrations read products.images / products.stock.
+    const canonicalUpdate=await db.from("products").update({images:variants[0].images,stock:variants[0].stock}).eq("id",productId);
+    if(canonicalUpdate.error)throw canonicalUpdate.error;
     state.productVariants[String(productId)]=variants;
     await saveProductVariants();
     closeModal();showToast(state.editingProduct?"Product and colour variants updated.":"Product and colour variants created.","success");await loadProducts();
