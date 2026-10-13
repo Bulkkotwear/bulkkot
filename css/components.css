@@ -3861,3 +3861,118 @@ button, input, select {
     bottom: 18px !important;
   }
 }
+
+
+/* BULKKOT PREMIUM MINIMAL REFINEMENT — slider + category strip */
+.editorial-carousel .slide-cta {
+  min-height: 44px !important;
+  padding: 0 22px !important;
+  gap: 10px !important;
+  background: #f5f3ef !important;
+  color: #111 !important;
+  border: 1px solid #f5f3ef !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  letter-spacing: .12em !important;
+  transform: none !important;
+}
+.editorial-carousel .slide-cta:hover {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.8) !important;
+  gap: 13px !important;
+  box-shadow: none !important;
+  transform: translateY(-1px) !important;
+}
+.editorial-carousel .slide-cta:active {
+  background: #f5f3ef !important;
+  color: #111 !important;
+  border-color: #f5f3ef !important;
+}
+.editorial-carousel .carousel-control {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50% !important;
+  background: rgba(10,10,10,.28) !important;
+  border: 1px solid rgba(255,255,255,.48) !important;
+  color: rgba(255,255,255,.92) !important;
+  box-shadow: none !important;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease !important;
+}
+.editorial-carousel .carousel-control:hover {
+  background: #f5f3ef !important;
+  border-color: #f5f3ef !important;
+  color: #111 !important;
+}
+.editorial-carousel .carousel-control:active {
+  background: #e31b23 !important;
+  border-color: #e31b23 !important;
+  color: #fff !important;
+}
+.editorial-carousel .carousel-control--prev { left: clamp(14px, 2.4vw, 34px) !important; }
+.editorial-carousel .carousel-control--next { right: clamp(14px, 2.4vw, 34px) !important; }
+.editorial-carousel .carousel-indicators {
+  bottom: 22px !important;
+  gap: 6px !important;
+}
+.editorial-carousel .carousel-indicator {
+  min-width: 24px !important;
+  min-height: 20px !important;
+}
+.editorial-carousel .indicator-bar {
+  width: 18px !important;
+  height: 2px !important;
+  background: rgba(255,255,255,.42) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.editorial-carousel .carousel-indicator.is-active .indicator-bar {
+  width: 32px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+/* Category controls: minimal typography, no underline that resembles a scrollbar. */
+.shop-toolbar {
+  border-bottom: 0 !important;
+  padding-bottom: 8px !important;
+}
+.shop-filters {
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.shop-filters::-webkit-scrollbar { display: none !important; }
+.shop-filter {
+  position: relative !important;
+  min-height: 34px !important;
+  padding: 7px 12px !important;
+  background: transparent !important;
+  color: #888 !important;
+  border: 1px solid transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  letter-spacing: .12em !important;
+  transition: color .18s ease !important;
+}
+.shop-filter:hover {
+  color: #f5f3ef !important;
+  border-color: transparent !important;
+}
+.shop-filter.is-active {
+  background: transparent !important;
+  color: #f5f3ef !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+@media (max-width: 768px) {
+  .editorial-carousel .carousel-control { display: none !important; }
+  .editorial-carousel .carousel-indicators { bottom: 16px !important; }
+  .shop-toolbar { border-bottom: 0 !important; padding-bottom: 8px !important; }
+  .shop-filters { width: 100% !important; padding-bottom: 0 !important; gap: 5px !important; }
+  .shop-filter { padding: 7px 10px !important; }
+}
