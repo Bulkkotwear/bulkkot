@@ -1408,7 +1408,7 @@
     renderStorefrontCategories();
     initModalsAndNavigation();
     initCatalog();
-    initEditorialCarousel();
+    // Editorial carousel is initialized by index.html, where admin timing settings are applied.
     loadCMSContent();
     syncStoreSettings();
     initAuth();
