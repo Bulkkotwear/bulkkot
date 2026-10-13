@@ -1477,6 +1477,41 @@
             </div>
           </div>
 
+          <div class="card section-card" id="announcementControlsCard">
+            <div class="section-title"><h2>Announcement Bar</h2><span>Live storefront controls</span></div>
+            <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Edit scrolling messages, colours, typography and speed. Changes publish to the live website when you press Save changes.</p>
+            <div class="setting-row" style="padding-top:0">
+              <div class="setting-label"><strong>Show announcement bar</strong><span>Turn the ticker on or off on the storefront.</span></div>
+              <label class="switch"><input id="cmsAnnouncementEnabled" type="checkbox" checked onchange="updateAnnouncementPreview()"><span class="slider"></span></label>
+            </div>
+            <div class="form-grid" style="margin-top:14px">
+              <div class="field full"><label>MESSAGE 1</label><input id="cmsAnnouncement" placeholder="DROP 001 — DROPPING SOON" oninput="updateAnnouncementPreview()"></div>
+              <div class="field full"><label>MESSAGE 2</label><input id="cmsAnnouncement2" placeholder="불꽃 DROP 001 — COMING SOON" oninput="updateAnnouncementPreview()"></div>
+              <div class="field full"><label>MESSAGE 3</label><input id="cmsAnnouncement3" placeholder="JOIN THE VIP WAITLIST" oninput="updateAnnouncementPreview()"></div>
+              <div class="field"><label>BAR BACKGROUND COLOUR</label><input id="cmsAnnouncementBg" type="color" value="#e31b23" oninput="updateAnnouncementPreview()" style="height:44px;padding:5px"></div>
+              <div class="field"><label>TEXT COLOUR</label><input id="cmsAnnouncementColor" type="color" value="#ffffff" oninput="updateAnnouncementPreview()" style="height:44px;padding:5px"></div>
+              <div class="field">
+                <label>FONT FAMILY</label>
+                <select id="cmsAnnouncementFont" onchange="updateAnnouncementPreview()">
+                  <option value="'Inter', sans-serif">Inter — Clean</option><option value="'Montserrat', sans-serif">Montserrat — Bold</option><option value="Arial, sans-serif">Arial — Classic</option><option value="Georgia, serif">Georgia — Editorial</option><option value="'Courier New', monospace">Courier New — Mono</option>
+                </select>
+              </div>
+              <div class="field"><label>SCROLL SPEED (SECONDS PER LOOP)</label><input id="cmsAnnouncementSpeed" type="number" min="8" max="90" step="1" value="20" oninput="updateAnnouncementPreview()"><small style="color:var(--muted);font-size:11px">Lower = faster · Higher = slower</small></div>
+              <div class="field"><label>FONT SIZE (PX)</label><input id="cmsAnnouncementSize" type="number" min="8" max="24" step="1" value="12" oninput="updateAnnouncementPreview()"></div>
+              <div class="field">
+                <label>FONT WEIGHT</label>
+                <select id="cmsAnnouncementWeight" onchange="updateAnnouncementPreview()">
+                  <option value="400">Regular</option><option value="500">Medium</option><option value="700">Bold</option><option value="800" selected>Extra bold</option>
+                </select>
+              </div>
+              <div class="field"><label>LETTER SPACING (PX)</label><input id="cmsAnnouncementSpacing" type="number" min="0" max="5" step="0.1" value="0.5" oninput="updateAnnouncementPreview()"></div>
+            </div>
+            <div style="margin-top:8px">
+              <label style="display:block;color:var(--soft);font-size:12px;font-weight:700;margin-bottom:8px">PREVIEW</label>
+              <div id="cmsAnnouncementPreview" style="background:#e31b23;color:#fff;font:800 12px 'Inter',sans-serif;letter-spacing:.5px;padding:13px 16px;text-align:center;overflow:hidden;white-space:nowrap;border-radius:8px">DROP 001 — DROPPING SOON</div>
+            </div>
+          </div>
+
           <div class="grid two-col">
 
             <div class="card">
@@ -1485,10 +1520,6 @@
                 <span>Storefront content</span>
               </div>
 
-              <div class="field">
-                <label>ANNOUNCEMENT</label>
-                <input id="cmsAnnouncement" placeholder="Announcement bar text">
-              </div>
 
               <div class="field">
                 <label>HERO TITLE</label>
@@ -2450,6 +2481,27 @@ function renderWaitlist(){
     '</tbody></table></div>';
 }
 
+function updateAnnouncementPreview(){
+  const preview=document.getElementById("cmsAnnouncementPreview");
+  if(!preview)return;
+  const enabled=document.getElementById("cmsAnnouncementEnabled")?.checked!==false;
+  const messages=[
+    document.getElementById("cmsAnnouncement")?.value,
+    document.getElementById("cmsAnnouncement2")?.value,
+    document.getElementById("cmsAnnouncement3")?.value
+  ].map(x=>String(x||"").trim()).filter(Boolean);
+  preview.textContent=messages.length?messages.join("  •  "):"YOUR ANNOUNCEMENT PREVIEW";
+  preview.style.background=document.getElementById("cmsAnnouncementBg")?.value||"#e31b23";
+  preview.style.color=document.getElementById("cmsAnnouncementColor")?.value||"#ffffff";
+  preview.style.fontFamily=document.getElementById("cmsAnnouncementFont")?.value||"'Inter', sans-serif";
+  preview.style.fontSize=(Number(document.getElementById("cmsAnnouncementSize")?.value)||12)+"px";
+  preview.style.fontWeight=document.getElementById("cmsAnnouncementWeight")?.value||"800";
+  preview.style.letterSpacing=(Number(document.getElementById("cmsAnnouncementSpacing")?.value)||0)+"px";
+  preview.style.opacity=enabled?"1":".4";
+  preview.style.textDecoration=enabled?"none":"line-through";
+}
+window.updateAnnouncementPreview=updateAnnouncementPreview;
+
 async function loadCMS(){
   const r=await db.from("site_content").select("*");
   if(r.error){showToast("CMS could not be loaded: "+normalizeError(r.error),"error");return;}
@@ -2461,6 +2513,17 @@ async function loadCMS(){
   state.cms=c;
   const field=(key,fallback="")=>c[key]===undefined?fallback:String(c[key]??"");
   $("cmsAnnouncement").value=field("announcement_1",field("announcement","DROP 001 — DROPPING SOON"));
+  $("cmsAnnouncement2").value=field("announcement_2","불꽃 DROP 001 — COMING SOON");
+  $("cmsAnnouncement3").value=field("announcement_3","JOIN THE VIP WAITLIST");
+  $("cmsAnnouncementBg").value=field("announcement_bg","#e31b23");
+  $("cmsAnnouncementColor").value=field("announcement_color","#ffffff");
+  $("cmsAnnouncementFont").value=field("announcement_font","'Inter', sans-serif");
+  $("cmsAnnouncementSpeed").value=field("announcement_speed","20");
+  $("cmsAnnouncementSize").value=field("announcement_size","12");
+  $("cmsAnnouncementWeight").value=field("announcement_weight","800");
+  $("cmsAnnouncementSpacing").value=field("announcement_spacing","0.5");
+  $("cmsAnnouncementEnabled").checked=field("announcement_enabled","true")!=="false";
+  updateAnnouncementPreview();
   $("cmsHeroTitle").value=field("hero_title","BULKKOT");
   $("cmsHeroSubtitle").value=field("hero_subtitle","Korean-inspired minimalist heavyweight essentials.");
   $("cmsHeroImage").value=field("hero_image","https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png");
@@ -3001,6 +3064,16 @@ async function saveCMS(){
   const merged={
     ...advanced,
     announcement_1:$("cmsAnnouncement").value,
+    announcement_2:$("cmsAnnouncement2").value,
+    announcement_3:$("cmsAnnouncement3").value,
+    announcement_bg:$("cmsAnnouncementBg").value,
+    announcement_color:$("cmsAnnouncementColor").value,
+    announcement_font:$("cmsAnnouncementFont").value,
+    announcement_speed:String(Math.min(90,Math.max(8,Number($("cmsAnnouncementSpeed").value)||20))),
+    announcement_size:String(Math.min(24,Math.max(8,Number($("cmsAnnouncementSize").value)||12))),
+    announcement_weight:String([400,500,700,800].includes(Number($("cmsAnnouncementWeight").value))?Number($("cmsAnnouncementWeight").value):800),
+    announcement_spacing:String(Math.min(5,Math.max(0,Number($("cmsAnnouncementSpacing").value)||0))),
+    announcement_enabled:$("cmsAnnouncementEnabled").checked?"true":"false",
     hero_title:$("cmsHeroTitle").value,
     hero_subtitle:$("cmsHeroSubtitle").value,
     hero_image:$("cmsHeroImage").value.trim(),
