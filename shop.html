@@ -449,6 +449,7 @@
         { slug: "sweats", name: "SWEATS", enabled: true }
       ];
       let categories = [...DEFAULT_CATEGORIES];
+      let categoriesLoaded = false;
 
       let products = [];
       let filteredProducts = [];
@@ -536,7 +537,7 @@
           '" data-category="' + escapeHtml(c.slug) + '" role="tab">' +
           escapeHtml(c.name || c.slug.toUpperCase()) + '</button>'
         ).join("");
-        if (activeCategory !== "all" && !visible.some(c => canonicalCategory(c.slug) === canonicalCategory(activeCategory))) {
+        if (categoriesLoaded && activeCategory !== "all" && !visible.some(c => canonicalCategory(c.slug) === canonicalCategory(activeCategory))) {
           activeCategory = "all";
           const allButton = filterStrip.querySelector('[data-category="all"]');
           if (allButton) allButton.classList.add("active");
@@ -558,6 +559,7 @@
             enabled: c.enabled !== false,
             position: Number(c.position || 0)
           })).filter(c => c.slug).sort((a, b) => a.position - b.position);
+          categoriesLoaded = true;
         } catch (err) {
           console.warn("Using default shop categories.", err);
         }
