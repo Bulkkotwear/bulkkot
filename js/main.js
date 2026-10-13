@@ -178,8 +178,7 @@
       startAutoPlay();
     }, { passive: true });
 
-    container.addEventListener('mouseenter', stopAutoPlay);
-    container.addEventListener('mouseleave', startAutoPlay);
+    // Keep autoplay running on desktop too; hovering the hero must not pause the slider.
 
     goToSlide(0);
     startAutoPlay();
