@@ -507,18 +507,49 @@
       const heroLabel = document.querySelector(".hero-label");
       const heroDesc = document.querySelector(".hero-description");
 
+      const hero = document.querySelector(".hero");
+      const heroImage = document.querySelector(".hero-image");
+      const heroKorean = document.querySelector(".hero-korean");
+      const heroButton = document.querySelector(".hero-content .button");
       const heroOverlayColor = lookup.hero_overlay_color || HERO_STOREFRONT_DEFAULTS.hero_overlay_color;
       const heroTextColor = lookup.hero_text_color || HERO_STOREFRONT_DEFAULTS.hero_text_color;
       const heroFont = lookup.hero_font || HERO_STOREFRONT_DEFAULTS.hero_font;
-
+      const heroOpacity = Math.min(100, Math.max(0, Number(lookup.hero_overlay_opacity === undefined ? 76 : lookup.hero_overlay_opacity))) / 100;
+      const heroTitleSize = Math.min(100, Math.max(24, Number(lookup.hero_title_size || 62)));
+      const heroDescSize = Math.min(28, Math.max(10, Number(lookup.hero_description_size || 13)));
+      const heroAlign = ["left","center","right"].includes(lookup.hero_alignment) ? lookup.hero_alignment : "left";
       if (heroOverlay) {
-        heroOverlay.style.background = `linear-gradient(90deg, ${hexToRgbaStorefront(heroOverlayColor, 0.76)} 0%, ${hexToRgbaStorefront(heroOverlayColor, 0.38)} 42%, ${hexToRgbaStorefront(heroOverlayColor, 0.18)} 100%)`;
+        const rgb = String(heroOverlayColor).replace("#","");
+        const valid = /^[0-9a-fA-F]{6}$/.test(rgb);
+        const red = valid ? parseInt(rgb.slice(0,2),16) : 0;
+        const green = valid ? parseInt(rgb.slice(2,4),16) : 0;
+        const blue = valid ? parseInt(rgb.slice(4,6),16) : 0;
+        const mobile = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+        const gradient = mobile
+          ? "linear-gradient(180deg, rgba("+red+","+green+","+blue+","+(heroOpacity*0.25)+") 0%, rgba("+red+","+green+","+blue+","+heroOpacity+") 100%)"
+          : "linear-gradient(90deg, rgba("+red+","+green+","+blue+","+heroOpacity+") 0%, rgba("+red+","+green+","+blue+","+(heroOpacity*0.5)+") 55%, rgba("+red+","+green+","+blue+","+(heroOpacity*0.15)+") 100%)";
+        heroOverlay.style.setProperty("background",gradient,"important");
       }
-      [heroTitle, heroLabel, heroDesc].forEach(el => {
+      if (hero && lookup.hero_height !== undefined) hero.style.setProperty("height",Math.min(900,Math.max(320,Number(lookup.hero_height)||560))+"px","important");
+      if (heroImage) heroImage.style.setProperty("object-position",Math.min(100,Math.max(0,Number(lookup.hero_image_x === undefined ? 70 : lookup.hero_image_x)))+"% "+Math.min(100,Math.max(0,Number(lookup.hero_image_y === undefined ? 20 : lookup.hero_image_y)))+"%","important");
+      if (heroTitle) heroTitle.style.setProperty("font-size","clamp(24px, 6vw, "+heroTitleSize+"px)","important");
+      if (heroDesc) heroDesc.style.setProperty("font-size",heroDescSize+"px","important");
+      [heroTitle, heroLabel, heroDesc, heroKorean].forEach(el => {
         if (!el) return;
-        if (lookup.hero_text_color) el.style.color = heroTextColor;
-        if (lookup.hero_font) el.style.fontFamily = heroFont;
+        el.style.setProperty("color",heroTextColor,"important");
+        el.style.setProperty("font-family",heroFont,"important");
       });
+      const heroContent = document.querySelector(".hero-content");
+      if (heroContent) {
+        heroContent.style.setProperty("text-align",heroAlign,"important");
+        heroContent.style.setProperty("align-items",heroAlign === "left" ? "flex-start" : heroAlign === "right" ? "flex-end" : "center","important");
+      }
+      if (heroDesc) heroDesc.style.setProperty("text-align",heroAlign,"important");
+      if (heroButton) {
+        heroButton.style.setProperty("background",lookup.hero_button_bg || "#ffffff","important");
+        heroButton.style.setProperty("color",lookup.hero_button_color || "#000000","important");
+        heroButton.style.setProperty("border-radius",Math.min(40,Math.max(0,Number(lookup.hero_button_radius === undefined ? 2 : lookup.hero_button_radius)))+"px","important");
+      }
 
       if (lookup.announcement_1 !== undefined) {
         document.querySelectorAll('[data-cms-key="announcement_1"]').forEach(el => el.textContent = lookup.announcement_1);
