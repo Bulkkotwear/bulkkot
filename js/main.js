@@ -559,7 +559,8 @@
       name:String(c?.name||slug||"CATEGORY").trim().toUpperCase(),
       korean:String(c?.korean||"").trim(),
       image:String(c?.image||"").trim(),
-      enabled:c?.enabled!==false
+      enabled:c?.enabled!==false,
+      position:Number(c?.position||0)
     };
   }
 
@@ -609,7 +610,7 @@
       const timeout = new Promise((_, reject) => {
         timeoutId = setTimeout(() => reject(new Error("Category request timed out")), 6500);
       });
-      const request = supabase.from("site_content").select("*");
+      const request = supabase.from("site_content").select("content_key,content_value").eq("content_key","categories").limit(1);
       const {data,error}=await Promise.race([request,timeout]);
       clearTimeout(timeoutId);
       if(error) throw error;
@@ -664,60 +665,69 @@
     const grid = document.getElementById("products-grid");
     if (!grid) return;
 
+    const withTimeout = (promise, ms, label) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(label + " timed out")), ms))
+    ]);
+
     try {
       let data = [];
+      let variants = {};
       if (supabase) {
-        // Do not let a slow network/database request leave the storefront stuck on "Loading".
-        let timeoutId;
-        const timeout = new Promise(resolve => {
-          timeoutId = setTimeout(() => resolve({
-            data: null,
-            error: new Error("Catalogue request timed out")
-          }), 8000);
+        // Fetch products and colour metadata concurrently, not in serial network round-trips.
+        const productTask = withTimeout(
+          supabase.from("products").select("*").eq("active", true).order("created_at", { ascending: false }),
+          7000,
+          "Catalogue request"
+        );
+        const variantsTask = withTimeout(
+          supabase.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1),
+          4500,
+          "Product variants"
+        ).catch(err => {
+          console.warn("Colour variants unavailable; showing base product data.", err);
+          return { data: [], error: err };
         });
-        const request = supabase.from("products")
-          .select("*").eq("active", true).order("created_at", { ascending: false });
-        const res = await Promise.race([request, timeout]);
-        clearTimeout(timeoutId);
-        if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
-          data = res.data.filter(p => !isDemoProduct(p));
-        } else if (res.error) {
-          console.warn("Using storefront fallback products:", res.error.message);
+
+        const [productResult, variantResult] = await Promise.all([productTask, variantsTask]);
+        if (!productResult.error && Array.isArray(productResult.data)) {
+          data = productResult.data.filter(p => !isDemoProduct(p));
+        } else if (productResult.error) {
+          console.warn("Storefront catalogue could not be loaded:", productResult.error.message);
+        }
+
+        try {
+          const raw = variantResult.data?.[0]?.content_value;
+          const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) variants = parsed;
+        } catch (variantError) {
+          console.warn("Homepage colour variants could not be parsed:", variantError);
         }
       }
 
       liveProducts = data;
-      productVariantsById = {};
-      if (supabase) {
-        try {
-          const variantResult = await supabase.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1);
-          if (!variantResult.error && variantResult.data?.length) {
-            const raw = variantResult.data[0].content_value;
-            const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) productVariantsById = parsed;
-          }
-        } catch (variantError) {
-          console.warn("Homepage colour variants could not be loaded:", variantError);
-        }
-      }
-
+      productVariantsById = variants;
       liveProducts.forEach(p => {
-        const variants = getVariants(p);
-        if (variants.length) selectedVariants[String(p.id)] = String(variants[0].id);
-        selectedSizes[p.id] = ["S", "M", "L", "XL"].find(s => getStock(p, s) > 0) || "M";
+        const productVariants = getVariants(p);
+        if (productVariants.length) selectedVariants[String(p.id)] = String(productVariants[0].id);
+        selectedSizes[p.id] = ["S", "M", "L", "XL"].find(size => getStock(p, size) > 0) || "M";
       });
-
       renderProducts(getFilteredProducts());
     } catch (err) {
+      console.warn("Storefront catalogue failed to load:", err);
       liveProducts = [];
+      productVariantsById = {};
       renderProducts(getFilteredProducts());
     }
 
-    const sortSelect = document.getElementById('shop-sort');
-    sortSelect?.addEventListener('change', (e) => {
-      activeSort = e.target.value;
-      renderProducts(getFilteredProducts());
-    });
+    const sortSelect = document.getElementById("shop-sort");
+    if (sortSelect && sortSelect.dataset.sortBound !== "true") {
+      sortSelect.dataset.sortBound = "true";
+      sortSelect.addEventListener("change", e => {
+        activeSort = e.target.value;
+        renderProducts(getFilteredProducts());
+      });
+    }
   }
 
   function getFilteredProducts() {
@@ -1356,6 +1366,8 @@
   });
 
   function initStorefront() {
+    // Render stable defaults immediately; CMS categories refresh in the background.
+    renderStorefrontCategories();
     initModalsAndNavigation();
     initCatalog();
     initEditorialCarousel();
