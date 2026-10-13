@@ -17,7 +17,7 @@
 
   <!-- Core Styles -->
   <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/components.css?v=20261013-slider-timing-fix">
+  <link rel="stylesheet" href="css/components.css?v=20261013-slider-final-autoplay">
 
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1185,7 +1185,7 @@
 
   <!-- Core Scripts -->
   <script src="js/cart.js?v=20261009-variants" defer></script>
-  <script src="js/main.js?v=20261013-editorial-autoplay-final" defer></script>
+  <script src="js/main.js?v=20261013-editorial-autoplay-final2" defer></script>
 
   <!-- BULKKOT AUTH/PROFILE BRIDGE -->
   <script>
@@ -1618,16 +1618,16 @@
           track.style.setProperty("transform","translate3d(-"+(active*100)+"%,0,0)","important");
           indicators.querySelectorAll("[data-slide-indicator]").forEach((el,j)=>{el.classList.toggle("is-active",j===active);el.setAttribute("aria-current",j===active?"true":"false");});
         };
-        const stopAuto=()=>{if(autoTimer!==null){window.clearTimeout(autoTimer);autoTimer=null;}};
+        const stopAuto=()=>{if(autoTimer!==null){window.clearTimeout(autoTimer);window.clearInterval(autoTimer);autoTimer=null;}};
         const startAuto=()=>{
           stopAuto();
           if(!autoplay||slides.length<2)return;
-          const tick=()=>{
+          // A plain interval is more reliable here than a recursive timeout:
+          // manual navigation resets it, but the carousel continues in background tabs.
+          autoTimer=window.setInterval(()=>{
             if(signal.aborted)return;
-            if(!document.hidden && !(pauseOnHover&&root.matches(":hover")))show(active+1);
-            autoTimer=window.setTimeout(tick,intervalMs);
-          };
-          autoTimer=window.setTimeout(tick,intervalMs);
+            if(!(pauseOnHover&&root.matches(":hover")))show(active+1);
+          },intervalMs);
         };
         root.querySelector("[data-carousel-prev]")?.addEventListener("click",()=>{show(active-1);startAuto();},{signal});
         root.querySelector("[data-carousel-next]")?.addEventListener("click",()=>{show(active+1);startAuto();},{signal});
@@ -1648,14 +1648,14 @@
         try {
           const client=window.bulkkotSupabase||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
           window.bulkkotSupabase=client;
-          const result=await client.from("site_content").select("content_key,content_value").in("content_key",["editorial_slides","editorial_slider_settings"]);
+          const result=await client.from("site_content").select("*");
           if(result.error)throw result.error;
           const rows=result.data||[];
-          const settingsRow=rows.find(r=>r.content_key==="editorial_slider_settings");
-          let settings={};try{settings=JSON.parse(settingsRow?.content_value||"{}")||{};}catch(e){}
-          const row=rows.find(r=>r.content_key==="editorial_slides");
+          const settingsRow=rows.find(r=>String(r.content_key??r.key??"")==="editorial_slider_settings");
+          let settings={};try{settings=JSON.parse(settingsRow?.content_value??settingsRow?.value??"{}")||{};}catch(e){}
+          const row=rows.find(r=>String(r.content_key??r.key??"")==="editorial_slides");
           if(!row){if(settingsRow)setupCarousel(root,readBuiltInSlides(root),settings);return;}
-          const parsed=JSON.parse(row.content_value||"[]");
+          const parsed=JSON.parse(row.content_value??row.value??"[]");
           if(!Array.isArray(parsed))throw new Error("Saved slider data is not a list");
           const enabled=parsed.filter(s=>s&&s.enabled!==false&&String(s.image||"").trim());
           // A carousel needs at least two valid slides to auto-advance. If the
