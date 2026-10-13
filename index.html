@@ -1581,6 +1581,12 @@
         if (root.__editorialCleanup) root.__editorialCleanup();
         const controller = new AbortController();
         const signal = controller.signal;
+        track.style.setProperty("display","flex","important");
+        track.style.setProperty("position","relative","important");
+        track.style.setProperty("width","100%","important");
+        track.style.setProperty("height","100%","important");
+        track.style.setProperty("transition","transform "+Math.min(3000,Math.max(100,Number(settings.transitionMs)||800))+"ms cubic-bezier(0.16, 1, 0.3, 1)","important");
+        track.style.setProperty("will-change","transform","important");
         track.innerHTML=slides.map((s,n)=>'<article class="editorial-slide'+(n===0?' is-active':'')+'" data-slide="'+n+'"><img src="'+escHtml(s.image)+'" alt="'+escHtml(s.alt||"BULKKOT editorial slide")+'" loading="'+(n===0?'eager':'lazy')+'"><div class="editorial-slide__overlay"></div><div class="editorial-slide__content">'+
           (s.badge?'<span class="slide-badge">'+escHtml(s.badge)+'</span>':'')+(s.korean?'<p class="slide-korean">'+escHtml(s.korean)+'</p>':'')+(s.heading?'<h2>'+escHtml(s.heading)+'</h2>':'')+(s.subtitle?'<span class="slide-sub">'+escHtml(s.subtitle)+'</span>':'')+(s.description?'<p class="slide-desc">'+escHtml(s.description)+'</p>':'')+(s.buttonText?'<a href="'+escHtml(safeHref(s.buttonUrl))+'" class="slide-cta">'+escHtml(s.buttonText)+'</a>':'')+'</div></article>').join("");
         indicators.innerHTML=slides.map((_,n)=>'<button type="button" class="carousel-indicator'+(n===0?' is-active':'')+'" data-slide-indicator="'+n+'" aria-label="Slide '+(n+1)+'"><span class="indicator-bar"></span></button>').join("");
@@ -1593,7 +1599,15 @@
         let active=0,autoTimer=null,touchStartX=0,touchStartY=0,pointerStartX=null;
 
         track.querySelectorAll(".editorial-slide").forEach((el,j)=>{
-          el.style.setProperty("transition-duration",transitionMs+"ms","important");
+          el.style.setProperty("position","relative","important");
+          el.style.setProperty("inset","auto","important");
+          el.style.setProperty("flex","0 0 100%","important");
+          el.style.setProperty("width","100%","important");
+          el.style.setProperty("height","100%","important");
+          el.style.setProperty("min-height","100%","important");
+          el.style.setProperty("opacity","1","important");
+          el.style.setProperty("visibility","visible","important");
+          el.style.setProperty("transition","none","important");
           const img=el.querySelector("img"),overlay=el.querySelector(".editorial-slide__overlay"),s=slides[j];
           if(img)img.style.setProperty("object-position",(Number(s.imageX??50))+"% "+(Number(s.imageY??25))+"%","important");
           if(overlay)overlay.style.setProperty("opacity",String(Math.min(100,Math.max(0,Number(s.overlayOpacity??100)))/100),"important");
@@ -1601,6 +1615,7 @@
         const show=n=>{
           active=(n+slides.length)%slides.length;
           track.querySelectorAll(".editorial-slide").forEach((el,j)=>el.classList.toggle("is-active",j===active));
+          track.style.setProperty("transform","translate3d(-"+(active*100)+"%,0,0)","important");
           indicators.querySelectorAll("[data-slide-indicator]").forEach((el,j)=>{el.classList.toggle("is-active",j===active);el.setAttribute("aria-current",j===active?"true":"false");});
         };
         const stopAuto=()=>{if(autoTimer!==null){window.clearTimeout(autoTimer);autoTimer=null;}};
