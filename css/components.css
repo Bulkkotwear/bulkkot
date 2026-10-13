@@ -3863,7 +3863,11 @@ button, input, select {
 }
 
 
-/* BULKKOT PREMIUM MINIMAL REFINEMENT — slider + category strip */
+
+/* BULKKOT — refined slider interaction + invisible category scrollbar */
+.editorial-carousel .carousel-control {
+  display: none !important;
+}
 .editorial-carousel .slide-cta {
   min-height: 44px !important;
   padding: 0 22px !important;
@@ -3876,42 +3880,26 @@ button, input, select {
   font-size: 10px !important;
   letter-spacing: .12em !important;
   transform: none !important;
+  transition: background-color .22s ease, color .22s ease, border-color .22s ease, transform .22s ease !important;
 }
-.editorial-carousel .slide-cta:hover {
-  background: transparent !important;
+.editorial-carousel .slide-cta:hover,
+.editorial-carousel .slide-cta:focus-visible {
+  background: #e31b23 !important;
   color: #fff !important;
-  border-color: rgba(255,255,255,.8) !important;
-  gap: 13px !important;
+  border-color: #e31b23 !important;
   box-shadow: none !important;
   transform: translateY(-1px) !important;
 }
+.editorial-carousel .slide-cta:focus-visible {
+  outline: 2px solid #e31b23 !important;
+  outline-offset: 3px !important;
+}
 .editorial-carousel .slide-cta:active {
-  background: #f5f3ef !important;
-  color: #111 !important;
-  border-color: #f5f3ef !important;
-}
-.editorial-carousel .carousel-control {
-  width: 42px !important;
-  height: 42px !important;
-  border-radius: 50% !important;
-  background: rgba(10,10,10,.28) !important;
-  border: 1px solid rgba(255,255,255,.48) !important;
-  color: rgba(255,255,255,.92) !important;
-  box-shadow: none !important;
-  transition: background-color .2s ease, border-color .2s ease, color .2s ease !important;
-}
-.editorial-carousel .carousel-control:hover {
-  background: #f5f3ef !important;
-  border-color: #f5f3ef !important;
-  color: #111 !important;
-}
-.editorial-carousel .carousel-control:active {
-  background: #e31b23 !important;
-  border-color: #e31b23 !important;
+  background: #b9141b !important;
   color: #fff !important;
+  border-color: #b9141b !important;
+  transform: translateY(0) !important;
 }
-.editorial-carousel .carousel-control--prev { left: clamp(14px, 2.4vw, 34px) !important; }
-.editorial-carousel .carousel-control--next { right: clamp(14px, 2.4vw, 34px) !important; }
 .editorial-carousel .carousel-indicators {
   bottom: 22px !important;
   gap: 6px !important;
@@ -3933,19 +3921,24 @@ button, input, select {
   box-shadow: none !important;
 }
 
-/* Category controls: minimal typography, no underline that resembles a scrollbar. */
+/* Keep category chips on one clean row without showing a scroll track. */
 .shop-toolbar {
   border-bottom: 0 !important;
   padding-bottom: 8px !important;
 }
 .shop-filters {
-  overflow-x: visible !important;
-  overflow-y: visible !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
   scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
   border: 0 !important;
   box-shadow: none !important;
 }
-.shop-filters::-webkit-scrollbar { display: none !important; }
+.shop-filters::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
 .shop-filter {
   position: relative !important;
   min-height: 34px !important;
