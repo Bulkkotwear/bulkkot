@@ -443,7 +443,11 @@
     announcement_bg: "#e31b23",
     announcement_color: "#ffffff",
     announcement_font: "'Inter', sans-serif",
-    announcement_speed: "20"
+    announcement_speed: "20",
+    announcement_size: "12",
+    announcement_weight: "800",
+    announcement_spacing: "0.5",
+    announcement_enabled: "true"
   };
 
   const HERO_STOREFRONT_DEFAULTS = {
@@ -489,9 +493,13 @@
         bar.style.backgroundColor = bg;
         bar.style.color = color;
         bar.style.fontFamily = font;
+        bar.style.fontSize = `${Math.min(24, Math.max(8, Number(lookup.announcement_size || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_size)))}px`;
+        bar.style.fontWeight = String(lookup.announcement_weight || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_weight);
+        bar.style.letterSpacing = `${Math.min(5, Math.max(0, Number(lookup.announcement_spacing ?? ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_spacing)))}px`;
+        bar.style.display = String(lookup.announcement_enabled ?? ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_enabled) === "false" ? "none" : "";
       }
       if (track && speed) {
-        track.style.animationDuration = `${speed}s`;
+        track.style.animationDuration = `${Math.min(90, Math.max(8, Number(speed) || 20))}s`;
       }
 
       const heroOverlay = document.querySelector(".hero-overlay");
