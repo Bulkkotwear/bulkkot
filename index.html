@@ -1574,79 +1574,134 @@
       }
 
       function setupCarousel(root, slides, settings = {}) {
-        const track=root.querySelector("[data-carousel-track]"), indicators=root.querySelector(".carousel-indicators");
-        if(!track||!indicators||!slides.length)return;
-        if(root.__editorialCleanup)root.__editorialCleanup();
-        const controller=new AbortController(),signal=controller.signal;
-        const transitionMs=Math.min(3000,Math.max(100,Number(settings.transitionMs)||800));
-        const intervalMs=Math.min(60000,Math.max(2000,Number(settings.intervalSeconds)||5))*1000;
-        const pauseOnHover=settings.pauseOnHover===true;
-        // Use a stacked fade carousel rather than relying on a moving flex track:
-        // this remains reliable even if other theme CSS changes transform rules.
-        root.style.setProperty("position","relative","important");
-        root.style.setProperty("min-height","min(72vh, 820px)","important");
-        root.style.setProperty("overflow","hidden","important");
-        track.style.setProperty("display","grid","important");
-        track.style.setProperty("grid-template-columns","minmax(0, 1fr)","important");
-        track.style.setProperty("width","100%","important");
-        track.style.setProperty("min-height","min(72vh, 820px)","important");
-        track.style.setProperty("position","relative","important");
-        track.style.setProperty("transform","none","important");
-        track.style.setProperty("transition","none","important");
-        track.innerHTML=slides.map((s,n)=>'<article class="editorial-slide'+(n===0?' is-active':'')+'" data-slide="'+n+'"><img src="'+escHtml(s.image)+'" alt="'+escHtml(s.alt||"BULKKOT editorial slide")+'" loading="'+(n===0?'eager':'lazy')+'"><div class="editorial-slide__overlay"></div><div class="editorial-slide__content">'+
-          (s.badge?'<span class="slide-badge">'+escHtml(s.badge)+'</span>':'')+(s.korean?'<p class="slide-korean">'+escHtml(s.korean)+'</p>':'')+(s.heading?'<h2>'+escHtml(s.heading)+'</h2>':'')+(s.subtitle?'<span class="slide-sub">'+escHtml(s.subtitle)+'</span>':'')+(s.description?'<p class="slide-desc">'+escHtml(s.description)+'</p>':'')+(s.buttonText?'<a href="'+escHtml(safeHref(s.buttonUrl))+'" class="slide-cta">'+escHtml(s.buttonText)+'</a>':'')+'</div></article>').join("");
-        indicators.innerHTML=slides.map((_,n)=>'<button type="button" class="carousel-indicator'+(n===0?' is-active':'')+'" data-slide-indicator="'+n+'" aria-label="Slide '+(n+1)+'"><span class="indicator-bar"></span></button>').join("");
-        const slideEls=Array.from(track.querySelectorAll(".editorial-slide"));
-        slideEls.forEach((el,j)=>{
-          el.style.setProperty("grid-area","1 / 1","important");
-          el.style.setProperty("position","relative","important");
-          el.style.setProperty("inset","auto","important");
-          el.style.setProperty("width","100%","important");
-          el.style.setProperty("min-height","min(72vh, 820px)","important");
-          el.style.setProperty("height","100%","important");
-          el.style.setProperty("opacity",j===0?"1":"0","important");
-          el.style.setProperty("visibility",j===0?"visible":"hidden","important");
-          el.style.setProperty("pointer-events",j===0?"auto":"none","important");
-          el.style.setProperty("transition","opacity "+transitionMs+"ms ease","important");
-          const img=el.querySelector("img"),overlay=el.querySelector(".editorial-slide__overlay"),s=slides[j];
-          if(img)img.style.setProperty("object-position",(Number(s.imageX??50))+"% "+(Number(s.imageY??25))+"%","important");
-          if(overlay)overlay.style.setProperty("opacity",String(Math.min(100,Math.max(0,Number(s.overlayOpacity??100)))/100),"important");
+        const track = root.querySelector("[data-carousel-track]");
+        const indicators = root.querySelector(".carousel-indicators");
+        if (!track || !indicators || !Array.isArray(slides) || slides.length < 1) return;
+
+        // Clean up the previous controller before applying admin-managed slides.
+        if (root.__editorialCleanup) root.__editorialCleanup();
+        const controller = new AbortController();
+        const signal = controller.signal;
+        const transitionMs = Math.min(3000, Math.max(100, Number(settings.transitionMs) || 800));
+        const intervalMs = Math.min(60000, Math.max(2000, Number(settings.intervalSeconds) || 5)) * 1000;
+        const pauseOnHover = settings.pauseOnHover === true;
+
+        // Use a real horizontal track so each slide visibly moves across the viewport.
+        root.style.setProperty("position", "relative", "important");
+        root.style.setProperty("overflow", "hidden", "important");
+        track.style.setProperty("display", "flex", "important");
+        track.style.setProperty("position", "relative", "important");
+        track.style.setProperty("width", "100%", "important");
+        track.style.setProperty("height", "100%", "important");
+        track.style.setProperty("min-height", "0", "important");
+        track.style.setProperty("transform", "translate3d(0,0,0)", "important");
+        track.style.setProperty("transition", "transform " + transitionMs + "ms cubic-bezier(0.16, 1, 0.3, 1)", "important");
+        track.style.setProperty("will-change", "transform", "important");
+
+        track.innerHTML = slides.map((s, n) =>
+          '<article class="editorial-slide' + (n === 0 ? ' is-active' : '') + '" data-slide="' + n + '">' +
+          '<img src="' + escHtml(s.image) + '" alt="' + escHtml(s.alt || "BULKKOT editorial slide") + '" loading="' + (n === 0 ? 'eager' : 'lazy') + '">' +
+          '<div class="editorial-slide__overlay"></div><div class="editorial-slide__content">' +
+          (s.badge ? '<span class="slide-badge">' + escHtml(s.badge) + '</span>' : '') +
+          (s.korean ? '<p class="slide-korean">' + escHtml(s.korean) + '</p>' : '') +
+          (s.heading ? '<h2>' + escHtml(s.heading) + '</h2>' : '') +
+          (s.subtitle ? '<span class="slide-sub">' + escHtml(s.subtitle) + '</span>' : '') +
+          (s.description ? '<p class="slide-desc">' + escHtml(s.description) + '</p>' : '') +
+          (s.buttonText ? '<a href="' + escHtml(safeHref(s.buttonUrl)) + '" class="slide-cta">' + escHtml(s.buttonText) + '</a>' : '') +
+          '</div></article>'
+        ).join("");
+
+        indicators.innerHTML = slides.map((_, n) =>
+          '<button type="button" class="carousel-indicator' + (n === 0 ? ' is-active' : '') +
+          '" data-slide-indicator="' + n + '" aria-label="Slide ' + (n + 1) + '">' +
+          '<span class="indicator-bar"></span></button>'
+        ).join("");
+
+        const slideEls = Array.from(track.querySelectorAll(".editorial-slide"));
+        slideEls.forEach((el, j) => {
+          el.style.setProperty("position", "relative", "important");
+          el.style.setProperty("inset", "auto", "important");
+          el.style.setProperty("flex", "0 0 100%", "important");
+          el.style.setProperty("width", "100%", "important");
+          el.style.setProperty("height", "100%", "important");
+          el.style.setProperty("min-height", "0", "important");
+          el.style.setProperty("opacity", "1", "important");
+          el.style.setProperty("visibility", "visible", "important");
+          el.style.setProperty("pointer-events", "auto", "important");
+          el.style.setProperty("transition", "none", "important");
+          el.style.setProperty("z-index", j === 0 ? "2" : "1", "important");
+          const img = el.querySelector("img");
+          const overlay = el.querySelector(".editorial-slide__overlay");
+          const s = slides[j];
+          if (img) img.style.setProperty("object-position", Number(s.imageX ?? 50) + "% " + Number(s.imageY ?? 25) + "%", "important");
+          if (overlay) overlay.style.setProperty("opacity", String(Math.min(100, Math.max(0, Number(s.overlayOpacity ?? 100))) / 100), "important");
         });
-        let active=0,autoTimer=null,touchStartX=0,touchStartY=0,pointerStartX=null;
-        const show=n=>{
-          active=(n+slideEls.length)%slideEls.length;
-          slideEls.forEach((el,j)=>{
-            const current=j===active;
-            el.classList.toggle("is-active",current);
-            el.style.setProperty("opacity",current?"1":"0","important");
-            el.style.setProperty("visibility",current?"visible":"hidden","important");
-            el.style.setProperty("pointer-events",current?"auto":"none","important");
-            el.setAttribute("aria-hidden",current?"false":"true");
+
+        let active = 0;
+        let autoTimer = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let pointerStartX = null;
+
+        const show = n => {
+          active = (n + slideEls.length) % slideEls.length;
+          track.style.setProperty("transform", "translate3d(-" + (active * 100) + "%,0,0)", "important");
+          slideEls.forEach((el, j) => {
+            el.classList.toggle("is-active", j === active);
+            el.style.setProperty("z-index", j === active ? "2" : "1", "important");
+            el.setAttribute("aria-hidden", j === active ? "false" : "true");
           });
-          indicators.querySelectorAll("[data-slide-indicator]").forEach((el,j)=>{el.classList.toggle("is-active",j===active);el.setAttribute("aria-current",j===active?"true":"false");});
+          indicators.querySelectorAll("[data-slide-indicator]").forEach((el, j) => {
+            el.classList.toggle("is-active", j === active);
+            el.setAttribute("aria-current", j === active ? "true" : "false");
+          });
         };
-        const stopAuto=()=>{if(autoTimer!==null){window.clearInterval(autoTimer);window.clearTimeout(autoTimer);autoTimer=null;}};
-        const startAuto=()=>{
+
+        const stopAuto = () => {
+          if (autoTimer !== null) {
+            window.clearInterval(autoTimer);
+            autoTimer = null;
+          }
+        };
+        const startAuto = () => {
           stopAuto();
-          if(slideEls.length<2)return;
-          autoTimer=window.setInterval(()=>{
-            if(signal.aborted||document.hidden)return;
-            if(!(pauseOnHover&&root.matches(":hover")))show(active+1);
-          },intervalMs);
+          if (slideEls.length < 2) return;
+          // Autoplay remains on; admin controls only the interval and transition speed.
+          autoTimer = window.setInterval(() => {
+            if (!signal.aborted && !document.hidden && !(pauseOnHover && root.matches(":hover"))) show(active + 1);
+          }, intervalMs);
         };
-        root.querySelector("[data-carousel-prev]")?.addEventListener("click",()=>{show(active-1);startAuto();},{signal});
-        root.querySelector("[data-carousel-next]")?.addEventListener("click",()=>{show(active+1);startAuto();},{signal});
-        indicators.addEventListener("click",event=>{const button=event.target.closest("[data-slide-indicator]");if(button){show(Number(button.dataset.slideIndicator));startAuto();}},{signal});
-        root.addEventListener("touchstart",event=>{const t=event.changedTouches[0];touchStartX=t.clientX;touchStartY=t.clientY;},{passive:true,signal});
-        root.addEventListener("touchend",event=>{const t=event.changedTouches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.25){show(active+(dx<0?1:-1));startAuto();}},{passive:true,signal});
-        root.addEventListener("pointerdown",event=>{if(event.pointerType==="mouse")pointerStartX=event.clientX;},{signal});
-        root.addEventListener("pointerup",event=>{if(pointerStartX===null||event.pointerType!=="mouse")return;const dx=event.clientX-pointerStartX;pointerStartX=null;if(Math.abs(dx)>65){show(active+(dx<0?1:-1));startAuto();}},{signal});
-        document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAuto();else startAuto();},{signal});
-        root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(button=>{button.hidden=slideEls.length<2;});
-        if(slideEls.length<2)indicators.hidden=true;else indicators.hidden=settings.showIndicators===false;
-        root.__editorialCleanup=()=>{stopAuto();controller.abort();};
+
+        root.querySelector("[data-carousel-prev]")?.addEventListener("click", () => { show(active - 1); startAuto(); }, { signal });
+        root.querySelector("[data-carousel-next]")?.addEventListener("click", () => { show(active + 1); startAuto(); }, { signal });
+        indicators.addEventListener("click", event => {
+          const button = event.target.closest("[data-slide-indicator]");
+          if (button) { show(Number(button.dataset.slideIndicator)); startAuto(); }
+        }, { signal });
+        root.addEventListener("touchstart", event => {
+          const t = event.changedTouches[0]; touchStartX = t.clientX; touchStartY = t.clientY;
+        }, { passive: true, signal });
+        root.addEventListener("touchend", event => {
+          const t = event.changedTouches[0], dx = t.clientX - touchStartX, dy = t.clientY - touchStartY;
+          if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.25) { show(active + (dx < 0 ? 1 : -1)); startAuto(); }
+        }, { passive: true, signal });
+        root.addEventListener("pointerdown", event => { if (event.pointerType === "mouse") pointerStartX = event.clientX; }, { signal });
+        root.addEventListener("pointerup", event => {
+          if (pointerStartX === null || event.pointerType !== "mouse") return;
+          const dx = event.clientX - pointerStartX; pointerStartX = null;
+          if (Math.abs(dx) > 65) { show(active + (dx < 0 ? 1 : -1)); startAuto(); }
+        }, { signal });
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) stopAuto(); else startAuto();
+        }, { signal });
+
+        root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(button => { button.hidden = slideEls.length < 2; });
+        indicators.hidden = slideEls.length < 2 || settings.showIndicators === false;
+        root.__editorialCleanup = () => { stopAuto(); controller.abort(); };
+        show(0);
         startAuto();
       }
+
       async function loadAdminSlides(root) {
         if(!window.supabase||typeof window.supabase.createClient!=="function")return;
         try {
