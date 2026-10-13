@@ -1521,7 +1521,7 @@
               </div>
 
 
-<div class="field full"><label>HERO IMAGE URL</label><input id="cmsHeroImage" placeholder="Paste image URL" oninput="updateHeroPreview()"><div id="cmsHeroImagePreviewWrap" style="display:none;margin-top:10px"><img id="cmsHeroImagePreview" alt="Hero image preview" style="width:100%;max-height:190px;object-fit:cover;border-radius:8px"></div><small style="color:var(--muted);font-size:11px">Upload an image in Media, then paste its public URL.</small></div>
+<div class="field full"><label>HERO BANNER IMAGE</label><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-primary" onclick="document.getElementById('cmsHeroImageFile').click()">Choose Image from Computer</button><input id="cmsHeroImageFile" type="file" accept="image/*" style="display:none" onchange="uploadHeroImage(this)"><span id="cmsHeroImageUploadStatus" style="font-size:12px;color:var(--muted)">Choose a file — it will upload automatically.</span></div><input id="cmsHeroImage" type="hidden" value="" oninput="updateHeroPreview()"><div id="cmsHeroImagePreviewWrap" style="display:none;margin-top:10px"><img id="cmsHeroImagePreview" alt="Hero image preview" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px"><button type="button" class="btn btn-small" style="margin-top:8px" onclick="document.getElementById('cmsHeroImageFile').click()">Replace Image</button></div><small style="color:var(--muted);font-size:11px">Supported image files · Maximum 10 MB. Uploaded image is saved to BULKKOT storage.</small></div>
               <div class="field"><label>KOREAN TOP TEXT</label><input id="cmsHeroKorean" oninput="updateHeroPreview()"></div>
               <div class="field"><label>SMALL EYEBROW LABEL</label><input id="cmsHeroLabel" oninput="updateHeroPreview()"></div>
               <div class="field"><label>HERO TITLE</label><input id="cmsHeroTitle" placeholder="BULKKOT" oninput="updateHeroPreview()"></div>
@@ -2529,6 +2529,32 @@ function updateHeroPreview(){
   if(btn){btn.style.background=buttonBg;btn.style.color=buttonColor;btn.style.borderRadius=radius+"px";}
 }
 window.updateHeroPreview=updateHeroPreview;
+
+async function uploadHeroImage(input){
+  const file=input?.files?.[0];
+  if(!file)return;
+  const status=$("cmsHeroImageUploadStatus");
+  if(!file.type.startsWith("image/")){showToast("Please choose an image file.","error");input.value="";return;}
+  if(file.size>10*1024*1024){showToast("Hero image must be 10 MB or smaller.","error");input.value="";return;}
+  const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]+/g,"-");
+  const path="hero-banners/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe;
+  if(status)status.textContent="Uploading image…";
+  try{
+    const result=await db.storage.from(STORAGE_BUCKET).upload(path,file,{cacheControl:"3600",upsert:false});
+    if(result.error)throw result.error;
+    const url=db.storage.from(STORAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+    $("cmsHeroImage").value=url;
+    updateHeroPreview();
+    if(status)status.textContent="Image uploaded and selected ✓";
+    showToast("Hero image uploaded. Click Save changes to publish it.","success");
+  }catch(error){
+    if(status)status.textContent="Upload failed — please try again.";
+    showToast("Hero image upload failed: "+normalizeError(error),"error");
+  }finally{
+    input.value="";
+  }
+}
+window.uploadHeroImage=uploadHeroImage;
 
 async function loadCMS(){
   const r=await db.from("site_content").select("*");
