@@ -1548,55 +1548,123 @@
   </script>
 
   <script>
-    // Admin-managed editorial carousel; built-in slides remain the fallback.
+    // Editorial carousel: initialize the built-in slides immediately, then replace
+    // them with admin-managed slides when Supabase data is available.
     (function () {
       const SUPABASE_URL = "https://pgubjluqgqvrybvehzeh.supabase.co";
       const SUPABASE_KEY = "sb_publishable_JczzlCxDhkDctBeTuGhEjg_mkOtJIyP";
       const escHtml = value => String(value == null ? "" : value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
       const safeHref = value => { const url=String(value||"").trim(); return !url||/^javascript:/i.test(url)||/^data:/i.test(url) ? "#" : url; };
+
+      function readBuiltInSlides(root) {
+        const track = root.querySelector("[data-carousel-track]");
+        if (!track) return [];
+        return Array.from(track.querySelectorAll(".editorial-slide")).map(slide => {
+          const img=slide.querySelector("img"), content=slide.querySelector(".editorial-slide__content");
+          const text=selector => content?.querySelector(selector)?.textContent?.trim() || "";
+          const cta=content?.querySelector(".slide-cta");
+          return {
+            image: img?.getAttribute("src") || "", alt: img?.getAttribute("alt") || "BULKKOT editorial slide",
+            badge: text(".slide-badge"), korean: text(".slide-korean"), heading: text("h2"),
+            subtitle: text(".slide-sub"), description: text(".slide-desc"),
+            buttonText: cta?.textContent?.trim() || "", buttonUrl: cta?.getAttribute("href") || "#",
+            imageX: 50, imageY: 25, overlayOpacity: 100, enabled: true
+          };
+        }).filter(slide => slide.image);
+      }
+
       function setupCarousel(root, slides, settings = {}) {
         const track=root.querySelector("[data-carousel-track]"), indicators=root.querySelector(".carousel-indicators");
-        if(!track||!indicators)return;
+        if(!track||!indicators||!slides.length)return;
+
+        // Tear down the previous timer/listeners before re-rendering admin slides.
+        if (root.__editorialCleanup) root.__editorialCleanup();
+        const controller = new AbortController();
+        const signal = controller.signal;
         track.innerHTML=slides.map((s,n)=>'<article class="editorial-slide'+(n===0?' is-active':'')+'" data-slide="'+n+'"><img src="'+escHtml(s.image)+'" alt="'+escHtml(s.alt||"BULKKOT editorial slide")+'" loading="'+(n===0?'eager':'lazy')+'"><div class="editorial-slide__overlay"></div><div class="editorial-slide__content">'+
           (s.badge?'<span class="slide-badge">'+escHtml(s.badge)+'</span>':'')+(s.korean?'<p class="slide-korean">'+escHtml(s.korean)+'</p>':'')+(s.heading?'<h2>'+escHtml(s.heading)+'</h2>':'')+(s.subtitle?'<span class="slide-sub">'+escHtml(s.subtitle)+'</span>':'')+(s.description?'<p class="slide-desc">'+escHtml(s.description)+'</p>':'')+(s.buttonText?'<a href="'+escHtml(safeHref(s.buttonUrl))+'" class="slide-cta">'+escHtml(s.buttonText)+'</a>':'')+'</div></article>').join("");
         indicators.innerHTML=slides.map((_,n)=>'<button type="button" class="carousel-indicator'+(n===0?' is-active':'')+'" data-slide-indicator="'+n+'" aria-label="Slide '+(n+1)+'"><span class="indicator-bar"></span></button>').join("");
+
         const intervalMs=Math.min(60000,Math.max(2000,Number(settings.intervalSeconds)||5))*1000;
         const transitionMs=Math.min(3000,Math.max(100,Number(settings.transitionMs)||800));
-        const autoplay=settings.autoplay!==false,pauseOnHover=settings.pauseOnHover===true;
+        const autoplay=settings.autoplay!==false;
+        const pauseOnHover=settings.pauseOnHover===true;
         indicators.hidden=settings.showIndicators===false;
         let active=0,autoTimer=null,touchStartX=0,touchStartY=0,pointerStartX=null;
-        track.querySelectorAll(".editorial-slide").forEach((el,j)=>{el.style.setProperty("transition-duration",transitionMs+"ms","important");const img=el.querySelector("img"),overlay=el.querySelector(".editorial-slide__overlay"),s=slides[j];if(img)img.style.setProperty("object-position",(Number(s.imageX??50))+"% "+(Number(s.imageY??50))+"%","important");if(overlay)overlay.style.setProperty("opacity",String(Math.min(100,Math.max(0,Number(s.overlayOpacity??100)))/100),"important");});
-        const show=n=>{active=(n+slides.length)%slides.length;track.querySelectorAll(".editorial-slide").forEach((el,j)=>el.classList.toggle("is-active",j===active));indicators.querySelectorAll("[data-slide-indicator]").forEach((el,j)=>{el.classList.toggle("is-active",j===active);el.setAttribute("aria-current",j===active?"true":"false");});};
-        const stopAuto=()=>{if(autoTimer!==null){window.clearTimeout(autoTimer);window.clearInterval(autoTimer);autoTimer=null;}};
-        const startAuto=()=>{stopAuto();if(!autoplay||slides.length<2)return;const tick=()=>{if(document.hidden){autoTimer=window.setTimeout(tick,intervalMs);return;}if(!(pauseOnHover&&root.matches(":hover")))show(active+1);autoTimer=window.setTimeout(tick,intervalMs);};autoTimer=window.setTimeout(tick,intervalMs);};
-        root.querySelector("[data-carousel-prev]")?.addEventListener("click",()=>{show(active-1);startAuto();});
-        root.querySelector("[data-carousel-next]")?.addEventListener("click",()=>{show(active+1);startAuto();});
-        indicators.addEventListener("click",event=>{const button=event.target.closest("[data-slide-indicator]");if(button){show(Number(button.dataset.slideIndicator));startAuto();}});
-        // Swipe support for touchscreens and mouse/trackpad pointer gestures.
-        root.addEventListener("touchstart",event=>{const t=event.changedTouches[0];touchStartX=t.clientX;touchStartY=t.clientY;},{passive:true});
-        root.addEventListener("touchend",event=>{const t=event.changedTouches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.25){show(active+(dx<0?1:-1));startAuto();}},{passive:true});
-        root.addEventListener("pointerdown",event=>{if(event.pointerType==="mouse")pointerStartX=event.clientX;});
-        root.addEventListener("pointerup",event=>{if(pointerStartX===null||event.pointerType!=="mouse")return;const dx=event.clientX-pointerStartX;pointerStartX=null;if(Math.abs(dx)>65){show(active+(dx<0?1:-1));startAuto();}});
-        if(pauseOnHover){root.addEventListener("mouseenter",stopAuto);root.addEventListener("mouseleave",startAuto);}
-        document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAuto();else startAuto();});
-        if(slides.length<2){root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(b=>b.hidden=true);indicators.hidden=true;}
-        else startAuto();
+
+        track.querySelectorAll(".editorial-slide").forEach((el,j)=>{
+          el.style.setProperty("transition-duration",transitionMs+"ms","important");
+          const img=el.querySelector("img"),overlay=el.querySelector(".editorial-slide__overlay"),s=slides[j];
+          if(img)img.style.setProperty("object-position",(Number(s.imageX??50))+"% "+(Number(s.imageY??25))+"%","important");
+          if(overlay)overlay.style.setProperty("opacity",String(Math.min(100,Math.max(0,Number(s.overlayOpacity??100)))/100),"important");
+        });
+        const show=n=>{
+          active=(n+slides.length)%slides.length;
+          track.querySelectorAll(".editorial-slide").forEach((el,j)=>el.classList.toggle("is-active",j===active));
+          indicators.querySelectorAll("[data-slide-indicator]").forEach((el,j)=>{el.classList.toggle("is-active",j===active);el.setAttribute("aria-current",j===active?"true":"false");});
+        };
+        const stopAuto=()=>{if(autoTimer!==null){window.clearTimeout(autoTimer);autoTimer=null;}};
+        const startAuto=()=>{
+          stopAuto();
+          if(!autoplay||slides.length<2)return;
+          const tick=()=>{
+            if(signal.aborted)return;
+            if(!document.hidden && !(pauseOnHover&&root.matches(":hover")))show(active+1);
+            autoTimer=window.setTimeout(tick,intervalMs);
+          };
+          autoTimer=window.setTimeout(tick,intervalMs);
+        };
+        root.querySelector("[data-carousel-prev]")?.addEventListener("click",()=>{show(active-1);startAuto();},{signal});
+        root.querySelector("[data-carousel-next]")?.addEventListener("click",()=>{show(active+1);startAuto();},{signal});
+        indicators.addEventListener("click",event=>{const button=event.target.closest("[data-slide-indicator]");if(button){show(Number(button.dataset.slideIndicator));startAuto();}},{signal});
+        root.addEventListener("touchstart",event=>{const t=event.changedTouches[0];touchStartX=t.clientX;touchStartY=t.clientY;},{passive:true,signal});
+        root.addEventListener("touchend",event=>{const t=event.changedTouches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.25){show(active+(dx<0?1:-1));startAuto();}},{passive:true,signal});
+        root.addEventListener("pointerdown",event=>{if(event.pointerType==="mouse")pointerStartX=event.clientX;},{signal});
+        root.addEventListener("pointerup",event=>{if(pointerStartX===null||event.pointerType!=="mouse")return;const dx=event.clientX-pointerStartX;pointerStartX=null;if(Math.abs(dx)>65){show(active+(dx<0?1:-1));startAuto();}},{signal});
+        document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAuto();else startAuto();},{signal});
+        root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(button=>{button.hidden=slides.length<2;});
+        if(slides.length<2)indicators.hidden=true;
+        root.__editorialCleanup=()=>{stopAuto();controller.abort();};
+        startAuto();
       }
-      async function loadAdminSlides(){
-        const root=document.getElementById("editorialCarousel");if(!root||!window.supabase||typeof window.supabase.createClient!=="function")return;
-        try{
-          const client=window.bulkkotSupabase||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);window.bulkkotSupabase=client;
+
+      async function loadAdminSlides(root) {
+        if(!window.supabase||typeof window.supabase.createClient!=="function")return;
+        try {
+          const client=window.bulkkotSupabase||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+          window.bulkkotSupabase=client;
           const result=await client.from("site_content").select("content_key,content_value").in("content_key",["editorial_slides","editorial_slider_settings"]);
-           if(result.error||!result.data||!result.data.length)return;
-           const row=result.data.find(r=>r.content_key==="editorial_slides");if(!row)return;
-           const parsed=JSON.parse(row.content_value||"[]");if(!Array.isArray(parsed))return;
-           const settingsRow=result.data.find(r=>r.content_key==="editorial_slider_settings");let settings={};try{settings=JSON.parse(settingsRow?.content_value||"{}")||{};}catch(e){}
-           const enabled=parsed.filter(s=>s&&s.enabled!==false&&String(s.image||"").trim());
-           if(!enabled.length){root.querySelector("[data-carousel-track]").innerHTML="";root.querySelector(".carousel-indicators").innerHTML="";root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(b=>b.hidden=true);return;}
-           setupCarousel(root,enabled,settings);
-}catch(error){console.warn("Editorial slider settings unavailable; showing built-in slides.",error);}
+          if(result.error)throw result.error;
+          const rows=result.data||[];
+          const settingsRow=rows.find(r=>r.content_key==="editorial_slider_settings");
+          let settings={};try{settings=JSON.parse(settingsRow?.content_value||"{}")||{};}catch(e){}
+          const row=rows.find(r=>r.content_key==="editorial_slides");
+          if(!row){if(settingsRow)setupCarousel(root,readBuiltInSlides(root),settings);return;}
+          const parsed=JSON.parse(row.content_value||"[]");
+          if(!Array.isArray(parsed))throw new Error("Saved slider data is not a list");
+          const enabled=parsed.filter(s=>s&&s.enabled!==false&&String(s.image||"").trim());
+          if(enabled.length)setupCarousel(root,enabled,settings);
+          else {
+            const track=root.querySelector("[data-carousel-track]");
+            if(track)track.innerHTML="";
+            const indicators=root.querySelector(".carousel-indicators");
+            if(indicators)indicators.innerHTML="";
+            root.__editorialCleanup?.();
+          }
+        } catch(error) {
+          console.warn("Editorial slider: keeping built-in autoplay slides because admin settings could not be loaded.",error);
+        }
       }
-      if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadAdminSlides,{once:true});else loadAdminSlides();
+
+      function initEditorialCarousel() {
+        const root=document.getElementById("editorialCarousel");
+        if(!root)return;
+        const builtIn=readBuiltInSlides(root);
+        if(builtIn.length)setupCarousel(root,builtIn,{});
+        loadAdminSlides(root);
+      }
+      if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initEditorialCarousel,{once:true});
+      else initEditorialCarousel();
     })();
   </script>
 
