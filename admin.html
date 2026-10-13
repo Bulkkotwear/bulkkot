@@ -1531,6 +1531,7 @@
               <div class="field"><label>IMAGE FOCUS HORIZONTAL (%)</label><input id="cmsHeroImageX" type="number" min="0" max="100" value="70" oninput="updateHeroPreview()"></div>
               <div class="field"><label>IMAGE FOCUS VERTICAL (%)</label><input id="cmsHeroImageY" type="number" min="0" max="100" value="20" oninput="updateHeroPreview()"></div>
               <div class="field"><label>BANNER HEIGHT (PX)</label><input id="cmsHeroHeight" type="number" min="320" max="900" value="560" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>MOBILE BANNER HEIGHT (PX)</label><input id="cmsHeroMobileHeight" type="number" min="320" max="800" value="440" oninput="updateHeroPreview()"></div>
               <div class="field"><label>TITLE SIZE (PX)</label><input id="cmsHeroTitleSize" type="number" min="24" max="100" value="62" oninput="updateHeroPreview()"></div>
               <div class="field"><label>DESCRIPTION SIZE (PX)</label><input id="cmsHeroDescriptionSize" type="number" min="10" max="28" value="13" oninput="updateHeroPreview()"></div>
               <div class="field"><label>TEXT ALIGNMENT</label><select id="cmsHeroAlignment" onchange="updateHeroPreview()"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></div>
@@ -2561,6 +2562,7 @@ async function loadCMS(){
   $("cmsHeroImageX").value=field("hero_image_x","70");
   $("cmsHeroImageY").value=field("hero_image_y","20");
   $("cmsHeroHeight").value=field("hero_height","560");
+  $("cmsHeroMobileHeight").value=field("hero_mobile_height","440");
   $("cmsHeroTitleSize").value=field("hero_title_size","62");
   $("cmsHeroDescriptionSize").value=field("hero_description_size","13");
   $("cmsHeroAlignment").value=field("hero_alignment","left");
@@ -3125,6 +3127,7 @@ async function saveCMS(){
     hero_image_x:String(Math.min(100,Math.max(0,Number($("cmsHeroImageX").value)||0))),
     hero_image_y:String(Math.min(100,Math.max(0,Number($("cmsHeroImageY").value)||0))),
     hero_height:String(Math.min(900,Math.max(320,Number($("cmsHeroHeight").value)||560))),
+    hero_mobile_height:String(Math.min(800,Math.max(320,Number($("cmsHeroMobileHeight").value)||440))),
     hero_title_size:String(Math.min(100,Math.max(24,Number($("cmsHeroTitleSize").value)||62))),
     hero_description_size:String(Math.min(28,Math.max(10,Number($("cmsHeroDescriptionSize").value)||13))),
     hero_alignment:$("cmsHeroAlignment").value,
