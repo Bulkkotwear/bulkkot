@@ -530,7 +530,7 @@
           : "linear-gradient(90deg, rgba("+red+","+green+","+blue+","+heroOpacity+") 0%, rgba("+red+","+green+","+blue+","+(heroOpacity*0.5)+") 55%, rgba("+red+","+green+","+blue+","+(heroOpacity*0.15)+") 100%)";
         heroOverlay.style.setProperty("background",gradient,"important");
       }
-      if (hero && lookup.hero_height !== undefined) hero.style.setProperty("height",Math.min(900,Math.max(320,Number(lookup.hero_height)||560))+"px","important");
+      if (hero && lookup.hero_height !== undefined) { const heroHeight = Math.min(900,Math.max(320,Number(lookup.hero_height)||560)); hero.style.setProperty("height",heroHeight+"px","important"); hero.style.setProperty("max-height","none","important"); }
       if (heroImage) heroImage.style.setProperty("object-position",Math.min(100,Math.max(0,Number(lookup.hero_image_x === undefined ? 70 : lookup.hero_image_x)))+"% "+Math.min(100,Math.max(0,Number(lookup.hero_image_y === undefined ? 20 : lookup.hero_image_y)))+"%","important");
       if (heroTitle) heroTitle.style.setProperty("font-size","clamp(24px, 6vw, "+heroTitleSize+"px)","important");
       if (heroDesc) heroDesc.style.setProperty("font-size",heroDescSize+"px","important");
