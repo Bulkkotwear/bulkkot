@@ -1658,13 +1658,14 @@
           const parsed=JSON.parse(row.content_value||"[]");
           if(!Array.isArray(parsed))throw new Error("Saved slider data is not a list");
           const enabled=parsed.filter(s=>s&&s.enabled!==false&&String(s.image||"").trim());
-          if(enabled.length)setupCarousel(root,enabled,settings);
-          else {
-            const track=root.querySelector("[data-carousel-track]");
-            if(track)track.innerHTML="";
-            const indicators=root.querySelector(".carousel-indicators");
-            if(indicators)indicators.innerHTML="";
-            root.__editorialCleanup?.();
+          // A carousel needs at least two valid slides to auto-advance. If the
+          // admin data is empty/half-saved, keep the working built-in carousel.
+          if(enabled.length>=2) {
+            setupCarousel(root,enabled,settings);
+          } else {
+            console.warn("Editorial slider: fewer than two enabled admin slides; using built-in slides for autoplay.");
+            const fallback=readBuiltInSlides(root);
+            if(fallback.length)setupCarousel(root,fallback,settings);
           }
         } catch(error) {
           console.warn("Editorial slider: keeping built-in autoplay slides because admin settings could not be loaded.",error);
