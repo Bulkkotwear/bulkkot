@@ -17,7 +17,7 @@
 
   <!-- Core Styles -->
   <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/components.css?v=20261013-slider-final-autoplay">
+  <link rel="stylesheet" href="css/components.css?v=20261013-slider-final-autoplay2">
 
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1593,7 +1593,7 @@
 
         const intervalMs=Math.min(60000,Math.max(2000,Number(settings.intervalSeconds)||5))*1000;
         const transitionMs=Math.min(3000,Math.max(100,Number(settings.transitionMs)||800));
-        const autoplay=settings.autoplay!==false;
+        const autoplay=true; // Keep storefront auto-advance enabled; timing remains admin-controlled.
         const pauseOnHover=settings.pauseOnHover===true;
         indicators.hidden=settings.showIndicators===false;
         let active=0,autoTimer=null,touchStartX=0,touchStartY=0,pointerStartX=null;
