@@ -3772,3 +3772,92 @@ button, input, select {
   border-color: var(--bk-red, #e31b23) !important;
   outline-color: var(--bk-red, #e31b23) !important;
 }
+
+
+/* BULKKOT editorial slider — unified premium CTA and navigation finish */
+.editorial-carousel .slide-cta {
+  min-height: 46px !important;
+  padding: 0 22px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  background: #f4f1ec !important;
+  color: #111 !important;
+  border: 1px solid #f4f1ec !important;
+  border-radius: 0 !important;
+  font-family: inherit !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .15em !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  text-shadow: none !important;
+  box-shadow: 0 5px 20px rgba(0,0,0,.16) !important;
+  transform: none !important;
+  transition: background-color .22s ease, color .22s ease, border-color .22s ease, gap .22s ease !important;
+}
+.editorial-carousel .slide-cta:hover {
+  background: #e31b23 !important;
+  color: #fff !important;
+  border-color: #e31b23 !important;
+  gap: 19px !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(227,27,35,.2) !important;
+}
+.editorial-carousel .slide-cta:focus-visible {
+  outline: 2px solid #e31b23 !important;
+  outline-offset: 4px !important;
+}
+.editorial-carousel .slide-cta:active {
+  transform: translateY(0) scale(.985) !important;
+  background: #b9141b !important;
+  border-color: #b9141b !important;
+}
+.editorial-carousel .carousel-control {
+  width: 44px !important;
+  height: 44px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  border-radius: 0 !important;
+  background: rgba(8,8,8,.48) !important;
+  color: #fff !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+.editorial-carousel .carousel-control:hover {
+  background: #e31b23 !important;
+  border-color: #e31b23 !important;
+}
+.editorial-carousel .carousel-indicator {
+  min-width: 28px !important;
+  min-height: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: transparent !important;
+}
+.editorial-carousel .indicator-bar {
+  display: block !important;
+  transition: width .28s ease, background-color .28s ease !important;
+}
+.editorial-carousel .carousel-indicator.is-active .indicator-bar {
+  background: #e31b23 !important;
+  box-shadow: none !important;
+}
+@media (max-width: 768px) {
+  .editorial-carousel .slide-cta {
+    min-height: 44px !important;
+    padding: 0 17px !important;
+    gap: 10px !important;
+    font-size: 9px !important;
+    letter-spacing: .12em !important;
+  }
+  .editorial-carousel .slide-cta:hover {
+    gap: 12px !important;
+    transform: none !important;
+  }
+  .editorial-carousel .carousel-indicators {
+    bottom: 18px !important;
+  }
+}
