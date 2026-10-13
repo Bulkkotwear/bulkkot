@@ -1193,7 +1193,7 @@
 
   <!-- Core Scripts -->
   <script src="js/cart.js?v=20261009-variants" defer></script>
-  <script src="js/main.js?v=20261009-content-cms-2" defer></script>
+  <script src="js/main.js?v=20261013-smooth-loading" defer></script>
 
   <!-- BULKKOT AUTH/PROFILE BRIDGE -->
   <script>
@@ -1603,68 +1603,7 @@
   </script>
 
 
-  <script>
-    (function () {
-      const row = document.getElementById("homeCategoryCarousel");
-      if (!row) return;
-      const fallbackImages = {
-        tees: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",
-        tee: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",
-        hoods: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",
-        hoodies: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",
-        sweats: "https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png"
-      };
-      const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[ch]));
-      const slugify = value => String(value || "").trim().toLowerCase()
-        .replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-      async function renderHomeCategories() {
-        try {
-          if (!window.supabase || typeof window.supabase.createClient !== "function") throw new Error("Supabase unavailable");
-          const client = window.bulkkotSupabase || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-          window.bulkkotSupabase = client;
-          const [categoryResult, productResult] = await Promise.all([
-            client.from("site_content").select("content_value").eq("content_key","categories").limit(1),
-            client.from("products").select("id,name,category,images,image_url,image,active").eq("active",true)
-          ]);
-          if (categoryResult.error || !categoryResult.data?.length) throw categoryResult.error || new Error("Categories unavailable");
-          const raw = categoryResult.data[0].content_value;
-          const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-          if (!Array.isArray(parsed)) throw new Error("Invalid categories");
-          const categories = parsed.filter(item => item && item.enabled !== false)
-            .map(item => ({...item, slug: slugify(item.slug || item.id || item.name), name: String(item.name || item.slug || item.id || "CATEGORY").trim()}))
-            .filter(item => item.slug)
-            .sort((a,b) => Number(a.position || 0) - Number(b.position || 0));
-          const legacyDemoIds = new Set(["bk-tee-01", "bk-hood-01", "bk-sweat-01", "bk-tee-02", "mock-tee-01", "mock-hood-01", "mock-sweat-01", "mock-tee-02"]);
-          const legacyDemoNames = new Set(["HEAVY ARCHITECTURAL BOXY TEE", "STRUCTURED LOOPBACK HOODIE", "MINIMALIST OVERSIZED SWEATSHIRT", "SEOUL SILHOUETTE GRAPHIC TEE", "ARCHITECTURAL BOXY TEE", "STRUCTURED HEAVYWEIGHT HOODIE", "MINIMALIST OVERSIZED SWEAT", "SEOUL EDITION GRAPHIC TEE"]);
-          const products = (Array.isArray(productResult.data) ? productResult.data : [])
-            .filter(item => item && !legacyDemoIds.has(String(item.id || "").trim().toLowerCase()) && !legacyDemoNames.has(String(item.name || "").trim().toUpperCase()));
-          row.innerHTML = categories.map(category => {
-            const product = products.find(item => {
-              const productCategory = slugify(item.category);
-              return productCategory && (productCategory === category.slug || productCategory.includes(category.slug) || category.slug.includes(productCategory));
-            });
-            const productImages = Array.isArray(product?.images) ? product.images : [];
-            const image = category.image || category.image_url || productImages[0] || product?.image_url || product?.image || fallbackImages[category.slug] || fallbackImages.tees;
-            return '<a href="shop.html?category=' + encodeURIComponent(category.slug) + '" class="collection-circle-card">' +
-              '<div class="circle-frame"><img src="' + esc(image) + '" alt="' + esc(category.name) + '" loading="lazy"></div>' +
-              '<div class="circle-meta"><span class="circle-label">' + esc(category.name) + '</span>' +
-              (category.korean ? '<span class="circle-korean">' + esc(category.korean) + '</span>' : '') +
-              '<span class="circle-action-btn">VIEW ALL →</span></div></a>';
-          }).join("");
-          row.classList.remove("is-loading");
-          row.classList.add("is-ready");
-        } catch (error) {
-          console.warn("Home categories could not be loaded dynamically.", error);
-          row.classList.remove("is-loading");
-          row.classList.add("is-ready");
-        }
-      }
-      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderHomeCategories, { once: true });
-      else renderHomeCategories();
-    })();
-  </script>
+
 
 </body>
 </html>
