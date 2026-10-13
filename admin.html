@@ -1521,30 +1521,27 @@
               </div>
 
 
-              <div class="field">
-                <label>HERO TITLE</label>
-                <input id="cmsHeroTitle" placeholder="Hero heading">
-              </div>
-
-              <div class="field">
-                <label>HERO SUBTITLE</label>
-                <textarea id="cmsHeroSubtitle" placeholder="Hero supporting copy"></textarea>
-              </div>
-
-              <div class="field">
-                <label>HERO IMAGE URL</label>
-                <input id="cmsHeroImage" placeholder="https://…">
-              </div>
-
-              <div class="field">
-                <label>PRIMARY BUTTON TEXT</label>
-                <input id="cmsPrimaryButton" placeholder="SHOP NOW">
-              </div>
-
-              <div class="field">
-                <label>PRIMARY BUTTON URL</label>
-                <input id="cmsPrimaryUrl" placeholder="/shop.html">
-              </div>
+<div class="field full"><label>HERO IMAGE URL</label><input id="cmsHeroImage" placeholder="Paste image URL" oninput="updateHeroPreview()"><div id="cmsHeroImagePreviewWrap" style="display:none;margin-top:10px"><img id="cmsHeroImagePreview" alt="Hero image preview" style="width:100%;max-height:190px;object-fit:cover;border-radius:8px"></div><small style="color:var(--muted);font-size:11px">Upload an image in Media, then paste its public URL.</small></div>
+              <div class="field"><label>KOREAN TOP TEXT</label><input id="cmsHeroKorean" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>SMALL EYEBROW LABEL</label><input id="cmsHeroLabel" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>HERO TITLE</label><input id="cmsHeroTitle" placeholder="BULKKOT" oninput="updateHeroPreview()"></div>
+              <div class="field full"><label>HERO DESCRIPTION</label><textarea id="cmsHeroSubtitle" oninput="updateHeroPreview()"></textarea></div>
+              <div class="field"><label>BUTTON TEXT</label><input id="cmsPrimaryButton" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>BUTTON LINK / URL</label><input id="cmsPrimaryUrl" placeholder="#drop-001"></div>
+              <div class="field"><label>IMAGE FOCUS HORIZONTAL (%)</label><input id="cmsHeroImageX" type="number" min="0" max="100" value="70" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>IMAGE FOCUS VERTICAL (%)</label><input id="cmsHeroImageY" type="number" min="0" max="100" value="20" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>BANNER HEIGHT (PX)</label><input id="cmsHeroHeight" type="number" min="320" max="900" value="560" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>TITLE SIZE (PX)</label><input id="cmsHeroTitleSize" type="number" min="24" max="100" value="62" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>DESCRIPTION SIZE (PX)</label><input id="cmsHeroDescriptionSize" type="number" min="10" max="28" value="13" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>TEXT ALIGNMENT</label><select id="cmsHeroAlignment" onchange="updateHeroPreview()"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></div>
+              <div class="field"><label>TEXT FONT</label><select id="cmsHeroFont" onchange="updateHeroPreview()"><option value="'Montserrat', sans-serif">Montserrat</option><option value="'Inter', sans-serif">Inter</option><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="'Courier New', monospace">Courier New</option></select></div>
+              <div class="field"><label>TEXT COLOUR</label><input id="cmsHeroTextColor" type="color" value="#ffffff" oninput="updateHeroPreview()" style="height:44px;padding:5px"></div>
+              <div class="field"><label>OVERLAY COLOUR</label><input id="cmsHeroOverlayColor" type="color" value="#000000" oninput="updateHeroPreview()" style="height:44px;padding:5px"></div>
+              <div class="field full"><label>OVERLAY STRENGTH (%)</label><input id="cmsHeroOverlayOpacity" type="range" min="0" max="100" value="76" oninput="updateHeroPreview()"></div>
+              <div class="field"><label>BUTTON BACKGROUND</label><input id="cmsHeroButtonBg" type="color" value="#ffffff" oninput="updateHeroPreview()" style="height:44px;padding:5px"></div>
+              <div class="field"><label>BUTTON TEXT COLOUR</label><input id="cmsHeroButtonColor" type="color" value="#000000" oninput="updateHeroPreview()" style="height:44px;padding:5px"></div>
+              <div class="field"><label>BUTTON CORNER ROUNDING (PX)</label><input id="cmsHeroButtonRadius" type="number" min="0" max="40" value="2" oninput="updateHeroPreview()"></div>
+              <div class="field full"><label>LIVE STYLE PREVIEW</label><div id="cmsHeroStylePreview" style="min-height:150px;display:flex;align-items:center;overflow:hidden;border-radius:8px;padding:22px;background:#111;color:#fff"><div id="cmsHeroStylePreviewContent" style="max-width:100%;width:100%;position:relative;z-index:1"><div id="cmsHeroPreviewKorean" style="font-size:12px;margin-bottom:5px">불꽃</div><div id="cmsHeroPreviewTitle" style="font-size:28px;font-weight:900;line-height:1">BULKKOT</div><div id="cmsHeroPreviewLabel" style="font-size:9px;letter-spacing:2px;margin:7px 0">PREMIUM EVERYDAY WEAR</div><div id="cmsHeroPreviewDescription" style="font-size:11px;line-height:1.5">Korean-inspired minimalist heavyweight essentials.</div><div id="cmsHeroPreviewButton" style="display:inline-block;margin-top:12px;padding:9px 15px;background:#fff;color:#000;font-size:10px;font-weight:800;border-radius:2px">EXPLORE DROP 001</div></div></div></div>
             </div>
 
             <div class="card">
@@ -2502,6 +2499,36 @@ function updateAnnouncementPreview(){
 }
 window.updateAnnouncementPreview=updateAnnouncementPreview;
 
+
+function updateHeroPreview(){
+  const get=id=>document.getElementById(id);
+  const val=(id,fallback="")=>String(get(id)?.value??fallback);
+  const put=(id,text)=>{const el=get(id);if(el)el.textContent=text;};
+  put("cmsHeroPreviewKorean",val("cmsHeroKorean","불꽃"));
+  put("cmsHeroPreviewTitle",val("cmsHeroTitle","BULKKOT"));
+  put("cmsHeroPreviewLabel",val("cmsHeroLabel","PREMIUM EVERYDAY WEAR"));
+  put("cmsHeroPreviewDescription",val("cmsHeroSubtitle","Korean-inspired minimalist heavyweight essentials."));
+  put("cmsHeroPreviewButton",val("cmsPrimaryButton","EXPLORE DROP 001"));
+  const image=val("cmsHeroImage").trim(), wrap=get("cmsHeroImagePreviewWrap"), img=get("cmsHeroImagePreview");
+  if(wrap&&img){wrap.style.display=image?"block":"none";if(image&&img.src!==image)img.src=image;}
+  const preview=get("cmsHeroStylePreview"), content=get("cmsHeroStylePreviewContent");
+  const title=get("cmsHeroPreviewTitle"), desc=get("cmsHeroPreviewDescription"), btn=get("cmsHeroPreviewButton");
+  const textColor=val("cmsHeroTextColor","#ffffff"), overlay=val("cmsHeroOverlayColor","#000000");
+  const opacity=Math.min(100,Math.max(0,Number(val("cmsHeroOverlayOpacity","76"))))/100;
+  const titleSize=Math.min(100,Math.max(24,Number(val("cmsHeroTitleSize","62"))));
+  const descSize=Math.min(28,Math.max(10,Number(val("cmsHeroDescriptionSize","13"))));
+  const align=val("cmsHeroAlignment","left"), font=val("cmsHeroFont","'Montserrat', sans-serif");
+  const buttonBg=val("cmsHeroButtonBg","#ffffff"), buttonColor=val("cmsHeroButtonColor","#000000");
+  const radius=Math.min(40,Math.max(0,Number(val("cmsHeroButtonRadius","2"))));
+  if(preview){preview.style.backgroundColor=overlay;preview.style.backgroundImage=image?'linear-gradient(rgba(0,0,0,'+opacity+'),rgba(0,0,0,'+opacity+')),url("'+image.replace(/["\\]/g,"")+'")':'linear-gradient(rgba(0,0,0,'+opacity+'),rgba(0,0,0,'+opacity+'))';preview.style.backgroundSize="cover";preview.style.backgroundPosition=val("cmsHeroImageX","70")+"% "+val("cmsHeroImageY","20")+"%";preview.style.color=textColor;preview.style.textAlign=align;}
+  if(content){content.style.fontFamily=font;content.style.textAlign=align;content.style.width="100%";}
+  if(title){title.style.fontSize=Math.min(48,titleSize/2)+"px";title.style.color=textColor;}
+  if(desc){desc.style.fontSize=Math.max(10,descSize-2)+"px";desc.style.color=textColor;}
+  ["cmsHeroPreviewKorean","cmsHeroPreviewLabel"].forEach(id=>{const el=get(id);if(el)el.style.color=textColor;});
+  if(btn){btn.style.background=buttonBg;btn.style.color=buttonColor;btn.style.borderRadius=radius+"px";}
+}
+window.updateHeroPreview=updateHeroPreview;
+
 async function loadCMS(){
   const r=await db.from("site_content").select("*");
   if(r.error){showToast("CMS could not be loaded: "+normalizeError(r.error),"error");return;}
@@ -2529,6 +2556,22 @@ async function loadCMS(){
   $("cmsHeroImage").value=field("hero_image","https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png");
   $("cmsPrimaryButton").value=field("primary_button_text",field("hero_button_text","EXPLORE DROP 001"));
   $("cmsPrimaryUrl").value=field("primary_button_url",field("hero_button_url","#drop-001"));
+  $("cmsHeroKorean").value=field("hero_korean","불꽃");
+  $("cmsHeroLabel").value=field("hero_label","PREMIUM EVERYDAY WEAR");
+  $("cmsHeroImageX").value=field("hero_image_x","70");
+  $("cmsHeroImageY").value=field("hero_image_y","20");
+  $("cmsHeroHeight").value=field("hero_height","560");
+  $("cmsHeroTitleSize").value=field("hero_title_size","62");
+  $("cmsHeroDescriptionSize").value=field("hero_description_size","13");
+  $("cmsHeroAlignment").value=field("hero_alignment","left");
+  $("cmsHeroFont").value=field("hero_font","\'Montserrat\', sans-serif");
+  $("cmsHeroTextColor").value=field("hero_text_color","#ffffff");
+  $("cmsHeroOverlayColor").value=field("hero_overlay_color","#000000");
+  $("cmsHeroOverlayOpacity").value=field("hero_overlay_opacity","76");
+  $("cmsHeroButtonBg").value=field("hero_button_bg","#ffffff");
+  $("cmsHeroButtonColor").value=field("hero_button_color","#000000");
+  $("cmsHeroButtonRadius").value=field("hero_button_radius","2");
+  updateHeroPreview();
   $("cmsTagline").value=field("tagline","Less noise. More presence.");
   $("cmsAboutTitle").value=field("about_title","불꽃");
   $("cmsAboutText").value=field("about_text","Premium clothing shouldn't feel unreachable.");
@@ -3077,6 +3120,21 @@ async function saveCMS(){
     hero_title:$("cmsHeroTitle").value,
     hero_subtitle:$("cmsHeroSubtitle").value,
     hero_image:$("cmsHeroImage").value.trim(),
+    hero_korean:$("cmsHeroKorean").value,
+    hero_label:$("cmsHeroLabel").value,
+    hero_image_x:String(Math.min(100,Math.max(0,Number($("cmsHeroImageX").value)||0))),
+    hero_image_y:String(Math.min(100,Math.max(0,Number($("cmsHeroImageY").value)||0))),
+    hero_height:String(Math.min(900,Math.max(320,Number($("cmsHeroHeight").value)||560))),
+    hero_title_size:String(Math.min(100,Math.max(24,Number($("cmsHeroTitleSize").value)||62))),
+    hero_description_size:String(Math.min(28,Math.max(10,Number($("cmsHeroDescriptionSize").value)||13))),
+    hero_alignment:$("cmsHeroAlignment").value,
+    hero_font:$("cmsHeroFont").value,
+    hero_text_color:$("cmsHeroTextColor").value,
+    hero_overlay_color:$("cmsHeroOverlayColor").value,
+    hero_overlay_opacity:String(Math.min(100,Math.max(0,Number($("cmsHeroOverlayOpacity").value)||0))),
+    hero_button_bg:$("cmsHeroButtonBg").value,
+    hero_button_color:$("cmsHeroButtonColor").value,
+    hero_button_radius:String(Math.min(40,Math.max(0,Number($("cmsHeroButtonRadius").value)||0))),
     primary_button_text:heroButtonText,
     hero_button_text:heroButtonText,
     primary_button_url:heroButtonUrl,
