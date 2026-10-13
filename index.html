@@ -17,7 +17,7 @@
 
   <!-- Core Styles -->
   <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/components.css?v=20261013-slider-swipe-red">
+  <link rel="stylesheet" href="css/components.css?v=20261013-slider-timing-fix">
 
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1562,13 +1562,13 @@
         indicators.innerHTML=slides.map((_,n)=>'<button type="button" class="carousel-indicator'+(n===0?' is-active':'')+'" data-slide-indicator="'+n+'" aria-label="Slide '+(n+1)+'"><span class="indicator-bar"></span></button>').join("");
         const intervalMs=Math.min(60000,Math.max(2000,Number(settings.intervalSeconds)||5))*1000;
         const transitionMs=Math.min(3000,Math.max(100,Number(settings.transitionMs)||800));
-        const autoplay=settings.autoplay!==false,pauseOnHover=settings.pauseOnHover!==false;
+        const autoplay=settings.autoplay!==false,pauseOnHover=settings.pauseOnHover===true;
         indicators.hidden=settings.showIndicators===false;
         let active=0,autoTimer=null,touchStartX=0,touchStartY=0,pointerStartX=null;
         track.querySelectorAll(".editorial-slide").forEach((el,j)=>{el.style.setProperty("transition-duration",transitionMs+"ms","important");const img=el.querySelector("img"),overlay=el.querySelector(".editorial-slide__overlay"),s=slides[j];if(img)img.style.setProperty("object-position",(Number(s.imageX??50))+"% "+(Number(s.imageY??50))+"%","important");if(overlay)overlay.style.setProperty("opacity",String(Math.min(100,Math.max(0,Number(s.overlayOpacity??100)))/100),"important");});
         const show=n=>{active=(n+slides.length)%slides.length;track.querySelectorAll(".editorial-slide").forEach((el,j)=>el.classList.toggle("is-active",j===active));indicators.querySelectorAll("[data-slide-indicator]").forEach((el,j)=>{el.classList.toggle("is-active",j===active);el.setAttribute("aria-current",j===active?"true":"false");});};
-        const stopAuto=()=>{if(autoTimer!==null){window.clearInterval(autoTimer);autoTimer=null;}};
-        const startAuto=()=>{stopAuto();if(autoplay&&slides.length>1)autoTimer=window.setInterval(()=>{if(!document.hidden&&(!pauseOnHover||!root.matches(":hover")))show(active+1);},intervalMs);};
+        const stopAuto=()=>{if(autoTimer!==null){window.clearTimeout(autoTimer);window.clearInterval(autoTimer);autoTimer=null;}};
+        const startAuto=()=>{stopAuto();if(!autoplay||slides.length<2)return;const tick=()=>{if(document.hidden){autoTimer=window.setTimeout(tick,intervalMs);return;}if(!(pauseOnHover&&root.matches(":hover")))show(active+1);autoTimer=window.setTimeout(tick,intervalMs);};autoTimer=window.setTimeout(tick,intervalMs);};
         root.querySelector("[data-carousel-prev]")?.addEventListener("click",()=>{show(active-1);startAuto();});
         root.querySelector("[data-carousel-next]")?.addEventListener("click",()=>{show(active+1);startAuto();});
         indicators.addEventListener("click",event=>{const button=event.target.closest("[data-slide-indicator]");if(button){show(Number(button.dataset.slideIndicator));startAuto();}});
