@@ -413,7 +413,7 @@
   </div>
 
   <script src="js/cart.js?v=20261009-variants"></script>
-  <script src="js/main.js?v=20261009-stable-categories"></script>
+  <script src="js/main.js?v=20261013-smooth-loading"></script>
 
   <script>
     (() => {
@@ -520,8 +520,8 @@
           "tee": "tees", "t-shirt": "tees", "t-shirts": "tees", "tshirt": "tees",
           "hoodie": "hoods", "hoodies": "hoods", "hood": "hoods",
           "sweat": "sweats", "sweatshirt": "sweats", "sweatshirts": "sweats",
-          "sweatpant": "sweatpants", "sweat-pant": "sweatpants",
-          "sweat-pants": "sweatpants"
+          "sweatpant": "sweats", "sweatpants": "sweats", "sweat-pant": "sweats",
+          "sweat-pants": "sweats", "sweatshirt": "sweats", "sweatshirts": "sweats"
         };
         return aliases[slug] || slug;
       }
@@ -575,8 +575,10 @@
         
         filteredProducts = products.filter(p => {
           if (p.active === false || isDemoProduct(p)) return false;
-          const cat = String(p.category || "").toLowerCase();
-          if (activeCategory !== "all" && canonicalCategory(cat) !== canonicalCategory(activeCategory) && !cat.includes(activeCategory)) return false;
+          const cat = canonicalCategory(p.category || "");
+          const selected = categories.find(c => canonicalCategory(c.slug) === canonicalCategory(activeCategory));
+          const accepted = new Set([activeCategory, selected?.slug, selected?.name].filter(Boolean).map(canonicalCategory));
+          if (activeCategory !== "all" && !accepted.has(cat)) return false;
           if (term) {
             const text = [p.name, p.category, p.korean, p.tag].join(" ").toLowerCase();
             if (!text.includes(term)) return false;
@@ -769,40 +771,40 @@
       });
 
       async function initializeData() {
-        // Start independent catalogue requests together so category settings do not
-        // hold the product grid hostage to an extra network round-trip.
         setViewState("loading");
+        renderCategoryFilters();
         if (!supabaseClient) {
           setViewState("error");
           return;
         }
         try {
-          // Category/variant metadata must not block the actual product catalogue.
           const withTimeout = (promise, ms, label) => Promise.race([
             promise,
             new Promise((_, reject) => setTimeout(() => reject(new Error(label + " timed out")), ms))
           ]);
-          const categoriesTask = loadStoreCategories().catch(err => {
+          let catalogLoaded = false;
+          // Category metadata refreshes independently and never blocks product rendering.
+          loadStoreCategories().then(() => {
+            renderCategoryFilters();
+            if (catalogLoaded) applyFilters();
+          }).catch(err => {
             console.warn("Category metadata unavailable; using current categories.", err);
           });
           const productsTask = withTimeout(
             supabaseClient.from("products").select("*").eq("active", true).order("created_at", { ascending: false }),
-            9000,
+            7000,
             "Product catalogue"
           );
           const variantsTask = withTimeout(
             supabaseClient.from("site_content").select("content_key,content_value").eq("content_key", "product_variants").limit(1),
-            6500,
+            4500,
             "Product variants"
           ).catch(err => {
             console.warn("Variant metadata unavailable.", err);
             return { data: [], error: err };
           });
 
-          const [ , productResult, variantResult ] = await Promise.all([
-            categoriesTask, productsTask, variantsTask
-          ]);
-          renderCategoryFilters();
+          const [productResult, variantResult] = await Promise.all([productsTask, variantsTask]);
 
           const { data, error } = productResult;
           if (error || !Array.isArray(data)) {
@@ -832,6 +834,7 @@
             const available = SIZES.filter(size => Number(stockSource[size] || 0) > 0);
             if (available.length) quickAddSelections.set(String(p.id), available[0]);
           });
+          catalogLoaded = true;
           applyFilters();
         } catch (err) {
           console.warn("Could not load live catalogue:", err);
