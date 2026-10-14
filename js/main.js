@@ -583,6 +583,8 @@
       document.querySelectorAll("[data-open-about]").forEach(button => {
         button.style.setProperty("display", storyButtonsVisible ? "" : "none");
       });
+      const tagline = document.querySelector(".footer-tagline");
+      if (tagline) tagline.style.setProperty("display", String(lookup.tagline_enabled ?? "true") === "false" ? "none" : "");
 
       const latestRelease = document.querySelector("[data-cms-latest-release]");
       if (latestRelease) {
