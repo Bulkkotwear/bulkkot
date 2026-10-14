@@ -1581,6 +1581,36 @@
 
           </div>
 
+          <div class="card section-card" id="homepageVisibilityCard">
+            <div class="section-title"><h2>Homepage Section Visibility</h2><span>Show / hide controls</span></div>
+            <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Turn each homepage section on or off. Hidden sections stay saved and can be shown again anytime. Save changes to publish.</p>
+            <div class="form-grid">
+              <div class="field"><label><input id="cmsShowHero" type="checkbox" checked> HERO BANNER</label></div>
+              <div class="field"><label><input id="cmsShowCollections" type="checkbox" checked> COLLECTION CIRCLES</label></div>
+              <div class="field"><label><input id="cmsShowEditorial" type="checkbox" checked> EDITORIAL SLIDER</label></div>
+              <div class="field"><label><input id="cmsShowDrop" type="checkbox" checked> DROP BANNER</label></div>
+              <div class="field"><label><input id="cmsShowLatest" type="checkbox" checked> LATEST RELEASES</label></div>
+              <div class="field"><label><input id="cmsShowWhy" type="checkbox" checked> WHY BULKKOT</label></div>
+              <div class="field"><label><input id="cmsShowAbout" type="checkbox" checked> ABOUT</label></div>
+              <div class="field"><label><input id="cmsShowPhilosophy" type="checkbox" checked> BRAND PHILOSOPHY</label></div>
+              <div class="field"><label><input id="cmsShowInstagram" type="checkbox" checked> INSTAGRAM</label></div>
+              <div class="field"><label><input id="cmsShowWaitlist" type="checkbox" checked> JOIN WAITLIST</label></div>
+              <div class="field"><label><input id="cmsShowContact" type="checkbox" checked> CONTACT</label></div>
+            </div>
+          </div>
+          <div class="card section-card" id="whyBulkkotControlsCard">
+            <div class="section-title"><h2>Why BULKKOT Section</h2><span>Storefront content</span></div>
+            <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Edit the section heading and the four brand/value blocks shown on the homepage.</p>
+            <div class="form-grid">
+              <div class="field"><label>EYEBROW TEXT</label><input id="cmsWhyEyebrow" value="WHY BULKKOT · 왜 불꽃인가"></div>
+              <div class="field"><label>SECTION HEADING</label><input id="cmsWhyTitle" value="BUILT WITH INTENT."></div>
+              <div class="field"><label>BLOCK 1 TITLE</label><input id="cmsWhy1Title" value="PREMIUM QUALITY"></div><div class="field"><label>BLOCK 1 KOREAN TEXT</label><input id="cmsWhy1Korean" value="프리미엄 퀄리티"></div><div class="field full"><label>BLOCK 1 DESCRIPTION</label><textarea id="cmsWhy1Description">Heavyweight combed cotton and custom drapes.</textarea></div>
+              <div class="field"><label>BLOCK 2 TITLE</label><input id="cmsWhy2Title" value="OVERSIZED FIT"></div><div class="field"><label>BLOCK 2 KOREAN TEXT</label><input id="cmsWhy2Korean" value="오버사이즈 핏"></div><div class="field full"><label>BLOCK 2 DESCRIPTION</label><textarea id="cmsWhy2Description">Relaxed drop-shoulder cuts for modern comfort.</textarea></div>
+              <div class="field"><label>BLOCK 3 TITLE</label><input id="cmsWhy3Title" value="CLEAN DESIGN"></div><div class="field"><label>BLOCK 3 KOREAN TEXT</label><input id="cmsWhy3Korean" value="클린 디자인"></div><div class="field full"><label>BLOCK 3 DESCRIPTION</label><textarea id="cmsWhy3Description">Zero unnecessary noise. Pure timeless silhouette.</textarea></div>
+              <div class="field"><label>BLOCK 4 TITLE</label><input id="cmsWhy4Title" value="EVERYDAY ESSENTIAL"></div><div class="field"><label>BLOCK 4 KOREAN TEXT</label><input id="cmsWhy4Korean" value="데일리 에센셜"></div><div class="field full"><label>BLOCK 4 DESCRIPTION</label><textarea id="cmsWhy4Description">Garments crafted to live beyond seasonal trends.</textarea></div>
+            </div>
+          </div>
+
           <div class="card section-card" id="latestReleaseControlsCard">
             <div class="section-title"><h2>Homepage Latest Releases</h2><span>Storefront controls</span></div>
             <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Edit the heading, catalogue link and section styling. The products themselves come from Admin → Products and are shown from the live catalogue.</p>
@@ -2641,6 +2671,12 @@ async function loadCMS(){
   $("cmsAboutText").value=field("about_text","Premium clothing shouldn't feel unreachable.");
   $("cmsFooterText").value=field("footer_text","Korean-inspired premium everyday wear.");
   $("cmsInstagram").value=field("instagram",field("instagram_url","https://www.instagram.com/bulkkot.wear/"));
+  const sectionKeys=[["Hero","hero"],["Collections","collections"],["Editorial","editorial"],["Drop","drop"],["Latest","latest_release"],["Why","why_bulkkot"],["About","about"],["Philosophy","philosophy"],["Instagram","instagram"],["Waitlist","waitlist"],["Contact","contact"]];
+  sectionKeys.forEach(([id,key])=>{const control=$("cmsShow"+id);if(control)control.checked=field("section_"+key+"_enabled","true")!=="false";});
+  $("cmsWhyEyebrow").value=field("why_eyebrow","WHY BULKKOT · 왜 불꽃인가");
+  $("cmsWhyTitle").value=field("why_title","BUILT WITH INTENT.");
+  const whyDefaults=[null,{title:"PREMIUM QUALITY",korean:"프리미엄 퀄리티",description:"Heavyweight combed cotton and custom drapes."},{title:"OVERSIZED FIT",korean:"오버사이즈 핏",description:"Relaxed drop-shoulder cuts for modern comfort."},{title:"CLEAN DESIGN",korean:"클린 디자인",description:"Zero unnecessary noise. Pure timeless silhouette."},{title:"EVERYDAY ESSENTIAL",korean:"데일리 에센셜",description:"Garments crafted to live beyond seasonal trends."}];
+  for(let i=1;i<=4;i++){const d=whyDefaults[i];$("cmsWhy"+i+"Title").value=field("why_"+i+"_title",d.title);$("cmsWhy"+i+"Korean").value=field("why_"+i+"_korean",d.korean);$("cmsWhy"+i+"Description").value=field("why_"+i+"_description",d.description);}
   $("cmsLatestEyebrow").value=field("latest_release_eyebrow","SHOP · 쇼핑");
   $("cmsLatestTitle").value=field("latest_release_title","LATEST RELEASES");
   $("cmsLatestLinkText").value=field("latest_release_link_text","OPEN FULL CATALOGUE →");
@@ -2666,6 +2702,12 @@ async function loadCMS(){
 async function saveCMS(){
   let advanced={};try{advanced=JSON.parse($("cmsJson").value||"{}");if(!advanced||Array.isArray(advanced)||typeof advanced!=="object")throw 0;}catch(e){showToast("Advanced CMS JSON is invalid.","error");return;}
   const merged={...advanced,announcement_1:$("cmsAnnouncement").value,hero_title:$("cmsHeroTitle").value,hero_subtitle:$("cmsHeroSubtitle").value,hero_image:$("cmsHeroImage").value,primary_button_text:$("cmsPrimaryButton").value,primary_button_url:$("cmsPrimaryUrl").value,tagline:$("cmsTagline").value,about_title:$("cmsAboutTitle").value,about_text:$("cmsAboutText").value,footer_text:$("cmsFooterText").value,instagram:$("cmsInstagram").value,
+    ...Object.fromEntries([["Hero","hero"],["Collections","collections"],["Editorial","editorial"],["Drop","drop"],["Latest","latest_release"],["Why","why_bulkkot"],["About","about"],["Philosophy","philosophy"],["Instagram","instagram"],["Waitlist","waitlist"],["Contact","contact"]].map(([id,key])=>["section_"+key+"_enabled",$("cmsShow"+id).checked?"true":"false"])),
+    why_eyebrow:$("cmsWhyEyebrow").value,why_title:$("cmsWhyTitle").value,
+    why_1_title:$("cmsWhy1Title").value,why_1_korean:$("cmsWhy1Korean").value,why_1_description:$("cmsWhy1Description").value,
+    why_2_title:$("cmsWhy2Title").value,why_2_korean:$("cmsWhy2Korean").value,why_2_description:$("cmsWhy2Description").value,
+    why_3_title:$("cmsWhy3Title").value,why_3_korean:$("cmsWhy3Korean").value,why_3_description:$("cmsWhy3Description").value,
+    why_4_title:$("cmsWhy4Title").value,why_4_korean:$("cmsWhy4Korean").value,why_4_description:$("cmsWhy4Description").value,
     latest_release_eyebrow:$("cmsLatestEyebrow").value,latest_release_title:$("cmsLatestTitle").value,
     latest_release_link_text:$("cmsLatestLinkText").value,latest_release_link_url:$("cmsLatestLinkUrl").value,
     latest_release_bg:$("cmsLatestBg").value,latest_release_color:$("cmsLatestColor").value,
