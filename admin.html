@@ -1568,32 +1568,77 @@
               <div class="field full">
                 <label>BRAND TAGLINE · “LESS NOISE. MORE PRESENCE.”</label>
                 <input id="cmsTagline" placeholder="Less noise. More presence.">
-                <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">SHOW BRAND TAGLINE</span><label class="switch"><input id="cmsShowTagline" type="checkbox" checked><span class="slider"></span></label></div>
+                <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">SHOW FOOTER TAGLINE</span><label class="switch"><input id="cmsShowTagline" type="checkbox" checked><span class="slider"></span></label></div>
               </div>
 
-              <div class="field">
-                <label>ABOUT TITLE</label>
-                <input id="cmsAboutTitle" placeholder="About BULKKOT">
-              </div>
 
-              <div class="field">
-                <label>ABOUT TEXT</label>
-                <textarea id="cmsAboutText"></textarea>
-              </div>
 
               <div class="field">
                 <label>FOOTER TEXT</label>
                 <textarea id="cmsFooterText"></textarea>
               </div>
 
-              <div class="field">
-                <label>INSTAGRAM URL</label>
-                <input id="cmsInstagram" placeholder="https://instagram.com/…">
-              </div>
+
             </div>
 
           </div>
 
+          <div class="card section-card" id="collectionsControlsCard">
+            <div class="section-title"><h2>Collection Circles</h2><span>Homepage section editor</span></div>
+            <div class="homepage-section-switch-row"><span>SHOW THIS SECTION</span><label class="switch"><input id="cmsShowCollections" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="form-grid">
+              <div class="field"><label>EYEBROW</label><input id="cmsCollectionsEyebrow" value="DROP 001 LINEUP"></div>
+              <div class="field"><label>HEADING</label><input id="cmsCollectionsTitle" value="THE SILHOUETTES"></div>
+            </div>
+            <p style="color:var(--muted);font-size:12px">Category names, slugs and images are managed in Admin → Categories.</p>
+          </div>
+          <div class="card section-card" id="dropControlsCard">
+            <div class="section-title"><h2>Drop Banner</h2><span>Homepage section editor</span></div>
+            <div class="homepage-section-switch-row"><span>SHOW THIS SECTION</span><label class="switch"><input id="cmsShowDrop" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="form-grid">
+              <div class="field"><label>EYEBROW</label><input id="cmsDropEyebrow" value="DROP 001 · 첫 번째 드롭"></div>
+              <div class="field"><label>HEADING</label><input id="cmsDropTitle" value="COMING SOON"></div>
+              <div class="field full"><label>DESCRIPTION</label><textarea id="cmsDropDescription">The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.</textarea></div>
+              <div class="field"><label>BUTTON TEXT</label><input id="cmsDropButtonText" value="JOIN WAITLIST"></div>
+              <div class="field"><label>BUTTON LINK</label><input id="cmsDropButtonUrl" value="#waitlist"></div>
+            </div>
+          </div>
+          <div class="card section-card" id="aboutControlsCard">
+            <div class="section-title"><h2>About BULKKOT</h2><span>Homepage section editor</span></div>
+            <div class="homepage-section-switch-row"><span>SHOW THIS SECTION</span><label class="switch"><input id="cmsShowAbout" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="form-grid">
+              <div class="field"><label>EYEBROW</label><input id="cmsAboutEyebrow" value="THE BRAND · 브랜드"></div>
+              <div class="field"><label>BRAND TITLE</label><input id="cmsAboutTitle" value="불꽃"></div>
+              <div class="field"><label>SUBTITLE</label><input id="cmsAboutSubtitle" value="THE SPARK"></div>
+              <div class="field"><label>LEAD TEXT</label><input id="cmsAboutText" value="Premium clothing shouldn't feel unreachable."></div>
+              <div class="field full"><label>PARAGRAPH 1</label><textarea id="cmsAboutParagraph1">BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</textarea></div>
+              <div class="field full"><label>PARAGRAPH 2</label><textarea id="cmsAboutParagraph2">We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.</textarea></div>
+              <div class="field"><label>SIGNATURE</label><input id="cmsAboutSignature" value="Less noise. More presence."></div>
+            </div>
+          </div>
+          <div class="card section-card" id="instagramControlsCard">
+            <div class="section-title"><h2>Instagram Section</h2><span>Homepage section editor</span></div>
+            <div class="homepage-section-switch-row"><span>SHOW THIS SECTION</span><label class="switch"><input id="cmsShowInstagram" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="form-grid">
+              <div class="field"><label>EYEBROW</label><input id="cmsInstagramEyebrow" value="SOCIAL · 소셜"></div>
+              <div class="field"><label>HEADING</label><input id="cmsInstagramTitle" value="FOLLOW BULKKOT"></div>
+              <div class="field"><label>KOREAN SUBTITLE</label><input id="cmsInstagramSubtitle" value="불꽃을 팔로우하세요"></div>
+              <div class="field"><label>HANDLE TEXT</label><input id="cmsInstagramHandle" value="@bulkkot.wear"></div>
+              <div class="field full"><label>INSTAGRAM URL</label><input id="cmsInstagram" value="https://www.instagram.com/bulkkot.wear/"></div>
+            </div>
+          </div>
+          <div class="card section-card" id="contactControlsCard">
+            <div class="section-title"><h2>Contact Section</h2><span>Homepage section editor</span></div>
+            <div class="homepage-section-switch-row"><span>SHOW THIS SECTION</span><label class="switch"><input id="cmsShowContact" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="form-grid">
+              <div class="field"><label>EYEBROW</label><input id="cmsContactEyebrow" value="CONTACT · 문의"></div>
+              <div class="field"><label>HEADING</label><input id="cmsContactTitle" value="GET IN TOUCH"></div>
+              <div class="field"><label>GENERAL ENQUIRIES LABEL</label><input id="cmsContactGeneralLabel" value="GENERAL ENQUIRIES"></div>
+              <div class="field"><label>CONTACT EMAIL</label><input id="cmsContactEmail" value="bulkkotwear@gmail.com"></div>
+              <div class="field"><label>COLLABORATION LABEL</label><input id="cmsContactCollabLabel" value="COLLABORATIONS"></div>
+              <div class="field"><label>COLLABORATION LINK TEXT</label><input id="cmsContactCollabText" value="CONTACT US →"></div>
+            </div>
+          </div>
           <div class="card section-card" id="brandPhilosophyControlsCard">
             <div class="section-title"><h2>Less Noise. More Presence.</h2><span>Brand philosophy section</span></div>
             <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">SHOW THIS SECTION ON WEBSITE</span><label class="switch"><input id="cmsShowPhilosophy" type="checkbox" checked><span class="slider"></span></label></div>
@@ -2703,6 +2748,28 @@ async function loadCMS(){
   $("cmsPhilosophyTitle").value=field("philosophy_title","LESS NOISE.");
   $("cmsPhilosophySubtitle").value=field("philosophy_subtitle","MORE PRESENCE.");
   $("cmsPhilosophyDescription").value=field("philosophy_description","Quiet design. Strong identity.");
+  $("cmsCollectionsEyebrow").value=field("collections_eyebrow","DROP 001 LINEUP");
+  $("cmsCollectionsTitle").value=field("collections_title","THE SILHOUETTES");
+  $("cmsDropEyebrow").value=field("drop_eyebrow","DROP 001 · 첫 번째 드롭");
+  $("cmsDropTitle").value=field("drop_title","COMING SOON");
+  $("cmsDropDescription").value=field("drop_description","The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.");
+  $("cmsDropButtonText").value=field("drop_button_text","JOIN WAITLIST");
+  $("cmsDropButtonUrl").value=field("drop_button_url","#waitlist");
+  $("cmsAboutEyebrow").value=field("about_eyebrow","THE BRAND · 브랜드");
+  $("cmsAboutSubtitle").value=field("about_subtitle","THE SPARK");
+  $("cmsAboutParagraph1").value=field("about_paragraph_1","BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.");
+  $("cmsAboutParagraph2").value=field("about_paragraph_2","We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.");
+  $("cmsAboutSignature").value=field("about_signature","Less noise. More presence.");
+  $("cmsInstagramEyebrow").value=field("instagram_eyebrow","SOCIAL · 소셜");
+  $("cmsInstagramTitle").value=field("instagram_title","FOLLOW BULKKOT");
+  $("cmsInstagramSubtitle").value=field("instagram_subtitle","불꽃을 팔로우하세요");
+  $("cmsInstagramHandle").value=field("instagram_handle","@bulkkot.wear");
+  $("cmsContactEyebrow").value=field("contact_eyebrow","CONTACT · 문의");
+  $("cmsContactTitle").value=field("contact_title","GET IN TOUCH");
+  $("cmsContactGeneralLabel").value=field("contact_general_label","GENERAL ENQUIRIES");
+  $("cmsContactEmail").value=field("contact_email","bulkkotwear@gmail.com");
+  $("cmsContactCollabLabel").value=field("contact_collab_label","COLLABORATIONS");
+  $("cmsContactCollabText").value=field("contact_collab_text","CONTACT US →");
   $("cmsShowStory").checked=field("story_enabled","true")!=="false";
   $("cmsStoryEyebrow").value=field("story_eyebrow","BULKKOT · 불꽃");
   $("cmsStoryTitle").value=field("story_title","OUR STORY");
@@ -3324,6 +3391,16 @@ async function saveCMS(){
     philosophy_title:$("cmsPhilosophyTitle").value,
     philosophy_subtitle:$("cmsPhilosophySubtitle").value,
     philosophy_description:$("cmsPhilosophyDescription").value,
+    collections_eyebrow:$("cmsCollectionsEyebrow").value,collections_title:$("cmsCollectionsTitle").value,
+    drop_eyebrow:$("cmsDropEyebrow").value,drop_title:$("cmsDropTitle").value,drop_description:$("cmsDropDescription").value,
+    drop_button_text:$("cmsDropButtonText").value,drop_button_url:$("cmsDropButtonUrl").value,
+    about_eyebrow:$("cmsAboutEyebrow").value,about_subtitle:$("cmsAboutSubtitle").value,
+    about_paragraph_1:$("cmsAboutParagraph1").value,about_paragraph_2:$("cmsAboutParagraph2").value,about_signature:$("cmsAboutSignature").value,
+    instagram_eyebrow:$("cmsInstagramEyebrow").value,instagram_title:$("cmsInstagramTitle").value,
+    instagram_subtitle:$("cmsInstagramSubtitle").value,instagram_handle:$("cmsInstagramHandle").value,
+    contact_eyebrow:$("cmsContactEyebrow").value,contact_title:$("cmsContactTitle").value,
+    contact_general_label:$("cmsContactGeneralLabel").value,contact_email:$("cmsContactEmail").value,
+    contact_collab_label:$("cmsContactCollabLabel").value,contact_collab_text:$("cmsContactCollabText").value,
     about_title:$("cmsAboutTitle").value,
     about_text:$("cmsAboutText").value,
     footer_text:$("cmsFooterText").value,
