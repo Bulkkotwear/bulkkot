@@ -1582,7 +1582,6 @@
         const controller = new AbortController();
         const signal = controller.signal;
         const intervalMs = Math.min(60000, Math.max(2000, Number(settings.intervalSeconds) || 5)) * 1000;
-        const pauseOnHover = settings.pauseOnHover === true;
 
         // Use the site's original stacked/fade layout. Only one slide is visible;
         // this avoids the legacy CSS positioning rules fighting horizontal scrolling.
@@ -1651,21 +1650,20 @@
           });
         };
         const stopAuto = () => {
-          if (autoTimer !== null) { window.clearTimeout(autoTimer); autoTimer = null; }
+          if (autoTimer !== null) { window.clearInterval(autoTimer); autoTimer = null; }
         };
-        const scheduleNext = () => {
+        const startAuto = () => {
           stopAuto();
           if (slideEls.length < 2 || signal.aborted) return;
-          autoTimer = window.setTimeout(() => {
-            if (signal.aborted) return;
-            if (!document.hidden && !(pauseOnHover && root.matches(":hover"))) show(active + 1);
-            scheduleNext();
+          // Autoplay must continue even when the pointer is over the hero slider.
+          autoTimer = window.setInterval(() => {
+            if (!signal.aborted && !document.hidden) show(active + 1);
           }, intervalMs);
         };
 
         indicators.addEventListener("click", event => {
           const button = event.target.closest("[data-slide-indicator]");
-          if (button) { show(Number(button.dataset.slideIndicator)); scheduleNext(); }
+          if (button) { show(Number(button.dataset.slideIndicator)); startAuto(); }
         }, { signal });
         root.addEventListener("touchstart", event => {
           const t = event.changedTouches[0]; touchStartX = t.clientX; touchStartY = t.clientY;
@@ -1673,7 +1671,7 @@
         root.addEventListener("touchend", event => {
           const t = event.changedTouches[0], dx = t.clientX - touchStartX, dy = t.clientY - touchStartY;
           if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.25) {
-            show(active + (dx < 0 ? 1 : -1)); scheduleNext();
+            show(active + (dx < 0 ? 1 : -1)); startAuto();
           }
         }, { passive: true, signal });
         root.addEventListener("pointerdown", event => {
@@ -1682,15 +1680,15 @@
         root.addEventListener("pointerup", event => {
           if (pointerStartX === null || event.pointerType !== "mouse") return;
           const dx = event.clientX - pointerStartX; pointerStartX = null;
-          if (Math.abs(dx) > 65) { show(active + (dx < 0 ? 1 : -1)); scheduleNext(); }
+          if (Math.abs(dx) > 65) { show(active + (dx < 0 ? 1 : -1)); startAuto(); }
         }, { signal });
         document.addEventListener("visibilitychange", () => {
-          if (document.hidden) stopAuto(); else scheduleNext();
+          if (document.hidden) stopAuto(); else startAuto();
         }, { signal });
         indicators.hidden = settings.showIndicators === false;
         root.__editorialCleanup = () => { stopAuto(); controller.abort(); };
         show(0);
-        scheduleNext();
+        startAuto();
       }
 
       async function loadAdminSlides(root) {
