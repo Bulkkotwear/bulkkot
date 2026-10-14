@@ -749,6 +749,11 @@
       font-size:11px;
     }
 
+    .homepage-section-switches{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+    .homepage-section-switch-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:10px 0;border-bottom:1px solid var(--border)}
+    .homepage-section-switch-row>label:first-child{font-size:12px;font-weight:700;cursor:pointer}
+    .homepage-section-switch-row .switch{margin-left:auto}
+    @media(max-width:640px){.homepage-section-switches{grid-template-columns:1fr}}
     .switch{
       position:relative;
       width:44px;
@@ -1584,18 +1589,18 @@
           <div class="card section-card" id="homepageVisibilityCard">
             <div class="section-title"><h2>Homepage Section Visibility</h2><span>Show / hide controls</span></div>
             <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Turn each homepage section on or off. Hidden sections stay saved and can be shown again anytime. Save changes to publish.</p>
-            <div class="form-grid">
-              <div class="field"><label><input id="cmsShowHero" type="checkbox" checked> HERO BANNER</label></div>
-              <div class="field"><label><input id="cmsShowCollections" type="checkbox" checked> COLLECTION CIRCLES</label></div>
-              <div class="field"><label><input id="cmsShowEditorial" type="checkbox" checked> EDITORIAL SLIDER</label></div>
-              <div class="field"><label><input id="cmsShowDrop" type="checkbox" checked> DROP BANNER</label></div>
-              <div class="field"><label><input id="cmsShowLatest" type="checkbox" checked> LATEST RELEASES</label></div>
-              <div class="field"><label><input id="cmsShowWhy" type="checkbox" checked> WHY BULKKOT</label></div>
-              <div class="field"><label><input id="cmsShowAbout" type="checkbox" checked> ABOUT</label></div>
-              <div class="field"><label><input id="cmsShowPhilosophy" type="checkbox" checked> BRAND PHILOSOPHY</label></div>
-              <div class="field"><label><input id="cmsShowInstagram" type="checkbox" checked> INSTAGRAM</label></div>
-              <div class="field"><label><input id="cmsShowWaitlist" type="checkbox" checked> JOIN WAITLIST</label></div>
-              <div class="field"><label><input id="cmsShowContact" type="checkbox" checked> CONTACT</label></div>
+            <div class="form-grid homepage-section-switches">
+              <div class="homepage-section-switch-row"><label for="cmsShowHero">HERO BANNER</label><label class="switch"><input id="cmsShowHero" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowCollections">COLLECTION CIRCLES</label><label class="switch"><input id="cmsShowCollections" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowEditorial">EDITORIAL SLIDER</label><label class="switch"><input id="cmsShowEditorial" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowDrop">DROP BANNER</label><label class="switch"><input id="cmsShowDrop" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowLatest">LATEST RELEASES</label><label class="switch"><input id="cmsShowLatest" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowWhy">WHY BULKKOT</label><label class="switch"><input id="cmsShowWhy" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowAbout">ABOUT</label><label class="switch"><input id="cmsShowAbout" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowPhilosophy">BRAND PHILOSOPHY</label><label class="switch"><input id="cmsShowPhilosophy" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowInstagram">INSTAGRAM</label><label class="switch"><input id="cmsShowInstagram" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowWaitlist">JOIN WAITLIST</label><label class="switch"><input id="cmsShowWaitlist" type="checkbox" checked><span class="slider"></span></label></div>
+              <div class="homepage-section-switch-row"><label for="cmsShowContact">CONTACT</label><label class="switch"><input id="cmsShowContact" type="checkbox" checked><span class="slider"></span></label></div>
             </div>
           </div>
           <div class="card section-card" id="readOurStoryControlsCard">
