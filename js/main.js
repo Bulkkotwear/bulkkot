@@ -499,6 +499,27 @@
           el.style.display = String(lookup[key] ?? "true") === "false" ? "none" : "";
         });
       });
+      const footerColumnVisibility = {
+        footer_shop_enabled: "footer_shop_heading",
+        footer_about_enabled: "footer_about_heading",
+        footer_help_enabled: "footer_help_heading",
+        footer_legal_enabled: "footer_legal_heading",
+        footer_connect_enabled: "footer_connect_heading"
+      };
+      Object.entries(footerColumnVisibility).forEach(([setting, headingKey]) => {
+        const heading = document.querySelector('[data-cms-key="' + headingKey + '"]');
+        const column = heading?.closest(".footer-column");
+        if (column) column.style.display = String(lookup[setting] ?? "true") === "false" ? "none" : "";
+      });
+      const footerBlockVisibility = {
+        footer_brand_enabled: ".site-footer .footer-brand",
+        footer_bottom_enabled: ".site-footer .footer-bottom"
+      };
+      Object.entries(footerBlockVisibility).forEach(([setting, selector]) => {
+        document.querySelectorAll(selector).forEach(el => {
+          el.style.display = String(lookup[setting] ?? "true") === "false" ? "none" : "";
+        });
+      });
 
       const bg = lookup.announcement_bg || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_bg;
       const color = lookup.announcement_color || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_color;
