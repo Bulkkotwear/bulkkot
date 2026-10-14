@@ -561,6 +561,18 @@
         document.querySelectorAll('[data-cms-key="announcement_3"]').forEach(el => el.textContent = lookup.announcement_3);
       }
 
+      const latestRelease = document.querySelector("[data-cms-latest-release]");
+      if (latestRelease) {
+        latestRelease.style.setProperty("background-color", lookup.latest_release_bg || "#000000", "important");
+        latestRelease.style.setProperty("color", lookup.latest_release_color || "#ffffff", "important");
+        latestRelease.style.setProperty("--bk-red", lookup.latest_release_accent || "#e31b23");
+        const latestPadding = Math.min(180, Math.max(24, Number(lookup.latest_release_padding || 64)));
+        latestRelease.style.setProperty("padding-top", latestPadding + "px", "important");
+        latestRelease.style.setProperty("padding-bottom", latestPadding + "px", "important");
+        const latestLink = latestRelease.querySelector(".section-heading .section-status");
+        if (latestLink) latestLink.style.setProperty("color", lookup.latest_release_accent || "#e31b23", "important");
+      }
+
       const waitlist = document.querySelector("[data-cms-waitlist]");
       if (waitlist) {
         waitlist.style.setProperty("background-color", lookup.waitlist_bg || "#111111", "important");
