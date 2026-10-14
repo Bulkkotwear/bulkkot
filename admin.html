@@ -2641,7 +2641,7 @@ function renderCoupons(){
   const root=$("couponsTable");if(!root)return;
   if(!state.coupons.length){root.innerHTML=emptyHTML("No coupons found.");return;}
   root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Type</th><th>Usage</th><th>Expiry</th><th>Status</th><th></th></tr></thead><tbody>'+
-    state.coupons.map(c=>'<tr><td><strong>'+esc(c.code)+'</strong></td><td>'+esc(c.discount_value||0)+'</td><td>'+esc(c.discount_type||"—")+'</td><td>'+esc(c.usage_count||0)+' / '+esc(c.usage_limit||"∞")+'</td><td>'+dateOnly(c.expires_at||c.end_date)+'</td><td>'+statusBadge(c.active===false?"inactive":"active")+'</td><td><button class="btn btn-small" onclick=\'openCouponModalById("'+esc(c.id)+'")\'>Edit</button></td></tr>').join("")+
+    state.coupons.map(c=>'<tr><td><strong>'+esc(c.code)+'</strong></td><td>'+esc(c.discount_value||0)+'</td><td>'+esc(c.discount_type||"—")+'</td><td>'+esc(c.usage_count||0)+' / '+esc(c.usage_limit||"∞")+'</td><td>'+dateOnly(c.expires_at||c.end_date)+'</td><td>'+statusBadge(c.active===false?"inactive":"active")+'</td><td style="white-space:nowrap"><button class="btn btn-small" onclick=\'openCouponModalById("'+esc(c.id)+'")\'>Edit</button> <button class="btn btn-small btn-danger" onclick=\'deleteCoupon("'+esc(c.id)+'")\'>Delete</button></td></tr>').join("")+
     '</tbody></table></div>';
 }
 function openCouponModalById(id){openCouponModal(state.coupons.find(c=>String(c.id)===String(id))||null);}
@@ -2661,6 +2661,18 @@ function openCouponModal(c){
   $("couponType").value=x.discount_type||"percentage";$("couponActive").value=x.active===false?"false":"true";setDateTimeInput("couponEnd",x.expires_at||x.end_date);
 }
 function setDateTimeInput(id,v){if(!v)return;const d=new Date(v);if(Number.isNaN(d.getTime()))return;$(id).value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
+async function deleteCoupon(id){
+  const coupon=state.coupons.find(c=>String(c.id)===String(id));
+  if(!coupon)return;
+  if(!confirm('Delete coupon "'+String(coupon.code||"").replace(/["\\\\]/g,"\\\\async function saveCoupon(){")+'" permanently? This cannot be undone.'))return;
+  try{
+    const r=await db.from("coupons").delete().eq("id",id);
+    if(r.error)throw r.error;
+    state.coupons=state.coupons.filter(c=>String(c.id)!==String(id));
+    renderCoupons();
+    showToast("Coupon deleted.","success");
+  }catch(e){showToast("Coupon delete failed: "+normalizeError(e),"error");}
+}
 async function saveCoupon(){
   const code=$("couponCode").value.trim().toUpperCase();if(!code){showToast("Coupon code is required.","error");return;}
   const payload={code,discount_type:$("couponType").value,discount_value:num($("couponValue").value),usage_limit:num($("couponUsageLimit").value),min_order_value:num($("couponMinOrder").value),active:$("couponActive").value==="true",expires_at:$("couponEnd").value?new Date($("couponEnd").value).toISOString():null};
