@@ -1464,7 +1464,7 @@
           <div class="card section-card">
             <div class="section-title"><h2>SHOP</h2><span>Column heading, labels and destinations</span></div>
             <div class="form-grid">
-              <div class="field full"><label>HEADING</label><input id="footerShopHeading"></div>
+              <div class="field"><label>HEADING</label><input id="footerShopHeading"></div><div class="field"><label>SHOP COLUMN VISIBILITY</label><select id="footerShopEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
               <div class="field"><label>TEES LABEL</label><input id="footerShopTees"></div><div class="field"><label>TEES LINK / URL</label><input id="footerShopTeesUrl" placeholder="shop.html?category=tees"></div>
               <div class="field"><label>HOODS LABEL</label><input id="footerShopHoods"></div><div class="field"><label>HOODS LINK / URL</label><input id="footerShopHoodsUrl" placeholder="shop.html?category=hoods"></div>
               <div class="field"><label>SWEATS LABEL</label><input id="footerShopSweats"></div><div class="field"><label>SWEATS LINK / URL</label><input id="footerShopSweatsUrl" placeholder="shop.html?category=sweats"></div>
@@ -1474,7 +1474,7 @@
           <div class="card section-card">
             <div class="section-title"><h2>ABOUT</h2><span>About links and brand story action</span></div>
             <div class="form-grid">
-              <div class="field full"><label>HEADING</label><input id="footerAboutHeading"></div>
+              <div class="field"><label>HEADING</label><input id="footerAboutHeading"></div><div class="field"><label>ABOUT COLUMN VISIBILITY</label><select id="footerAboutEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
               <div class="field"><label>ABOUT LINK LABEL</label><input id="footerAboutLink"></div><div class="field"><label>ABOUT LINK / URL</label><input id="footerAboutUrl" placeholder="#about"></div>
               <div class="field full"><label>BRAND STORY BUTTON LABEL</label><input id="footerStoryLink"></div>
             </div>
@@ -1482,7 +1482,7 @@
           <div class="card section-card">
             <div class="section-title"><h2>HELP</h2><span>Customer service links</span></div>
             <div class="form-grid">
-              <div class="field full"><label>HEADING</label><input id="footerHelpHeading"></div>
+              <div class="field"><label>HEADING</label><input id="footerHelpHeading"></div><div class="field"><label>HELP COLUMN VISIBILITY</label><select id="footerHelpEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
               <div class="field"><label>TRACK ORDER LABEL</label><input id="footerTrackOrder"></div><div class="field"><label>TRACK ORDER VISIBILITY</label><select id="footerTrackOrderEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div><div class="field"><label>MY ACCOUNT LABEL</label><input id="footerAccount"></div><div class="field"><label>MY ACCOUNT VISIBILITY</label><select id="footerAccountEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
               <div class="field"><label>FAQ LABEL</label><input id="footerFaq"></div><div class="field"><label>FAQ VISIBILITY</label><select id="footerFaqEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
               <div class="field full"><label>FAQ MODAL TITLE</label><input id="footerFaqTitle"></div><div class="field full"><label>FAQ CONTENT (HTML headings/paragraphs)</label><textarea id="footerFaqContent" rows="6"></textarea></div>
@@ -1496,7 +1496,7 @@
           <div class="card section-card">
             <div class="section-title"><h2>LEGAL</h2><span>Policy links</span></div>
             <div class="form-grid">
-              <div class="field full"><label>HEADING</label><input id="footerLegalHeading"></div>
+              <div class="field"><label>HEADING</label><input id="footerLegalHeading"></div><div class="field"><label>LEGAL COLUMN VISIBILITY</label><select id="footerLegalEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
               <div class="field"><label>PRIVACY POLICY LABEL</label><input id="footerPrivacy"></div><div class="field"><label>PRIVACY VISIBILITY</label><select id="footerPrivacyEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
               <div class="field full"><label>PRIVACY TITLE</label><input id="footerPrivacyTitle"></div><div class="field full"><label>PRIVACY POLICY CONTENT</label><textarea id="footerPrivacyContent" rows="5"></textarea></div>
               <div class="field"><label>TERMS & CONDITIONS LABEL</label><input id="footerTerms"></div><div class="field"><label>TERMS VISIBILITY</label><select id="footerTermsEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
@@ -1506,15 +1506,19 @@
           <div class="card section-card">
             <div class="section-title"><h2>CONNECT</h2><span>Social and contact links</span></div>
             <div class="form-grid">
-              <div class="field full"><label>HEADING</label><input id="footerConnectHeading"></div>
+              <div class="field"><label>HEADING</label><input id="footerConnectHeading"></div><div class="field"><label>CONNECT COLUMN VISIBILITY</label><select id="footerConnectEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div>
               <div class="field"><label>INSTAGRAM LABEL</label><input id="footerInstagramText"></div><div class="field"><label>INSTAGRAM URL</label><input id="footerInstagramUrl" placeholder="https://www.instagram.com/..."></div>
               <div class="field"><label>EMAIL LABEL</label><input id="footerEmailText"></div><div class="field"><label>EMAIL URL</label><input id="footerEmailUrl" placeholder="mailto:hello@example.com"></div>
             </div>
           </div>
           <div class="card section-card">
+            <div class="section-title"><h2>Brand Block</h2><span>Visibility of the first footer column</span></div>
+            <div class="form-grid"><div class="field full"><label>BRAND BLOCK VISIBILITY</label><select id="footerBrandEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div></div>
+          </div>
+          <div class="card section-card">
             <div class="section-title"><h2>Bottom Footer</h2><span>Copyright and location text</span></div>
             <div class="form-grid">
-              <div class="field full"><label>COPYRIGHT TEXT</label><input id="footerCopyright"></div>
+              <div class="field"><label>BOTTOM FOOTER VISIBILITY</label><select id="footerBottomEnabled"><option value="true">Show</option><option value="false">Hide</option></select></div><div class="field full"><label>COPYRIGHT TEXT</label><input id="footerCopyright"></div>
               <div class="field full"><label>BOTTOM LOCATION TEXT</label><input id="footerLocation"></div>
             </div>
           </div>
@@ -2772,7 +2776,8 @@ const footerEditorFields=[
  ["footerLegalHeading","footer_legal_heading","LEGAL"],["footerPrivacy","footer_privacy","Privacy Policy"],["footerPrivacyEnabled","footer_privacy_enabled","true"],["footerPrivacyTitle","footer_privacy_title","PRIVACY POLICY"],["footerPrivacyContent","footer_privacy_content","<h3>DATA COLLECTION</h3><p>We only collect name, phone, email, and shipping address details to process orders and track deliveries.</p><h3>SECURITY</h3><p>We only use customer data to process orders and support customers.</p>"],["footerTerms","footer_terms","Terms & Conditions"],["footerTermsEnabled","footer_terms_enabled","true"],["footerTermsTitle","footer_terms_title","TERMS & CONDITIONS"],["footerTermsContent","footer_terms_content","<h3>PRODUCT AUTHENTICITY</h3><p>All products sold by BULKKOT are authentic and offered subject to stock availability.</p><h3>CANCELLATION</h3><p>Orders can be cancelled before dispatch by contacting our team with your Order ID.</p>"],["footerConnectHeading","footer_connect_heading","CONNECT"],
  ["footerInstagramText","footer_instagram_text","Instagram"],["footerInstagramUrl","footer_instagram_url","https://www.instagram.com/bulkkot.wear/"],
  ["footerEmailText","footer_email_text","Email"],["footerEmailUrl","footer_email_url","mailto:bulkkotwear@gmail.com"],
- ["footerCopyright","footer_copyright","© 2026 BULKKOT (불꽃). ALL RIGHTS RESERVED."],["footerLocation","footer_location","INDIA"]
+ ["footerShopEnabled","footer_shop_enabled","true"],["footerAboutEnabled","footer_about_enabled","true"],["footerHelpEnabled","footer_help_enabled","true"],["footerLegalEnabled","footer_legal_enabled","true"],["footerConnectEnabled","footer_connect_enabled","true"],["footerBrandEnabled","footer_brand_enabled","true"],["footerBottomEnabled","footer_bottom_enabled","true"],
+ ["footerShopEnabled","footer_shop_enabled","true"],["footerCopyright","footer_copyright","© 2026 BULKKOT (불꽃). ALL RIGHTS RESERVED."],["footerLocation","footer_location","INDIA"]
 ];
 async function loadFooterEditor(){
   const r=await db.from("site_content").select("*");
