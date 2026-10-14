@@ -2195,10 +2195,19 @@ $("loginForm").addEventListener("submit",async e=>{
   finally{btn.disabled=false;btn.textContent="Sign in";}
 });
 $("signOutBtn").addEventListener("click",signOut);
-db.auth.onAuthStateChange(async(_,session)=>{
-  if(session?.user && await verifyAdmin(session.user)){
-    if($("appView").classList.contains("hidden")) await showApp(session.user);
-  }else if(!session){
+db.auth.onAuthStateChange((event,session)=>{
+  // Supabase auth callbacks must not await further Supabase calls: doing so can
+  // hold the auth lock while showApp()/initialLoad queries the database.
+  if(session?.user){
+    if(String(session.user.email||"").trim().toLowerCase()===ADMIN_EMAIL && $("appView").classList.contains("hidden")){
+      setTimeout(()=>{showApp(session.user).catch(e=>{console.error(e);setLoginError("Could not load admin: "+normalizeError(e));});},0);
+    }else if(String(session.user.email||"").trim().toLowerCase()!==ADMIN_EMAIL){
+      setTimeout(()=>{db.auth.signOut().catch(()=>{});},0);
+      $("appView").classList.add("hidden"); $("loginView").classList.remove("hidden");
+      setLoginError("This account is not authorized for BULKKOT Admin.");
+    }
+  }else if(event==="SIGNED_OUT"){
+    state.user=null;
     $("appView").classList.add("hidden"); $("loginView").classList.remove("hidden");
   }
 });
