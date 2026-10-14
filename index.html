@@ -933,11 +933,11 @@
 
       <div class="account-user-view" data-account-user>
         <div class="account-header" style="margin-bottom:24px;">
-          <p class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">
+          <p data-footer-text="footer_account_eyebrow" class="eyebrow" style="color:var(--bk-red); font-size:10px; margin:0 0 4px;">
             AUTHENTICATED
           </p>
 
-          <h2 style="font-size:24px; margin:0 0 4px;">
+          <h2 data-footer-text="footer_account_title" style="font-size:24px; margin:0 0 4px;">
             MY PROFILE
           </h2>
 
@@ -1000,23 +1000,23 @@
 
       <div class="track-order-header">
         <p class="eyebrow">BULKKOT · FULFILMENT TRACKING</p>
-        <h2 id="track-order-title">TRACK YOUR ORDER</h2>
-        <p>Enter your Order Number and phone provided at checkout.</p>
+        <h2 id="track-order-title" data-footer-text="footer_track_title">TRACK YOUR ORDER</h2>
+        <p data-footer-text="footer_track_description">Enter your Order Number and phone provided at checkout.</p>
       </div>
 
       <form class="track-order-form" data-track-order-form novalidate>
         <div class="track-order-field">
-          <label for="track-order-number">ORDER NUMBER</label>
-          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="e.g. BK-260909-A1B2" maxlength="24" required>
+          <label for="track-order-number" data-footer-text="footer_track_order_number_label">ORDER NUMBER</label>
+          <input id="track-order-number" name="order_number" type="text" autocomplete="off" placeholder="e.g. BK-260909-A1B2" data-footer-placeholder="footer_track_order_number_placeholder" maxlength="24" required>
         </div>
 
         <div class="track-order-field">
-          <label for="track-order-phone">PHONE NUMBER</label>
-          <input id="track-order-phone" name="phone" type="tel" autocomplete="tel" placeholder="10-digit mobile number" maxlength="15" required>
+          <label for="track-order-phone" data-footer-text="footer_track_phone_label">PHONE NUMBER</label>
+          <input id="track-order-phone" name="phone" type="tel" autocomplete="tel" placeholder="10-digit mobile number" data-footer-placeholder="footer_track_phone_placeholder" maxlength="15" required>
         </div>
 
         <button type="submit" class="button button--primary track-order-submit">
-          LOOKUP SHIPMENT
+          <span data-footer-text="footer_track_submit_text">LOOKUP SHIPMENT</span>
         </button>
 
         <p class="track-order-message" data-track-order-message aria-live="polite"></p>
