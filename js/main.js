@@ -485,6 +485,8 @@
       rows.forEach(r => { lookup[r.key] = r.value; });
       window.bulkkotFooterContent = lookup;
       const footerVisibility = {
+        footer_track_order_enabled: "[data-open-track-order]",
+        footer_account_enabled: "[data-open-account]",
         footer_faq_enabled: "[data-open-policy='faq']",
         footer_shipping_enabled: "[data-open-policy='shipping']",
         footer_returns_enabled: "[data-open-policy='returns']",
