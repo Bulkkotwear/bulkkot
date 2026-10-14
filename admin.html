@@ -2664,7 +2664,16 @@ function setDateTimeInput(id,v){if(!v)return;const d=new Date(v);if(Number.isNaN
 async function deleteCoupon(id){
   const coupon=state.coupons.find(c=>String(c.id)===String(id));
   if(!coupon)return;
-  if(!confirm('Delete coupon "'+String(coupon.code||"").replace(/["\\\\]/g,"\\\\async function saveCoupon(){")+'" permanently? This cannot be undone.'))return;
+  if(!confirm("Delete this coupon permanently? This cannot be undone."))return;
+  try{
+    const r=await db.from("coupons").delete().eq("id",id);
+    if(r.error)throw r.error;
+    state.coupons=state.coupons.filter(c=>String(c.id)!==String(id));
+    renderCoupons();
+    showToast("Coupon deleted.","success");
+  }catch(e){showToast("Coupon delete failed: "+normalizeError(e),"error");}
+}
+async function saveCoupon(){")+'" permanently? This cannot be undone.'))return;
   try{
     const r=await db.from("coupons").delete().eq("id",id);
     if(r.error)throw r.error;
