@@ -1581,6 +1581,25 @@
 
           </div>
 
+          <div class="card section-card" id="waitlistControlsCard">
+            <div class="section-title"><h2>Homepage Waitlist Section</h2><span>Live storefront controls</span></div>
+            <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Edit the content, form labels, button, colours and spacing of the Join Waitlist section under the homepage slider. Save changes to publish to the storefront.</p>
+            <div class="form-grid">
+              <div class="field"><label>EYEBROW TEXT</label><input id="cmsWaitlistEyebrow" value="DROP 001"></div>
+              <div class="field"><label>HEADING</label><input id="cmsWaitlistTitle" value="BE FIRST TO KNOW"></div>
+              <div class="field full"><label>KOREAN SUBHEADING</label><input id="cmsWaitlistKorean" value="가장 먼저 만나보세요"></div>
+              <div class="field full"><label>DESCRIPTION</label><textarea id="cmsWaitlistDescription">Join the VIP waitlist to receive access before Drop 001 goes live.</textarea></div>
+              <div class="field"><label>EMAIL LABEL</label><input id="cmsWaitlistLabel" value="EMAIL ADDRESS"></div>
+              <div class="field"><label>EMAIL PLACEHOLDER</label><input id="cmsWaitlistPlaceholder" value="your@email.com"></div>
+              <div class="field"><label>BUTTON TEXT</label><input id="cmsWaitlistButton" value="JOIN"></div>
+              <div class="field full"><label>SUCCESS MESSAGE</label><textarea id="cmsWaitlistSuccess">You're on the list. We'll notify you before Drop 001 launches.</textarea></div>
+              <div class="field"><label>SECTION BACKGROUND</label><input id="cmsWaitlistBg" type="color" value="#111111" style="height:44px;padding:5px"></div>
+              <div class="field"><label>TEXT COLOUR</label><input id="cmsWaitlistColor" type="color" value="#ffffff" style="height:44px;padding:5px"></div>
+              <div class="field"><label>ACCENT COLOUR</label><input id="cmsWaitlistAccent" type="color" value="#e31b23" style="height:44px;padding:5px"></div>
+              <div class="field"><label>SECTION PADDING (PX)</label><input id="cmsWaitlistPadding" type="number" min="24" max="180" value="80"></div>
+            </div>
+          </div>
+
           <div class="card">
             <div class="section-title">
               <h2>Advanced Content JSON</h2>
@@ -2607,11 +2626,29 @@ async function loadCMS(){
   $("cmsAboutText").value=field("about_text","Premium clothing shouldn't feel unreachable.");
   $("cmsFooterText").value=field("footer_text","Korean-inspired premium everyday wear.");
   $("cmsInstagram").value=field("instagram",field("instagram_url","https://www.instagram.com/bulkkot.wear/"));
+  $("cmsWaitlistEyebrow").value=field("waitlist_eyebrow","DROP 001");
+  $("cmsWaitlistTitle").value=field("waitlist_title","BE FIRST TO KNOW");
+  $("cmsWaitlistKorean").value=field("waitlist_korean","가장 먼저 만나보세요");
+  $("cmsWaitlistDescription").value=field("waitlist_description","Join the VIP waitlist to receive access before Drop 001 goes live.");
+  $("cmsWaitlistLabel").value=field("waitlist_label","EMAIL ADDRESS");
+  $("cmsWaitlistPlaceholder").value=field("waitlist_placeholder","your@email.com");
+  $("cmsWaitlistButton").value=field("waitlist_button","JOIN");
+  $("cmsWaitlistSuccess").value=field("waitlist_success","You're on the list. We'll notify you before Drop 001 launches.");
+  $("cmsWaitlistBg").value=field("waitlist_bg","#111111");
+  $("cmsWaitlistColor").value=field("waitlist_color","#ffffff");
+  $("cmsWaitlistAccent").value=field("waitlist_accent","#e31b23");
+  $("cmsWaitlistPadding").value=field("waitlist_padding","80");
   $("cmsJson").value=JSON.stringify(c,null,2);
 }
 async function saveCMS(){
   let advanced={};try{advanced=JSON.parse($("cmsJson").value||"{}");if(!advanced||Array.isArray(advanced)||typeof advanced!=="object")throw 0;}catch(e){showToast("Advanced CMS JSON is invalid.","error");return;}
-  const merged={...advanced,announcement_1:$("cmsAnnouncement").value,hero_title:$("cmsHeroTitle").value,hero_subtitle:$("cmsHeroSubtitle").value,hero_image:$("cmsHeroImage").value,primary_button_text:$("cmsPrimaryButton").value,primary_button_url:$("cmsPrimaryUrl").value,tagline:$("cmsTagline").value,about_title:$("cmsAboutTitle").value,about_text:$("cmsAboutText").value,footer_text:$("cmsFooterText").value,instagram:$("cmsInstagram").value};
+  const merged={...advanced,announcement_1:$("cmsAnnouncement").value,hero_title:$("cmsHeroTitle").value,hero_subtitle:$("cmsHeroSubtitle").value,hero_image:$("cmsHeroImage").value,primary_button_text:$("cmsPrimaryButton").value,primary_button_url:$("cmsPrimaryUrl").value,tagline:$("cmsTagline").value,about_title:$("cmsAboutTitle").value,about_text:$("cmsAboutText").value,footer_text:$("cmsFooterText").value,instagram:$("cmsInstagram").value,
+    waitlist_eyebrow:$("cmsWaitlistEyebrow").value,waitlist_title:$("cmsWaitlistTitle").value,
+    waitlist_korean:$("cmsWaitlistKorean").value,waitlist_description:$("cmsWaitlistDescription").value,
+    waitlist_label:$("cmsWaitlistLabel").value,waitlist_placeholder:$("cmsWaitlistPlaceholder").value,
+    waitlist_button:$("cmsWaitlistButton").value,waitlist_success:$("cmsWaitlistSuccess").value,
+    waitlist_bg:$("cmsWaitlistBg").value,waitlist_color:$("cmsWaitlistColor").value,
+    waitlist_accent:$("cmsWaitlistAccent").value,waitlist_padding:$("cmsWaitlistPadding").value};
   const saveBtn=document.querySelector('#page-cms button[onclick="saveCMS()"]');
   if(saveBtn?.disabled)return;
   const originalText=saveBtn?.textContent;
