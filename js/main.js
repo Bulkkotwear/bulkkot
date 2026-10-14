@@ -579,6 +579,10 @@
         if (!section) return;
         section.style.setProperty("display", String(lookup["section_" + key + "_enabled"] ?? "true") === "false" ? "none" : "");
       });
+      const storyButtonsVisible = String(lookup.story_enabled ?? "true") !== "false";
+      document.querySelectorAll("[data-open-about]").forEach(button => {
+        button.style.setProperty("display", storyButtonsVisible ? "" : "none");
+      });
 
       const latestRelease = document.querySelector("[data-cms-latest-release]");
       if (latestRelease) {
