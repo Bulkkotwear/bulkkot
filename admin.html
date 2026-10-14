@@ -1522,7 +1522,7 @@
 
           <div class="grid two-col">
 
-            <div class="card">
+            <div class="card" id="heroControlsCard">
               <div class="section-title">
                 <h2>Homepage</h2>
                 <span>Storefront content</span>
@@ -1554,7 +1554,7 @@
               <div class="field full"><label>LIVE STYLE PREVIEW</label><div id="cmsHeroStylePreview" style="min-height:150px;display:flex;align-items:center;overflow:hidden;border-radius:8px;padding:22px;background:#111;color:#fff"><div id="cmsHeroStylePreviewContent" style="max-width:100%;width:100%;position:relative;z-index:1"><div id="cmsHeroPreviewKorean" style="font-size:12px;margin-bottom:5px">불꽃</div><div id="cmsHeroPreviewTitle" style="font-size:28px;font-weight:900;line-height:1">BULKKOT</div><div id="cmsHeroPreviewLabel" style="font-size:9px;letter-spacing:2px;margin:7px 0">PREMIUM EVERYDAY WEAR</div><div id="cmsHeroPreviewDescription" style="font-size:11px;line-height:1.5">Korean-inspired minimalist heavyweight essentials.</div><div id="cmsHeroPreviewButton" style="display:inline-block;margin-top:12px;padding:9px 15px;background:#fff;color:#000;font-size:10px;font-weight:800;border-radius:2px">EXPLORE DROP 001</div></div></div></div>
             </div>
 
-            <div class="card">
+            <div class="card" id="brandGlobalControlsCard">
               <div class="section-title">
                 <h2>Brand</h2>
                 <span>Global content</span>
@@ -3990,6 +3990,62 @@ window.loadSizeGuides=loadSizeGuides;window.saveSizeGuides=saveSizeGuides;window
 window.toggleOrderSelection=toggleOrderSelection;window.toggleVisibleOrderSelection=toggleVisibleOrderSelection;window.deleteSelectedOrders=deleteSelectedOrders;
 window.openProductModal=openProductModal;window.saveProduct=saveProduct;window.renderOrders=renderOrders;window.openOrderModal=openOrderModal;window.deleteOrder=deleteOrder;window.loadSalesAnalytics=loadSalesAnalytics;window.renderSalesAnalytics=renderSalesAnalytics;window.addVariantEditor=addVariantEditor;window.removeVariantEditor=removeVariantEditor;window.previewVariantFiles=previewVariantFiles;window.saveCategoryWithPosition=saveCategoryWithPosition;
 
+</script>
+
+
+<script>
+/* Keep the CMS editor cards in the requested admin-only sequence. */
+(function arrangeCmsEditorCards() {
+  function arrange() {
+    const cms = document.getElementById('page-cms');
+    if (!cms || cms.dataset.cardsArranged === 'true') return;
+    const pageHead = cms.querySelector('.page-head');
+    if (!pageHead) return;
+    const ordered = [
+      'announcementControlsCard',
+      'heroControlsCard',
+      'collectionsControlsCard',
+      'waitlistControlsCard',
+      'latestReleaseControlsCard',
+      'whyBulkkotControlsCard',
+      'aboutControlsCard',
+      'readOurStoryControlsCard',
+      'brandPhilosophyControlsCard',
+      'instagramControlsCard',
+      'contactControlsCard',
+      'brandGlobalControlsCard',
+      'footerControlsCard'
+    ];
+    const jsonField = cms.querySelector('#cmsJson');
+    const jsonCard = jsonField ? jsonField.closest('.card') : null;
+    const area = document.createElement('div');
+    area.id = 'cmsEditorCardSequence';
+    area.style.cssText = 'display:flex;flex-direction:column;gap:16px;width:100%;';
+    pageHead.insertAdjacentElement('afterend', area);
+    const moved = new Set();
+    ordered.forEach(id => {
+      const card = document.getElementById(id);
+      if (card && cms.contains(card)) {
+        area.appendChild(card);
+        moved.add(card);
+      }
+    });
+    /* Preserve other existing CMS editors (e.g. Drop Banner) after the requested sequence. */
+    Array.from(cms.querySelectorAll('.card')).forEach(card => {
+      if (card !== jsonCard && !moved.has(card) && !area.contains(card) && !card.closest('#cmsEditorCardSequence')) {
+        area.appendChild(card);
+        moved.add(card);
+      }
+    });
+    /* Remove now-empty layout wrappers left behind by moved cards. */
+    cms.querySelectorAll('.grid.two-col').forEach(grid => {
+      if (!grid.querySelector('.card')) grid.remove();
+    });
+    cms.dataset.cardsArranged = 'true';
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrange, { once: true });
+  else arrange();
+})();
 </script>
 
 </body>
