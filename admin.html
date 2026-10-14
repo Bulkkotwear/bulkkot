@@ -3281,7 +3281,23 @@ async function saveCMS(){
     about_text:$("cmsAboutText").value,
     footer_text:$("cmsFooterText").value,
     instagram,
-    instagram_url:instagram
+    instagram_url:instagram,
+    ...Object.fromEntries([["Hero","hero"],["Collections","collections"],["Editorial","editorial"],["Drop","drop"],["Latest","latest_release"],["Why","why_bulkkot"],["About","about"],["Philosophy","philosophy"],["Instagram","instagram"],["Waitlist","waitlist"],["Contact","contact"]].map(([id,key])=>["section_"+key+"_enabled",$("cmsShow"+id).checked?"true":"false"])),
+    latest_release_eyebrow:$("cmsLatestEyebrow").value,latest_release_title:$("cmsLatestTitle").value,
+    latest_release_link_text:$("cmsLatestLinkText").value,latest_release_link_url:$("cmsLatestLinkUrl").value,
+    latest_release_bg:$("cmsLatestBg").value,latest_release_color:$("cmsLatestColor").value,
+    latest_release_accent:$("cmsLatestAccent").value,latest_release_padding:$("cmsLatestPadding").value,
+    waitlist_eyebrow:$("cmsWaitlistEyebrow").value,waitlist_title:$("cmsWaitlistTitle").value,
+    waitlist_korean:$("cmsWaitlistKorean").value,waitlist_description:$("cmsWaitlistDescription").value,
+    waitlist_label:$("cmsWaitlistLabel").value,waitlist_placeholder:$("cmsWaitlistPlaceholder").value,
+    waitlist_button:$("cmsWaitlistButton").value,waitlist_success:$("cmsWaitlistSuccess").value,
+    waitlist_bg:$("cmsWaitlistBg").value,waitlist_color:$("cmsWaitlistColor").value,
+    waitlist_accent:$("cmsWaitlistAccent").value,waitlist_padding:$("cmsWaitlistPadding").value,
+    why_eyebrow:$("cmsWhyEyebrow").value,why_title:$("cmsWhyTitle").value,
+    why_1_title:$("cmsWhy1Title").value,why_1_korean:$("cmsWhy1Korean").value,why_1_description:$("cmsWhy1Description").value,
+    why_2_title:$("cmsWhy2Title").value,why_2_korean:$("cmsWhy2Korean").value,why_2_description:$("cmsWhy2Description").value,
+    why_3_title:$("cmsWhy3Title").value,why_3_korean:$("cmsWhy3Korean").value,why_3_description:$("cmsWhy3Description").value,
+    why_4_title:$("cmsWhy4Title").value,why_4_korean:$("cmsWhy4Korean").value,why_4_description:$("cmsWhy4Description").value
   };
 
   try{
