@@ -550,8 +550,7 @@
 
   <main id="top">
 
-    <!-- HERO SECTION -->
-    <section class="hero" data-cms-section="hero">
+<section class="hero" data-cms-section="hero">
       <div class="hero-media">
         <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Campaign" class="hero-image" data-cms-key="hero_image">
       </div>
@@ -566,8 +565,7 @@
       </div>
     </section>
 
-    <!-- COLLECTIONS -->
-    <section class="circle-collections-section" id="collections" data-cms-section="collections">
+<section class="circle-collections-section" id="collections" data-cms-section="collections">
       <div class="circle-collections-inner">
         <div class="circle-collections-head">
           <p class="eyebrow" data-cms-key="collections_eyebrow">DROP 001 LINEUP</p>
@@ -578,8 +576,169 @@
       </div>
     </section>
 
-    <!-- EDITORIAL -->
-    <section class="editorial-section" aria-label="Latest News & Editorial" data-cms-section="editorial">
+<section class="waitlist-section" id="waitlist" data-cms-waitlist data-cms-section="waitlist">
+      <div class="waitlist-inner">
+        <div class="waitlist-copy">
+          <p class="eyebrow" data-cms-key="waitlist_eyebrow">DROP 001</p>
+          <h2 data-cms-key="waitlist_title">BE FIRST TO KNOW</h2>
+          <span data-cms-key="waitlist_korean">가장 먼저 만나보세요</span>
+          <p data-cms-key="waitlist_description">Join the VIP waitlist to receive access before Drop 001 goes live.</p>
+        </div>
+
+        <form class="waitlist-form" data-waitlist-form novalidate>
+          <label for="waitlist-email" data-cms-key="waitlist_label">EMAIL ADDRESS</label>
+
+          <div class="waitlist-input-row">
+            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" data-cms-placeholder="waitlist_placeholder" required>
+            <button type="submit" class="button button--primary" data-cms-key="waitlist_button">JOIN</button>
+          </div>
+
+          <div class="waitlist-message" data-waitlist-message aria-live="polite" data-cms-key="waitlist_success">You’re on the list. We’ll notify you before Drop 001 launches.</div>
+        </form>
+      </div>
+    </section>
+
+<section class="shop-section" id="shop" data-cms-latest-release data-cms-section="latest_release">
+      <div class="section-heading section-heading--split">
+        <div>
+          <p class="eyebrow" data-cms-key="latest_release_eyebrow">SHOP · 쇼핑</p>
+          <h2 id="homeProductsHeading" data-cms-key="latest_release_title">LATEST RELEASES</h2>
+        </div>
+        <a href="shop.html" class="section-status" data-cms-key="latest_release_link_text" data-cms-href="latest_release_link_url" style="color:var(--bk-red); text-decoration:none; font-weight:800;">OPEN FULL CATALOGUE →</a>
+      </div>
+
+      <div class="shop-toolbar">
+        <div class="shop-filters" role="group" aria-label="Product categories">
+          <button type="button" class="shop-filter is-active" data-shop-category="all">ALL</button>
+          <button type="button" class="shop-filter" data-shop-category="tees">TEES</button>
+          <button type="button" class="shop-filter" data-shop-category="hoods">HOODS</button>
+          <button type="button" class="shop-filter" data-shop-category="sweats">SWEATS</button>
+        </div>
+
+        <div class="shop-toolbar__actions">
+          <button type="button" class="size-guide-trigger" data-size-guide-open>SIZE GUIDE</button>
+
+          <label class="shop-sort">
+            <span class="sr-only">Sort products</span>
+            <select id="shop-sort" aria-label="Sort products">
+              <option value="featured">FEATURED</option>
+              <option value="newest">NEWEST</option>
+              <option value="price-low">PRICE: LOW TO HIGH</option>
+              <option value="price-high">PRICE: HIGH TO LOW</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="product-grid" id="products-grid" aria-live="polite">
+        <p class="catalog-message">Loading catalog...</p>
+      </div>
+    </section>
+
+<section class="values-section" data-cms-section="why_bulkkot">
+      <div class="section-heading">
+        <p class="eyebrow" data-cms-key="why_eyebrow">WHY BULKKOT · 왜 불꽃인가</p>
+        <h2 data-cms-key="why_title">BUILT WITH INTENT.</h2>
+      </div>
+
+      <div class="values-grid">
+        <article class="value-block">
+          <span>01</span>
+          <h3 data-cms-key="why_1_title">PREMIUM QUALITY</h3>
+          <p data-cms-key="why_1_korean">프리미엄 퀄리티</p>
+          <small data-cms-key="why_1_description">Heavyweight combed cotton and custom drapes.</small>
+        </article>
+
+        <article class="value-block">
+          <span>02</span>
+          <h3 data-cms-key="why_2_title">OVERSIZED FIT</h3>
+          <p data-cms-key="why_2_korean">오버사이즈 핏</p>
+          <small data-cms-key="why_2_description">Relaxed drop-shoulder cuts for modern comfort.</small>
+        </article>
+
+        <article class="value-block">
+          <span>03</span>
+          <h3 data-cms-key="why_3_title">CLEAN DESIGN</h3>
+          <p data-cms-key="why_3_korean">클린 디자인</p>
+          <small data-cms-key="why_3_description">Zero unnecessary noise. Pure timeless silhouette.</small>
+        </article>
+
+        <article class="value-block">
+          <span>04</span>
+          <h3 data-cms-key="why_4_title">EVERYDAY ESSENTIAL</h3>
+          <p data-cms-key="why_4_korean">데일리 에센셜</p>
+          <small data-cms-key="why_4_description">Garments crafted to live beyond seasonal trends.</small>
+        </article>
+      </div>
+    </section>
+
+<section class="about-section" id="about" data-cms-section="about">
+      <div class="about-grid">
+        <div class="about-intro">
+          <p class="eyebrow" data-cms-key="about_eyebrow">THE BRAND · 브랜드</p>
+          <h2 data-cms-key="about_title">불꽃</h2>
+          <span data-cms-key="about_subtitle">THE SPARK</span>
+        </div>
+
+        <div class="about-copy">
+          <p class="about-lead" data-cms-key="about_text">Premium clothing shouldn't feel unreachable.</p>
+          <p data-cms-key="about_paragraph_1">BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
+          <p data-cms-key="about_paragraph_2">We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.</p>
+          <p class="about-signature" data-cms-key="about_signature">Less noise. More presence.</p>
+          <button type="button" class="text-button" data-open-about data-cms-key="story_button_text">READ OUR STORY →</button>
+        </div>
+      </div>
+    </section>
+
+<section class="philosophy-section" data-cms-section="philosophy">
+      <p class="philosophy-korean" data-cms-key="philosophy_korean">불꽃의 철학</p>
+      <h2 data-cms-key="philosophy_title">LESS NOISE.</h2>
+      <h3 data-cms-key="philosophy_subtitle">MORE PRESENCE.</h3>
+      <p data-cms-key="philosophy_description">Quiet design. Strong identity.</p>
+    </section>
+
+<section class="instagram-section" data-cms-section="instagram">
+      <div class="section-heading section-heading--center">
+        <p class="eyebrow" data-cms-key="instagram_eyebrow">SOCIAL · 소셜</p>
+        <h2 data-cms-key="instagram_title">FOLLOW BULKKOT</h2>
+        <span data-cms-key="instagram_subtitle">불꽃을 팔로우하세요</span>
+      </div>
+
+      <a href="https://www.instagram.com/bulkkot.wear/" data-cms-href="instagram" target="_blank" rel="noopener noreferrer" class="instagram-handle" data-cms-key="instagram_handle">@bulkkot.wear</a>
+    </section>
+
+
+
+    <!-- JOIN WAITLIST CTA (separate from the main waitlist form) -->
+    <section class="join-waitlist-section" id="join-waitlist" aria-labelledby="join-waitlist-title">
+      <div class="join-waitlist-inner">
+        <p class="eyebrow">BULKKOT DROP 001</p>
+        <h2 id="join-waitlist-title">DON'T MISS THE DROP.</h2>
+        <p>Get early access to the latest BULKKOT releases. Join the waitlist and be first to know.</p>
+        <a class="button button--primary" href="#waitlist" data-cms-key="join_waitlist_button">JOIN THE WAITLIST</a>
+      </div>
+    </section>
+
+<section class="contact-section" id="contact" data-cms-section="contact">
+      <div class="section-heading">
+        <p class="eyebrow" data-cms-key="contact_eyebrow">CONTACT · 문의</p>
+        <h2 data-cms-key="contact_title">GET IN TOUCH</h2>
+      </div>
+
+      <div class="contact-list">
+        <a href="mailto:bulkkotwear@gmail.com" class="contact-item">
+          <span data-cms-key="contact_general_label">GENERAL ENQUIRIES</span>
+          <strong data-cms-key="contact_email">bulkkotwear@gmail.com</strong>
+        </a>
+
+        <a href="mailto:bulkkotwear@gmail.com?subject=BULKKOT%20Collaboration" class="contact-item">
+          <span data-cms-key="contact_collab_label">COLLABORATIONS</span>
+          <strong data-cms-key="contact_collab_text">CONTACT US →</strong>
+        </a>
+      </div>
+    </section>
+
+<section class="editorial-section" aria-label="Latest News & Editorial" data-cms-section="editorial">
       <div class="editorial-carousel" data-carousel id="editorialCarousel">
         <div class="editorial-track" data-carousel-track>
 
@@ -646,170 +805,12 @@
       </div>
     </section>
 
-    <!-- DROP BANNER -->
-    <section class="drop-section" id="drop-001" data-cms-section="drop">
+<section class="drop-section" id="drop-001" data-cms-section="drop">
       <div class="drop-content">
         <p class="eyebrow" data-cms-key="drop_eyebrow">DROP 001 · 첫 번째 드롭</p>
         <h2 data-cms-key="drop_title">COMING SOON</h2>
         <p data-cms-key="drop_description">The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.</p>
         <a href="#waitlist" class="button button--outline" data-cms-key="drop_button_text" data-cms-href="drop_button_url">JOIN WAITLIST</a>
-      </div>
-    </section>
-
-    <!-- SHOP -->
-    <section class="shop-section" id="shop" data-cms-latest-release data-cms-section="latest_release">
-      <div class="section-heading section-heading--split">
-        <div>
-          <p class="eyebrow" data-cms-key="latest_release_eyebrow">SHOP · 쇼핑</p>
-          <h2 id="homeProductsHeading" data-cms-key="latest_release_title">LATEST RELEASES</h2>
-        </div>
-        <a href="shop.html" class="section-status" data-cms-key="latest_release_link_text" data-cms-href="latest_release_link_url" style="color:var(--bk-red); text-decoration:none; font-weight:800;">OPEN FULL CATALOGUE →</a>
-      </div>
-
-      <div class="shop-toolbar">
-        <div class="shop-filters" role="group" aria-label="Product categories">
-          <button type="button" class="shop-filter is-active" data-shop-category="all">ALL</button>
-          <button type="button" class="shop-filter" data-shop-category="tees">TEES</button>
-          <button type="button" class="shop-filter" data-shop-category="hoods">HOODS</button>
-          <button type="button" class="shop-filter" data-shop-category="sweats">SWEATS</button>
-        </div>
-
-        <div class="shop-toolbar__actions">
-          <button type="button" class="size-guide-trigger" data-size-guide-open>SIZE GUIDE</button>
-
-          <label class="shop-sort">
-            <span class="sr-only">Sort products</span>
-            <select id="shop-sort" aria-label="Sort products">
-              <option value="featured">FEATURED</option>
-              <option value="newest">NEWEST</option>
-              <option value="price-low">PRICE: LOW TO HIGH</option>
-              <option value="price-high">PRICE: HIGH TO LOW</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <div class="product-grid" id="products-grid" aria-live="polite">
-        <p class="catalog-message">Loading catalog...</p>
-      </div>
-    </section>
-
-    <!-- VALUES -->
-    <section class="values-section" data-cms-section="why_bulkkot">
-      <div class="section-heading">
-        <p class="eyebrow" data-cms-key="why_eyebrow">WHY BULKKOT · 왜 불꽃인가</p>
-        <h2 data-cms-key="why_title">BUILT WITH INTENT.</h2>
-      </div>
-
-      <div class="values-grid">
-        <article class="value-block">
-          <span>01</span>
-          <h3 data-cms-key="why_1_title">PREMIUM QUALITY</h3>
-          <p data-cms-key="why_1_korean">프리미엄 퀄리티</p>
-          <small data-cms-key="why_1_description">Heavyweight combed cotton and custom drapes.</small>
-        </article>
-
-        <article class="value-block">
-          <span>02</span>
-          <h3 data-cms-key="why_2_title">OVERSIZED FIT</h3>
-          <p data-cms-key="why_2_korean">오버사이즈 핏</p>
-          <small data-cms-key="why_2_description">Relaxed drop-shoulder cuts for modern comfort.</small>
-        </article>
-
-        <article class="value-block">
-          <span>03</span>
-          <h3 data-cms-key="why_3_title">CLEAN DESIGN</h3>
-          <p data-cms-key="why_3_korean">클린 디자인</p>
-          <small data-cms-key="why_3_description">Zero unnecessary noise. Pure timeless silhouette.</small>
-        </article>
-
-        <article class="value-block">
-          <span>04</span>
-          <h3 data-cms-key="why_4_title">EVERYDAY ESSENTIAL</h3>
-          <p data-cms-key="why_4_korean">데일리 에센셜</p>
-          <small data-cms-key="why_4_description">Garments crafted to live beyond seasonal trends.</small>
-        </article>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section class="about-section" id="about" data-cms-section="about">
-      <div class="about-grid">
-        <div class="about-intro">
-          <p class="eyebrow" data-cms-key="about_eyebrow">THE BRAND · 브랜드</p>
-          <h2 data-cms-key="about_title">불꽃</h2>
-          <span data-cms-key="about_subtitle">THE SPARK</span>
-        </div>
-
-        <div class="about-copy">
-          <p class="about-lead" data-cms-key="about_text">Premium clothing shouldn't feel unreachable.</p>
-          <p data-cms-key="about_paragraph_1">BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
-          <p data-cms-key="about_paragraph_2">We blend Seoul's minimal streetwear sensibility with elevated fabric architecture — creating pieces that command presence silently.</p>
-          <p class="about-signature" data-cms-key="about_signature">Less noise. More presence.</p>
-          <button type="button" class="text-button" data-open-about data-cms-key="story_button_text">READ OUR STORY →</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- PHILOSOPHY -->
-    <section class="philosophy-section" data-cms-section="philosophy">
-      <p class="philosophy-korean" data-cms-key="philosophy_korean">불꽃의 철학</p>
-      <h2 data-cms-key="philosophy_title">LESS NOISE.</h2>
-      <h3 data-cms-key="philosophy_subtitle">MORE PRESENCE.</h3>
-      <p data-cms-key="philosophy_description">Quiet design. Strong identity.</p>
-    </section>
-
-    <!-- INSTAGRAM -->
-    <section class="instagram-section" data-cms-section="instagram">
-      <div class="section-heading section-heading--center">
-        <p class="eyebrow" data-cms-key="instagram_eyebrow">SOCIAL · 소셜</p>
-        <h2 data-cms-key="instagram_title">FOLLOW BULKKOT</h2>
-        <span data-cms-key="instagram_subtitle">불꽃을 팔로우하세요</span>
-      </div>
-
-      <a href="https://www.instagram.com/bulkkot.wear/" data-cms-href="instagram" target="_blank" rel="noopener noreferrer" class="instagram-handle" data-cms-key="instagram_handle">@bulkkot.wear</a>
-    </section>
-
-    <!-- WAITLIST -->
-    <section class="waitlist-section" id="waitlist" data-cms-waitlist data-cms-section="waitlist">
-      <div class="waitlist-inner">
-        <div class="waitlist-copy">
-          <p class="eyebrow" data-cms-key="waitlist_eyebrow">DROP 001</p>
-          <h2 data-cms-key="waitlist_title">BE FIRST TO KNOW</h2>
-          <span data-cms-key="waitlist_korean">가장 먼저 만나보세요</span>
-          <p data-cms-key="waitlist_description">Join the VIP waitlist to receive access before Drop 001 goes live.</p>
-        </div>
-
-        <form class="waitlist-form" data-waitlist-form novalidate>
-          <label for="waitlist-email" data-cms-key="waitlist_label">EMAIL ADDRESS</label>
-
-          <div class="waitlist-input-row">
-            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" data-cms-placeholder="waitlist_placeholder" required>
-            <button type="submit" class="button button--primary" data-cms-key="waitlist_button">JOIN</button>
-          </div>
-
-          <div class="waitlist-message" data-waitlist-message aria-live="polite" data-cms-key="waitlist_success">You’re on the list. We’ll notify you before Drop 001 launches.</div>
-        </form>
-      </div>
-    </section>
-
-    <!-- CONTACT -->
-    <section class="contact-section" id="contact" data-cms-section="contact">
-      <div class="section-heading">
-        <p class="eyebrow" data-cms-key="contact_eyebrow">CONTACT · 문의</p>
-        <h2 data-cms-key="contact_title">GET IN TOUCH</h2>
-      </div>
-
-      <div class="contact-list">
-        <a href="mailto:bulkkotwear@gmail.com" class="contact-item">
-          <span data-cms-key="contact_general_label">GENERAL ENQUIRIES</span>
-          <strong data-cms-key="contact_email">bulkkotwear@gmail.com</strong>
-        </a>
-
-        <a href="mailto:bulkkotwear@gmail.com?subject=BULKKOT%20Collaboration" class="contact-item">
-          <span data-cms-key="contact_collab_label">COLLABORATIONS</span>
-          <strong data-cms-key="contact_collab_text">CONTACT US →</strong>
-        </a>
       </div>
     </section>
 
