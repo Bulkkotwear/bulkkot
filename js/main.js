@@ -483,6 +483,20 @@
 
       const lookup = {};
       rows.forEach(r => { lookup[r.key] = r.value; });
+      window.bulkkotFooterContent = lookup;
+      const footerVisibility = {
+        footer_faq_enabled: "[data-open-policy='faq']",
+        footer_shipping_enabled: "[data-open-policy='shipping']",
+        footer_returns_enabled: "[data-open-policy='returns']",
+        footer_privacy_enabled: "[data-open-policy='privacy']",
+        footer_terms_enabled: "[data-open-policy='terms']",
+        footer_size_guide_enabled: "[data-size-guide-open]"
+      };
+      Object.entries(footerVisibility).forEach(([key, selector]) => {
+        document.querySelectorAll(selector).forEach(el => {
+          el.style.display = String(lookup[key] ?? "true") === "false" ? "none" : "";
+        });
+      });
 
       const bg = lookup.announcement_bg || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_bg;
       const color = lookup.announcement_color || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_color;
@@ -1177,8 +1191,20 @@
     function openPolicy(type) {
       if (!policyModal) return;
       const data = POLICY_DATA[type] || { title: "INFORMATION", content: "<p>Information coming soon.</p>" };
-      if (policyTitle) policyTitle.textContent = data.title;
-      if (policyContent) policyContent.innerHTML = data.content;
+      const footerContent = window.bulkkotFooterContent || {};
+      const key = ({faq:"faq",shipping:"shipping",returns:"returns",privacy:"privacy",terms:"terms"})[type];
+      const savedTitle = key ? footerContent["footer_"+key+"_title"] : "";
+      const savedContent = key ? footerContent["footer_"+key+"_content"] : "";
+      if (policyTitle) policyTitle.textContent = savedTitle || data.title;
+      if (policyContent) {
+        const html = savedContent || data.content;
+        /* Keep the editable policy formatting while removing executable tags and inline handlers. */
+        const safe = String(html)
+          .replace(/<\\/?(?!h[1-6]\\b|p\\b|ul\\b|ol\\b|li\\b|strong\\b|b\\b|em\\b|br\\b)[a-z][^>]*>/gi, "")
+          .replace(/\\s+on[a-z]+\\s*=\\s*(["']).*?\\1/gi, "")
+          .replace(/javascript:/gi, "");
+        policyContent.innerHTML = safe;
+      }
       policyModal.classList.add("is-open");
       policyModal.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
