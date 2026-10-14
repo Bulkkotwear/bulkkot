@@ -520,6 +520,21 @@
           el.style.display = String(lookup[setting] ?? "true") === "false" ? "none" : "";
         });
       });
+      const footerItemVisibility = {
+        footer_shop_tees_enabled: "footer_shop_tees",
+        footer_shop_hoods_enabled: "footer_shop_hoods",
+        footer_shop_sweats_enabled: "footer_shop_sweats",
+        footer_shop_drop_enabled: "footer_shop_drop",
+        footer_about_link_enabled: "footer_about_link",
+        footer_story_link_enabled: "footer_story_link",
+        footer_instagram_enabled: "footer_instagram_text",
+        footer_email_enabled: "footer_email_text"
+      };
+      Object.entries(footerItemVisibility).forEach(([setting, contentKey]) => {
+        document.querySelectorAll('[data-cms-key="' + contentKey + '"]').forEach(el => {
+          el.style.display = String(lookup[setting] ?? "true") === "false" ? "none" : "";
+        });
+      });
 
       const bg = lookup.announcement_bg || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_bg;
       const color = lookup.announcement_color || ANNOUNCEMENT_STOREFRONT_DEFAULTS.announcement_color;
