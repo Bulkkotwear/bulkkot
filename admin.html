@@ -1561,8 +1561,7 @@
               </div>
             <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">COLLECTION CIRCLES</span><label class="switch"><input id="cmsShowCollections" type="checkbox" checked><span class="slider"></span></label></div>
             <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">DROP BANNER</span><label class="switch"><input id="cmsShowDrop" type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">BRAND PHILOSOPHY</span><label class="switch"><input id="cmsShowPhilosophy" type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">INSTAGRAM</span><label class="switch"><input id="cmsShowInstagram" type="checkbox" checked><span class="slider"></span></label></div>
+                        <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">INSTAGRAM</span><label class="switch"><input id="cmsShowInstagram" type="checkbox" checked><span class="slider"></span></label></div>
             <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">CONTACT</span><label class="switch"><input id="cmsShowContact" type="checkbox" checked><span class="slider"></span></label></div>
             <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">ABOUT</span><label class="switch"><input id="cmsShowAbout" type="checkbox" checked><span class="slider"></span></label></div>
 
@@ -1593,6 +1592,18 @@
               </div>
             </div>
 
+          </div>
+
+          <div class="card section-card" id="brandPhilosophyControlsCard">
+            <div class="section-title"><h2>Less Noise. More Presence.</h2><span>Brand philosophy section</span></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">SHOW THIS SECTION ON WEBSITE</span><label class="switch"><input id="cmsShowPhilosophy" type="checkbox" checked><span class="slider"></span></label></div>
+            <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Edit the exact section shown on the homepage: Korean eyebrow, headline, second line, and supporting sentence.</p>
+            <div class="form-grid">
+              <div class="field full"><label>KOREAN EYEBROW</label><input id="cmsPhilosophyKorean" value="불꽃의 철학"></div>
+              <div class="field"><label>MAIN HEADING</label><input id="cmsPhilosophyTitle" value="LESS NOISE."></div>
+              <div class="field"><label>SECOND LINE</label><input id="cmsPhilosophySubtitle" value="MORE PRESENCE."></div>
+              <div class="field full"><label>SUPPORTING TEXT</label><textarea id="cmsPhilosophyDescription">Quiet design. Strong identity.</textarea></div>
+            </div>
           </div>
 
           <div class="card section-card" id="readOurStoryControlsCard">
@@ -2688,6 +2699,10 @@ async function loadCMS(){
   $("cmsFooterText").value=field("footer_text","Korean-inspired premium everyday wear.");
   $("cmsInstagram").value=field("instagram",field("instagram_url","https://www.instagram.com/bulkkot.wear/"));
   const sectionKeys=[["Hero","hero"],["Collections","collections"],["Editorial","editorial"],["Drop","drop"],["Latest","latest_release"],["Why","why_bulkkot"],["About","about"],["Philosophy","philosophy"],["Instagram","instagram"],["Waitlist","waitlist"],["Contact","contact"]];
+  $("cmsPhilosophyKorean").value=field("philosophy_korean","불꽃의 철학");
+  $("cmsPhilosophyTitle").value=field("philosophy_title","LESS NOISE.");
+  $("cmsPhilosophySubtitle").value=field("philosophy_subtitle","MORE PRESENCE.");
+  $("cmsPhilosophyDescription").value=field("philosophy_description","Quiet design. Strong identity.");
   $("cmsShowStory").checked=field("story_enabled","true")!=="false";
   $("cmsStoryEyebrow").value=field("story_eyebrow","BULKKOT · 불꽃");
   $("cmsStoryTitle").value=field("story_title","OUR STORY");
@@ -3304,6 +3319,11 @@ async function saveCMS(){
     primary_button_url:heroButtonUrl,
     hero_button_url:heroButtonUrl,
     tagline:$("cmsTagline").value,
+    tagline_enabled:$("cmsShowTagline").checked?"true":"false",
+    philosophy_korean:$("cmsPhilosophyKorean").value,
+    philosophy_title:$("cmsPhilosophyTitle").value,
+    philosophy_subtitle:$("cmsPhilosophySubtitle").value,
+    philosophy_description:$("cmsPhilosophyDescription").value,
     about_title:$("cmsAboutTitle").value,
     about_text:$("cmsAboutText").value,
     footer_text:$("cmsFooterText").value,
