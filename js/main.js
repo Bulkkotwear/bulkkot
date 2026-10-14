@@ -484,6 +484,25 @@
       const lookup = {};
       rows.forEach(r => { lookup[r.key] = r.value; });
       window.bulkkotFooterContent = lookup;
+      document.querySelectorAll("[data-footer-text]").forEach(el => {
+        const key = el.getAttribute("data-footer-text");
+        if (key && lookup[key] !== undefined) el.textContent = String(lookup[key]);
+      });
+      document.querySelectorAll("[data-footer-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-footer-placeholder");
+        if (key && lookup[key] !== undefined) el.setAttribute("placeholder", String(lookup[key]));
+      });
+      document.querySelectorAll("[data-cms-key]").forEach(el => {
+        const key = el.getAttribute("data-cms-key");
+        if (key && lookup[key] !== undefined) {
+          if (el.matches("input,textarea")) el.value = String(lookup[key]);
+          else if (!el.hasAttribute("data-cms-href")) el.textContent = String(lookup[key]);
+        }
+      });
+      document.querySelectorAll("[data-cms-href]").forEach(el => {
+        const key = el.getAttribute("data-cms-href");
+        if (key && lookup[key] !== undefined && String(lookup[key]).trim()) el.setAttribute("href", String(lookup[key]).trim());
+      });
       const footerVisibility = {
         footer_track_order_enabled: "[data-open-track-order]",
         footer_account_enabled: "[data-open-account]",
