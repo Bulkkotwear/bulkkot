@@ -2200,7 +2200,7 @@ function navigate(page){
   $("page-"+page)?.classList.add("active");
   document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add("active");
   $("topTitle").textContent=pageTitles[page]; closeSidebar();
-  const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"slider-manager":loadEditorialSlides,"size-guides":loadSizeGuides,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck,sales:loadSalesAnalytics};
+  const loaders={dashboard:loadDashboard,products:loadProducts,categories:loadCategories,orders:loadOrders,"slider-manager":loadEditorialSlides,"size-guides":loadSizeGuides,footer:loadFooterEditor,inventory:async()=>{await loadProducts();renderInventory();},customers:loadCustomers,coupons:loadCoupons,waitlist:loadWaitlist,cms:loadCMS,media:loadMedia,settings:loadSettings,health:runHealthCheck,sales:loadSalesAnalytics};
   // Ignore rapid repeat navigation to a page whose data request is already running.
   if(!state.loadingPages[page] && loaders[page]){
     state.loadingPages[page]=true;
