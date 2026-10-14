@@ -2682,15 +2682,6 @@ async function deleteCoupon(id){
     showToast("Coupon deleted.","success");
   }catch(e){showToast("Coupon delete failed: "+normalizeError(e),"error");}
 }
-async function saveCoupon(){")+'" permanently? This cannot be undone.'))return;
-  try{
-    const r=await db.from("coupons").delete().eq("id",id);
-    if(r.error)throw r.error;
-    state.coupons=state.coupons.filter(c=>String(c.id)!==String(id));
-    renderCoupons();
-    showToast("Coupon deleted.","success");
-  }catch(e){showToast("Coupon delete failed: "+normalizeError(e),"error");}
-}
 async function saveCoupon(){
   const code=$("couponCode").value.trim().toUpperCase();if(!code){showToast("Coupon code is required.","error");return;}
   const payload={code,discount_type:$("couponType").value,discount_value:num($("couponValue").value),usage_limit:num($("couponUsageLimit").value),min_order_value:num($("couponMinOrder").value),active:$("couponActive").value==="true",expires_at:$("couponEnd").value?new Date($("couponEnd").value).toISOString():null};
