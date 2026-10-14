@@ -211,21 +211,6 @@
       }
     }
 
-
-    /* JOIN WAITLIST — matching BULKKOT's dark editorial storefront */
-    .join-waitlist-section {
-      padding: clamp(48px, 7vw, 84px) 20px;
-      background: radial-gradient(ellipse at 50% 0%, rgba(227,27,35,.12), transparent 58%), #080808;
-      border-top: 1px solid #202020;
-      border-bottom: 1px solid #202020;
-      text-align: center;
-    }
-    .join-waitlist-inner { max-width: 760px; margin: 0 auto; }
-    .join-waitlist-inner .eyebrow { color: #e31b23; font-size: 10px; font-weight: 800; letter-spacing: .22em; margin: 0 0 12px; }
-    .join-waitlist-inner h2 { color: #fff; font-family: 'Montserrat', 'Inter', sans-serif; font-size: clamp(28px, 5vw, 48px); line-height: 1.08; font-weight: 900; letter-spacing: -.04em; margin: 0 0 14px; }
-    .join-waitlist-inner p:not(.eyebrow) { max-width: 520px; margin: 0 auto 24px; color: #999; font-size: 14px; line-height: 1.8; }
-    .join-waitlist-inner .button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 24px; text-decoration: none; }
-
   </style>
 
   <!-- ACCOUNT MODAL VISUAL THEME ONLY -->
@@ -592,25 +577,79 @@
       </div>
     </section>
 
-<section class="waitlist-section" id="waitlist" data-cms-waitlist data-cms-section="waitlist">
-      <div class="waitlist-inner">
-        <div class="waitlist-copy">
-          <p class="eyebrow" data-cms-key="waitlist_eyebrow">DROP 001</p>
-          <h2 data-cms-key="waitlist_title">BE FIRST TO KNOW</h2>
-          <span data-cms-key="waitlist_korean">가장 먼저 만나보세요</span>
-          <p data-cms-key="waitlist_description">Join the VIP waitlist to receive access before Drop 001 goes live.</p>
+<section class="editorial-section" aria-label="Latest News & Editorial" data-cms-section="editorial">
+      <div class="editorial-carousel" data-carousel id="editorialCarousel">
+        <div class="editorial-track" data-carousel-track>
+
+          <article class="editorial-slide is-active" data-slide="0">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Drop 001 Editorial" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 01 // DROP 001</span>
+              <p class="slide-korean">불꽃 · 001</p>
+              <h2>LESS NOISE.</h2>
+              <span class="slide-sub">MORE PRESENCE.</span>
+              <p class="slide-desc">Architectural drop shoulders with pure matte combed yarn. Engineered for elevated movement.</p>
+              <a href="#drop-001" class="slide-cta">DISCOVER DROP 001 →</a>
+            </div>
+          </article>
+
+          <article class="editorial-slide" data-slide="1">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Heavy Fleece" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 02 // CRAFTSMANSHIP</span>
+              <p class="slide-korean">서울에서 영감 · 헤비웨이트</p>
+              <h2>450 GSM</h2>
+              <span class="slide-sub">LOOPBACK FLEECE.</span>
+              <p class="slide-desc">Double-density weave built to retain structure through repeated washes without loss of drape.</p>
+              <a href="shop.html?category=hoods" class="slide-cta">EXPLORE HOODS →</a>
+            </div>
+          </article>
+
+          <article class="editorial-slide" data-slide="2">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Silhouette" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 03 // SILHOUETTES</span>
+              <p class="slide-korean">디자인 미학 · SEOUL TO WORLD</p>
+              <h2>QUIETLY</h2>
+              <span class="slide-sub">DISTINCT.</span>
+              <p class="slide-desc">No loud exterior billboards. The garment commands attention through silhouette and proportion.</p>
+              <a href="shop.html?category=sweats" class="slide-cta">EXPLORE SWEATS →</a>
+            </div>
+          </article>
+
+          <article class="editorial-slide" data-slide="3">
+            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Limited Tees" loading="lazy">
+            <div class="editorial-slide__overlay"></div>
+            <div class="editorial-slide__content">
+              <span class="slide-badge">NEWS 04 // LIMITED SUPPLY</span>
+              <p class="slide-korean">한정판 수량 · 150 PCS</p>
+              <h2>STRICTLY 150</h2>
+              <span class="slide-sub">PIECES PER CUT.</span>
+              <p class="slide-desc">Zero mass-production restocking. Every unit serialized and dispatched in custom matte black boxing.</p>
+              <a href="shop.html?category=tees" class="slide-cta">EXPLORE TEES →</a>
+            </div>
+          </article>
+
         </div>
 
-        <form class="waitlist-form" data-waitlist-form novalidate>
-          <label for="waitlist-email" data-cms-key="waitlist_label">EMAIL ADDRESS</label>
+        <div class="carousel-indicators" role="tablist" aria-label="Slider Indicators">
+          <button type="button" class="carousel-indicator is-active" data-slide-indicator="0" aria-label="Slide 1"><span class="indicator-bar"></span></button>
+          <button type="button" class="carousel-indicator" data-slide-indicator="1" aria-label="Slide 2"><span class="indicator-bar"></span></button>
+          <button type="button" class="carousel-indicator" data-slide-indicator="2" aria-label="Slide 3"><span class="indicator-bar"></span></button>
+          <button type="button" class="carousel-indicator" data-slide-indicator="3" aria-label="Slide 4"><span class="indicator-bar"></span></button>
+        </div>
+      </div>
+    </section>
 
-          <div class="waitlist-input-row">
-            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" data-cms-placeholder="waitlist_placeholder" required>
-            <button type="submit" class="button button--primary" data-cms-key="waitlist_button">JOIN</button>
-          </div>
-
-          <div class="waitlist-message" data-waitlist-message aria-live="polite" data-cms-key="waitlist_success">You’re on the list. We’ll notify you before Drop 001 launches.</div>
-        </form>
+<section class="drop-section" id="drop-001" data-cms-section="drop">
+      <div class="drop-content">
+        <p class="eyebrow" data-cms-key="drop_eyebrow">DROP 001 · 첫 번째 드롭</p>
+        <h2 data-cms-key="drop_title">COMING SOON</h2>
+        <p data-cms-key="drop_description">The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.</p>
+        <a href="#waitlist" class="button button--outline" data-cms-key="drop_button_text" data-cms-href="drop_button_url">JOIN WAITLIST</a>
       </div>
     </section>
 
@@ -723,15 +762,25 @@
       <a href="https://www.instagram.com/bulkkot.wear/" data-cms-href="instagram" target="_blank" rel="noopener noreferrer" class="instagram-handle" data-cms-key="instagram_handle">@bulkkot.wear</a>
     </section>
 
+<section class="waitlist-section" id="waitlist" data-cms-waitlist data-cms-section="waitlist">
+      <div class="waitlist-inner">
+        <div class="waitlist-copy">
+          <p class="eyebrow" data-cms-key="waitlist_eyebrow">DROP 001</p>
+          <h2 data-cms-key="waitlist_title">BE FIRST TO KNOW</h2>
+          <span data-cms-key="waitlist_korean">가장 먼저 만나보세요</span>
+          <p data-cms-key="waitlist_description">Join the VIP waitlist to receive access before Drop 001 goes live.</p>
+        </div>
 
+        <form class="waitlist-form" data-waitlist-form novalidate>
+          <label for="waitlist-email" data-cms-key="waitlist_label">EMAIL ADDRESS</label>
 
-    <!-- JOIN WAITLIST CTA (separate from the main waitlist form) -->
-    <section class="join-waitlist-section" id="join-waitlist" aria-labelledby="join-waitlist-title">
-      <div class="join-waitlist-inner">
-        <p class="eyebrow">BULKKOT DROP 001</p>
-        <h2 id="join-waitlist-title">DON'T MISS THE DROP.</h2>
-        <p>Get early access to the latest BULKKOT releases. Join the waitlist and be first to know.</p>
-        <a class="button button--primary" href="#waitlist" data-cms-key="join_waitlist_button">JOIN THE WAITLIST</a>
+          <div class="waitlist-input-row">
+            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" data-cms-placeholder="waitlist_placeholder" required>
+            <button type="submit" class="button button--primary" data-cms-key="waitlist_button">JOIN</button>
+          </div>
+
+          <div class="waitlist-message" data-waitlist-message aria-live="polite" data-cms-key="waitlist_success">You’re on the list. We’ll notify you before Drop 001 launches.</div>
+        </form>
       </div>
     </section>
 
@@ -754,83 +803,7 @@
       </div>
     </section>
 
-<section class="editorial-section" aria-label="Latest News & Editorial" data-cms-section="editorial">
-      <div class="editorial-carousel" data-carousel id="editorialCarousel">
-        <div class="editorial-track" data-carousel-track>
-
-          <article class="editorial-slide is-active" data-slide="0">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13575.png" alt="BULKKOT Drop 001 Editorial" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <span class="slide-badge">NEWS 01 // DROP 001</span>
-              <p class="slide-korean">불꽃 · 001</p>
-              <h2>LESS NOISE.</h2>
-              <span class="slide-sub">MORE PRESENCE.</span>
-              <p class="slide-desc">Architectural drop shoulders with pure matte combed yarn. Engineered for elevated movement.</p>
-              <a href="#drop-001" class="slide-cta">DISCOVER DROP 001 →</a>
-            </div>
-          </article>
-
-          <article class="editorial-slide" data-slide="1">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png" alt="BULKKOT Heavy Fleece" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <span class="slide-badge">NEWS 02 // CRAFTSMANSHIP</span>
-              <p class="slide-korean">서울에서 영감 · 헤비웨이트</p>
-              <h2>450 GSM</h2>
-              <span class="slide-sub">LOOPBACK FLEECE.</span>
-              <p class="slide-desc">Double-density weave built to retain structure through repeated washes without loss of drape.</p>
-              <a href="shop.html?category=hoods" class="slide-cta">EXPLORE HOODS →</a>
-            </div>
-          </article>
-
-          <article class="editorial-slide" data-slide="2">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png" alt="BULKKOT Silhouette" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <span class="slide-badge">NEWS 03 // SILHOUETTES</span>
-              <p class="slide-korean">디자인 미학 · SEOUL TO WORLD</p>
-              <h2>QUIETLY</h2>
-              <span class="slide-sub">DISTINCT.</span>
-              <p class="slide-desc">No loud exterior billboards. The garment commands attention through silhouette and proportion.</p>
-              <a href="shop.html?category=sweats" class="slide-cta">EXPLORE SWEATS →</a>
-            </div>
-          </article>
-
-          <article class="editorial-slide" data-slide="3">
-            <img src="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png" alt="BULKKOT Limited Tees" loading="lazy">
-            <div class="editorial-slide__overlay"></div>
-            <div class="editorial-slide__content">
-              <span class="slide-badge">NEWS 04 // LIMITED SUPPLY</span>
-              <p class="slide-korean">한정판 수량 · 150 PCS</p>
-              <h2>STRICTLY 150</h2>
-              <span class="slide-sub">PIECES PER CUT.</span>
-              <p class="slide-desc">Zero mass-production restocking. Every unit serialized and dispatched in custom matte black boxing.</p>
-              <a href="shop.html?category=tees" class="slide-cta">EXPLORE TEES →</a>
-            </div>
-          </article>
-
-        </div>
-
-        <div class="carousel-indicators" role="tablist" aria-label="Slider Indicators">
-          <button type="button" class="carousel-indicator is-active" data-slide-indicator="0" aria-label="Slide 1"><span class="indicator-bar"></span></button>
-          <button type="button" class="carousel-indicator" data-slide-indicator="1" aria-label="Slide 2"><span class="indicator-bar"></span></button>
-          <button type="button" class="carousel-indicator" data-slide-indicator="2" aria-label="Slide 3"><span class="indicator-bar"></span></button>
-          <button type="button" class="carousel-indicator" data-slide-indicator="3" aria-label="Slide 4"><span class="indicator-bar"></span></button>
-        </div>
-      </div>
-    </section>
-
-<section class="drop-section" id="drop-001" data-cms-section="drop">
-      <div class="drop-content">
-        <p class="eyebrow" data-cms-key="drop_eyebrow">DROP 001 · 첫 번째 드롭</p>
-        <h2 data-cms-key="drop_title">COMING SOON</h2>
-        <p data-cms-key="drop_description">The first BULKKOT collection. Heavyweight oversized silhouettes constructed with architectural restraint.</p>
-        <a href="#waitlist" class="button button--outline" data-cms-key="drop_button_text" data-cms-href="drop_button_url">JOIN WAITLIST</a>
-      </div>
-    </section>
-
-  </main>
+</main>
 
   <!-- FOOTER -->
   <footer class="site-footer">
