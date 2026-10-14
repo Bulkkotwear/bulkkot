@@ -1442,7 +1442,8 @@
 
         <!-- EDITORIAL SLIDER MANAGER -->
         <section id="page-slider-manager" class="page">
-          <div class="page-head"><div><h1>Editorial Slider Manager</h1><p>Manage slide content, direct image uploads, image focus and timing.</p></div><div class="actions"><button class="btn" onclick="loadEditorialSlides()">↻ Reload</button><button class="btn" onclick="addEditorialSlide()">＋ Add slide</button><button class="btn btn-primary" onclick="saveEditorialSlides()">Save slider</button></div></div>
+          <div class="page-head"><div><h1>Editorial Slider Manager</h1><p>Manage slide content, direct image uploads, image focus and timing.</p></div>
+          <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">EDITORIAL SLIDER</span><label class="switch"><input id="cmsShowEditorial" type="checkbox" checked><span class="slider"></span></label></div><div class="actions"><button class="btn" onclick="loadEditorialSlides()">↻ Reload</button><button class="btn" onclick="addEditorialSlide()">＋ Add slide</button><button class="btn btn-primary" onclick="saveEditorialSlides()">Save slider</button></div></div>
           <div class="card" style="margin-bottom:16px"><div class="section-title"><h2>Slider behaviour</h2><span>Global settings</span></div><div class="grid two-col">
           <div class="field"><label>AUTO-ADVANCE TIME (SECONDS)</label><input id="esInterval" type="number" min="2" max="60" value="5"></div><div class="field"><label>FADE TRANSITION TIME (MS)</label><input id="esTransition" type="number" min="100" max="3000" step="100" value="800"></div>
           <div class="field"><label><input id="esAutoplay" type="checkbox" checked> AUTO-ADVANCE ENABLED</label></div><div class="field"><label><input id="esPauseHover" type="checkbox"> PAUSE WHEN HOVERING</label></div><div class="field"><label><input id="esIndicators" type="checkbox" checked> SHOW SLIDE INDICATORS</label></div></div><p style="color:var(--muted);line-height:1.7;margin:10px 0 0">Manual swipe remains available. Select slide images directly from your device.</p></div>
@@ -1526,6 +1527,7 @@
                 <h2>Homepage</h2>
                 <span>Storefront content</span>
               </div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">HERO BANNER</span><label class="switch"><input id="cmsShowHero" type="checkbox" checked><span class="slider"></span></label></div>
 
 
 <div class="field full"><label>HERO BANNER IMAGE</label><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-primary" onclick="document.getElementById('cmsHeroImageFile').click()">Choose Image from Computer</button><input id="cmsHeroImageFile" type="file" accept="image/*" style="display:none" onchange="uploadHeroImage(this)"><span id="cmsHeroImageUploadStatus" style="font-size:12px;color:var(--muted)">Choose a file — it will upload automatically.</span></div><input id="cmsHeroImage" type="hidden" value="" oninput="updateHeroPreview()"><div id="cmsHeroImagePreviewWrap" style="display:none;margin-top:10px"><img id="cmsHeroImagePreview" alt="Hero image preview" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px"><button type="button" class="btn btn-small" style="margin-top:8px" onclick="document.getElementById('cmsHeroImageFile').click()">Replace Image</button></div><small style="color:var(--muted);font-size:11px">Supported image files · Maximum 10 MB. Uploaded image is saved to BULKKOT storage.</small></div>
@@ -1557,10 +1559,17 @@
                 <h2>Brand</h2>
                 <span>Global content</span>
               </div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">COLLECTION CIRCLES</span><label class="switch"><input id="cmsShowCollections" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">DROP BANNER</span><label class="switch"><input id="cmsShowDrop" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">BRAND PHILOSOPHY</span><label class="switch"><input id="cmsShowPhilosophy" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">INSTAGRAM</span><label class="switch"><input id="cmsShowInstagram" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">CONTACT</span><label class="switch"><input id="cmsShowContact" type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">ABOUT</span><label class="switch"><input id="cmsShowAbout" type="checkbox" checked><span class="slider"></span></label></div>
 
-              <div class="field">
-                <label>BRAND TAGLINE</label>
+              <div class="field full">
+                <label>BRAND TAGLINE · “LESS NOISE. MORE PRESENCE.”</label>
                 <input id="cmsTagline" placeholder="Less noise. More presence.">
+                <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">SHOW BRAND TAGLINE</span><label class="switch"><input id="cmsShowTagline" type="checkbox" checked><span class="slider"></span></label></div>
               </div>
 
               <div class="field">
@@ -1586,25 +1595,9 @@
 
           </div>
 
-          <div class="card section-card" id="homepageVisibilityCard">
-            <div class="section-title"><h2>Homepage Section Visibility</h2><span>Show / hide controls</span></div>
-            <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Turn each homepage section on or off. Hidden sections stay saved and can be shown again anytime. Save changes to publish.</p>
-            <div class="form-grid homepage-section-switches">
-              <div class="homepage-section-switch-row"><label for="cmsShowHero">HERO BANNER</label><label class="switch"><input id="cmsShowHero" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowCollections">COLLECTION CIRCLES</label><label class="switch"><input id="cmsShowCollections" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowEditorial">EDITORIAL SLIDER</label><label class="switch"><input id="cmsShowEditorial" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowDrop">DROP BANNER</label><label class="switch"><input id="cmsShowDrop" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowLatest">LATEST RELEASES</label><label class="switch"><input id="cmsShowLatest" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowWhy">WHY BULKKOT</label><label class="switch"><input id="cmsShowWhy" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowAbout">ABOUT</label><label class="switch"><input id="cmsShowAbout" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowPhilosophy">BRAND PHILOSOPHY</label><label class="switch"><input id="cmsShowPhilosophy" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowInstagram">INSTAGRAM</label><label class="switch"><input id="cmsShowInstagram" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowWaitlist">JOIN WAITLIST</label><label class="switch"><input id="cmsShowWaitlist" type="checkbox" checked><span class="slider"></span></label></div>
-              <div class="homepage-section-switch-row"><label for="cmsShowContact">CONTACT</label><label class="switch"><input id="cmsShowContact" type="checkbox" checked><span class="slider"></span></label></div>
-            </div>
-          </div>
           <div class="card section-card" id="readOurStoryControlsCard">
             <div class="section-title"><h2>Read Our Story</h2><span>Story modal controls</span></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">READ OUR STORY</span><label class="switch"><input id="cmsShowStory" type="checkbox" checked><span class="slider"></span></label></div>
             <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Control whether the Read Our Story entry points appear on the website, and edit the story popup content.</p>
             <div class="form-grid">
               <div class="field full"><label><input id="cmsShowStory" type="checkbox" checked> SHOW READ OUR STORY BUTTONS</label></div>
@@ -1619,6 +1612,7 @@
 
           <div class="card section-card" id="whyBulkkotControlsCard">
             <div class="section-title"><h2>Why BULKKOT Section</h2><span>Storefront content</span></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">WHY BULKKOT</span><label class="switch"><input id="cmsShowWhy" type="checkbox" checked><span class="slider"></span></label></div>
             <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Edit the section heading and the four brand/value blocks shown on the homepage.</p>
             <div class="form-grid">
               <div class="field"><label>EYEBROW TEXT</label><input id="cmsWhyEyebrow" value="WHY BULKKOT · 왜 불꽃인가"></div>
@@ -1632,6 +1626,7 @@
 
           <div class="card section-card" id="latestReleaseControlsCard">
             <div class="section-title"><h2>Homepage Latest Releases</h2><span>Storefront controls</span></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">LATEST RELEASES</span><label class="switch"><input id="cmsShowLatest" type="checkbox" checked><span class="slider"></span></label></div>
             <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Edit the heading, catalogue link and section styling. The products themselves come from Admin → Products and are shown from the live catalogue.</p>
             <div class="form-grid">
               <div class="field"><label>EYEBROW TEXT</label><input id="cmsLatestEyebrow" value="SHOP · 쇼핑"></div>
@@ -1647,6 +1642,7 @@
 
           <div class="card section-card" id="waitlistControlsCard">
             <div class="section-title"><h2>Homepage Waitlist Section</h2><span>Live storefront controls</span></div>
+            <div class="homepage-section-switch-row" style="margin:0 0 14px"><span style="font-size:12px;font-weight:700">JOIN WAITLIST</span><label class="switch"><input id="cmsShowWaitlist" type="checkbox" checked><span class="slider"></span></label></div>
             <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:-4px 0 16px">Edit the content, form labels, button, colours and spacing of the Join Waitlist section under the homepage slider. Save changes to publish to the storefront.</p>
             <div class="form-grid">
               <div class="field"><label>EYEBROW TEXT</label><input id="cmsWaitlistEyebrow" value="DROP 001"></div>
@@ -2686,6 +2682,7 @@ async function loadCMS(){
   $("cmsHeroButtonRadius").value=field("hero_button_radius","2");
   updateHeroPreview();
   $("cmsTagline").value=field("tagline","Less noise. More presence.");
+  $("cmsShowTagline").checked=field("tagline_enabled","true")!=="false";
   $("cmsAboutTitle").value=field("about_title","불꽃");
   $("cmsAboutText").value=field("about_text","Premium clothing shouldn't feel unreachable.");
   $("cmsFooterText").value=field("footer_text","Korean-inspired premium everyday wear.");
@@ -2727,7 +2724,7 @@ async function loadCMS(){
 }
 async function saveCMS(){
   let advanced={};try{advanced=JSON.parse($("cmsJson").value||"{}");if(!advanced||Array.isArray(advanced)||typeof advanced!=="object")throw 0;}catch(e){showToast("Advanced CMS JSON is invalid.","error");return;}
-  const merged={...advanced,announcement_1:$("cmsAnnouncement").value,hero_title:$("cmsHeroTitle").value,hero_subtitle:$("cmsHeroSubtitle").value,hero_image:$("cmsHeroImage").value,primary_button_text:$("cmsPrimaryButton").value,primary_button_url:$("cmsPrimaryUrl").value,tagline:$("cmsTagline").value,about_title:$("cmsAboutTitle").value,about_text:$("cmsAboutText").value,footer_text:$("cmsFooterText").value,instagram:$("cmsInstagram").value,
+  const merged={...advanced,announcement_1:$("cmsAnnouncement").value,hero_title:$("cmsHeroTitle").value,hero_subtitle:$("cmsHeroSubtitle").value,hero_image:$("cmsHeroImage").value,primary_button_text:$("cmsPrimaryButton").value,primary_button_url:$("cmsPrimaryUrl").value,tagline:$("cmsTagline").value,tagline_enabled:$("cmsShowTagline").checked?"true":"false",about_title:$("cmsAboutTitle").value,about_text:$("cmsAboutText").value,footer_text:$("cmsFooterText").value,instagram:$("cmsInstagram").value,
     ...Object.fromEntries([["Hero","hero"],["Collections","collections"],["Editorial","editorial"],["Drop","drop"],["Latest","latest_release"],["Why","why_bulkkot"],["About","about"],["Philosophy","philosophy"],["Instagram","instagram"],["Waitlist","waitlist"],["Contact","contact"]].map(([id,key])=>["section_"+key+"_enabled",$("cmsShow"+id).checked?"true":"false"])),
     story_enabled:$("cmsShowStory").checked?"true":"false",
     story_eyebrow:$("cmsStoryEyebrow").value,story_title:$("cmsStoryTitle").value,
