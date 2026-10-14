@@ -561,6 +561,25 @@
         document.querySelectorAll('[data-cms-key="announcement_3"]').forEach(el => el.textContent = lookup.announcement_3);
       }
 
+      const sectionVisibility = {
+        hero: ".hero",
+        collections: ".circle-collections-section",
+        editorial: ".editorial-section",
+        drop: ".drop-section",
+        latest_release: "[data-cms-section=\"latest_release\"]",
+        why_bulkkot: ".values-section",
+        about: ".about-section",
+        philosophy: ".philosophy-section",
+        instagram: ".instagram-section",
+        waitlist: ".waitlist-section",
+        contact: ".contact-section"
+      };
+      Object.entries(sectionVisibility).forEach(([key, selector]) => {
+        const section = document.querySelector(selector);
+        if (!section) return;
+        section.style.setProperty("display", String(lookup["section_" + key + "_enabled"] ?? "true") === "false" ? "none" : "");
+      });
+
       const latestRelease = document.querySelector("[data-cms-latest-release]");
       if (latestRelease) {
         latestRelease.style.setProperty("background-color", lookup.latest_release_bg || "#000000", "important");
