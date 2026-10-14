@@ -1200,8 +1200,8 @@
         const html = savedContent || data.content;
         /* Keep the editable policy formatting while removing executable tags and inline handlers. */
         const safe = String(html)
-          .replace(/<\\/?(?!h[1-6]\\b|p\\b|ul\\b|ol\\b|li\\b|strong\\b|b\\b|em\\b|br\\b)[a-z][^>]*>/gi, "")
-          .replace(/\\s+on[a-z]+\\s*=\\s*(["']).*?\\1/gi, "")
+          .replace(/<\/?(?!h[1-6]\b|p\b|ul\b|ol\b|li\b|strong\b|b\b|em\b|br\b)[a-z][^>]*>/gi, "")
+          .replace(/\s+on[a-z]+\s*=\s*(["']).*?\1/gi, "")
           .replace(/javascript:/gi, "");
         policyContent.innerHTML = safe;
       }
