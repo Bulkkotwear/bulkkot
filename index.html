@@ -1576,28 +1576,25 @@
       function setupCarousel(root, slides, settings = {}) {
         const track = root.querySelector("[data-carousel-track]");
         const indicators = root.querySelector(".carousel-indicators");
-        if (!track || !indicators || !Array.isArray(slides) || slides.length < 1) return;
+        if (!track || !indicators || !Array.isArray(slides) || slides.length < 2) return;
         if (root.__editorialCleanup) root.__editorialCleanup();
-        const controller = new AbortController(), signal = controller.signal;
+
+        const controller = new AbortController();
+        const signal = controller.signal;
         const intervalMs = Math.min(60000, Math.max(2000, Number(settings.intervalSeconds) || 5)) * 1000;
         const pauseOnHover = settings.pauseOnHover === true;
 
-        // Native horizontal scrolling avoids transform/position conflicts with legacy theme CSS.
+        // Use the site's original stacked/fade layout. Only one slide is visible;
+        // this avoids the legacy CSS positioning rules fighting horizontal scrolling.
         root.style.setProperty("position", "relative", "important");
         root.style.setProperty("overflow", "hidden", "important");
-        track.style.setProperty("display", "flex", "important");
         track.style.setProperty("position", "relative", "important");
+        track.style.setProperty("display", "block", "important");
         track.style.setProperty("width", "100%", "important");
         track.style.setProperty("height", "100%", "important");
-        track.style.setProperty("overflow-x", "auto", "important");
-        track.style.setProperty("overflow-y", "hidden", "important");
-        track.style.setProperty("scroll-snap-type", "x mandatory", "important");
-        track.style.setProperty("scroll-behavior", "smooth", "important");
-        track.style.setProperty("scrollbar-width", "none", "important");
-        track.style.setProperty("-ms-overflow-style", "none", "important");
-        track.style.setProperty("transition", "none", "important");
+        track.style.setProperty("overflow", "hidden", "important");
         track.style.setProperty("transform", "none", "important");
-        track.style.setProperty("touch-action", "pan-y", "important");
+        track.style.setProperty("transition", "none", "important");
 
         track.innerHTML = slides.map((s, n) =>
           '<article class="editorial-slide' + (n === 0 ? ' is-active' : '') + '" data-slide="' + n + '">' +
@@ -1619,66 +1616,81 @@
 
         const slideEls = Array.from(track.querySelectorAll(".editorial-slide"));
         slideEls.forEach((el, j) => {
-          el.style.setProperty("position", "relative", "important");
-          el.style.setProperty("inset", "auto", "important");
-          el.style.setProperty("flex", "0 0 100%", "important");
+          el.style.setProperty("position", "absolute", "important");
+          el.style.setProperty("inset", "0", "important");
           el.style.setProperty("width", "100%", "important");
           el.style.setProperty("height", "100%", "important");
           el.style.setProperty("min-height", "0", "important");
-          el.style.setProperty("opacity", "1", "important");
-          el.style.setProperty("visibility", "visible", "important");
-          el.style.setProperty("pointer-events", "auto", "important");
-          el.style.setProperty("transition", "none", "important");
-          el.style.setProperty("scroll-snap-align", "start", "important");
-          const img = el.querySelector("img"), overlay = el.querySelector(".editorial-slide__overlay"), slide = slides[j];
+          el.style.setProperty("transition", "opacity 700ms cubic-bezier(0.16, 1, 0.3, 1)", "important");
+          el.style.setProperty("z-index", j === 0 ? "2" : "1", "important");
+          el.style.setProperty("opacity", j === 0 ? "1" : "0", "important");
+          el.style.setProperty("visibility", j === 0 ? "visible" : "hidden", "important");
+          el.style.setProperty("pointer-events", j === 0 ? "auto" : "none", "important");
+          const img = el.querySelector("img");
+          const overlay = el.querySelector(".editorial-slide__overlay");
+          const slide = slides[j];
           if (img) img.style.setProperty("object-position", Number(slide.imageX ?? 50) + "% " + Number(slide.imageY ?? 25) + "%", "important");
           if (overlay) overlay.style.setProperty("opacity", String(Math.min(100, Math.max(0, Number(slide.overlayOpacity ?? 100))) / 100), "important");
         });
 
         let active = 0, autoTimer = null, touchStartX = 0, touchStartY = 0, pointerStartX = null;
-        const show = (n, behavior = "smooth") => {
+        const show = n => {
           active = (n + slideEls.length) % slideEls.length;
-          track.scrollTo({ left: active * track.clientWidth, behavior });
           slideEls.forEach((el, j) => {
-            el.classList.toggle("is-active", j === active);
-            el.setAttribute("aria-hidden", j === active ? "false" : "true");
+            const selected = j === active;
+            el.classList.toggle("is-active", selected);
+            el.setAttribute("aria-hidden", selected ? "false" : "true");
+            el.style.setProperty("opacity", selected ? "1" : "0", "important");
+            el.style.setProperty("visibility", selected ? "visible" : "hidden", "important");
+            el.style.setProperty("pointer-events", selected ? "auto" : "none", "important");
+            el.style.setProperty("z-index", selected ? "2" : "1", "important");
           });
           indicators.querySelectorAll("[data-slide-indicator]").forEach((el, j) => {
             el.classList.toggle("is-active", j === active);
             el.setAttribute("aria-current", j === active ? "true" : "false");
           });
         };
-        const stopAuto = () => { if (autoTimer !== null) { window.clearInterval(autoTimer); autoTimer = null; } };
-        const startAuto = () => {
+        const stopAuto = () => {
+          if (autoTimer !== null) { window.clearTimeout(autoTimer); autoTimer = null; }
+        };
+        const scheduleNext = () => {
           stopAuto();
-          if (slideEls.length < 2) return;
-          autoTimer = window.setInterval(() => {
-            if (!signal.aborted && !document.hidden && !(pauseOnHover && root.matches(":hover"))) show(active + 1);
+          if (slideEls.length < 2 || signal.aborted) return;
+          autoTimer = window.setTimeout(() => {
+            if (signal.aborted) return;
+            if (!document.hidden && !(pauseOnHover && root.matches(":hover"))) show(active + 1);
+            scheduleNext();
           }, intervalMs);
         };
-        root.querySelector("[data-carousel-prev]")?.addEventListener("click", () => { show(active - 1); startAuto(); }, { signal });
-        root.querySelector("[data-carousel-next]")?.addEventListener("click", () => { show(active + 1); startAuto(); }, { signal });
+
         indicators.addEventListener("click", event => {
           const button = event.target.closest("[data-slide-indicator]");
-          if (button) { show(Number(button.dataset.slideIndicator)); startAuto(); }
+          if (button) { show(Number(button.dataset.slideIndicator)); scheduleNext(); }
         }, { signal });
-        root.addEventListener("touchstart", event => { const t = event.changedTouches[0]; touchStartX = t.clientX; touchStartY = t.clientY; }, { passive: true, signal });
+        root.addEventListener("touchstart", event => {
+          const t = event.changedTouches[0]; touchStartX = t.clientX; touchStartY = t.clientY;
+        }, { passive: true, signal });
         root.addEventListener("touchend", event => {
           const t = event.changedTouches[0], dx = t.clientX - touchStartX, dy = t.clientY - touchStartY;
-          if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.25) { show(active + (dx < 0 ? 1 : -1)); startAuto(); }
+          if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+            show(active + (dx < 0 ? 1 : -1)); scheduleNext();
+          }
         }, { passive: true, signal });
-        root.addEventListener("pointerdown", event => { if (event.pointerType === "mouse") pointerStartX = event.clientX; }, { signal });
+        root.addEventListener("pointerdown", event => {
+          if (event.pointerType === "mouse") pointerStartX = event.clientX;
+        }, { signal });
         root.addEventListener("pointerup", event => {
           if (pointerStartX === null || event.pointerType !== "mouse") return;
           const dx = event.clientX - pointerStartX; pointerStartX = null;
-          if (Math.abs(dx) > 65) { show(active + (dx < 0 ? 1 : -1)); startAuto(); }
+          if (Math.abs(dx) > 65) { show(active + (dx < 0 ? 1 : -1)); scheduleNext(); }
         }, { signal });
-        document.addEventListener("visibilitychange", () => { if (document.hidden) stopAuto(); else startAuto(); }, { signal });
-        root.querySelectorAll("[data-carousel-prev],[data-carousel-next]").forEach(button => { button.hidden = slideEls.length < 2; });
-        indicators.hidden = slideEls.length < 2 || settings.showIndicators === false;
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) stopAuto(); else scheduleNext();
+        }, { signal });
+        indicators.hidden = settings.showIndicators === false;
         root.__editorialCleanup = () => { stopAuto(); controller.abort(); };
-        show(0, "auto");
-        startAuto();
+        show(0);
+        scheduleNext();
       }
 
       async function loadAdminSlides(root) {
