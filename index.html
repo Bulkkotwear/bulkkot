@@ -771,24 +771,24 @@
     </section>
 
     <!-- WAITLIST -->
-    <section class="waitlist-section" id="waitlist">
+    <section class="waitlist-section" id="waitlist" data-cms-waitlist>
       <div class="waitlist-inner">
         <div class="waitlist-copy">
-          <p class="eyebrow">DROP 001</p>
-          <h2>BE FIRST TO KNOW</h2>
-          <span>가장 먼저 만나보세요</span>
-          <p>Join the VIP waitlist to receive access before Drop 001 goes live.</p>
+          <p class="eyebrow" data-cms-key="waitlist_eyebrow">DROP 001</p>
+          <h2 data-cms-key="waitlist_title">BE FIRST TO KNOW</h2>
+          <span data-cms-key="waitlist_korean">가장 먼저 만나보세요</span>
+          <p data-cms-key="waitlist_description">Join the VIP waitlist to receive access before Drop 001 goes live.</p>
         </div>
 
         <form class="waitlist-form" data-waitlist-form novalidate>
-          <label for="waitlist-email">EMAIL ADDRESS</label>
+          <label for="waitlist-email" data-cms-key="waitlist_label">EMAIL ADDRESS</label>
 
           <div class="waitlist-input-row">
-            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" required>
-            <button type="submit" class="button button--primary">JOIN</button>
+            <input id="waitlist-email" name="email" type="email" autocomplete="email" placeholder="your@email.com" data-cms-placeholder="waitlist_placeholder" required>
+            <button type="submit" class="button button--primary" data-cms-key="waitlist_button">JOIN</button>
           </div>
 
-          <div class="waitlist-message" data-waitlist-message aria-live="polite"></div>
+          <div class="waitlist-message" data-waitlist-message aria-live="polite" data-cms-key="waitlist_success">You’re on the list. We’ll notify you before Drop 001 launches.</div>
         </form>
       </div>
     </section>
