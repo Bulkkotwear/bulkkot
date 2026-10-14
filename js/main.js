@@ -561,6 +561,20 @@
         document.querySelectorAll('[data-cms-key="announcement_3"]').forEach(el => el.textContent = lookup.announcement_3);
       }
 
+      const waitlist = document.querySelector("[data-cms-waitlist]");
+      if (waitlist) {
+        waitlist.style.setProperty("background-color", lookup.waitlist_bg || "#111111", "important");
+        waitlist.style.setProperty("color", lookup.waitlist_color || "#ffffff", "important");
+        waitlist.style.setProperty("--waitlist-accent", lookup.waitlist_accent || "#e31b23");
+        const padding = Math.min(180, Math.max(24, Number(lookup.waitlist_padding || 80)));
+        waitlist.style.setProperty("padding-top", padding + "px", "important");
+        waitlist.style.setProperty("padding-bottom", padding + "px", "important");
+      }
+      document.querySelectorAll('[data-cms-placeholder="waitlist_placeholder"]').forEach(el => {
+        el.setAttribute("placeholder", String(lookup.waitlist_placeholder || "your@email.com"));
+      });
+      window.bulkkotWaitlistSuccessMessage = String(lookup.waitlist_success || "You're on the list. We'll notify you before Drop 001 launches.");
+
       rows.forEach(({ key, value }) => {
         if (["announcement_1", "announcement_2", "announcement_3"].includes(key)) return;
         document.querySelectorAll(`[data-cms-key="${CSS.escape(key)}"]`).forEach(el => {
