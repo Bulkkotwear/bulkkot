@@ -780,6 +780,8 @@
         setViewState("loading");
         renderCategoryFilters();
         if (!supabaseClient) {
+          renderCategoryFilters();
+          if (filterStrip) filterStrip.classList.remove("is-loading");
           setViewState("error");
           return;
         }
