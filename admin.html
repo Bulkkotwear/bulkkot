@@ -997,6 +997,17 @@
       .stats-grid{grid-template-columns:1fr}
     }
 
+  
+    .footer-editor-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 12px}
+    .footer-editor-search{display:flex;flex:1 1 280px;flex-direction:column;gap:7px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+    .footer-editor-search input{width:100%;min-height:42px;border:1px solid var(--border);border-radius:10px;background:var(--surface,#fff);color:var(--text,#111);padding:10px 12px;font:inherit;font-size:13px;letter-spacing:normal;text-transform:none}
+    .footer-editor-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap}.footer-editor-hint{margin:0 0 16px;color:var(--muted);font-size:12px;line-height:1.6}
+    .footer-editor-group{padding:0;overflow:hidden}.footer-editor-group>.section-title{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px 19px;margin:0;cursor:pointer;list-style:none}
+    .footer-editor-group>.section-title::-webkit-details-marker{display:none}.footer-editor-group>.section-title::after{content:"+";flex:0 0 26px;width:26px;height:26px;display:grid;place-items:center;border:1px solid var(--border);border-radius:8px;font-size:18px;font-weight:400}
+    .footer-editor-group[open]>.section-title::after{content:"−"}.footer-editor-group>.section-title h2{margin:0;font-size:13px;letter-spacing:.08em}
+    .footer-editor-group>.section-title span{margin-left:auto;text-align:right;color:var(--muted);font-size:11px;line-height:1.45}.footer-editor-group>.form-grid{padding:18px 19px 19px;border-top:1px solid var(--border)}
+    .footer-editor-group .field textarea{line-height:1.6;resize:vertical}
+    @media(max-width:600px){.footer-editor-toolbar{align-items:stretch}.footer-editor-toolbar-actions{display:grid;grid-template-columns:1fr 1fr}.footer-editor-toolbar-actions .btn{width:100%}.footer-editor-group>.section-title{padding:14px;flex-wrap:wrap}.footer-editor-group>.section-title span{order:3;width:100%;margin:0;text-align:left}.footer-editor-group>.form-grid{padding:14px}.footer-editor-search{flex-basis:100%}}
   </style>
 </head>
 
@@ -1455,14 +1466,15 @@
         <!-- FOOTER EDITOR -->
         <section id="page-footer" class="page">
           <div class="page-head">
-            <div><h1>Footer</h1><p>Edit footer columns, each label and its destination. Changes are saved to the storefront content settings.</p></div>
+            <div><h1>Footer</h1><p>Edit footer links and every line inside their pop-ups. Open a group, make your changes, and save when ready.</p></div>
             <div class="actions">
               <button class="btn" onclick="loadFooterEditor()">↻ Reload</button>
               <button class="btn btn-primary" onclick="saveFooterEditor()">Save Footer</button>
             </div>
-          </div>
-          <div class="card section-card">
-            <div class="section-title"><h2>SHOP</h2><span>Column heading, labels and destinations</span></div>
+          </details>
+          <div class="footer-editor-toolbar"><label class="footer-editor-search"><span>Find a footer setting</span><input id="footerEditorSearch" type="search" placeholder="Search FAQ, Instagram, order number…"></label><div class="footer-editor-toolbar-actions"><button type="button" class="btn" onclick="setFooterGroupsOpen(true)">Expand all</button><button type="button" class="btn" onclick="setFooterGroupsOpen(false)">Collapse all</button></div></div><p class="footer-editor-hint">Column switches hide a whole group; each link and policy has its own switch. The first brand block stays untouched.</p>
+          <details class="card section-card footer-editor-group">
+            <summary class="section-title"><h2>SHOP</h2><span>Column heading, labels and destinations</span></summary>
             <div class="form-grid">
               <div class="field"><label>HEADING</label><input id="footerShopHeading"></div><div class="field"><label>SHOP COLUMN · ON/OFF</label><label class="switch" aria-label="SHOP COLUMN visibility"><input id="footerShopEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field"><label>TEES LABEL</label><input id="footerShopTees"></div><div class="field"><label>TEES LINK / URL</label><input id="footerShopTeesUrl" placeholder="shop.html?category=tees"></div><div class="field"><label>TEES · ON/OFF</label><label class="switch" aria-label="TEES visibility"><input id="footerShopTeesEnabled" type="checkbox" checked><span class="slider"></span></label></div>
@@ -1470,17 +1482,17 @@
               <div class="field"><label>SWEATS LABEL</label><input id="footerShopSweats"></div><div class="field"><label>SWEATS LINK / URL</label><input id="footerShopSweatsUrl" placeholder="shop.html?category=sweats"></div><div class="field"><label>SWEATS · ON/OFF</label><label class="switch" aria-label="SWEATS visibility"><input id="footerShopSweatsEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field"><label>DROP LABEL</label><input id="footerShopDrop"></div><div class="field"><label>DROP LINK / URL</label><input id="footerShopDropUrl" placeholder="#drop-001"></div><div class="field"><label>DROP 001 · ON/OFF</label><label class="switch" aria-label="DROP 001 visibility"><input id="footerShopDropEnabled" type="checkbox" checked><span class="slider"></span></label></div>
             </div>
-          </div>
-          <div class="card section-card">
-            <div class="section-title"><h2>ABOUT</h2><span>About links and brand story action</span></div>
+          </details>
+          <details class="card section-card footer-editor-group">
+            <summary class="section-title"><h2>ABOUT</h2><span>About links and brand story action</span></summary>
             <div class="form-grid">
               <div class="field"><label>HEADING</label><input id="footerAboutHeading"></div><div class="field"><label>ABOUT COLUMN · ON/OFF</label><label class="switch" aria-label="ABOUT COLUMN visibility"><input id="footerAboutEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field"><label>ABOUT LINK LABEL</label><input id="footerAboutLink"></div><div class="field"><label>ABOUT LINK / URL</label><input id="footerAboutUrl" placeholder="#about"></div><div class="field"><label>ABOUT LINK · ON/OFF</label><label class="switch" aria-label="ABOUT LINK visibility"><input id="footerAboutLinkEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field full"><label>BRAND STORY BUTTON LABEL</label><input id="footerStoryLink"></div><div class="field"><label>BRAND STORY · ON/OFF</label><label class="switch" aria-label="BRAND STORY visibility"><input id="footerStoryLinkEnabled" type="checkbox" checked><span class="slider"></span></label></div>
             </div>
-          </div>
-          <div class="card section-card">
-            <div class="section-title"><h2>HELP</h2><span>Customer service links</span></div>
+          </details>
+          <details class="card section-card footer-editor-group">
+            <summary class="section-title"><h2>HELP</h2><span>Customer service links</span></summary>
             <div class="form-grid">
               <div class="field"><label>HEADING</label><input id="footerHelpHeading"></div><div class="field"><label>HELP COLUMN · ON/OFF</label><label class="switch" aria-label="HELP COLUMN visibility"><input id="footerHelpEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field"><label>TRACK ORDER LABEL</label><input id="footerTrackOrder"></div><div class="field full"><label>TRACK ORDER MODAL TITLE</label><input id="footerTrackTitle"></div><div class="field full"><label>TRACK ORDER DESCRIPTION</label><textarea id="footerTrackDescription" rows="2"></textarea></div><div class="field"><label>ORDER NUMBER FIELD LABEL</label><input id="footerTrackOrderNumberLabel"></div><div class="field"><label>ORDER NUMBER PLACEHOLDER</label><input id="footerTrackOrderNumberPlaceholder"></div><div class="field"><label>PHONE FIELD LABEL</label><input id="footerTrackPhoneLabel"></div><div class="field"><label>PHONE PLACEHOLDER</label><input id="footerTrackPhonePlaceholder"></div><div class="field"><label>TRACK SUBMIT BUTTON TEXT</label><input id="footerTrackSubmitText"></div><div class="field"><label>TRACK ORDER · ON/OFF</label><label class="switch" aria-label="TRACK ORDER visibility"><input id="footerTrackOrderEnabled" type="checkbox" checked><span class="slider"></span></label></div><div class="field"><label>MY ACCOUNT LABEL</label><input id="footerAccount"></div><div class="field full"><label>ACCOUNT PANEL TITLE</label><input id="footerAccountTitle"></div><div class="field full"><label>ACCOUNT EYEBROW</label><input id="footerAccountEyebrow"></div><div class="field"><label>MY ACCOUNT · ON/OFF</label><label class="switch" aria-label="MY ACCOUNT visibility"><input id="footerAccountEnabled" type="checkbox" checked><span class="slider"></span></label></div>
@@ -1492,9 +1504,9 @@
               <div class="field"><label>RETURNS & EXCHANGE LABEL</label><input id="footerReturns"></div><div class="field"><label>RETURNS · ON/OFF</label><label class="switch" aria-label="RETURNS visibility"><input id="footerReturnsEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field full"><label>RETURNS TITLE</label><input id="footerReturnsTitle"></div><div class="field full"><label>RETURNS CONTENT</label><textarea id="footerReturnsContent" rows="6"></textarea></div>
             </div>
-          </div>
-          <div class="card section-card">
-            <div class="section-title"><h2>LEGAL</h2><span>Policy links</span></div>
+          </details>
+          <details class="card section-card footer-editor-group">
+            <summary class="section-title"><h2>LEGAL</h2><span>Policy links</span></summary>
             <div class="form-grid">
               <div class="field"><label>HEADING</label><input id="footerLegalHeading"></div><div class="field"><label>LEGAL COLUMN · ON/OFF</label><label class="switch" aria-label="LEGAL COLUMN visibility"><input id="footerLegalEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field"><label>PRIVACY POLICY LABEL</label><input id="footerPrivacy"></div><div class="field"><label>PRIVACY · ON/OFF</label><label class="switch" aria-label="PRIVACY visibility"><input id="footerPrivacyEnabled" type="checkbox" checked><span class="slider"></span></label></div>
@@ -1502,21 +1514,37 @@
               <div class="field"><label>TERMS & CONDITIONS LABEL</label><input id="footerTerms"></div><div class="field"><label>TERMS · ON/OFF</label><label class="switch" aria-label="TERMS visibility"><input id="footerTermsEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field full"><label>TERMS TITLE</label><input id="footerTermsTitle"></div><div class="field full"><label>TERMS & CONDITIONS CONTENT</label><textarea id="footerTermsContent" rows="5"></textarea></div>
             </div>
-          </div>
-          <div class="card section-card">
-            <div class="section-title"><h2>CONNECT</h2><span>Social and contact links</span></div>
+          </details>
+          <details class="card section-card footer-editor-group"><summary class="section-title"><h2>ABOUT STORY POP-UP</h2><span>Every line shown when the story link opens</span></summary><div class="form-grid">
+<div class="field"><label>STORY EYEBROW</label><input id="footerStoryEyebrow"></div><div class="field"><label>STORY TITLE</label><input id="footerStoryTitle"></div>
+<div class="field full"><label>STORY PARAGRAPH 1</label><textarea id="footerStoryParagraph1" rows="3"></textarea></div><div class="field full"><label>STORY PARAGRAPH 2</label><textarea id="footerStoryParagraph2" rows="3"></textarea></div><div class="field full"><label>STORY SIGNATURE</label><input id="footerStorySignature"></div>
+</div></details>
+          <details class="card section-card footer-editor-group"><summary class="section-title"><h2>ACCOUNT POP-UP COPY</h2><span>Labels and placeholders inside My Account</span></summary><div class="form-grid">
+<div class="field"><label>SHIPPING EYEBROW</label><input id="footerAccountSavedEyebrow"></div><div class="field"><label>SHIPPING SECTION TITLE</label><input id="footerAccountShippingTitle"></div>
+<div class="field"><label>FULL NAME PLACEHOLDER</label><input id="footerAccountNamePlaceholder"></div><div class="field"><label>PHONE PLACEHOLDER</label><input id="footerAccountPhonePlaceholder"></div><div class="field full"><label>ADDRESS PLACEHOLDER</label><input id="footerAccountAddressPlaceholder"></div>
+<div class="field"><label>CITY PLACEHOLDER</label><input id="footerAccountCityPlaceholder"></div><div class="field"><label>STATE PLACEHOLDER</label><input id="footerAccountStatePlaceholder"></div><div class="field"><label>PINCODE PLACEHOLDER</label><input id="footerAccountPincodePlaceholder"></div>
+<div class="field"><label>SAVE PROFILE BUTTON</label><input id="footerAccountSaveText"></div><div class="field"><label>PAST ORDERS EYEBROW</label><input id="footerAccountOrdersEyebrow"></div><div class="field"><label>PAST ORDERS TITLE</label><input id="footerAccountOrdersTitle"></div>
+<div class="field"><label>ORDERS LOADING TEXT</label><input id="footerAccountOrdersLoading"></div><div class="field"><label>SIGN OUT BUTTON</label><input id="footerAccountSignoutText"></div>
+</div></details>
+          <details class="card section-card footer-editor-group"><summary class="section-title"><h2>TRACK ORDER RESULTS</h2><span>Text shown after an order lookup</span></summary><div class="form-grid">
+<div class="field"><label>MODAL EYEBROW</label><input id="footerTrackEyebrow"></div><div class="field"><label>ORDER REFERENCE LABEL</label><input id="footerTrackReferenceLabel"></div>
+<div class="field"><label>PAYMENT METHOD LABEL</label><input id="footerTrackPaymentLabel"></div><div class="field"><label>COURIER PARTNER LABEL</label><input id="footerTrackCourierLabel"></div><div class="field"><label>TRACKING NUMBER LABEL</label><input id="footerTrackTrackingLabel"></div><div class="field"><label>TRACKING PENDING TEXT</label><input id="footerTrackPendingText"></div>
+<div class="field full"><label>LOOK UP ANOTHER ORDER BUTTON</label><input id="footerTrackAgainText"></div><div class="field"><label>STATUS: PLACED</label><input id="footerTrackStatusPlaced"></div><div class="field"><label>STATUS: PACKED</label><input id="footerTrackStatusPacked"></div><div class="field"><label>STATUS: SHIPPED</label><input id="footerTrackStatusShipped"></div><div class="field"><label>STATUS: OUT FOR DELIVERY</label><input id="footerTrackStatusOut"></div><div class="field"><label>STATUS: DELIVERED</label><input id="footerTrackStatusDelivered"></div>
+</div></details>
+          <details class="card section-card footer-editor-group">
+            <summary class="section-title"><h2>CONNECT</h2><span>Social and contact links</span></summary>
             <div class="form-grid">
               <div class="field"><label>HEADING</label><input id="footerConnectHeading"></div><div class="field"><label>CONNECT COLUMN · ON/OFF</label><label class="switch" aria-label="CONNECT COLUMN visibility"><input id="footerConnectEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field"><label>INSTAGRAM LABEL</label><input id="footerInstagramText"></div><div class="field"><label>INSTAGRAM URL</label><input id="footerInstagramUrl" placeholder="https://www.instagram.com/..."></div><div class="field"><label>INSTAGRAM · ON/OFF</label><label class="switch" aria-label="INSTAGRAM visibility"><input id="footerInstagramEnabled" type="checkbox" checked><span class="slider"></span></label></div>
               <div class="field"><label>EMAIL LABEL</label><input id="footerEmailText"></div><div class="field"><label>EMAIL URL</label><input id="footerEmailUrl" placeholder="mailto:hello@example.com"></div><div class="field"><label>EMAIL · ON/OFF</label><label class="switch" aria-label="EMAIL visibility"><input id="footerEmailEnabled" type="checkbox" checked><span class="slider"></span></label></div>
             </div>
-          </div>\n          <div class="card section-card">
-            <div class="section-title"><h2>Bottom Footer</h2><span>Copyright and location text</span></div>
+          </div>\n          <details class="card section-card footer-editor-group">
+            <summary class="section-title"><h2>Bottom Footer</h2><span>Copyright and location text</span></summary>
             <div class="form-grid">
               <div class="field"><label>BOTTOM FOOTER · ON/OFF</label><label class="switch" aria-label="BOTTOM FOOTER visibility"><input id="footerBottomEnabled" type="checkbox" checked><span class="slider"></span></label></div><div class="field full"><label>COPYRIGHT TEXT</label><input id="footerCopyright"></div>
               <div class="field full"><label>BOTTOM LOCATION TEXT</label><input id="footerLocation"></div>
             </div>
-          </div>
+          </details>
         </section>
 
         <!-- SIZE GUIDES -->
@@ -2874,7 +2902,41 @@ const footerEditorFields=[
  ["footerShopTeesEnabled","footer_shop_tees_enabled","true"],["footerShopHoodsEnabled","footer_shop_hoods_enabled","true"],["footerShopSweatsEnabled","footer_shop_sweats_enabled","true"],["footerShopDropEnabled","footer_shop_drop_enabled","true"],["footerAboutLinkEnabled","footer_about_link_enabled","true"],["footerStoryLinkEnabled","footer_story_link_enabled","true"],["footerInstagramEnabled","footer_instagram_enabled","true"],["footerEmailEnabled","footer_email_enabled","true"],
  ["footerShopEnabled","footer_shop_enabled","true"],["footerAboutEnabled","footer_about_enabled","true"],["footerHelpEnabled","footer_help_enabled","true"],["footerLegalEnabled","footer_legal_enabled","true"],["footerConnectEnabled","footer_connect_enabled","true"],["footerBottomEnabled","footer_bottom_enabled","true"],
 ["footerCopyright","footer_copyright","© 2026 BULKKOT (불꽃). ALL RIGHTS RESERVED."],["footerLocation","footer_location","INDIA"]
+ ["footerStoryEyebrow","footer_story_eyebrow","BULKKOT · 불꽃"],
+ ["footerStoryTitle","footer_story_title","OUR STORY"],
+ ["footerStoryParagraph1","footer_story_paragraph_1","BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India."],
+ ["footerStoryParagraph2","footer_story_paragraph_2","We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless."],
+ ["footerStorySignature","footer_story_signature","Less noise. More presence."],
+ ["footerAccountSavedEyebrow","footer_account_saved_eyebrow","SAVED DETAILS"],
+ ["footerAccountShippingTitle","footer_account_shipping_title","SHIPPING ADDRESS"],
+ ["footerAccountNamePlaceholder","footer_account_name_placeholder","Full Name"],
+ ["footerAccountPhonePlaceholder","footer_account_phone_placeholder","Phone Number"],
+ ["footerAccountAddressPlaceholder","footer_account_address_placeholder","House / street / area"],
+ ["footerAccountCityPlaceholder","footer_account_city_placeholder","City"],
+ ["footerAccountStatePlaceholder","footer_account_state_placeholder","State"],
+ ["footerAccountPincodePlaceholder","footer_account_pincode_placeholder","Pincode"],
+ ["footerAccountSaveText","footer_account_save_text","SAVE PROFILE"],
+ ["footerAccountOrdersEyebrow","footer_account_orders_eyebrow","LOG"],
+ ["footerAccountOrdersTitle","footer_account_orders_title","PAST ORDERS"],
+ ["footerAccountOrdersLoading","footer_account_orders_loading","Loading orders..."],
+ ["footerAccountSignoutText","footer_account_signout_text","SIGN OUT"],
+ ["footerTrackEyebrow","footer_track_eyebrow","BULKKOT · FULFILMENT TRACKING"],
+ ["footerTrackReferenceLabel","footer_track_reference_label","ORDER REFERENCE"],
+ ["footerTrackPaymentLabel","footer_track_payment_label","PAYMENT METHOD"],
+ ["footerTrackCourierLabel","footer_track_courier_label","COURIER PARTNER"],
+ ["footerTrackTrackingLabel","footer_track_tracking_label","AWB / TRACKING NO."],
+ ["footerTrackPendingText","footer_track_pending_text","Will update on dispatch"],
+ ["footerTrackAgainText","footer_track_again_text","LOOKUP ANOTHER ORDER"],
+ ["footerTrackStatusPlaced","footer_track_status_placed","PLACED"],
+ ["footerTrackStatusPacked","footer_track_status_packed","PACKED"],
+ ["footerTrackStatusShipped","footer_track_status_shipped","SHIPPED"],
+ ["footerTrackStatusOut","footer_track_status_out","OUT FOR DELIVERY"],
+ ["footerTrackStatusDelivered","footer_track_status_delivered","DELIVERED"],
+
 ];
+function setFooterGroupsOpen(open){document.querySelectorAll("#page-footer .footer-editor-group").forEach(group=>group.open=Boolean(open));}
+function filterFooterEditor(){const input=document.getElementById("footerEditorSearch");const q=String(input?.value||"").trim().toLowerCase();document.querySelectorAll("#page-footer .footer-editor-group").forEach(group=>{const match=!q||group.textContent.toLowerCase().includes(q)||Array.from(group.querySelectorAll("input,textarea")).some(el=>(el.id+" "+el.placeholder+" "+el.value).toLowerCase().includes(q));group.hidden=!match;if(q&&match)group.open=true;});}
+document.getElementById("footerEditorSearch")?.addEventListener("input",filterFooterEditor);
 async function loadFooterEditor(){
   const r=await db.from("site_content").select("*");
   if(r.error){showToast("Footer could not be loaded: "+normalizeError(r.error),"error");return;}
