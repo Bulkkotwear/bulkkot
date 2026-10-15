@@ -790,6 +790,7 @@
     document.querySelectorAll(".shop-filters").forEach(filter=>{
       filter.innerHTML='<button type="button" class="shop-filter is-active" data-shop-category="all">ALL</button>'+
         categories.map(c=>`<button type="button" class="shop-filter" data-shop-category="${escapeHTML(c.slug)}">${escapeHTML(c.name)}</button>`).join('');
+      filter.classList.remove("is-loading");
     });
 
     document.querySelectorAll("[data-shop-category]").forEach(btn=>{
@@ -803,12 +804,12 @@
   }
 
   async function loadStorefrontCategories(){
-    // One renderer owns the category row; reveal stable fallback markup if the CMS is unavailable.
-    const revealFallback = () => {
-      const row = document.querySelector(".circle-items-row");
-      if (row) { row.classList.remove("is-loading"); row.classList.add("is-ready"); }
+    // Never reveal stale defaults while a fresh CMS category list is being fetched.
+    const renderFallback = () => {
+      storefrontCategories = [...DEFAULT_STOREFRONT_CATEGORIES];
+      renderStorefrontCategories();
     };
-    if(!supabase) { revealFallback(); return; }
+    if(!supabase) { renderFallback(); return; }
     let timeoutId;
     try{
       const timeout = new Promise((_, reject) => {
@@ -819,24 +820,25 @@
       clearTimeout(timeoutId);
       if(error) throw error;
       const row=(data||[]).find(x=>String(x.content_key||x.key)==="categories");
-      if(!row) { revealFallback(); return; }
+      if(!row) { renderFallback(); return; }
       const raw=row.content_value ?? row.value ?? "";
       let parsed=raw;
       if(typeof raw==="string"){
         try{parsed=JSON.parse(raw);}catch(e){
           console.warn("Storefront categories contain invalid JSON.");
-          revealFallback();
+          renderFallback();
           return;
         }
       }
-      if(!Array.isArray(parsed)) { revealFallback(); return; }
+      if(!Array.isArray(parsed)) { renderFallback(); return; }
+      // An intentionally empty CMS array is valid; do not resurrect deleted categories.
       storefrontCategories=parsed.map(normalizeStorefrontCategory).filter(c=>c.slug)
         .sort((a,b)=>Number(a.position||0)-Number(b.position||0));
       renderStorefrontCategories();
     }catch(e){
       clearTimeout(timeoutId);
       console.warn("Storefront categories could not be refreshed:",e);
-      revealFallback();
+      renderFallback();
     }
   }
 
@@ -1582,8 +1584,8 @@
   });
 
   function initStorefront() {
-    // Render stable defaults immediately; CMS categories refresh in the background.
-    renderStorefrontCategories();
+    // Keep category UI hidden until the current CMS configuration is known.
+    // This prevents old hard-coded categories flashing before admin-managed categories arrive.
     initModalsAndNavigation();
     initCatalog();
     // Editorial carousel is initialized by index.html, where admin timing settings are applied.
