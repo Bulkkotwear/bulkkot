@@ -379,14 +379,16 @@
       <article class="shop-skeleton-card"><div class="shop-skeleton-image"></div><div class="shop-skeleton-copy"><div class="shop-skeleton-line" style="width: 78%;"></div><div class="shop-skeleton-line" style="width: 52%;"></div></div></article>
     </section>
 
-    <section id="shopError" class="shop-state" style="display: none;">
+    <section id="shopError" class="shop-state" style="display: none;" role="alert">
       <strong>CATALOGUE UNAVAILABLE</strong>
       <p>We couldn't load silhouettes right now. Please try again.</p>
+      <button type="button" class="filter-btn" data-shop-retry>TRY AGAIN</button>
     </section>
 
     <section id="shopEmpty" class="shop-state" style="display: none;">
       <strong>NO SILHOUETTES FOUND</strong>
       <p id="shopEmptyText">Try another search or clear your filters.</p>
+      <button type="button" class="filter-btn" data-shop-clear>CLEAR FILTERS</button>
     </section>
 
     <section id="productsGrid" class="products-grid" style="display: none;"></section>
@@ -444,6 +446,9 @@
       const searchInput = document.getElementById("shopSearch");
       const sortSelect = document.getElementById("shopSort");
       const filterStrip = document.getElementById("filterStrip");
+      const retryButton = document.querySelector("[data-shop-retry]");
+      const clearFiltersButton = document.querySelector("[data-shop-clear]");
+      let isLoadingCatalogue = false;
 
       const DEFAULT_CATEGORIES = [
         { slug: "tees", name: "TEES", enabled: true },
@@ -533,12 +538,12 @@
         if (!filterStrip) return;
         const visible = categories.filter(c => c.enabled !== false && c.slug);
         const buttons = [{ slug: "all", name: "ALL" }, ...visible];
-        filterStrip.innerHTML = buttons.map(c =>
-          '<button type="button" class="filter-btn' +
-          ((canonicalCategory(activeCategory) === canonicalCategory(c.slug)) ? ' active' : '') +
-          '" data-category="' + escapeHtml(c.slug) + '" role="tab">' +
-          escapeHtml(c.name || c.slug.toUpperCase()) + '</button>'
-        ).join("");
+        filterStrip.innerHTML = buttons.map(c => {
+          const active = canonicalCategory(activeCategory) === canonicalCategory(c.slug);
+          return '<button type="button" class="filter-btn' + (active ? ' active' : '') +
+            '" data-category="' + escapeHtml(c.slug) + '" role="button" aria-pressed="' + String(active) + '">' +
+            escapeHtml(c.name || c.slug.toUpperCase()) + '</button>';
+        }).join("");
         if (categoriesLoaded && activeCategory !== "all" && !visible.some(c => canonicalCategory(c.slug) === canonicalCategory(activeCategory))) {
           activeCategory = "all";
           const allButton = filterStrip.querySelector('[data-category="all"]');
@@ -728,7 +733,11 @@
           const btn = e.target.closest(".filter-btn");
           if (!btn) return;
           activeCategory = btn.dataset.category || "all";
-          filterStrip.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b === btn));
+          filterStrip.querySelectorAll(".filter-btn").forEach(b => {
+            const active = b === btn;
+            b.classList.toggle("active", active);
+            b.setAttribute("aria-pressed", String(active));
+          });
           applyFilters();
         });
       }
@@ -762,27 +771,50 @@
         } catch(err) {}
       });
 
-      // SIZE GUIDE MODAL LOGIC (New Addition)
+      // Accessible size guide: modal visibility and page scroll stay in sync.
       const sizeModal = document.querySelector('[data-size-guide-modal]');
       const sizeGuideBtn = document.querySelector('[data-size-guide-open]');
-      if (sizeGuideBtn && sizeModal) {
-        sizeGuideBtn.addEventListener('click', () => {
-          sizeModal.classList.add('is-open');
-        });
+      function openSizeGuide() {
+        if (!sizeModal) return;
+        sizeModal.classList.add('is-open');
+        sizeModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
       }
-      document.querySelectorAll('[data-size-guide-close]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (sizeModal) sizeModal.classList.remove('is-open');
+      function closeSizeGuide() {
+        if (!sizeModal) return;
+        sizeModal.classList.remove('is-open');
+        sizeModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+      }
+      sizeGuideBtn?.addEventListener('click', openSizeGuide);
+      document.querySelectorAll('[data-size-guide-close]').forEach(btn => btn.addEventListener('click', closeSizeGuide));
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && sizeModal?.classList.contains('is-open')) closeSizeGuide();
+      });
+      clearFiltersButton?.addEventListener('click', () => {
+        activeCategory = 'all';
+        searchTerm = '';
+        sortMode = 'featured';
+        if (searchInput) searchInput.value = '';
+        if (sortSelect) sortSelect.value = 'featured';
+        if (filterStrip) filterStrip.querySelectorAll('[data-category]').forEach(button => {
+          const active = button.dataset.category === 'all';
+          button.classList.toggle('active', active);
+          button.setAttribute('aria-pressed', String(active));
         });
+        applyFilters();
       });
 
       async function initializeData() {
+        if (isLoadingCatalogue) return;
+        isLoadingCatalogue = true;
         setViewState("loading");
         renderCategoryFilters();
         if (!supabaseClient) {
           renderCategoryFilters();
           if (filterStrip) filterStrip.classList.remove("is-loading");
           setViewState("error");
+          isLoadingCatalogue = false;
           return;
         }
         try {
@@ -821,6 +853,7 @@
           if (error || !Array.isArray(data)) {
             console.warn("Could not load live catalogue:", error?.message || "Invalid product response");
             setViewState("error");
+            isLoadingCatalogue = false;
             return;
           }
 
@@ -847,11 +880,18 @@
           });
           catalogLoaded = true;
           applyFilters();
+          isLoadingCatalogue = false;
         } catch (err) {
           console.warn("Could not load live catalogue:", err);
           setViewState("error");
+          isLoadingCatalogue = false;
         }
       }
+
+      retryButton?.addEventListener("click", () => {
+        if (filterStrip) filterStrip.classList.add("is-loading");
+        initializeData();
+      });
 
       // Safe Init
       initializeData();
