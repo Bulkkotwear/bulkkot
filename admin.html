@@ -2702,11 +2702,10 @@ function renderCustomers(){
     ...(c._orders||[]).flatMap(o=>[orderNumber(o),orderStatus(o),getValue(o,"customer_email","email")])
   ].join(" ").toLowerCase()).includes(q));
   if(!list.length){root.innerHTML=emptyHTML(q?"No customers match your search.":"No customer profiles or order-based customers found.");return;}
-  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>City</th><th>Orders</th><th>Total ordered</th><th>Last order / joined</th><th></th></tr></thead><tbody>'+
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>City</th><th>Orders</th><th>Total ordered</th><th>Registered</th><th></th></tr></thead><tbody>'+
     list.map(c=>{
       const index=state.customers.indexOf(c),orders=c._orders||[],spent=orders.reduce((sum,o)=>sum+orderTotal(o),0);
-      const latest=orders[0];
-      return '<tr><td><strong>'+esc(c.full_name||c.name||"Customer")+'</strong><div class="muted" style="font-size:11px;margin-top:3px">'+(c._source==="orders"?'Order record':'Profile')+'</div></td><td>'+esc(c.email||"—")+'</td><td>'+esc(c.phone||"—")+'</td><td>'+esc(c.shipping_city||c.shipping_state||"—")+'</td><td>'+orders.length+'</td><td>'+money(spent)+'</td><td>'+dateOnly(latest?getValue(latest,"created_at","order_date"):c.created_at)+'</td><td><button class="btn btn-small" onclick="openCustomerDetails('+index+')">View details</button></td></tr>';
+      return '<tr><td><strong>'+esc(c.full_name||c.name||"Customer")+'</strong><div class="muted" style="font-size:11px;margin-top:3px">'+(c._source==="orders"?'Order record':c._source==="auth"?'Registered account':'Profile')+'</div></td><td>'+esc(c.email||"—")+'</td><td>'+esc(c.phone||"—")+'</td><td>'+esc(c.shipping_city||c.shipping_state||"—")+'</td><td>'+orders.length+'</td><td>'+money(spent)+'</td><td>'+dateOnly(c.created_at)+'</td><td><button class="btn btn-small" onclick="openCustomerDetails('+index+')">View details</button></td></tr>';
     }).join("")+
     '</tbody></table></div>';
 }
