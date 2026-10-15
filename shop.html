@@ -277,6 +277,8 @@
       letter-spacing: 0.12em;
     }
 
+    .filter-strip.is-loading { visibility: hidden; }
+
     .shop-state { padding: 90px 20px; text-align: center; color: var(--shop-muted); }
     .shop-state strong { display: block; margin-bottom: 10px; color: #fff; font-size: 16px; font-weight: 900; }
     .shop-state p { font-size: 11px; margin-bottom: 18px; }
@@ -340,7 +342,7 @@
         <p>LESS NOISE. MORE PRESENCE.</p>
       </div>
 
-      <div class="filter-strip" id="filterStrip" role="tablist">
+      <div class="filter-strip is-loading" id="filterStrip" role="tablist">
         <button type="button" class="filter-btn active" data-category="all" role="tab">ALL</button>
         <button type="button" class="filter-btn" data-category="tees" role="tab">TEES</button>
         <button type="button" class="filter-btn" data-category="hoodies" role="tab">HOODIES</button>
@@ -413,7 +415,7 @@
   </div>
 
   <script src="js/cart.js?v=20261009-variants"></script>
-  <script src="js/main.js?v=20261015-footer-controls3" defer></script>
+  <script src="js/main.js?v=20261015-fluent-categories1" defer></script>
 
   <script>
     (() => {
@@ -549,10 +551,12 @@
         try {
           const { data, error } = await supabaseClient.from("site_content")
             .select("content_value").eq("content_key", "categories").limit(1);
-          if (error || !data?.length || !data[0]?.content_value) return;
+          if (error) throw error;
+          if (!data?.length || data[0]?.content_value == null) return;
           const contentValue = data[0].content_value;
           const parsed = typeof contentValue === "string" ? JSON.parse(contentValue) : contentValue;
-          if (!Array.isArray(parsed) || !parsed.length) return;
+          if (!Array.isArray(parsed)) return;
+          // Empty is a valid saved configuration when the admin has removed every category.
           categories = parsed.map(c => ({
             slug: String(c.slug || c.id || "").trim().toLowerCase(),
             name: String(c.name || c.slug || c.id || "CATEGORY").trim().toUpperCase(),
@@ -788,9 +792,12 @@
           // Category metadata refreshes independently and never blocks product rendering.
           loadStoreCategories().then(() => {
             renderCategoryFilters();
+            if (filterStrip) filterStrip.classList.remove("is-loading");
             if (catalogLoaded) applyFilters();
           }).catch(err => {
             console.warn("Category metadata unavailable; using current categories.", err);
+            renderCategoryFilters();
+            if (filterStrip) filterStrip.classList.remove("is-loading");
           });
           const productsTask = withTimeout(
             supabaseClient.from("products").select("*").eq("active", true).order("created_at", { ascending: false }),
