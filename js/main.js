@@ -573,7 +573,6 @@
         if (column) column.style.display = String(lookup[setting] ?? "true") === "false" ? "none" : "";
       });
       const footerBlockVisibility = {
-        footer_brand_enabled: ".site-footer .footer-brand",
         footer_bottom_enabled: ".site-footer .footer-bottom"
       };
       Object.entries(footerBlockVisibility).forEach(([setting, selector]) => {
