@@ -61,6 +61,7 @@
 
     .circle-items-row.is-loading { visibility: hidden; }
     .circle-items-row.is-ready { visibility: visible; }
+    .shop-filters.is-loading { visibility: hidden; }
 
     .circle-items-row {
       display: flex;
@@ -663,7 +664,7 @@
       </div>
 
       <div class="shop-toolbar">
-        <div class="shop-filters" role="group" aria-label="Product categories">
+        <div class="shop-filters is-loading" role="group" aria-label="Product categories">
           <button type="button" class="shop-filter is-active" data-shop-category="all">ALL</button>
           <button type="button" class="shop-filter" data-shop-category="tees">TEES</button>
           <button type="button" class="shop-filter" data-shop-category="hoods">HOODS</button>
@@ -1175,7 +1176,7 @@
 
   <!-- Core Scripts -->
   <script src="js/cart.js?v=20261009-variants" defer></script>
-  <script src="js/main.js?v=20261015-maintenance-contact2" defer></script>
+  <script src="js/main.js?v=20261015-fluent-categories1" defer></script>
 
   <!-- BULKKOT AUTH/PROFILE BRIDGE -->
   <script>
