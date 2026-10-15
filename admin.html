@@ -3020,7 +3020,8 @@ async function loadFooterEditor(){
   if(r.error){showToast("Footer could not be loaded: "+normalizeError(r.error),"error");return;}
   const values={};
   (r.data||[]).forEach(row=>{const k=String(row.content_key||row.key||"").trim();if(k)values[k]=row.content_value??row.value??"";});
-  footerOriginalValues={};footerEditorFields.forEach(([id,key,fallback])=>{const el=$(id);if(!el)return;const value=values[key]===undefined?fallback:String(values[key]??"");if(el.type==="checkbox")el.checked=String(value).toLowerCase()!=="false";else if(FOOTER_RICH_CONTENT_IDS.includes(id))el.value=footerContentToEditor(value);else el.value=value;footerOriginalValues[id]=el.type==="checkbox"?String(el.checked):String(el.value??"");});filterFooterEditor();
+  const legacyFooterKeys={footer_story_eyebrow:"story_eyebrow",footer_story_title:"story_title",footer_story_paragraph_1:"story_paragraph_1",footer_story_paragraph_2:"story_paragraph_2",footer_story_signature:"story_signature"};
+  footerOriginalValues={};footerEditorFields.forEach(([id,key,fallback])=>{const el=$(id);if(!el)return;const sourceKey=values[key]===undefined?legacyFooterKeys[key]:null;const value=values[key]===undefined&&sourceKey&&values[sourceKey]!==undefined?values[sourceKey]:(values[key]===undefined?fallback:values[key]);if(el.type==="checkbox")el.checked=String(value).toLowerCase()!=="false";else if(FOOTER_RICH_CONTENT_IDS.includes(id))el.value=footerContentToEditor(value);else el.value=value;footerOriginalValues[id]=el.type==="checkbox"?String(el.checked):String(el.value??"");});filterFooterEditor();
 }
 async function saveFooterEditor(){
   const btn=document.querySelector('#page-footer button[onclick="saveFooterEditor()"]');
