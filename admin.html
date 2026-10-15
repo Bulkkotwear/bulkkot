@@ -2989,19 +2989,44 @@ const footerEditorFields=[
 function setFooterGroupsOpen(open){document.querySelectorAll("#page-footer .footer-editor-group").forEach(group=>group.open=Boolean(open));}
 function filterFooterEditor(){const input=document.getElementById("footerEditorSearch");const q=String(input?.value||"").trim().toLowerCase();document.querySelectorAll("#page-footer .footer-editor-group").forEach(group=>{const match=!q||group.textContent.toLowerCase().includes(q)||Array.from(group.querySelectorAll("input,textarea")).some(el=>(el.id+" "+el.placeholder+" "+el.value).toLowerCase().includes(q));group.hidden=!match;if(q&&match)group.open=true;});}
 document.getElementById("footerEditorSearch")?.addEventListener("input",filterFooterEditor);
+const FOOTER_RICH_CONTENT_IDS=["footerFaqContent","footerShippingContent","footerReturnsContent","footerPrivacyContent","footerTermsContent"];
+function footerContentToEditor(value){
+  return String(value??"")
+    .replace(/<h[1-6][^>]*>/gi,"\n# ").replace(/<\/h[1-6]>/gi,"\n\n")
+    .replace(/<p[^>]*>/gi,"").replace(/<\/p>/gi,"\n\n")
+    .replace(/<li[^>]*>/gi,"- ").replace(/<\/li>/gi,"\n")
+    .replace(/<br\s*\/?>/gi,"\n").replace(/<[^>]*>/g,"")
+    .replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").replace(/&lt;/gi,"<")
+    .replace(/&gt;/gi,">").replace(/&quot;/gi,'"').replace(/&#39;/gi,"'")
+    .replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+}
+function escapeFooterHTML(value){
+  return String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function footerEditorToHTML(value){
+  return String(value??"").split(/\n\s*\n/).map(block=>{
+    const lines=block.split("\n").map(line=>line.trim()).filter(Boolean);
+    if(!lines.length)return "";
+    if(lines[0].startsWith("# ")){
+      const heading="<h3>"+escapeFooterHTML(lines.shift().slice(2))+"</h3>";
+      return heading+(lines.length?"<p>"+lines.map(escapeFooterHTML).join("<br>")+"</p>":"");
+    }
+    return "<p>"+lines.map(line=>escapeFooterHTML(line.startsWith("- ")?line.slice(2):line)).join("<br>")+"</p>";
+  }).join("");
+}
 async function loadFooterEditor(){
   const r=await db.from("site_content").select("*");
   if(r.error){showToast("Footer could not be loaded: "+normalizeError(r.error),"error");return;}
   const values={};
   (r.data||[]).forEach(row=>{const k=String(row.content_key||row.key||"").trim();if(k)values[k]=row.content_value??row.value??"";});
-  footerEditorFields.forEach(([id,key,fallback])=>{const el=$(id);if(!el)return;const value=values[key]===undefined?fallback:String(values[key]??"");if(el.type==="checkbox")el.checked=String(value).toLowerCase()!=="false";else el.value=value;});
+  footerEditorFields.forEach(([id,key,fallback])=>{const el=$(id);if(!el)return;const value=values[key]===undefined?fallback:String(values[key]??"");if(el.type==="checkbox")el.checked=String(value).toLowerCase()!=="false";else if(FOOTER_RICH_CONTENT_IDS.includes(id))el.value=footerContentToEditor(value);else el.value=value;});
 }
 async function saveFooterEditor(){
   const btn=document.querySelector('#page-footer button[onclick="saveFooterEditor()"]');
   if(btn?.disabled)return;
   const old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent="Saving…";}
   try{
-    const results=await Promise.allSettled(footerEditorFields.map(([id,key])=>{const el=$(id);return writeSiteContentKey(key,el?.type==="checkbox"?String(el.checked):String(el?.value??""));}));
+    const results=await Promise.allSettled(footerEditorFields.map(([id,key])=>{const el=$(id);const raw=el?.type==="checkbox"?String(el.checked):String(el?.value??"");const value=FOOTER_RICH_CONTENT_IDS.includes(id)?footerEditorToHTML(raw):raw;return writeSiteContentKey(key,value);}));
     const failed=results.map((r,i)=>r.status==="rejected"?{key:footerEditorFields[i][1],error:r.reason}:null).filter(Boolean);
     if(failed.length){showToast("Footer save failed for "+failed.map(x=>x.key).join(", "),"error");}
     else showToast("Footer saved successfully.","success");
