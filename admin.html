@@ -3021,14 +3021,14 @@ async function loadFooterEditor(){
   const values={};
   (r.data||[]).forEach(row=>{const k=String(row.content_key||row.key||"").trim();if(k)values[k]=row.content_value??row.value??"";});
   const legacyFooterKeys={footer_story_eyebrow:"story_eyebrow",footer_story_title:"story_title",footer_story_paragraph_1:"story_paragraph_1",footer_story_paragraph_2:"story_paragraph_2",footer_story_signature:"story_signature"};
-  footerOriginalValues={};footerEditorFields.forEach(([id,key,fallback])=>{const el=$(id);if(!el)return;const sourceKey=values[key]===undefined?legacyFooterKeys[key]:null;const value=values[key]===undefined&&sourceKey&&values[sourceKey]!==undefined?values[sourceKey]:(values[key]===undefined?fallback:values[key]);if(el.type==="checkbox")el.checked=String(value).toLowerCase()!=="false";else if(FOOTER_RICH_CONTENT_IDS.includes(id))el.value=footerContentToEditor(value);else el.value=value;footerOriginalValues[id]=el.type==="checkbox"?String(el.checked):String(el.value??"");if(values[key]===undefined&&sourceKey&&values[sourceKey]!==undefined)footerOriginalValues[id]="__legacy_story_needs_migration__";});filterFooterEditor();
+  footerOriginalValues={};footerEditorFields.forEach((entry)=>{if(!Array.isArray(entry)||entry.length<2)return;const [id,key,fallback]=entry;const el=$(id);if(!el)return;const sourceKey=values[key]===undefined?legacyFooterKeys[key]:null;const value=values[key]===undefined&&sourceKey&&values[sourceKey]!==undefined?values[sourceKey]:(values[key]===undefined?fallback:values[key]);if(el.type==="checkbox")el.checked=String(value).toLowerCase()!=="false";else if(FOOTER_RICH_CONTENT_IDS.includes(id))el.value=footerContentToEditor(value);else el.value=value;footerOriginalValues[id]=el.type==="checkbox"?String(el.checked):String(el.value??"");if(values[key]===undefined&&sourceKey&&values[sourceKey]!==undefined)footerOriginalValues[id]="__legacy_story_needs_migration__";});filterFooterEditor();
 }
 async function saveFooterEditor(){
   const btn=document.querySelector('#page-footer button[onclick="saveFooterEditor()"]');
   if(btn?.disabled)return;
   const old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent="Saving…";}
   try{
-    const changes=footerEditorFields.map(([id,key])=>{const el=$(id);if(!el)return null;const raw=el.type==="checkbox"?String(el.checked):String(el.value??"");if(raw===footerOriginalValues[id])return null;const value=FOOTER_RICH_CONTENT_IDS.includes(id)?footerEditorToHTML(raw):raw;return {id,key,raw,value};}).filter(Boolean);
+    const changes=footerEditorFields.map((entry)=>{if(!Array.isArray(entry)||entry.length<2)return null;const [id,key]=entry;const el=$(id);if(!el)return null;const raw=el.type==="checkbox"?String(el.checked):String(el.value??"");if(raw===footerOriginalValues[id])return null;const value=FOOTER_RICH_CONTENT_IDS.includes(id)?footerEditorToHTML(raw):raw;return {id,key,raw,value};}).filter(Boolean);
     if(!changes.length){showToast("Everything is already saved.","success");return;}
     const results=await Promise.allSettled(changes.map(item=>writeSiteContentKey(item.key,item.value)));
     const failed=results.map((r,i)=>r.status==="rejected"?{key:changes[i].key,error:r.reason}:null).filter(Boolean);
