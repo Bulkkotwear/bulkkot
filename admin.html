@@ -2729,7 +2729,7 @@ function renderCoupons(){
   const root=$("couponsTable");if(!root)return;
   if(!state.coupons.length){root.innerHTML=emptyHTML("No coupons found.");return;}
   root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Type</th><th>Minimum order</th><th>Max discount</th><th>Expiry</th><th>Status</th><th></th></tr></thead><tbody>'+
-    state.coupons.map(c=>'<tr><td><strong>'+esc(c.code)+'</strong></td><td>'+esc(c.discount_value||0)+'</td><td>'+esc(c.discount_type||"—")+'</td><td>'+money(c.min_order_value||0)+' minimum'+'</td><td>'+dateOnly(c.expiry_date)+'</td><td>'+statusBadge(c.active===false?"inactive":"active")+'</td><td style="white-space:nowrap"><button class="btn btn-small" onclick=\'openCouponModalById("'+esc(c.id)+'")\'>Edit</button> <button class="btn btn-small btn-danger" onclick=\'deleteCoupon("'+esc(c.id)+'")\'>Delete</button></td></tr>').join("")+
+    state.coupons.map(c=>'<tr><td><strong>'+esc(c.code)+'</strong></td><td>'+esc(c.discount_value||0)+'</td><td>'+esc(c.discount_type||"—")+'</td><td>'+money(c.min_order_value||0)+' minimum'+'</td><td>'+(c.max_discount==null?'—':money(c.max_discount))+'</td><td>'+dateOnly(c.expiry_date)+'</td><td>'+statusBadge(c.active===false?"inactive":"active")+'</td><td style="white-space:nowrap"><button class="btn btn-small" onclick=\'openCouponModalById("'+esc(c.id)+'")\'>Edit</button> <button class="btn btn-small btn-danger" onclick=\'deleteCoupon("'+esc(c.id)+'")\'>Delete</button></td></tr>').join("")+
     '</tbody></table></div>';
 }
 function openCouponModalById(id){openCouponModal(state.coupons.find(c=>String(c.id)===String(id))||null);}
