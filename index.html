@@ -949,31 +949,31 @@
         <section class="account-section" style="margin-bottom:32px;">
           <div class="account-section-head" style="margin-bottom:16px;">
             <div>
-              <span class="eyebrow" style="color:#888; font-size:10px;">SAVED DETAILS</span>
-              <h3 style="font-size:14px; margin:2px 0 0;">SHIPPING ADDRESS</h3>
+              <span class="eyebrow" data-footer-text="footer_account_saved_eyebrow" style="color:#888; font-size:10px;">SAVED DETAILS</span>
+              <h3 data-footer-text="footer_account_shipping_title" style="font-size:14px; margin:2px 0 0;">SHIPPING ADDRESS</h3>
             </div>
           </div>
 
           <form class="account-profile-form" data-account-profile-form>
             <div class="bk-input-group">
-              <input id="account-name" name="full_name" type="text" class="bk-input" autocomplete="name" placeholder="Full Name">
+              <input id="account-name" name="full_name" type="text" class="bk-input" autocomplete="name" placeholder="Full Name" data-footer-placeholder="footer_account_name_placeholder">
             </div>
 
             <div class="bk-input-group">
-              <input id="account-phone" name="phone" type="tel" class="bk-input" autocomplete="tel" placeholder="Phone Number">
+              <input id="account-phone" name="phone" type="tel" class="bk-input" autocomplete="tel" placeholder="Phone Number" data-footer-placeholder="footer_account_phone_placeholder">
             </div>
 
             <div class="bk-input-group">
-              <textarea id="account-address" name="shipping_address" class="bk-input" autocomplete="street-address" placeholder="House / street / area" rows="3"></textarea>
+              <textarea id="account-address" name="shipping_address" class="bk-input" autocomplete="street-address" placeholder="House / street / area" data-footer-placeholder="footer_account_address_placeholder" rows="3"></textarea>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-              <input id="account-city" name="shipping_city" type="text" class="bk-input" autocomplete="address-level2" placeholder="City">
-              <input id="account-state" name="shipping_state" type="text" class="bk-input" autocomplete="address-level1" placeholder="State">
-              <input id="account-pincode" name="shipping_pincode" type="text" class="bk-input" inputmode="numeric" autocomplete="postal-code" placeholder="Pincode">
+              <input id="account-city" name="shipping_city" type="text" class="bk-input" autocomplete="address-level2" placeholder="City" data-footer-placeholder="footer_account_city_placeholder">
+              <input id="account-state" name="shipping_state" type="text" class="bk-input" autocomplete="address-level1" placeholder="State" data-footer-placeholder="footer_account_state_placeholder">
+              <input id="account-pincode" name="shipping_pincode" type="text" class="bk-input" inputmode="numeric" autocomplete="postal-code" placeholder="Pincode" data-footer-placeholder="footer_account_pincode_placeholder">
             </div>
 
-            <button type="submit" class="bk-btn-primary" style="margin-top:16px;">
+            <button type="submit" class="bk-btn-primary" style="margin-top:16px;" data-footer-text="footer_account_save_text">
               SAVE PROFILE
             </button>
 
@@ -982,11 +982,11 @@
         </section>
 
         <section class="account-section">
-          <div class="account-section-head" style="margin-bottom:16px;"><div><span class="eyebrow" style="color:#888; font-size:10px;">LOG</span><h3 style="font-size:14px; margin:2px 0 0;">PAST ORDERS</h3></div></div>
-          <div class="account-orders" data-account-orders><div class="account-orders-loading" style="color:#666; font-size:11px;">Loading orders...</div></div>
+          <div class="account-section-head" style="margin-bottom:16px;"><div><span class="eyebrow" data-footer-text="footer_account_orders_eyebrow" style="color:#888; font-size:10px;">LOG</span><h3 data-footer-text="footer_account_orders_title" style="font-size:14px; margin:2px 0 0;">PAST ORDERS</h3></div></div>
+          <div class="account-orders" data-account-orders><div class="account-orders-loading" data-footer-text="footer_account_orders_loading" style="color:#666; font-size:11px;">Loading orders...</div></div>
         </section>
 
-        <button type="button" class="account-signout" data-account-signout style="width:100%; padding:14px; background:none; border:1px solid #333; color:#888; border-radius:4px; font-size:11px; font-weight:800; cursor:pointer; margin-top:32px; transition:all 0.2s;">SIGN OUT</button>
+        <button type="button" class="account-signout" data-account-signout data-footer-text="footer_account_signout_text" style="width:100%; padding:14px; background:none; border:1px solid #333; color:#888; border-radius:4px; font-size:11px; font-weight:800; cursor:pointer; margin-top:32px; transition:all 0.2s;">SIGN OUT</button>
       </div>
     </section>
   </div>
@@ -999,7 +999,7 @@
       <button type="button" class="track-order-close" data-track-order-close aria-label="Close order tracking">×</button>
 
       <div class="track-order-header">
-        <p class="eyebrow">BULKKOT · FULFILMENT TRACKING</p>
+        <p class="eyebrow" data-footer-text="footer_track_eyebrow">BULKKOT · FULFILMENT TRACKING</p>
         <h2 id="track-order-title" data-footer-text="footer_track_title">TRACK YOUR ORDER</h2>
         <p data-footer-text="footer_track_description">Enter your Order Number and phone provided at checkout.</p>
       </div>
@@ -1025,7 +1025,7 @@
       <div class="track-order-result" data-track-order-result hidden>
         <div class="track-order-result-head">
           <div>
-            <p class="eyebrow">ORDER REFERENCE</p>
+            <p class="eyebrow" data-footer-text="footer_track_reference_label">ORDER REFERENCE</p>
             <strong data-track-result-number>—</strong>
           </div>
 
@@ -1040,33 +1040,33 @@
           </div>
 
           <div class="track-progress-steps">
-            <div class="track-step" data-track-step="PLACED"><span class="track-step-dot"></span><strong>PLACED</strong></div>
-            <div class="track-step" data-track-step="PACKED"><span class="track-step-dot"></span><strong>PACKED</strong></div>
-            <div class="track-step" data-track-step="SHIPPED"><span class="track-step-dot"></span><strong>SHIPPED</strong></div>
-            <div class="track-step" data-track-step="OUT FOR DELIVERY"><span class="track-step-dot"></span><strong>OUT FOR DELIVERY</strong></div>
-            <div class="track-step" data-track-step="DELIVERED"><span class="track-step-dot"></span><strong>DELIVERED</strong></div>
+            <div class="track-step" data-track-step="PLACED"><span class="track-step-dot"></span><strong data-footer-text="footer_track_status_placed">PLACED</strong></div>
+            <div class="track-step" data-track-step="PACKED"><span class="track-step-dot"></span><strong data-footer-text="footer_track_status_packed">PACKED</strong></div>
+            <div class="track-step" data-track-step="SHIPPED"><span class="track-step-dot"></span><strong data-footer-text="footer_track_status_shipped">SHIPPED</strong></div>
+            <div class="track-step" data-track-step="OUT FOR DELIVERY"><span class="track-step-dot"></span><strong data-footer-text="footer_track_status_out">OUT FOR DELIVERY</strong></div>
+            <div class="track-step" data-track-step="DELIVERED"><span class="track-step-dot"></span><strong data-footer-text="footer_track_status_delivered">DELIVERED</strong></div>
           </div>
         </div>
 
         <div class="track-shipping-card">
           <div class="track-info-row">
-            <span>PAYMENT METHOD</span>
+            <span data-footer-text="footer_track_payment_label">PAYMENT METHOD</span>
             <strong data-track-result-payment>CASH ON DELIVERY</strong>
           </div>
 
           <div class="track-info-row">
-            <span>COURIER PARTNER</span>
+            <span data-footer-text="footer_track_courier_label">COURIER PARTNER</span>
             <strong data-track-result-courier>In Preparation</strong>
           </div>
 
           <div class="track-info-row">
-            <span>AWB / TRACKING NO.</span>
-            <strong data-track-result-tracking>Will update on dispatch</strong>
+            <span data-footer-text="footer_track_tracking_label">AWB / TRACKING NO.</span>
+            <strong data-track-result-tracking data-footer-text="footer_track_pending_text">Will update on dispatch</strong>
           </div>
         </div>
 
         <div class="track-order-footer">
-          <button type="button" class="button button--outline" data-track-again>
+          <button type="button" class="button button--outline" data-track-again data-footer-text="footer_track_again_text">
             LOOKUP ANOTHER ORDER
           </button>
         </div>
@@ -1079,13 +1079,13 @@
     <div class="content-modal__panel">
       <button type="button" class="drawer-close" data-close-about aria-label="Close story">×</button>
 
-      <p class="eyebrow" data-cms-key="story_eyebrow">BULKKOT · 불꽃</p>
-      <h2 data-cms-key="story_title">OUR STORY</h2>
+      <p class="eyebrow" data-cms-key="footer_story_eyebrow">BULKKOT · 불꽃</p>
+      <h2 data-cms-key="footer_story_title">OUR STORY</h2>
 
       <div class="modal-copy">
-        <p data-cms-key="story_paragraph_1">BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
-        <p data-cms-key="story_paragraph_2">We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
-        <p class="modal-signature" data-cms-key="story_signature">Less noise. More presence.</p>
+        <p data-cms-key="footer_story_paragraph_1">BULKKOT (불꽃) is a Korean-inspired premium everyday wear brand built for the new generation in India.</p>
+        <p data-cms-key="footer_story_paragraph_2">We believe premium clothing should not feel unreachable or overpriced. Our focus is clean design, heavy fabric weights, and oversized fits that stay timeless.</p>
+        <p class="modal-signature" data-cms-key="footer_story_signature">Less noise. More presence.</p>
       </div>
     </div>
   </div>
