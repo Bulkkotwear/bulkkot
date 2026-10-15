@@ -70,7 +70,7 @@
       "tee": "tees", "t-shirt": "tees", "t-shirts": "tees", "tshirt": "tees",
       "hoodie": "hoods", "hoodies": "hoods", "hood": "hoods",
       "sweat": "sweats", "sweatshirt": "sweats", "sweatshirts": "sweats",
-      "sweat-pant": "sweats", "sweat-pants": "sweats", "sweatpants": "sweats"
+      "sweat-pant": "sweatpants", "sweat-pants": "sweatpants"
     };
     return aliases[slug] || slug;
   }
@@ -751,7 +751,7 @@
   const DEFAULT_STOREFRONT_CATEGORIES = [
     {id:"tees",slug:"tees",name:"TEES",korean:"티셔츠",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13581.png",enabled:true},
     {id:"hoods",slug:"hoods",name:"HOODIES",korean:"헤비 후드",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13579.png",enabled:true},
-    {id:"sweats",slug:"sweats",name:"SWEATS",korean:"스웨트",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png",enabled:true}
+    {id:"sweatpants",slug:"sweatpants",name:"SWEATPANTS",korean:"스웨트팬츠",image:"https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/13577.png",enabled:true}
   ];
   let storefrontCategories = [...DEFAULT_STOREFRONT_CATEGORIES];
 
@@ -975,7 +975,7 @@
 
     grid.innerHTML = items.map(p => {
       const cat = getCategory(p);
-      const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
+      const catKorean = cat === "hoods" ? "후드" : (cat === "sweatpants" || cat === "sweats" ? "스웨트팬츠" : "티셔츠");
       const totalStock = getTotalStock(p);
       const curSize = selectedSizes[p.id] || "M";
       const badge = getStockBadge(p, curSize);
@@ -1057,7 +1057,7 @@
 
     const images = getProductImages(p);
     const cat = getCategory(p);
-    const catKorean = cat === "hoods" ? "후드" : (cat === "sweats" ? "스웨트" : "티셔츠");
+    const catKorean = cat === "hoods" ? "후드" : (cat === "sweatpants" || cat === "sweats" ? "스웨트팬츠" : "티셔츠");
     const stockCurSize = getStock(p, currentPdpSize);
 
     let related = liveProducts.filter(item => String(item.id) !== String(p.id) && getCategory(item) === cat);
