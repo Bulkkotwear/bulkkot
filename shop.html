@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <title>SHOP SILHOUETTES — BULKKOT (불꽃)</title>
-  <meta name="description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweats, Korean-inspired oversized essentials.">
+  <meta name="description" content="Browse the full BULKKOT catalogue — tees, hoodies and sweatpants, Korean-inspired oversized essentials.">
   <meta name="theme-color" content="#070707">
 
   <link rel="icon" href="https://raw.githubusercontent.com/Bulkkotwear/bulkkot/main/logo.png">
@@ -417,7 +417,7 @@
   </div>
 
   <script src="js/cart.js?v=20261009-variants"></script>
-  <script src="js/main.js?v=20261015-fluent-categories1" defer></script>
+  <script src="js/main.js?v=20261015-category-slug-fix1" defer></script>
 
   <script>
     (() => {
@@ -453,7 +453,7 @@
       const DEFAULT_CATEGORIES = [
         { slug: "tees", name: "TEES", enabled: true },
         { slug: "hoods", name: "HOODIES", enabled: true },
-        { slug: "sweats", name: "SWEATS", enabled: true }
+        { slug: "sweatpants", name: "SWEATPANTS", enabled: true }
       ];
       let categories = [...DEFAULT_CATEGORIES];
       let categoriesLoaded = false;
@@ -528,8 +528,7 @@
           "tee": "tees", "t-shirt": "tees", "t-shirts": "tees", "tshirt": "tees",
           "hoodie": "hoods", "hoodies": "hoods", "hood": "hoods",
           "sweat": "sweats", "sweatshirt": "sweats", "sweatshirts": "sweats",
-          "sweatpant": "sweats", "sweatpants": "sweats", "sweat-pant": "sweats",
-          "sweat-pants": "sweats", "sweatshirt": "sweats", "sweatshirts": "sweats"
+          "sweatpant": "sweatpants", "sweat-pant": "sweatpants", "sweat-pants": "sweatpants"
         };
         return aliases[slug] || slug;
       }
