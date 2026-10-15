@@ -415,12 +415,54 @@
   /* =========================================================
      DYNAMIC STORE SETTINGS
      ========================================================= */
+  function applyStoreMaintenanceMode(enabled, settings = {}) {
+    const existing = document.getElementById('bulkkot-maintenance-screen');
+    if (!enabled) {
+      if (existing) existing.remove();
+      document.documentElement.classList.remove('bulkkot-maintenance-active');
+      document.body?.classList.remove('bulkkot-maintenance-active');
+      document.getElementById('bulkkot-maintenance-styles')?.remove();
+      return;
+    }
+    if (existing) return;
+    if (!document.getElementById('bulkkot-maintenance-styles')) {
+      const style = document.createElement('style');
+      style.id = 'bulkkot-maintenance-styles';
+      style.textContent = `
+        html.bulkkot-maintenance-active, body.bulkkot-maintenance-active { overflow: hidden !important; }
+        #bulkkot-maintenance-screen { position: fixed; inset: 0; z-index: 2147483000; display:flex; align-items:center; justify-content:center; padding:28px; background:#0a0a0a; color:#f7f4ef; font-family:Inter,Arial,sans-serif; text-align:center; }
+        #bulkkot-maintenance-screen * { box-sizing:border-box; }
+        #bulkkot-maintenance-screen .bk-maintenance-inner { width:min(620px,100%); }
+        #bulkkot-maintenance-screen .bk-maintenance-mark { font-size:12px; font-weight:800; letter-spacing:.34em; color:#f7f4ef; }
+        #bulkkot-maintenance-screen .bk-maintenance-rule { width:42px; height:2px; background:#e31b23; margin:30px auto; }
+        #bulkkot-maintenance-screen h1 { margin:0 0 16px; font-size:clamp(34px,7vw,64px); line-height:1.02; letter-spacing:-.055em; font-weight:700; }
+        #bulkkot-maintenance-screen p { max-width:440px; margin:0 auto; color:#b9b5af; font-size:14px; line-height:1.9; }
+        #bulkkot-maintenance-screen .bk-maintenance-foot { margin-top:42px; color:#77736e; font-size:10px; letter-spacing:.22em; }
+        #bulkkot-maintenance-screen a { display:inline-block; margin-top:24px; color:#f7f4ef; text-decoration:none; font-size:12px; border-bottom:1px solid #e31b23; padding-bottom:5px; }
+      `;
+      document.head.appendChild(style);
+    }
+    document.documentElement.classList.add('bulkkot-maintenance-active');
+    document.body.classList.add('bulkkot-maintenance-active');
+    const screen = document.createElement('div');
+    screen.id = 'bulkkot-maintenance-screen';
+    screen.setAttribute('role', 'dialog');
+    screen.setAttribute('aria-modal', 'true');
+    screen.setAttribute('aria-labelledby', 'bk-maintenance-title');
+    const email = String(settings.support_email || 'bulkkotwear@gmail.com').trim();
+    screen.innerHTML = '<div class="bk-maintenance-inner"><div class="bk-maintenance-mark">불꽃 · BULKKOT</div><div class="bk-maintenance-rule"></div><h1 id="bk-maintenance-title">A little pause.<br>Something better.</h1><p>We’re making a few improvements to the store. BULKKOT will be back shortly. Thank you for your patience.</p><a href="mailto:' + escapeHTML(email) + '">CONTACT BULKKOT</a><div class="bk-maintenance-foot">LESS NOISE. MORE PRESENCE.</div></div>';
+    document.body.appendChild(screen);
+  }
+
   async function syncStoreSettings() {
     if (!supabase) return;
     try {
       const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
       if (!data) return;
 
+      // Apply admin-controlled maintenance mode across every storefront page.
+      applyStoreMaintenanceMode(data.maintenance_mode === true || String(data.maintenance_mode).toLowerCase() === 'true', data);
+      
       const rawPhone = String(data.support_phone || '').replace(/\D/g, '');
       const whatsappBtn = document.querySelector('.whatsapp-float');
       if (whatsappBtn && rawPhone) {
