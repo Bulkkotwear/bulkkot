@@ -452,7 +452,7 @@
     screen.setAttribute('aria-modal', 'true');
     screen.setAttribute('aria-labelledby', 'bk-maintenance-title');
     const configuredEmail = String(settings.support_email || '').trim();
-    const email = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(configuredEmail) ? configuredEmail : 'bulkkotwear@gmail.com';
+    const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(configuredEmail) ? configuredEmail : 'bulkkotwear@gmail.com';
     screen.innerHTML = '<div class="bk-maintenance-inner"><div class="bk-maintenance-mark">불꽃 · BULKKOT</div><div class="bk-maintenance-rule"></div><h1 id="bk-maintenance-title">A little pause.<br>Something better.</h1><p>We’re making a few improvements to the store. BULKKOT will be back shortly. Thank you for your patience.</p><div class="bk-maintenance-actions"><a href="mailto:' + escapeHTML(email) + '?subject=BULKKOT%20Enquiry">EMAIL BULKKOT</a><a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a></div><div class="bk-maintenance-foot">LESS NOISE. MORE PRESENCE.</div></div>';
     document.body.appendChild(screen);
   }
