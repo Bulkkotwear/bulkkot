@@ -2627,17 +2627,106 @@ function renderInventory(){
 
 async function loadCustomers(){
   const root=$("customersTable");if(root)root.innerHTML=loadingHTML();
-  const r=await safeTable("customer_profiles","created_at");
-  if(r.error){state.customers=[];if(root)root.innerHTML='<div style="padding:20px;color:#ff9298">Customer profiles unavailable.<div class="muted" style="margin-top:6px">'+esc(normalizeError(r.error))+'</div></div>';return;}
-  state.customers=Array.isArray(r.data)?r.data:[];$("statCustomers").textContent=state.customers.length;renderCustomers();
+  const [profilesResult,ordersResult]=await Promise.all([
+    safeTable("customer_profiles","created_at"),
+    safeTable("orders","created_at")
+  ]);
+  const profiles=Array.isArray(profilesResult.data)?profilesResult.data:[];
+  const orders=Array.isArray(ordersResult.data)?ordersResult.data:[];
+  // Orders are also a useful customer source when a profile has not been completed.
+  const emailOf=row=>String(getValue(row,"email","customer_email","user_email")).trim().toLowerCase();
+  const userIdOf=row=>String(getValue(row,"id","user_id","customer_id","user_uuid")).trim();
+  const customers=profiles.map(p=>({...p,_source:"profile",_orders:[]}));
+  const byEmail=new Map(),byId=new Map();
+  customers.forEach(c=>{
+    const email=emailOf(c),id=userIdOf(c);
+    if(email&&!byEmail.has(email))byEmail.set(email,c);
+    if(id&&!byId.has(id))byId.set(id,c);
+  });
+  orders.forEach(o=>{
+    const email=emailOf(o),id=String(getValue(o,"user_id","customer_id","user_uuid")).trim();
+    let c=(email&&byEmail.get(email))||(id&&byId.get(id));
+    if(!c){
+      const key=email||("order-customer:"+(id||String(getValue(o,"customer_name","full_name","name")||"guest").toLowerCase()));
+      c=byEmail.get(key);
+      if(!c){
+        c={
+          id:id||key,
+          full_name:getValue(o,"customer_name","full_name","name")||"Guest customer",
+          email:email||"",
+          phone:getValue(o,"customer_phone","phone","mobile")||"",
+          shipping_city:getValue(o,"shipping_city","city")||"",
+          shipping_state:getValue(o,"shipping_state","state")||"",
+          created_at:getValue(o,"created_at","order_date"),
+          _source:"orders",
+          _orders:[]
+        };
+        customers.push(c);
+        if(email)byEmail.set(email,c);
+        if(id)byId.set(id,c);
+      }
+    }
+    if(!Array.isArray(c._orders))c._orders=[];
+    c._orders.push(o);
+    if(!c.phone)c.phone=getValue(o,"customer_phone","phone","mobile")||"";
+    if(!c.shipping_city)c.shipping_city=getValue(o,"shipping_city","city")||"";
+    if(!c.shipping_state)c.shipping_state=getValue(o,"shipping_state","state")||"";
+    if(!c.email&&email)c.email=email;
+    if((!c.full_name||c.full_name==="Customer"||c.full_name==="Guest")&&getValue(o,"customer_name","full_name","name"))c.full_name=getValue(o,"customer_name","full_name","name");
+    const orderDate=new Date(getValue(o,"created_at","order_date")||0).getTime();
+    const profileDate=new Date(c.created_at||0).getTime();
+    if(orderDate&&(!profileDate||orderDate<profileDate))c.created_at=getValue(o,"created_at","order_date");
+  });
+  customers.forEach(c=>{c._orders=(c._orders||[]).sort((a,b)=>new Date(getValue(b,"created_at","order_date")||0)-new Date(getValue(a,"created_at","order_date")||0));});
+  state.customers=customers.sort((a,b)=>{
+    const ad=new Date(a._orders?.[0]?.created_at||a.created_at||0).getTime()||0;
+    const bd=new Date(b._orders?.[0]?.created_at||b.created_at||0).getTime()||0;
+    return bd-ad;
+  });
+  $("statCustomers").textContent=state.customers.length;
+  if(!profilesResult.error&&!ordersResult.error){renderCustomers();return;}
+  if(profilesResult.error&&!orders.length){
+    state.customers=[];
+    if(root)root.innerHTML='<div style="padding:20px;color:#ff9298">Could not load customer profiles or orders.<div class="muted" style="margin-top:6px">Profiles: '+esc(normalizeError(profilesResult.error))+'<br>Orders: '+esc(normalizeError(ordersResult.error||"No order records available"))+'</div></div>';
+    return;
+  }
+  renderCustomers();
+  if(root&&state.customers.length){
+    const note=document.createElement("p");
+    note.className="muted";
+    note.style.cssText="padding:0 14px 12px;margin:0;font-size:12px";
+    note.textContent=profilesResult.error
+      ?"Customer profile query is blocked/unavailable; showing customers derived from order records. Check Supabase table permissions to include profile-only users."
+      :ordersResult.error
+        ?"Order history could not be loaded; customer profile details are shown without purchase totals."
+        :"";
+    root.appendChild(note);
+  }
 }
 function renderCustomers(){
-  const root=$("customersTable");if(!root)return;const q=($("customerSearch")?.value||"").toLowerCase().trim();
-  const list=state.customers.filter(c=>([c.full_name,c.email,c.phone,c.shipping_city,c.shipping_state].join(" ").toLowerCase()).includes(q));
-  if(!list.length){root.innerHTML=emptyHTML("No customer profiles found.");return;}
-  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>Joined</th></tr></thead><tbody>'+
-    list.map(c=>'<tr><td><strong>'+esc(c.full_name||"Customer")+'</strong></td><td>'+esc(c.email||"—")+'</td><td>'+esc(c.phone||"—")+'</td><td>'+esc(c.shipping_city||"—")+'</td><td>'+dateOnly(c.created_at)+'</td></tr>').join("")+
+  const root=$("customersTable");if(!root)return;
+  const q=($("customerSearch")?.value||"").toLowerCase().trim();
+  const list=state.customers.filter(c=>([
+    c.full_name,c.name,c.email,c.phone,c.shipping_city,c.shipping_state,
+    ...(c._orders||[]).flatMap(o=>[orderNumber(o),orderStatus(o),getValue(o,"customer_email","email")])
+  ].join(" ").toLowerCase()).includes(q));
+  if(!list.length){root.innerHTML=emptyHTML(q?"No customers match your search.":"No customer profiles or order-based customers found.");return;}
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>City</th><th>Orders</th><th>Total ordered</th><th>Last order / joined</th><th></th></tr></thead><tbody>'+
+    list.map(c=>{
+      const index=state.customers.indexOf(c),orders=c._orders||[],spent=orders.reduce((sum,o)=>sum+orderTotal(o),0);
+      const latest=orders[0];
+      return '<tr><td><strong>'+esc(c.full_name||c.name||"Customer")+'</strong><div class="muted" style="font-size:11px;margin-top:3px">'+(c._source==="orders"?'Order record':'Profile')+'</div></td><td>'+esc(c.email||"—")+'</td><td>'+esc(c.phone||"—")+'</td><td>'+esc(c.shipping_city||c.shipping_state||"—")+'</td><td>'+orders.length+'</td><td>'+money(spent)+'</td><td>'+dateOnly(latest?getValue(latest,"created_at","order_date"):c.created_at)+'</td><td><button class="btn btn-small" onclick="openCustomerDetails('+index+')">View details</button></td></tr>';
+    }).join("")+
     '</tbody></table></div>';
+}
+function openCustomerDetails(index){
+  const c=state.customers[index];if(!c)return;
+  const orders=c._orders||[];
+  const orderRows=orders.length
+    ?'<div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Order</th><th>Date</th><th>Total</th><th>Status</th></tr></thead><tbody>'+orders.map(o=>'<tr><td><strong>'+esc(orderNumber(o))+'</strong></td><td>'+dateTime(getValue(o,"created_at","order_date"))+'</td><td>'+money(orderTotal(o))+'</td><td>'+statusBadge(orderStatus(o))+'</td></tr>').join("")+'</tbody></table></div>'
+    :emptyHTML("No orders found for this customer.");
+  const total=orders.reduce((sum,o)=>sum+orderTotal(o),0);
+  $("modalRoot").innerHTML='<div class="modal-backdrop" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true" style="max-width:820px"><div class="modal-head"><div><h2>'+esc(c.full_name||c.name||"Customer details")+'</h2><p class="muted">'+esc(c.email||"No email recorded")+'</p></div><button class="btn" onclick="closeModal()">Close</button></div><div class="modal-body"><div class="grid two-col"><div class="detail-box"><small>Phone</small><strong>'+esc(c.phone||"—")+'</strong></div><div class="detail-box"><small>Location</small><strong>'+esc([c.shipping_city,c.shipping_state,c.shipping_pincode||c.pincode].filter(Boolean).join(", ")||"—")+'</strong></div><div class="detail-box"><small>Profile / first order date</small><strong>'+dateTime(c.created_at)+'</strong></div><div class="detail-box"><small>Order count · total ordered</small><strong>'+orders.length+' · '+money(total)+'</strong></div></div><div style="margin-top:18px"><h3>Order history</h3>'+orderRows+'</div></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick="navigate(\'orders\');closeModal()">Open Orders</button></div></div></div>';
 }
 
 async function loadCoupons(){
