@@ -141,6 +141,25 @@
     return "./index.html";
   }
 
+  // Keep the public customer profile in sync with the authenticated account.
+  // Auth credentials stay in Supabase Auth; this table stores only customer-facing details.
+  async function syncCustomerProfile(supabase, user, preferredName = "") {
+    if (!user?.id) return;
+    const metadataName = user.user_metadata?.full_name || user.user_metadata?.name || "";
+    const fullName = String(preferredName || metadataName || "").trim();
+    const profile = {
+      id: user.id,
+      email: String(user.email || "").trim().toLowerCase(),
+      updated_at: new Date().toISOString()
+    };
+    if (fullName) profile.full_name = fullName;
+    const { error } = await supabase.from("customer_profiles").upsert(profile, { onConflict: "id" });
+    if (error) {
+      // Do not block a successful login/signup if profile-table RLS/schema needs attention.
+      console.warn("BULKKOT customer profile sync failed:", error.message || error);
+    }
+  }
+
   async function handleLogin() {
     const supabase = getSupabase();
     if (!supabase) return;
@@ -153,6 +172,7 @@
       });
 
       if (error) throw error;
+      await syncCustomerProfile(supabase, data.user);
       showFeedback("Authentication verified. Redirecting...", "success");
       setTimeout(() => {
         window.location.href = getRedirectDestination();
@@ -182,13 +202,7 @@
 
       if (error) throw error;
 
-      if (data?.user) {
-        await supabase.from("customer_profiles").upsert({
-          id: data.user.id,
-          full_name: name,
-          updated_at: new Date().toISOString()
-        });
-      }
+      if (data?.user) await syncCustomerProfile(supabase, data.user, name);
 
       if (data.user && !data.session) {
         showFeedback("Verification email sent! Please check your inbox.", "success");
