@@ -2418,16 +2418,16 @@ async function migrateLegacySweatsContent(){
       const key=String(row.content_key||"");
       const oldValue=String(row.content_value??"");
       let nextValue=oldValue;
-      if(key==="footer_shop_sweats" && /^\\s*sweats?\\s*$/i.test(oldValue)) nextValue="Sweatpants";
+      if(key==="footer_shop_sweats" && /^\s*sweats?\s*$/i.test(oldValue)) nextValue="Sweatpants";
       if(key==="footer_shop_sweats_url") nextValue=nextValue.replace(/category=sweats?(?=(&|$))/gi,"category=sweatpants");
-      if(key==="footer_size_tab_hoods" && /^\\s*HOODS\\s*&\\s*SWEATS\\s*$/i.test(oldValue)) nextValue="HOODS & SWEATPANTS";
+      if(key==="footer_size_tab_hoods" && /^\s*HOODS\s*&\s*SWEATS\s*$/i.test(oldValue)) nextValue="HOODS & SWEATPANTS";
       if(key==="editorial_slides"){
         try{
           const slides=JSON.parse(oldValue);
           if(Array.isArray(slides)){
             const migrated=slides.map(slide=>{
               const next={...slide};
-              if(/^\\s*EXPLORE\\s+SWEATS?\\s*→\\s*$/i.test(String(next.buttonText||""))) next.buttonText="EXPLORE SWEATPANTS →";
+              if(/^\s*EXPLORE\s+SWEATS?\s*→\s*$/i.test(String(next.buttonText||""))) next.buttonText="EXPLORE SWEATPANTS →";
               if(typeof next.buttonUrl==="string") next.buttonUrl=next.buttonUrl.replace(/category=sweats?(?=(&|$))/gi,"category=sweatpants");
               return next;
             });
