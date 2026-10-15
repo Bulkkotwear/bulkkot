@@ -2990,6 +2990,7 @@ function setFooterGroupsOpen(open){document.querySelectorAll("#page-footer .foot
 function filterFooterEditor(){const input=document.getElementById("footerEditorSearch");const q=String(input?.value||"").trim().toLowerCase();document.querySelectorAll("#page-footer .footer-editor-group").forEach(group=>{const match=!q||group.textContent.toLowerCase().includes(q)||Array.from(group.querySelectorAll("input,textarea")).some(el=>(el.id+" "+el.placeholder+" "+el.value).toLowerCase().includes(q));group.hidden=!match;if(q&&match)group.open=true;});}
 document.getElementById("footerEditorSearch")?.addEventListener("input",filterFooterEditor);
 const FOOTER_RICH_CONTENT_IDS=["footerFaqContent","footerShippingContent","footerReturnsContent","footerPrivacyContent","footerTermsContent"];
+let footerOriginalValues={};
 function footerContentToEditor(value){
   return String(value??"")
     .replace(/<h[1-6][^>]*>/gi,"\n# ").replace(/<\/h[1-6]>/gi,"\n\n")
@@ -3019,17 +3020,19 @@ async function loadFooterEditor(){
   if(r.error){showToast("Footer could not be loaded: "+normalizeError(r.error),"error");return;}
   const values={};
   (r.data||[]).forEach(row=>{const k=String(row.content_key||row.key||"").trim();if(k)values[k]=row.content_value??row.value??"";});
-  footerEditorFields.forEach(([id,key,fallback])=>{const el=$(id);if(!el)return;const value=values[key]===undefined?fallback:String(values[key]??"");if(el.type==="checkbox")el.checked=String(value).toLowerCase()!=="false";else if(FOOTER_RICH_CONTENT_IDS.includes(id))el.value=footerContentToEditor(value);else el.value=value;});
+  footerOriginalValues={};footerEditorFields.forEach(([id,key,fallback])=>{const el=$(id);if(!el)return;const value=values[key]===undefined?fallback:String(values[key]??"");if(el.type==="checkbox")el.checked=String(value).toLowerCase()!=="false";else if(FOOTER_RICH_CONTENT_IDS.includes(id))el.value=footerContentToEditor(value);else el.value=value;footerOriginalValues[id]=el.type==="checkbox"?String(el.checked):String(el.value??"");});filterFooterEditor();
 }
 async function saveFooterEditor(){
   const btn=document.querySelector('#page-footer button[onclick="saveFooterEditor()"]');
   if(btn?.disabled)return;
   const old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent="Saving…";}
   try{
-    const results=await Promise.allSettled(footerEditorFields.map(([id,key])=>{const el=$(id);const raw=el?.type==="checkbox"?String(el.checked):String(el?.value??"");const value=FOOTER_RICH_CONTENT_IDS.includes(id)?footerEditorToHTML(raw):raw;return writeSiteContentKey(key,value);}));
-    const failed=results.map((r,i)=>r.status==="rejected"?{key:footerEditorFields[i][1],error:r.reason}:null).filter(Boolean);
-    if(failed.length){showToast("Footer save failed for "+failed.map(x=>x.key).join(", "),"error");}
-    else showToast("Footer saved successfully.","success");
+    const changes=footerEditorFields.map(([id,key])=>{const el=$(id);if(!el)return null;const raw=el.type==="checkbox"?String(el.checked):String(el.value??"");if(raw===footerOriginalValues[id])return null;const value=FOOTER_RICH_CONTENT_IDS.includes(id)?footerEditorToHTML(raw):raw;return {id,key,raw,value};}).filter(Boolean);
+    if(!changes.length){showToast("Everything is already saved.","success");return;}
+    const results=await Promise.allSettled(changes.map(item=>writeSiteContentKey(item.key,item.value)));
+    const failed=results.map((r,i)=>r.status==="rejected"?{key:changes[i].key,error:r.reason}:null).filter(Boolean);
+    if(failed.length){showToast("Some footer changes could not be saved: "+failed.map(x=>x.key).join(", "),"error");}
+    else{changes.forEach(item=>footerOriginalValues[item.id]=item.raw);showToast("Saved "+changes.length+" footer change"+(changes.length===1?"":"s")+".","success");}
   }catch(e){showToast("Footer save failed: "+normalizeError(e),"error");}
   finally{if(btn){btn.disabled=false;btn.textContent=old||"Save Footer";}}
 }
