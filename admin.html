@@ -2406,6 +2406,42 @@ async function writeSiteContentKey(key,value){
   if(r.error) throw r.error;
 }
 
+async function migrateLegacySweatsContent(){
+  // One-time, idempotent cleanup for saved CMS values left behind by the old category slug.
+  if(!state.categories.some(c=>String(c.slug).toLowerCase()==="sweatpants") ||
+     state.categories.some(c=>String(c.slug).toLowerCase()==="sweats")) return;
+  const keys=["footer_shop_sweats","footer_shop_sweats_url","footer_size_tab_hoods","editorial_slides"];
+  try{
+    const res=await db.from("site_content").select("content_key,content_value").in("content_key",keys);
+    if(res.error) throw res.error;
+    for(const row of (res.data||[])){
+      const key=String(row.content_key||"");
+      const oldValue=String(row.content_value??"");
+      let nextValue=oldValue;
+      if(key==="footer_shop_sweats" && /^\\s*sweats?\\s*$/i.test(oldValue)) nextValue="Sweatpants";
+      if(key==="footer_shop_sweats_url") nextValue=nextValue.replace(/category=sweats?(?=(&|$))/gi,"category=sweatpants");
+      if(key==="footer_size_tab_hoods" && /^\\s*HOODS\\s*&\\s*SWEATS\\s*$/i.test(oldValue)) nextValue="HOODS & SWEATPANTS";
+      if(key==="editorial_slides"){
+        try{
+          const slides=JSON.parse(oldValue);
+          if(Array.isArray(slides)){
+            const migrated=slides.map(slide=>{
+              const next={...slide};
+              if(/^\\s*EXPLORE\\s+SWEATS?\\s*→\\s*$/i.test(String(next.buttonText||""))) next.buttonText="EXPLORE SWEATPANTS →";
+              if(typeof next.buttonUrl==="string") next.buttonUrl=next.buttonUrl.replace(/category=sweats?(?=(&|$))/gi,"category=sweatpants");
+              return next;
+            });
+            nextValue=JSON.stringify(migrated);
+          }
+        }catch(_){}
+      }
+      if(nextValue!==oldValue){
+        const write=await db.from("site_content").update({content_value:nextValue}).eq("content_key",key);
+        if(write.error) throw write.error;
+      }
+    }
+  }catch(err){console.warn("Legacy category-label cleanup skipped; category loading will continue.",err);}
+}
 async function loadCategories(){
   const root=$("categoriesGrid");if(root)root.innerHTML=loadingHTML();
   try{
@@ -2420,6 +2456,7 @@ async function loadCategories(){
     }
     state.categories=parsed.map(normalizeCategory).filter(x=>x.slug)
       .sort((a,b)=>a.position-b.position || a.name.localeCompare(b.name));
+    await migrateLegacySweatsContent();
     $("navCategoryCount").textContent=state.categories.length;
     $("categoryCountLabel").textContent=state.categories.length+" categor"+(state.categories.length===1?"y":"ies");
     renderCategories();
