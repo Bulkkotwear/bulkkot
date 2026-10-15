@@ -438,7 +438,9 @@
         #bulkkot-maintenance-screen h1 { margin:0 0 16px; font-size:clamp(34px,7vw,64px); line-height:1.02; letter-spacing:-.055em; font-weight:700; }
         #bulkkot-maintenance-screen p { max-width:440px; margin:0 auto; color:#b9b5af; font-size:14px; line-height:1.9; }
         #bulkkot-maintenance-screen .bk-maintenance-foot { margin-top:42px; color:#77736e; font-size:10px; letter-spacing:.22em; }
-        #bulkkot-maintenance-screen a { display:inline-block; margin-top:24px; color:#f7f4ef; text-decoration:none; font-size:12px; border-bottom:1px solid #e31b23; padding-bottom:5px; }
+        #bulkkot-maintenance-screen .bk-maintenance-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:24px; margin-top:28px; }
+        #bulkkot-maintenance-screen .bk-maintenance-actions a { display:inline-block; margin:0; color:#f7f4ef; text-decoration:none; font-size:12px; font-weight:700; letter-spacing:.08em; border-bottom:1px solid #e31b23; padding:0 0 6px; transition:color .2s ease,border-color .2s ease; }
+        #bulkkot-maintenance-screen .bk-maintenance-actions a:hover { color:#e31b23; border-color:#f7f4ef; }
       `;
       document.head.appendChild(style);
     }
@@ -449,8 +451,9 @@
     screen.setAttribute('role', 'dialog');
     screen.setAttribute('aria-modal', 'true');
     screen.setAttribute('aria-labelledby', 'bk-maintenance-title');
-    const email = String(settings.support_email || 'bulkkotwear@gmail.com').trim();
-    screen.innerHTML = '<div class="bk-maintenance-inner"><div class="bk-maintenance-mark">불꽃 · BULKKOT</div><div class="bk-maintenance-rule"></div><h1 id="bk-maintenance-title">A little pause.<br>Something better.</h1><p>We’re making a few improvements to the store. BULKKOT will be back shortly. Thank you for your patience.</p><a href="mailto:' + escapeHTML(email) + '">CONTACT BULKKOT</a><div class="bk-maintenance-foot">LESS NOISE. MORE PRESENCE.</div></div>';
+    const configuredEmail = String(settings.support_email || '').trim();
+    const email = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(configuredEmail) ? configuredEmail : 'bulkkotwear@gmail.com';
+    screen.innerHTML = '<div class="bk-maintenance-inner"><div class="bk-maintenance-mark">불꽃 · BULKKOT</div><div class="bk-maintenance-rule"></div><h1 id="bk-maintenance-title">A little pause.<br>Something better.</h1><p>We’re making a few improvements to the store. BULKKOT will be back shortly. Thank you for your patience.</p><div class="bk-maintenance-actions"><a href="mailto:' + escapeHTML(email) + '?subject=BULKKOT%20Enquiry">EMAIL BULKKOT</a><a href="https://www.instagram.com/bulkkot.wear/" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a></div><div class="bk-maintenance-foot">LESS NOISE. MORE PRESENCE.</div></div>';
     document.body.appendChild(screen);
   }
 
