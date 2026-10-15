@@ -3068,15 +3068,24 @@ async function loadSettings(){
 }
 async function saveSettings(){
   const payload={
-    store_name:$("setStoreName").value.trim(),currency:$("setCurrency").value.trim()||"INR",
+    store_name:$("setStoreName").value.trim()||"BULKKOT",currency:$("setCurrency").value.trim().toUpperCase()||"INR",
     support_email:$("setSupportEmail").value.trim(),support_phone:$("setSupportPhone").value.trim(),
-    shipping_fee:num($("setShipping").value),free_shipping_threshold:num($("setFreeShipping").value),
+    shipping_fee:Math.max(0,num($("setShipping").value)),free_shipping_threshold:Math.max(0,num($("setFreeShipping").value)),
     cod_enabled:$("setCod").checked,online_payment_enabled:$("setOnlinePayment").checked,
     maintenance_mode:$("setMaintenance").checked,waitlist_enabled:$("setWaitlist").checked,
-    default_courier:$("setCourier").value.trim(),delivery_estimate:$("setDeliveryEstimate").value.trim(),shipping_note:$("setShippingNote").value.trim()
+    default_courier:$("setCourier").value.trim(),delivery_estimate:$("setDeliveryEstimate").value.trim(),shipping_note:$("setShippingNote").value.trim(),
+    updated_at:new Date().toISOString()
   };
-  try{const r=await db.from("store_settings").update(payload).eq("id",1).select().single();if(r.error)throw r.error;state.settings=r.data;showToast("Store settings saved.","success");}
-  catch(e){showToast("Settings save failed: "+normalizeError(e),"error");}
+  const btn=document.querySelector('#page-settings button[onclick="saveSettings()"]');
+  if(btn?.disabled)return;
+  const oldText=btn?.textContent;if(btn){btn.disabled=true;btn.textContent="Saving…";}
+  try{
+    const r=await db.from("store_settings").upsert({id:1,...payload},{onConflict:"id"}).select().single();
+    if(r.error)throw r.error;
+    if(!r.data)throw new Error("Settings were not returned after saving. Check store_settings permissions.");
+    state.settings=r.data;showToast("Store settings saved successfully.","success");
+  }catch(e){showToast("Settings save failed: "+normalizeError(e),"error");}
+  finally{if(btn){btn.disabled=false;btn.textContent=oldText||"Save settings";}}
 }
 
 async function listMediaFolder(prefix="",depth=0){
@@ -3126,9 +3135,11 @@ async function runHealthCheck(){
   await add("Site content",async()=>!(await db.from("site_content").select("*",{count:"exact",head:true})).error,"warn");
   await add("Store settings",async()=>!(await db.from("store_settings").select("id",{count:"exact",head:true})).error,"warn");
   await add("Media bucket",async()=>!(await db.storage.from(STORAGE_BUCKET).list("",{limit:1})).error,"warn");
+  const adminAuthorized=!!state.user&&String(state.user.email||"").trim().toLowerCase()===ADMIN_EMAIL;
+  checks.push({name:"Admin authorization",status:adminAuthorized?"ok":"bad",detail:adminAuthorized?"Signed in as the configured admin account.":"Current session does not match the configured admin account."});
   root.innerHTML='<div class="grid two-col"><div class="card"><div class="section-title"><h2>System checks</h2><span>'+checks.filter(x=>x.status==="ok").length+'/'+checks.length+' OK</span></div>'+
     checks.map(c=>'<div class="health-item"><span class="health-dot '+c.status+'"></span><div><strong>'+esc(c.name)+'</strong><span>'+esc(c.detail)+'</span></div></div>').join("")+
-    '</div><div class="card"><div class="section-title"><h2>Security</h2></div><div class="health-item"><span class="health-dot ok"></span><div><strong>No service-role key</strong><span>Only publishable/anon key is present.</span></div></div><div class="health-item"><span class="health-dot warn"></span><div><strong>Admin email gate</strong><span>RLS is still required for real database security.</span></div></div></div></div>';
+    '</div><div class="card"><div class="section-title"><h2>Security</h2></div><div class="health-item"><span class="health-dot ok"></span><div><strong>Frontend key exposure</strong><span>The admin page uses the public anon/publishable key; never put a service-role key in browser code.</span></div></div><div class="health-item"><span class="health-dot warn"></span><div><strong>Database Row Level Security</strong><span>RLS is currently disabled on products, waitlist, coupons, store_settings and policies. Do not enable it without matching policies, or admin/storefront access may break.</span></div></div><div class="health-item"><span class="health-dot '+(adminAuthorized?"ok":"bad")+'"></span><div><strong>Admin session</strong><span>'+esc(adminAuthorized?"Configured admin account verified for this page.":"Admin session is missing or not authorized.")+'</span></div></div></div></div>';
 }
 
 async function loadDashboard(){
