@@ -2627,80 +2627,71 @@ function renderInventory(){
 
 async function loadCustomers(){
   const root=$("customersTable");if(root)root.innerHTML=loadingHTML();
-  const [profilesResult,ordersResult]=await Promise.all([
-    safeTable("customer_profiles","created_at"),
-    safeTable("orders","created_at")
-  ]);
-  const profiles=Array.isArray(profilesResult.data)?profilesResult.data:[];
-  const orders=Array.isArray(ordersResult.data)?ordersResult.data:[];
-  // Orders are also a useful customer source when a profile has not been completed.
-  const emailOf=row=>String(getValue(row,"email","customer_email","user_email")).trim().toLowerCase();
-  const userIdOf=row=>String(getValue(row,"id","user_id","customer_id","user_uuid")).trim();
-  const customers=profiles.map(p=>({...p,_source:"profile",_orders:[]}));
-  const byEmail=new Map(),byId=new Map();
-  customers.forEach(c=>{
-    const email=emailOf(c),id=userIdOf(c);
-    if(email&&!byEmail.has(email))byEmail.set(email,c);
-    if(id&&!byId.has(id))byId.set(id,c);
-  });
-  orders.forEach(o=>{
-    const email=emailOf(o),id=String(getValue(o,"user_id","customer_id","user_uuid")).trim();
-    let c=(email&&byEmail.get(email))||(id&&byId.get(id));
-    if(!c){
-      const key=email||("order-customer:"+(id||String(getValue(o,"customer_name","full_name","name")||"guest").toLowerCase()));
-      c=byEmail.get(key);
-      if(!c){
-        c={
-          id:id||key,
-          full_name:getValue(o,"customer_name","full_name","name")||"Guest customer",
-          email:email||"",
-          phone:getValue(o,"customer_phone","phone","mobile")||"",
-          shipping_city:getValue(o,"shipping_city","city")||"",
-          shipping_state:getValue(o,"shipping_state","state")||"",
-          created_at:getValue(o,"created_at","order_date"),
-          _source:"orders",
-          _orders:[]
-        };
-        customers.push(c);
-        if(email)byEmail.set(email,c);
-        if(id)byId.set(id,c);
-      }
+  try{
+    // Auth users are the source of truth; the Edge Function checks the signed-in admin
+    // and merges each auth page with customer_profiles using server-only credentials.
+    const authCustomers=[];
+    let page=1,hasMore=true;
+    while(hasMore){
+      const {data,error}=await db.functions.invoke("admin-customers",{body:{page}});
+      if(error)throw error;
+      if(!data||!Array.isArray(data.customers))throw new Error("Customer service returned an unexpected response.");
+      authCustomers.push(...data.customers);
+      hasMore=data.has_more===true;
+      page=Number(data.page||page)+1;
+      if(page>10001)throw new Error("Customer pagination safety limit reached.");
     }
-    if(!Array.isArray(c._orders))c._orders=[];
-    c._orders.push(o);
-    if(!c.phone)c.phone=getValue(o,"customer_phone","phone","mobile")||"";
-    if(!c.shipping_city)c.shipping_city=getValue(o,"shipping_city","city")||"";
-    if(!c.shipping_state)c.shipping_state=getValue(o,"shipping_state","state")||"";
-    if(!c.email&&email)c.email=email;
-    if((!c.full_name||c.full_name==="Customer"||c.full_name==="Guest")&&getValue(o,"customer_name","full_name","name"))c.full_name=getValue(o,"customer_name","full_name","name");
-    const orderDate=new Date(getValue(o,"created_at","order_date")||0).getTime();
-    const profileDate=new Date(c.created_at||0).getTime();
-    if(orderDate&&(!profileDate||orderDate<profileDate))c.created_at=getValue(o,"created_at","order_date");
-  });
-  customers.forEach(c=>{c._orders=(c._orders||[]).sort((a,b)=>new Date(getValue(b,"created_at","order_date")||0)-new Date(getValue(a,"created_at","order_date")||0));});
-  state.customers=customers.sort((a,b)=>{
-    const ad=new Date(a._orders?.[0]?.created_at||a.created_at||0).getTime()||0;
-    const bd=new Date(b._orders?.[0]?.created_at||b.created_at||0).getTime()||0;
-    return bd-ad;
-  });
-  $("statCustomers").textContent=state.customers.length;
-  if(!profilesResult.error&&!ordersResult.error){renderCustomers();return;}
-  if(profilesResult.error&&!orders.length){
-    state.customers=[];
-    if(root)root.innerHTML='<div style="padding:20px;color:#ff9298">Could not load customer profiles or orders.<div class="muted" style="margin-top:6px">Profiles: '+esc(normalizeError(profilesResult.error))+'<br>Orders: '+esc(normalizeError(ordersResult.error||"No order records available"))+'</div></div>';
-    return;
-  }
-  renderCustomers();
-  if(root&&state.customers.length){
-    const note=document.createElement("p");
-    note.className="muted";
-    note.style.cssText="padding:0 14px 12px;margin:0;font-size:12px";
-    note.textContent=profilesResult.error
-      ?"Customer profile query is blocked/unavailable; showing customers derived from order records. Check Supabase table permissions to include profile-only users."
-      :ordersResult.error
-        ?"Order history could not be loaded; customer profile details are shown without purchase totals."
-        :"";
-    root.appendChild(note);
+    const ordersResult=await safeTable("orders","created_at");
+    const orders=Array.isArray(ordersResult.data)?ordersResult.data:[];
+    const customers=authCustomers.map(c=>({...c,_source:"auth",_orders:[]}));
+    const byEmail=new Map(),byId=new Map();
+    const emailOf=row=>String(getValue(row,"email","customer_email","user_email")).trim().toLowerCase();
+    customers.forEach(c=>{
+      const email=emailOf(c),id=String(getValue(c,"auth_user_id","id","user_id")).trim();
+      if(email&&!byEmail.has(email))byEmail.set(email,c);
+      if(id&&!byId.has(id))byId.set(id,c);
+    });
+    orders.forEach(o=>{
+      const email=emailOf(o),id=String(getValue(o,"user_id","customer_id","user_uuid")).trim();
+      let customer=(id&&byId.get(id))||(email&&byEmail.get(email));
+      if(!customer){
+        const key=email||("order-customer:"+(id||String(getValue(o,"customer_name","full_name","name")||"guest").toLowerCase()));
+        customer=byEmail.get(key);
+        if(!customer){
+          customer={
+            id:id||key,full_name:getValue(o,"customer_name","full_name","name")||"Guest customer",
+            email:email||"",phone:getValue(o,"customer_phone","phone","mobile")||"",
+            shipping_city:getValue(o,"shipping_city","city")||"",shipping_state:getValue(o,"shipping_state","state")||"",
+            created_at:getValue(o,"created_at","order_date"),_source:"orders",_orders:[]
+          };
+          customers.push(customer);
+          if(email)byEmail.set(email,customer);
+          if(id)byId.set(id,customer);
+        }
+      }
+      customer._orders.push(o);
+      if(!customer.phone)customer.phone=getValue(o,"customer_phone","phone","mobile")||"";
+      if(!customer.shipping_city)customer.shipping_city=getValue(o,"shipping_city","city")||"";
+      if(!customer.shipping_state)customer.shipping_state=getValue(o,"shipping_state","state")||"";
+      if(!customer.email&&email)customer.email=email;
+      if((!customer.full_name||customer.full_name==="Customer")&&getValue(o,"customer_name","full_name","name"))customer.full_name=getValue(o,"customer_name","full_name","name");
+    });
+    customers.forEach(c=>{c._orders.sort((a,b)=>new Date(getValue(b,"created_at","order_date")||0)-new Date(getValue(a,"created_at","order_date")||0));});
+    state.customers=customers.sort((a,b)=>{
+      const ad=new Date(a._orders?.[0]?.created_at||a.created_at||0).getTime()||0;
+      const bd=new Date(b._orders?.[0]?.created_at||b.created_at||0).getTime()||0;
+      return bd-ad;
+    });
+    if($("statCustomers"))$("statCustomers").textContent=state.customers.length;
+    renderCustomers();
+    if(root&&ordersResult.error){
+      const note=document.createElement("p");note.className="muted";note.style.cssText="padding:0 14px 12px;margin:0;font-size:12px";
+      note.textContent="Registered accounts loaded; order history could not be loaded: "+normalizeError(ordersResult.error);
+      root.appendChild(note);
+    }
+  }catch(e){
+    console.error("BULKKOT customer load failed:",e);
+    if(root)root.innerHTML='<div style="padding:20px;color:#ff9298">Could not load registered customers.<div class="muted" style="margin-top:6px">'+esc(normalizeError(e))+'</div><button class="btn" style="margin-top:12px" onclick="loadCustomers()">Retry</button></div>';
   }
 }
 function renderCustomers(){
